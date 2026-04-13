@@ -1,0 +1,871 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <title>Cannons & Coastlines | A Tabletop Naval Conquest Game</title>
+    <meta name="description" content="A physical tabletop game for 2–20 players where rival fleets battle across an open sea. 3D printable, cannon-powered combat meets strategic island conquest.">
+    <!-- Open Graph -->
+    <meta property="og:title" content="Cannons & Coastlines | A Tabletop Naval Conquest Game">
+    <meta property="og:description" content="A physical tabletop game for 2–20 players where rival fleets battle across an open sea. 3D printable, cannon-powered combat meets strategic island conquest.">
+    <meta property="og:image" content="https://joshthederf.github.io/cannons-and-coastlines/assets/images/logo-with-wordmark.png">
+    <meta property="og:url" content="https://joshthederf.github.io/cannons-and-coastlines/">
+    <meta property="og:type" content="website">
+    <meta name="twitter:card" content="summary_large_image">
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="assets/images/icon.png">
+    <link rel="apple-touch-icon" href="assets/images/icon.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <!-- CSS (loaded in order for cascade) -->
+    <link rel="stylesheet" href="css/variables.css">
+    <link rel="stylesheet" href="css/base.css">
+    <link rel="stylesheet" href="css/navigation.css">
+    <link rel="stylesheet" href="css/hero.css">
+    <link rel="stylesheet" href="css/components.css">
+    <link rel="stylesheet" href="css/sections.css">
+    <link rel="stylesheet" href="css/footer.css">
+    <link rel="stylesheet" href="css/responsive.css">
+    <script src="https://unpkg.com/lucide@1.8.0" defer></script>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="nav">
+        <div class="nav-container">
+            <a href="#" class="logo">
+                <img src="assets/images/logo-with-wordmark.png" alt="Cannons & Coastlines" class="logo-full">
+            </a>
+            <ul class="nav-links">
+                <li><a href="#features">Features</a></li>
+                <li><a href="#factions">Factions</a></li>
+                <li><a href="#how-to-play">How to Play</a></li>
+                <li><a href="#playtesting">Playtesting</a></li>
+                <li><a href="#downloads">Downloads</a></li>
+                <li><a href="#shop">Shop</a></li>
+            </ul>
+            <button class="nav-toggle" aria-label="Toggle navigation" aria-expanded="false">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+        </div>
+    </nav>
+    <div class="nav-overlay" aria-hidden="true"></div>
+
+    <!-- Hero Section -->
+    <header class="hero">
+        <div class="hero-bg">
+            <svg class="hero-scene" viewBox="0 0 1440 600" preserveAspectRatio="xMidYMax slice" aria-hidden="true">
+                <defs>
+                    <!-- Ocean gradient -->
+                    <linearGradient id="ocean" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stop-color="#5a8a9a"/>
+                        <stop offset="40%" stop-color="#4a7a8a"/>
+                        <stop offset="100%" stop-color="#3a6575"/>
+                    </linearGradient>
+                    <!-- Island gradient -->
+                    <linearGradient id="islandFill" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stop-color="#5a7a5a"/>
+                        <stop offset="100%" stop-color="#4a6a4a"/>
+                    </linearGradient>
+                    <!-- Fog/atmosphere -->
+                    <linearGradient id="fog" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stop-color="#7a9c9a" stop-opacity="0.5"/>
+                        <stop offset="100%" stop-color="#7a9c9a" stop-opacity="0"/>
+                    </linearGradient>
+                </defs>
+
+                <!-- Sky/ocean base -->
+                <rect width="1440" height="600" fill="url(#ocean)"/>
+
+                <!-- Distant clouds -->
+                <g class="hero-clouds" opacity="0.15">
+                    <ellipse cx="200" cy="180" rx="120" ry="25" fill="#c8d8d8"/>
+                    <ellipse cx="250" cy="175" rx="80" ry="20" fill="#d0e0e0"/>
+                    <ellipse cx="900" cy="150" rx="140" ry="22" fill="#c8d8d8"/>
+                    <ellipse cx="960" cy="145" rx="90" ry="18" fill="#d0e0e0"/>
+                    <ellipse cx="1300" cy="190" rx="100" ry="20" fill="#c8d8d8"/>
+                </g>
+
+                <!-- Far island (left) -->
+                <g class="hero-island hero-island--far" opacity="0.45">
+                    <path d="M60 440 Q100 380 160 400 Q200 370 250 395 Q280 365 320 390 Q350 410 360 440 Z" fill="#4a6a5a"/>
+                    <!-- Trees -->
+                    <line x1="155" y1="398" x2="155" y2="375" stroke="#3a5a3a" stroke-width="3"/>
+                    <ellipse cx="155" cy="370" rx="12" ry="18" fill="#3a5a3a"/>
+                    <line x1="260" y1="392" x2="260" y2="372" stroke="#3a5a3a" stroke-width="2.5"/>
+                    <ellipse cx="260" cy="368" rx="10" ry="15" fill="#3a5a3a"/>
+                </g>
+
+                <!-- Far island (right) -->
+                <g class="hero-island hero-island--far" opacity="0.4">
+                    <path d="M1080 430 Q1120 385 1170 405 Q1210 375 1260 400 Q1300 390 1340 420 Q1360 435 1370 445 Z" fill="#4a6a5a"/>
+                    <line x1="1175" y1="402" x2="1175" y2="378" stroke="#3a5a3a" stroke-width="3"/>
+                    <ellipse cx="1175" cy="373" rx="13" ry="18" fill="#3a5a3a"/>
+                    <line x1="1270" y1="398" x2="1270" y2="380" stroke="#3a5a3a" stroke-width="2"/>
+                    <ellipse cx="1270" cy="376" rx="9" ry="13" fill="#3a5a3a"/>
+                </g>
+
+                <!-- Mid island (center-right) with flag -->
+                <g class="hero-island hero-island--mid" opacity="0.55">
+                    <path d="M750 460 Q800 410 860 430 Q910 395 970 420 Q1010 405 1040 435 Q1060 450 1065 465 Z" fill="url(#islandFill)"/>
+                    <!-- Rocky detail -->
+                    <path d="M810 445 Q830 425 870 435" stroke="#3a5a3a" stroke-width="1.5" fill="none" opacity="0.5"/>
+                    <!-- Trees -->
+                    <line x1="870" y1="428" x2="870" y2="395" stroke="#4a5a4a" stroke-width="4"/>
+                    <ellipse cx="870" cy="388" rx="16" ry="22" fill="#3a5a3a"/>
+                    <ellipse cx="870" cy="393" rx="14" ry="18" fill="#4a6a4a"/>
+                    <line x1="970" y1="418" x2="970" y2="392" stroke="#4a5a4a" stroke-width="3"/>
+                    <ellipse cx="970" cy="387" rx="12" ry="16" fill="#3a5a3a"/>
+                    <!-- Flag -->
+                    <line x1="920" y1="430" x2="920" y2="385" stroke="#5c4033" stroke-width="2.5"/>
+                    <path d="M920 385 L945 392 L920 400 Z" fill="#c44" opacity="0.8"/>
+                </g>
+
+                <!-- Near island (left) -->
+                <g class="hero-island hero-island--near" opacity="0.6">
+                    <path d="M280 490 Q330 440 390 460 Q430 425 490 450 Q530 435 570 460 Q590 475 600 495 Z" fill="url(#islandFill)"/>
+                    <path d="M340 478 Q370 455 420 465" stroke="#3a5a3a" stroke-width="1.5" fill="none" opacity="0.5"/>
+                    <!-- Palm trees -->
+                    <line x1="400" y1="458" x2="395" y2="418" stroke="#5a4a3a" stroke-width="3.5"/>
+                    <path d="M395 418 Q375 410 365 420" stroke="#3a6a3a" stroke-width="3" fill="none"/>
+                    <path d="M395 418 Q410 405 425 412" stroke="#3a6a3a" stroke-width="3" fill="none"/>
+                    <path d="M395 418 Q385 400 378 408" stroke="#4a7a4a" stroke-width="2.5" fill="none"/>
+                    <path d="M395 418 Q405 402 415 407" stroke="#4a7a4a" stroke-width="2.5" fill="none"/>
+                    <line x1="500" y1="448" x2="497" y2="415" stroke="#5a4a3a" stroke-width="3"/>
+                    <path d="M497 415 Q480 408 472 418" stroke="#3a6a3a" stroke-width="2.5" fill="none"/>
+                    <path d="M497 415 Q510 405 520 412" stroke="#3a6a3a" stroke-width="2.5" fill="none"/>
+                    <path d="M497 415 Q488 400 482 408" stroke="#4a7a4a" stroke-width="2" fill="none"/>
+                </g>
+
+                <!-- Ship 1 (left, sailing right) - Frigate -->
+                <g class="hero-ship hero-ship--1">
+                    <g transform="translate(250, 470)">
+                        <!-- Water reflection -->
+                        <ellipse cx="50" cy="24" rx="42" ry="4" fill="#3a5a5a" opacity="0.15"/>
+                        <!-- Hull with integrated raised stern -->
+                        <path d="M-4 -5 L8 -5 L15 -2 L85 -2 Q100 0 105 6 L100 16 L88 22 L8 22 L-2 18 L-4 14 Z" fill="#5c4033"/>
+                        <!-- Quarterdeck line -->
+                        <path d="M15 -2 L15 2" stroke="#4a3425" stroke-width="1" opacity="0.5" fill="none"/>
+                        <!-- Hull planking -->
+                        <path d="M8 10 L92 8" stroke="#4a3425" stroke-width="0.8" opacity="0.6"/>
+                        <path d="M5 14 L95 12" stroke="#4a3425" stroke-width="0.8" opacity="0.5"/>
+                        <!-- Gunport stripe -->
+                        <path d="M15 8 L88 6" stroke="#d4a94a" stroke-width="1.5" opacity="0.5"/>
+                        <!-- Gunports -->
+                        <rect x="22" y="6" width="3" height="3" rx="0.5" fill="#2a1d15" opacity="0.7"/>
+                        <rect x="34" y="5.5" width="3" height="3" rx="0.5" fill="#2a1d15" opacity="0.7"/>
+                        <rect x="46" y="5" width="3" height="3" rx="0.5" fill="#2a1d15" opacity="0.7"/>
+                        <rect x="58" y="4.8" width="3" height="3" rx="0.5" fill="#2a1d15" opacity="0.7"/>
+                        <rect x="70" y="5" width="3" height="3" rx="0.5" fill="#2a1d15" opacity="0.7"/>
+                        <!-- Stern windows -->
+                        <circle cx="0" cy="4" r="1.2" fill="#d4a94a" opacity="0.5"/>
+                        <circle cx="5" cy="4" r="1.2" fill="#d4a94a" opacity="0.5"/>
+                        <!-- Bowsprit -->
+                        <line x1="95" y1="2" x2="118" y2="-8" stroke="#5c4033" stroke-width="1.5"/>
+                        <!-- Foremast -->
+                        <line x1="75" y1="-2" x2="75" y2="-42" stroke="#5c4033" stroke-width="2.5"/>
+                        <!-- Foresail -->
+                        <path d="M77 -40 Q98 -28 96 -6 L77 -4 Z" fill="#d4c4a8" opacity="0.85"/>
+                        <!-- Mainmast -->
+                        <line x1="45" y1="0" x2="45" y2="-52" stroke="#5c4033" stroke-width="3"/>
+                        <!-- Mainsail -->
+                        <path d="M47 -50 Q72 -35 70 -5 L47 -3 Z" fill="#d4c4a8" opacity="0.9"/>
+                        <!-- Crow's nest -->
+                        <rect x="42" y="-52" width="6" height="2" rx="1" fill="#5c4033"/>
+                        <!-- Mizzenmast -->
+                        <line x1="20" y1="2" x2="20" y2="-32" stroke="#5c4033" stroke-width="2"/>
+                        <!-- Mizzen sail -->
+                        <path d="M22 -30 Q36 -20 34 0 L22 2 Z" fill="#d4c4a8" opacity="0.8"/>
+                        <!-- Flag -->
+                        <path d="M45 -52 L45 -58" stroke="#5c4033" stroke-width="1"/>
+                        <path d="M45 -58 L55 -55 L45 -52 Z" fill="#c44" opacity="0.9"/>
+                    </g>
+                    <!-- Cannon fire from ship 1 midship (fires toward ship 2) -->
+                    <g class="hero-cannon-fire hero-cannon-fire--1" transform="translate(300, 476)">
+                        <!-- Muzzle flash -->
+                        <circle cx="0" cy="0" r="5" fill="#ffcc44"/>
+                        <circle cx="0" cy="0" r="8" fill="#ff9922" opacity="0.6"/>
+                        <!-- Smoke puff -->
+                        <circle class="cannon-smoke cannon-smoke--1a" cx="4" cy="-2" r="6" fill="#c8c0b0"/>
+                        <circle class="cannon-smoke cannon-smoke--1b" cx="8" cy="-4" r="8" fill="#b8b0a0"/>
+                        <circle class="cannon-smoke cannon-smoke--1c" cx="14" cy="-6" r="10" fill="#a8a090"/>
+                        <!-- Cannonball -->
+                        <circle class="cannonball cannonball--1" cx="3" cy="0" r="2.5" fill="#2a1d15"/>
+                    </g>
+                </g>
+
+                <!-- Ship 2 (right, sailing left) - Galleon -->
+                <g class="hero-ship hero-ship--2">
+                    <g transform="translate(1050, 478) scale(-1,1)">
+                        <!-- Water reflection -->
+                        <ellipse cx="45" cy="22" rx="38" ry="3.5" fill="#3a5a5a" opacity="0.12"/>
+                        <!-- Hull with integrated raised stern (galleons had tall sterns) -->
+                        <path d="M-6 -8 L6 -8 L14 -2 L75 -2 Q88 0 92 5 L88 14 L78 20 L6 20 L-2 16 L-6 12 Z" fill="#5c4033"/>
+                        <!-- Quarterdeck line -->
+                        <path d="M14 -2 L14 2" stroke="#4a3425" stroke-width="1" opacity="0.5" fill="none"/>
+                        <!-- Hull planking -->
+                        <path d="M8 8 L82 6" stroke="#4a3425" stroke-width="0.7" opacity="0.55"/>
+                        <path d="M5 12 L85 10" stroke="#4a3425" stroke-width="0.7" opacity="0.45"/>
+                        <!-- Gunport stripe -->
+                        <path d="M14 6 L78 4" stroke="#d4a94a" stroke-width="1.2" opacity="0.45"/>
+                        <!-- Gunports -->
+                        <rect x="20" y="4.5" width="2.5" height="2.5" rx="0.5" fill="#2a1d15" opacity="0.65"/>
+                        <rect x="32" y="4" width="2.5" height="2.5" rx="0.5" fill="#2a1d15" opacity="0.65"/>
+                        <rect x="44" y="3.5" width="2.5" height="2.5" rx="0.5" fill="#2a1d15" opacity="0.65"/>
+                        <rect x="56" y="3.5" width="2.5" height="2.5" rx="0.5" fill="#2a1d15" opacity="0.65"/>
+                        <!-- Stern windows -->
+                        <circle cx="-2" cy="2" r="1" fill="#d4a94a" opacity="0.45"/>
+                        <circle cx="3" cy="2" r="1" fill="#d4a94a" opacity="0.45"/>
+                        <!-- Bowsprit -->
+                        <line x1="82" y1="0" x2="102" y2="-7" stroke="#5c4033" stroke-width="1.5"/>
+                        <!-- Foremast -->
+                        <line x1="65" y1="-1" x2="65" y2="-38" stroke="#5c4033" stroke-width="2.5"/>
+                        <path d="M67 -36 Q84 -25 82 -5 L67 -3 Z" fill="#d4c4a8" opacity="0.82"/>
+                        <!-- Mainmast -->
+                        <line x1="40" y1="0" x2="40" y2="-46" stroke="#5c4033" stroke-width="2.5"/>
+                        <path d="M42 -44 Q62 -32 60 -4 L42 -2 Z" fill="#d4c4a8" opacity="0.85"/>
+                        <!-- Crow's nest -->
+                        <rect x="37" y="-46" width="6" height="2" rx="1" fill="#5c4033"/>
+                        <!-- Mizzenmast -->
+                        <line x1="18" y1="2" x2="18" y2="-28" stroke="#5c4033" stroke-width="2"/>
+                        <path d="M20 -26 Q32 -18 30 0 L20 2 Z" fill="#d4c4a8" opacity="0.75"/>
+                        <!-- Flag -->
+                        <path d="M40 -46 L40 -52" stroke="#5c4033" stroke-width="1"/>
+                        <path d="M40 -52 L50 -49 L40 -46 Z" fill="#2255aa" opacity="0.85"/>
+                    </g>
+                    <!-- Cannon fire from ship 2 midship (fires toward ship 1) -->
+                    <g class="hero-cannon-fire hero-cannon-fire--2" transform="translate(1005, 482)">
+                        <!-- Muzzle flash -->
+                        <circle cx="0" cy="0" r="4.5" fill="#ffcc44"/>
+                        <circle cx="0" cy="0" r="7" fill="#ff9922" opacity="0.6"/>
+                        <!-- Smoke puff -->
+                        <circle class="cannon-smoke cannon-smoke--2a" cx="-4" cy="-2" r="5.5" fill="#c8c0b0"/>
+                        <circle class="cannon-smoke cannon-smoke--2b" cx="-8" cy="-4" r="7" fill="#b8b0a0"/>
+                        <circle class="cannon-smoke cannon-smoke--2c" cx="-14" cy="-5" r="9" fill="#a8a090"/>
+                        <!-- Cannonball -->
+                        <circle class="cannonball cannonball--2" cx="-3" cy="0" r="2.5" fill="#2a1d15"/>
+                    </g>
+                </g>
+
+                <!-- Ship 3 (far, small, center) - Sloop -->
+                <g class="hero-ship hero-ship--3" opacity="0.55">
+                    <g transform="translate(680, 450)">
+                        <!-- Hull -->
+                        <path d="M-2 7 Q1 1 10 -1 L32 -1 Q38 1 39 5 L37 8 L34 10 L2 10 Z" fill="#5c4033"/>
+                        <!-- Gunport line -->
+                        <path d="M5 4 L34 3" stroke="#d4a94a" stroke-width="0.6" opacity="0.7"/>
+                        <!-- Bowsprit -->
+                        <line x1="34" y1="0" x2="44" y2="-4" stroke="#5c4033" stroke-width="1"/>
+                        <!-- Mast -->
+                        <line x1="20" y1="0" x2="20" y2="-22" stroke="#5c4033" stroke-width="1.8"/>
+                        <!-- Sail -->
+                        <path d="M22 -20 Q34 -13 33 -1 L22 0 Z" fill="#d4c4a8" opacity="0.9"/>
+                        <!-- Jib -->
+                        <path d="M22 -18 L38 -2 L22 -1 Z" fill="#d4c4a8" opacity="0.75"/>
+                        <!-- Flag -->
+                        <path d="M20 -22 L20 -26" stroke="#5c4033" stroke-width="0.8"/>
+                        <path d="M20 -26 L26 -24 L20 -22 Z" fill="#c44" opacity="0.8"/>
+                    </g>
+                </g>
+
+                <!-- Water splash near ship 2 (cannonball from ship 1 landing) -->
+                <g class="hero-splash hero-splash--1" transform="translate(980, 485)">
+                    <path d="M0 0 Q-3 -12 -1 -18" stroke="#d0e8f0" stroke-width="2" fill="none"/>
+                    <path d="M0 0 Q2 -14 5 -16" stroke="#d0e8f0" stroke-width="1.5" fill="none"/>
+                    <path d="M0 0 Q-5 -8 -7 -12" stroke="#d0e8f0" stroke-width="1.2" fill="none"/>
+                    <ellipse cx="0" cy="2" rx="10" ry="3" fill="#b8dce8" opacity="0.4"/>
+                </g>
+
+                <!-- Water splash near ship 1 (cannonball from ship 2 landing) -->
+                <g class="hero-splash hero-splash--2" transform="translate(420, 478)">
+                    <path d="M0 0 Q3 -10 1 -15" stroke="#d0e8f0" stroke-width="1.5" fill="none"/>
+                    <path d="M0 0 Q-2 -12 -4 -14" stroke="#d0e8f0" stroke-width="1.2" fill="none"/>
+                    <path d="M0 0 Q5 -7 6 -10" stroke="#d0e8f0" stroke-width="1" fill="none"/>
+                    <ellipse cx="0" cy="2" rx="8" ry="2.5" fill="#b8dce8" opacity="0.35"/>
+                </g>
+
+                <!-- Wave layers (back to front) -->
+                <g class="hero-waves">
+                    <path class="hero-wave hero-wave--4" d="M-200 520 Q-100 505 0 515 Q100 525 200 512 Q300 500 400 514 Q500 528 600 515 Q700 502 800 516 Q900 530 1000 516 Q1100 502 1200 518 Q1300 530 1440 515 Q1540 502 1640 518 L1640 600 L-200 600 Z" fill="#4a7a6a" opacity="0.25"/>
+                    <path class="hero-wave hero-wave--3" d="M-200 535 Q-100 522 0 532 Q100 542 200 528 Q300 515 400 530 Q500 544 600 530 Q700 516 800 532 Q900 546 1000 530 Q1100 516 1200 533 Q1300 546 1440 530 Q1540 516 1640 533 L1640 600 L-200 600 Z" fill="#5a8a7a" opacity="0.3"/>
+                    <path class="hero-wave hero-wave--2" d="M-200 550 Q-100 540 0 548 Q100 556 200 545 Q300 534 400 548 Q500 560 600 547 Q700 534 800 549 Q900 562 1000 548 Q1100 534 1200 550 Q1300 563 1440 548 Q1540 534 1640 550 L1640 600 L-200 600 Z" fill="#6a9a8a" opacity="0.35"/>
+                    <path class="hero-wave hero-wave--1" d="M-200 565 Q-100 555 0 563 Q100 571 200 560 Q300 550 400 563 Q500 576 600 562 Q700 550 800 564 Q900 578 1000 562 Q1100 550 1200 565 Q1300 578 1440 563 Q1540 550 1640 565 L1640 600 L-200 600 Z" style="fill: var(--color-bg-dark)" opacity="0.5"/>
+                </g>
+
+                <!-- Atmospheric fog at bottom -->
+                <rect y="560" width="1440" height="40" fill="url(#fog)" opacity="0.3"/>
+            </svg>
+        </div>
+        <div class="hero-content">
+            <p class="hero-tagline">A Tabletop Naval Conquest Game</p>
+            <img src="assets/images/wordmark.png" alt="Cannons & Coastlines" class="hero-wordmark">
+            <p class="hero-subtitle">2–20 players • 30–90 minutes • Age 12+</p>
+            <p class="hero-description">Command your fleet across the open sea. Fire real cannons. Capture islands. Plunder treasure. Dominate the waves.</p>
+            <div class="hero-actions">
+                <a href="#downloads" class="btn btn-primary">
+                    <i data-lucide="download"></i>
+                    Download Free
+                </a>
+                <a href="#how-to-play" class="btn btn-secondary">Learn to Play</a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Development Notice -->
+    <section class="dev-notice">
+        <div class="container">
+            <div class="dev-notice-content">
+                <div class="dev-notice-icon">
+                    <i data-lucide="info"></i>
+                </div>
+                <div class="dev-notice-text">
+                    <p><strong>Development Notice:</strong> This game is in the early phases of development. Rules, factions, and balance are subject to change. Preview images are concept art only and are AI generated.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section id="features" class="features">
+        <div class="container">
+            <div class="section-header">
+                <h2>What Makes It Different</h2>
+                <p>No dice, no grid. You physically move your ships, aim your cannons, and fire them yourself.</p>
+            </div>
+            <div class="features-grid">
+                <div class="feature">
+                    <div class="feature-icon">
+                        <i data-lucide="move"></i>
+                    </div>
+                    <h3>Free Movement</h3>
+                    <p>Ships roll on built-in wheels. No grid, no spaces, just push your ship across the table. Positioning is everything.</p>
+                </div>
+                <div class="feature">
+                    <div class="feature-icon">
+                        <i data-lucide="crosshair"></i>
+                    </div>
+                    <h3>Cannons</h3>
+                    <p>3D-printed snap cannons that actually fire across the table. Get good at aiming and you'll win more fights.</p>
+                </div>
+                <div class="feature">
+                    <div class="feature-icon">
+                        <i data-lucide="map"></i>
+                    </div>
+                    <h3>Capture Islands</h3>
+                    <p>Plant your flag on islands to claim them. Captured islands generate treasure coins and can be used as gun emplacements.</p>
+                </div>
+                <div class="feature">
+                    <div class="feature-icon">
+                        <i data-lucide="coins"></i>
+                    </div>
+                    <h3>Coin Economy</h3>
+                    <p>Spend treasure coins during your turn for an edge. Full sail for extra speed, repairs to stay afloat, or boarding actions to steal enemy ships.</p>
+                </div>
+                <div class="feature">
+                    <div class="feature-icon">
+                        <i data-lucide="box"></i>
+                    </div>
+                    <h3>Fully 3D Printable</h3>
+                    <p>Every component is 3D printable. Ships, cannons, islands, cannonballs. Print your own complete game for free.</p>
+                </div>
+                <div class="feature">
+                    <div class="feature-icon">
+                        <i data-lucide="users"></i>
+                    </div>
+                    <h3>2–20 Players</h3>
+                    <p>Works as a 1v1 duel or a massive free-for-all. Default mode plays 2–6, Group mode handles up to 20.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Factions Section -->
+    <section id="factions" class="factions">
+        <div class="container">
+            <div class="section-header">
+                <h2>Choose Your Fleet</h2>
+                <p>Each faction plays differently. Pick one that fits your style.</p>
+            </div>
+            <div class="factions-grid">
+                <div class="faction-card">
+                    <div class="faction-badge">Base Game</div>
+                    <div class="faction-header">
+                        <img src="assets/ships/ship-preview-queen-fleet-large.png" alt="Queen's Fleet">
+                    </div>
+                    <h3>Queen's Fleet</h3>
+                    <p class="faction-tagline">The Well-Rounded Standard</p>
+                    <div class="faction-stats">
+                        <span>3 Frigates</span>
+                        <span>4 HP each</span>
+                        <span>4 Cannon Slots</span>
+                    </div>
+                    <p class="faction-desc">Disciplined crews allow 180° pivots. A good pick if you're just learning the game.</p>
+                    <div class="faction-price">Included in Base Game</div>
+                </div>
+
+                <div class="faction-card">
+                    <div class="faction-badge">Base Game</div>
+                    <div class="faction-header">
+                        <img src="assets/ships/ship-preview-coarsairs.png" alt="Corsairs">
+                    </div>
+                    <h3>Corsairs</h3>
+                    <p class="faction-tagline">Fast and Fragile Raiders</p>
+                    <div class="faction-stats">
+                        <span>4 Sloops</span>
+                        <span>3 HP each</span>
+                        <span>3 Cannon Slots</span>
+                    </div>
+                    <p class="faction-desc">Hit-and-run specialists with double movement. Draw extra coins when boarding or capturing.</p>
+                    <div class="faction-price">Included in Base Game</div>
+                </div>
+
+                <div class="faction-card addon">
+                    <div class="faction-badge">Add-On</div>
+                    <div class="faction-header">
+                        <img src="assets/ships/ship-preview-treasure-fleet.png" alt="Treasure Fleet">
+                    </div>
+                    <h3>Treasure Fleet</h3>
+                    <p class="faction-tagline">Economic Powerhouse</p>
+                    <div class="faction-stats">
+                        <span>2 Large Junks</span>
+                        <span>3 HP each</span>
+                        <span>4 Cannon Slots</span>
+                    </div>
+                    <p class="faction-desc">Fewer ships but superior income. Draw double coins from every captured island.</p>
+                    <div class="faction-price">Under development - Pricing TBD</div>
+                </div>
+
+                <div class="faction-card addon">
+                    <div class="faction-badge">Add-On</div>
+                    <div class="faction-header">
+                        <img src="assets/ships/ship-preview-sun-fleet.png" alt="Sun Fleet">
+                    </div>
+                    <h3>Sun Fleet</h3>
+                    <p class="faction-tagline">Stone and Sturdy</p>
+                    <div class="faction-stats">
+                        <span>3 Temple Barges</span>
+                        <span>3-5 HP</span>
+                        <span>4 Cannon Slots</span>
+                    </div>
+                    <p class="faction-desc">Carved stone ships shrug off the first hit each turn. Slow but brutally durable.</p>
+                    <div class="faction-price">Under development - Pricing TBD</div>
+                </div>
+
+                <div class="faction-card addon">
+                    <div class="faction-badge">Add-On</div>
+                    <div class="faction-header">
+                        <img src="assets/ships/ship-preview-shadow-fleet.png" alt="Shadow Fleet">
+                    </div>
+                    <h3>Shadow Fleet</h3>
+                    <p class="faction-tagline">The Ghost Ships</p>
+                    <div class="faction-stats">
+                        <span>3 Galleons</span>
+                        <span>3 HP each</span>
+                        <span>3 Cannon Slots</span>
+                    </div>
+                    <p class="faction-desc">Fragile but relentless. Return destroyed ships from the deep by spending coins at controlled islands.</p>
+                    <div class="faction-price">Under development - Pricing TBD</div>
+                </div>
+
+                <div class="faction-card addon">
+                    <div class="faction-badge">Add-On</div>
+                    <div class="faction-header">
+                        <img src="assets/ships/ship-preview-industry.png" alt="The Industry">
+                    </div>
+                    <h3>The Industry</h3>
+                    <p class="faction-tagline">Steam and Iron</p>
+                    <div class="faction-stats">
+                        <span>3 Paddle Warships</span>
+                        <span>4 HP each</span>
+                        <span>1 Cannon Slot</span>
+                    </div>
+                    <p class="faction-desc">Forward-only cannons but relentless mechanical propulsion. Line up the perfect head-on shot.</p>
+                    <div class="faction-price">Under development - Pricing TBD</div>
+                </div>
+
+                <div class="faction-card addon">
+                    <div class="faction-badge">Add-On</div>
+                    <div class="faction-header">
+                        <img src="assets/ships/ship-preview-islanders.png" alt="The Islanders">
+                    </div>
+                    <h3>The Islanders</h3>
+                    <p class="faction-tagline">Native Defenders</p>
+                    <div class="faction-stats">
+                        <span>5 Outrigger Canoes</span>
+                        <span>2 HP each</span>
+                        <span>1 Cannon Slot</span>
+                    </div>
+                    <p class="faction-desc">Lightning-fast with rear-firing cannons. Start with one island already under your control.</p>
+                    <div class="faction-price">Under development - Pricing TBD</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Playtesting Section -->
+    <section id="playtesting" class="playtesting">
+        <div class="container">
+            <div class="section-header">
+                <h2>First Round Playtesting</h2>
+                <p>See the game in action. Footage from our first playtest session.</p>
+            </div>
+            <div class="playtesting-grid">
+                <div class="playtesting-media video">
+                    <video controls loop playsinline preload="none">
+                        <source src="assets/playtesting/video1.mp4" type="video/mp4">
+                        Your browser does not support the video tag.
+                    </video>
+                </div>
+                <div class="playtesting-media video">
+                    <video controls loop playsinline preload="none">
+                        <source src="assets/playtesting/video2.mp4" type="video/mp4">
+                        Your browser does not support the video tag.
+                    </video>
+                </div>
+                <div class="playtesting-media video">
+                    <video controls loop playsinline preload="none">
+                        <source src="assets/playtesting/video3.mp4" type="video/mp4">
+                        Your browser does not support the video tag.
+                    </video>
+                </div>
+                <div class="playtesting-media photo">
+                    <img src="assets/playtesting/photo1.jpg" alt="Playtesting photo">
+                </div>
+            </div>
+            <div class="playtesting-changelog">
+                <h3>Changes After First Playtest</h3>
+                <ul>
+                    <li>Swapped out inaccurate and difficult to use catapults for a pressure-based snap cannon design</li>
+                    <li>Standardized on a smaller movement wheel and moved it to the rudder position, changing movement rules in the process</li>
+                    <li>Reduced ship height (the movement wheel required oddly tall ships)</li>
+                </ul>
+            </div>
+        </div>
+    </section>
+
+    <!-- How to Play Section -->
+    <section id="how-to-play" class="how-to-play">
+        <div class="container">
+            <div class="section-header">
+                <h2>How to Play</h2>
+                <p>Simple enough to pick up quickly, but there's a lot of room to get better.</p>
+            </div>
+            <div class="steps">
+                <div class="step">
+                    <div class="step-number">1</div>
+                    <h3>Choose Your Faction</h3>
+                    <p>Pick a faction. Each one has different ships and abilities. Grab your fleet, a cannon, and some cannonballs.</p>
+                </div>
+                <div class="step">
+                    <div class="step-number">2</div>
+                    <h3>Map the Seas</h3>
+                    <p>Place islands in the center of the table. Deploy your fleet along your chosen edge. Fill the coin bag and prepare for battle.</p>
+                </div>
+                <div class="step">
+                    <div class="step-number">3</div>
+                    <h3>Take Command</h3>
+                    <p>On your turn, each ship takes ONE action: Move your ships, Fire your cannons, or Collect from a captured island.</p>
+                </div>
+                <div class="step">
+                    <div class="step-number">4</div>
+                    <h3>Spend Your Plunder</h3>
+                    <p>Coins buy you options: Full Sail for extra speed, Repair Crew to patch up damage, or Boarding Party to take an enemy ship.</p>
+                </div>
+                <div class="step">
+                    <div class="step-number">5</div>
+                    <h3>Claim Victory</h3>
+                    <p>Score points for surviving ships, captured islands, and hoarded coins. The highest score wins!</p>
+                </div>
+            </div>
+            <div class="victory-points">
+                <h3>Victory Points</h3>
+                <div class="vp-grid">
+                    <div class="vp-card">
+                        <span class="vp-value">3 pts</span>
+                        <span class="vp-label">Each surviving ship</span>
+                    </div>
+                    <div class="vp-card">
+                        <span class="vp-value">2 pts</span>
+                        <span class="vp-label">Each captured island</span>
+                    </div>
+                    <div class="vp-card">
+                        <span class="vp-value">1 pt</span>
+                        <span class="vp-label">Each coin in your hoard</span>
+                    </div>
+                    <div class="vp-card bonus">
+                        <span class="vp-value">+2 pts</span>
+                        <span class="vp-label">Be the player with the most ships, islands, or coins</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Downloads Section -->
+    <section id="downloads" class="downloads">
+        <div class="container">
+            <div class="section-header">
+                <h2>Free Downloads</h2>
+                <p>Print the whole game yourself, or download the rulebook to read before you play. Files and further information are available on <a href="https://github.com/JoshTheDerf/cannons-and-coastlines/tree/main" target="_blank" rel="noopener noreferrer">GitHub</a>.</p>
+            </div>
+            <div class="downloads-grid">
+                <div class="download-card">
+                    <div class="download-icon">
+                        <i data-lucide="package"></i>
+                    </div>
+                    <h3>Base Game Files</h3>
+                    <p>Complete 3D print files for Queen's Fleet and Corsairs. Includes ships, cannons, islands, and all components.</p>
+                    <ul class="download-includes">
+                        <li>2 Factions (7 ships total)</li>
+                        <li>Cannons & Cannonballs</li>
+                        <li>Islands & Terrain</li>
+                        <li>Coins, Flags, and Draw Bag pattern</li>
+                    </ul>
+                    <button class="btn btn-primary" disabled>
+                        <i data-lucide="download"></i>
+                        Download (ZIP)
+                    </button>
+                    <p class="coming-soon">Coming soon!</p>
+                </div>
+
+                <div class="download-card">
+                    <div class="download-icon">
+                        <i data-lucide="file-text"></i>
+                    </div>
+                    <h3>Rulebook</h3>
+                    <p>Full rules with diagrams and examples. Good as a reference at the table or to learn before your first game.</p>
+                    <ul class="download-includes">
+                        <li>Full rules reference</li>
+                        <li>Faction ability cards</li>
+                        <li>Coin action reference</li>
+                        <li>Quick start guide</li>
+                    </ul>
+                    <button class="btn btn-secondary" disabled>
+                        <i data-lucide="download"></i>
+                        Download PDF
+                    </button>
+                    <p class="coming-soon">Coming soon!</p>
+                </div>
+
+                <div class="download-card">
+                    <div class="download-icon">
+                        <i data-lucide="settings"></i>
+                    </div>
+                    <h3>Printing Guide</h3>
+                    <p>Print settings, material suggestions, and assembly tips so your pieces come out right.</p>
+                    <ul class="download-includes">
+                        <li>Optimal print settings</li>
+                        <li>Material recommendations</li>
+                        <li>Assembly instructions</li>
+                        <li>Troubleshooting tips</li>
+                    </ul>
+                    <button class="btn btn-secondary" disabled>
+                        <i data-lucide="download"></i>
+                        Download PDF
+                    </button>
+                    <p class="coming-soon">Coming soon!</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Shop Section -->
+    <section id="shop" class="shop">
+        <div class="container">
+            <div class="section-header">
+                <h2>Expand Your Fleet</h2>
+                <p>Add new factions to your game with individual faction packs.</p>
+            </div>
+            <div class="shop-grid">
+                <div class="product-card">
+                    <div class="product-image">
+                        <img src="assets/ships/ship-preview-sun-fleet-large.png" alt="Sun Fleet">
+                    </div>
+                    <div class="product-info">
+                        <h3>Sun Fleet Pack</h3>
+                        <p class="product-desc">Stone temple barges that shrug off the first hit each turn. Slow, but they can take a beating.</p>
+                        <div class="product-includes">
+                            <span>3 Ships</span>
+                            <span>1 Flag Color</span>
+                            <span>Cannonballs</span>
+                        </div>
+                        <div class="product-footer">
+                            <span class="product-price">Under development - Pricing TBD</span>
+                            <!-- <button class="btn btn-primary" onclick="alert('Sun Fleet will be available soon!')">Add to Cart</button> -->
+                        </div>
+                    </div>
+                </div>
+
+                <div class="product-card">
+                    <div class="product-image">
+                        <img src="assets/ships/ship-preview-shadow-fleet-large.png" alt="Shadow Fleet">
+                    </div>
+                    <div class="product-info">
+                        <h3>Shadow Fleet Pack</h3>
+                        <p class="product-desc">Spectral galleons that come back when sunk. Hard to kill for good.</p>
+                        <div class="product-includes">
+                            <span>3 Ships</span>
+                            <span>1 Flag Color</span>
+                            <span>Cannonballs</span>
+                        </div>
+                        <div class="product-footer">
+                            <span class="product-price">Under development - Pricing TBD</span>
+                            <!-- <button class="btn btn-primary" onclick="alert('Shadow Fleet will be available soon!')">Add to Cart</button> -->
+                        </div>
+                    </div>
+                </div>
+
+                <div class="product-card">
+                    <div class="product-image">
+                        <img src="assets/ships/ship-preview-industry-large.png" alt="The Industry">
+                    </div>
+                    <div class="product-info">
+                        <h3>Industry Pack</h3>
+                        <p class="product-desc">Steam paddle warships with forward-only cannons. They only fire forward, but they never stop moving.</p>
+                        <div class="product-includes">
+                            <span>3 Ships</span>
+                            <span>1 Flag Color</span>
+                            <span>Cannonballs</span>
+                        </div>
+                        <div class="product-footer">
+                            <span class="product-price">Under development - Pricing TBD</span>
+                            <!-- <button class="btn btn-primary" onclick="alert('The Industry will be available soon!')">Add to Cart</button> -->
+                        </div>
+                    </div>
+                </div>
+
+                <div class="product-card">
+                    <div class="product-image">
+                        <img src="assets/ships/ship-preview-islanders-large.png" alt="The Islanders">
+                    </div>
+                    <div class="product-info">
+                        <h3>Islanders Pack</h3>
+                        <p class="product-desc">Fast outrigger canoes that shoot behind them. You start with an island already claimed.</p>
+                        <div class="product-includes">
+                            <span>5 Ships</span>
+                            <span>1 Flag Color</span>
+                            <span>Cannonballs</span>
+                        </div>
+                        <div class="product-footer">
+                            <span class="product-price">Under development - Pricing TBD</span>
+                            <!-- <button class="btn btn-primary" onclick="alert('The Islanders will be available soon!')">Add to Cart</button> -->
+                        </div>
+                    </div>
+                </div>
+
+                <div class="product-card">
+                    <div class="product-image">
+                        <img src="assets/ships/ship-preview-treasure-fleet-large.png" alt="Treasure Fleet">
+                    </div>
+                    <div class="product-info">
+                        <h3>Treasure Fleet Pack</h3>
+                        <p class="product-desc">Only two ships, but captured islands pay out double. Win by outearning everyone else.</p>
+                        <div class="product-includes">
+                            <span>2 Ships</span>
+                            <span>1 Flag Color</span>
+                            <span>Cannonballs</span>
+                        </div>
+                        <div class="product-footer">
+                            <span class="product-price">Under development - Pricing TBD</span>
+                            <!-- <button class="btn btn-primary" onclick="alert('Treasure Fleet will be available soon!')">Add to Cart</button> -->
+                        </div>
+                    </div>
+                </div>
+
+                <div class="product-card featured">
+                    <div class="product-badge">Best Value</div>
+                    <div class="product-image" style="background: linear-gradient(135deg, var(--color-ocean), var(--color-primary));">
+                    </div>
+                    <div class="product-info">
+                        <h3>Complete Bundle</h3>
+                        <p class="product-desc">All five expansion factions in one package.</p>
+                        <div class="product-includes">
+                            <span>16 Ships</span>
+                            <span>5 Flag Colors</span>
+                            <span>All Cannonballs</span>
+                        </div>
+                        <div class="product-footer">
+                            <span class="product-price">Under development - Pricing TBD</span>
+                            <!-- <span class="product-savings">Save $5</span> -->
+                            <!-- <button class="btn btn-primary" onclick="alert('Complete bundle will be available soon!')">Add to Cart</button> -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Discord Section -->
+    <section class="discord">
+        <div class="container">
+            <div class="discord-content">
+                <div class="discord-text">
+                    <h2>Join the Fleet</h2>
+                    <p>Get notified when the game launches, when files become available, and help test out early versions.</p>
+                    <a href="https://discord.gg/DMuFEWJtZq" target="_blank" class="btn btn-primary">
+                        <i data-lucide="message-circle"></i>
+                        Join the Discord Community
+                    </a>
+                </div>
+                <div class="discord-qr">
+                    <img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=https://discord.gg/DMuFEWJtZq" alt="Discord Invite QR Code">
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-brand">
+                    <div class="logo">
+                        <img src="assets/images/logo-with-wordmark.png" alt="Cannons & Coastlines" class="logo-full">
+                    </div>
+                    <p>A tabletop naval conquest game for 2–20 players.</p>
+                </div>
+                <div class="footer-links">
+                    <div class="footer-column">
+                        <h4>Game</h4>
+                        <a href="#features">Features</a>
+                        <a href="#factions">Factions</a>
+                        <a href="#how-to-play">How to Play</a>
+                        <a href="#playtesting">Playtesting</a>
+                    </div>
+                    <div class="footer-column">
+                        <h4>Downloads</h4>
+                        <a href="#downloads">Base Game</a>
+                        <a href="#downloads">Rulebook</a>
+                        <a href="#downloads">Print Guide</a>
+                    </div>
+                    <div class="footer-column">
+                        <h4>Shop</h4>
+                        <a href="#shop">Faction Packs</a>
+                        <a href="#shop">Complete Bundle</a>
+                    </div>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; <span class="current-year">2026</span> Joshua Bemenderfer. Licensed under <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank" rel="noopener noreferrer">CC BY-NC-SA 4.0</a>.</p>
+                <div class="footer-social">
+                    <a href="#" aria-label="Discord">
+                        <i data-lucide="message-circle"></i>
+                    </a>
+                    <a href="#" aria-label="Twitter">
+                        <i data-lucide="twitter"></i>
+                    </a>
+                    <a href="https://github.com/JoshTheDerf/cannons-and-coastlines/tree/main" aria-label="GitHub" target="_blank" rel="noopener noreferrer">
+                        <i data-lucide="github"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script type="module" src="js/main.js"></script>
+</body>
+</html>

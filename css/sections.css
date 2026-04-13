@@ -1,0 +1,584 @@
+/* Features Section */
+
+.features {
+    background: var(--color-bg);
+}
+
+.features-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: var(--spacing-md);
+}
+
+.feature {
+    text-align: center;
+    padding: var(--spacing-md);
+}
+
+.feature-icon {
+    width: 80px;
+    height: 80px;
+    margin: 0 auto var(--spacing-sm);
+    background: var(--gradient-gold);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--color-white);
+    box-shadow: var(--shadow-gold);
+    border: 1px solid rgba(139, 101, 24, 0.5);
+}
+
+.feature-icon i {
+    width: 48px;
+    height: 48px;
+}
+
+.feature h3 {
+    font-family: var(--font-display);
+    font-size: 1.5rem;
+    color: var(--color-secondary);
+    margin-bottom: var(--spacing-xs);
+}
+
+.feature p {
+    color: var(--color-text-light);
+}
+
+/* Factions Section */
+
+.factions {
+    background: linear-gradient(180deg, var(--color-bg) 0%, var(--color-bg-dark) 100%);
+}
+
+.factions-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: var(--spacing-md);
+}
+
+.faction-card {
+    background: var(--color-white);
+    border-radius: var(--radius-lg);
+    padding: var(--spacing-md);
+    box-shadow: var(--shadow);
+    transition: transform 0.3s, box-shadow 0.3s;
+    position: relative;
+    overflow: hidden;
+    border: 2px solid transparent;
+    display: flex;
+    flex-direction: column;
+}
+
+.faction-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-lg);
+}
+
+.faction-card.addon {
+    border-color: var(--color-secondary);
+}
+
+.faction-badge {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    z-index: 2;
+}
+
+.faction-card.addon .faction-badge {
+    background: var(--gradient-gold-flat);
+    color: var(--color-white);
+    box-shadow: var(--shadow-gold);
+}
+
+.faction-card:not(.addon) .faction-badge {
+    background: var(--color-primary);
+    color: var(--color-white);
+}
+
+.faction-header {
+    position: relative;
+    width: 100%;
+    height: 140px;
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    margin-bottom: var(--spacing-sm);
+    background: linear-gradient(135deg, var(--color-ocean), var(--color-primary));
+}
+
+.faction-header img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.faction-card h3 {
+    font-family: var(--font-display);
+    font-size: 1.5rem;
+    color: var(--color-primary);
+    text-align: center;
+    margin-bottom: 0.25rem;
+}
+
+.faction-tagline {
+    text-align: center;
+    color: var(--color-text-light);
+    font-size: 0.9rem;
+    margin-bottom: var(--spacing-sm);
+    font-style: italic;
+}
+
+.faction-stats {
+    display: flex;
+    justify-content: center;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+    margin-bottom: var(--spacing-sm);
+}
+
+.faction-stats span {
+    padding: 4px 10px;
+    background: var(--color-bg);
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: var(--color-primary);
+}
+
+.faction-desc {
+    color: var(--color-text-light);
+    font-size: 0.95rem;
+    text-align: center;
+    margin-bottom: var(--spacing-sm);
+}
+
+.faction-price {
+    text-align: center;
+    font-weight: 600;
+    color: var(--color-secondary);
+}
+
+/* How to Play Section */
+
+.how-to-play {
+    background: var(--color-bg);
+}
+
+.steps {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: var(--spacing-md);
+    margin-bottom: var(--spacing-lg);
+}
+
+.step {
+    text-align: center;
+    position: relative;
+}
+
+.step-number {
+    width: 50px;
+    height: 50px;
+    margin: 0 auto var(--spacing-sm);
+    background: var(--gradient-gold);
+    color: var(--color-white);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--font-display);
+    font-size: 1.5rem;
+    font-weight: 700;
+    box-shadow: var(--shadow-gold);
+    border: 1px solid rgba(139, 101, 24, 0.5);
+}
+
+.step h3 {
+    font-family: var(--font-display);
+    font-size: 1.25rem;
+    color: var(--color-secondary);
+    margin-bottom: var(--spacing-xs);
+}
+
+.step p {
+    color: var(--color-text-light);
+    font-size: 0.95rem;
+}
+
+.victory-points {
+    background: var(--color-bg);
+    border-radius: var(--radius-lg);
+    padding: var(--spacing-md);
+    border: 1px solid var(--color-border);
+}
+
+.victory-points h3 {
+    font-family: var(--font-display);
+    font-size: 1.5rem;
+    color: var(--color-secondary);
+    text-align: center;
+    margin-bottom: var(--spacing-sm);
+}
+
+.vp-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: var(--spacing-sm);
+}
+
+.vp-card {
+    background: var(--color-white);
+    padding: var(--spacing-sm);
+    border-radius: var(--radius-md);
+    text-align: center;
+}
+
+.vp-card.bonus {
+    background: var(--gradient-gold);
+    color: var(--color-white);
+    box-shadow: var(--shadow-gold);
+}
+
+.vp-value {
+    display: block;
+    font-family: var(--font-display);
+    font-size: 1.75rem;
+    font-weight: 700;
+    margin-bottom: 0.25rem;
+}
+
+.vp-label {
+    font-size: 0.9rem;
+    opacity: 0.9;
+}
+
+/* Downloads Section */
+
+.downloads {
+    background: linear-gradient(180deg, var(--color-bg) 0%, var(--color-bg-dark) 100%);
+}
+
+.downloads-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: var(--spacing-md);
+}
+
+.download-card {
+    background: var(--color-white);
+    border-radius: var(--radius-lg);
+    padding: var(--spacing-md);
+    box-shadow: var(--shadow);
+    text-align: center;
+    transition: transform 0.3s, box-shadow 0.3s;
+}
+
+.download-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-lg);
+}
+
+.download-icon {
+    color: var(--color-secondary);
+    margin-bottom: var(--spacing-sm);
+}
+
+.download-icon i {
+    width: 64px;
+    height: 64px;
+}
+
+.download-card h3 {
+    font-family: var(--font-display);
+    font-size: 1.5rem;
+    color: var(--color-secondary);
+    margin-bottom: var(--spacing-xs);
+}
+
+.download-card p {
+    color: var(--color-text-light);
+    margin-bottom: var(--spacing-sm);
+}
+
+.download-includes {
+    list-style: none;
+    text-align: left;
+    margin-bottom: var(--spacing-sm);
+    padding-left: var(--spacing-sm);
+}
+
+.download-includes li {
+    padding: 4px 0;
+    color: var(--color-text-light);
+    font-size: 0.9rem;
+}
+
+.download-includes li::before {
+    content: '✓';
+    color: var(--color-secondary);
+    margin-right: 8px;
+    font-weight: bold;
+}
+
+.download-card .btn {
+    width: 100%;
+    justify-content: center;
+}
+
+/* Playtesting Section */
+
+.playtesting {
+    background: linear-gradient(180deg, var(--color-bg-dark) 0%, var(--color-bg) 100%);
+}
+
+.playtesting-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: var(--spacing-md);
+    max-width: 1000px;
+    margin: 0 auto;
+}
+
+.playtesting-media {
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    box-shadow: var(--shadow);
+    aspect-ratio: 9 / 16;
+    background: var(--color-ocean);
+    transition: transform 0.3s, box-shadow 0.3s;
+}
+
+.playtesting-media:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-lg);
+}
+
+.playtesting-media video,
+.playtesting-media img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.playtesting-media video {
+    background: var(--color-ocean);
+}
+
+.playtesting-changelog {
+    background: var(--color-white);
+    border-radius: var(--radius-lg);
+    padding: var(--spacing-md);
+    margin: var(--spacing-lg) 0 0 0;
+    box-shadow: var(--shadow);
+    border: 2px solid var(--color-secondary);
+}
+
+.playtesting-changelog h3 {
+    font-family: var(--font-display);
+    font-size: 1.25rem;
+    color: var(--color-secondary);
+    margin-bottom: var(--spacing-sm);
+}
+
+.playtesting-changelog ul {
+    list-style: none;
+    padding: 0;
+}
+
+.playtesting-changelog li {
+    padding: 0.5rem 0 0.5rem 1.5rem;
+    position: relative;
+    color: var(--color-text-light);
+}
+
+.playtesting-changelog li::before {
+    content: '→';
+    position: absolute;
+    left: 0;
+    color: var(--color-secondary);
+    font-weight: bold;
+}
+
+/* Shop Section */
+
+.shop {
+    background: var(--color-bg);
+}
+
+.shop-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: var(--spacing-md);
+}
+
+.product-card {
+    background: var(--color-white);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    box-shadow: var(--shadow);
+    transition: transform 0.3s, box-shadow 0.3s;
+    position: relative;
+}
+
+.product-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-lg);
+}
+
+.product-card.featured {
+    border: 2px solid var(--color-secondary);
+}
+
+.product-badge {
+    position: absolute;
+    top: 12px;
+    left: 12px;
+    background: var(--color-wood);
+    color: var(--color-white);
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    z-index: 1;
+}
+
+.product-image {
+    height: 160px;
+    background: linear-gradient(135deg, var(--color-ocean-light), var(--color-ocean));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+}
+
+.product-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.product-image::after {
+    content: '⛵';
+    font-size: 4rem;
+    opacity: 0.25;
+}
+
+.product-image:has(img)::after {
+    display: none;
+}
+
+.product-info {
+    padding: var(--spacing-md);
+}
+
+.product-info h3 {
+    font-family: var(--font-display);
+    font-size: 1.25rem;
+    color: var(--color-secondary);
+    margin-bottom: var(--spacing-xs);
+}
+
+.product-desc {
+    color: var(--color-text-light);
+    font-size: 0.9rem;
+    margin-bottom: var(--spacing-sm);
+}
+
+.product-includes {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    margin-bottom: var(--spacing-sm);
+}
+
+.product-includes span {
+    padding: 4px 10px;
+    background: var(--color-bg);
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: var(--color-primary);
+}
+
+.product-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--spacing-sm);
+}
+
+.product-price {
+    font-family: var(--font-display);
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--color-secondary);
+}
+
+.product-savings {
+    font-size: 0.85rem;
+    color: var(--color-secondary);
+    font-weight: 600;
+    margin-left: 0.25rem;
+}
+
+.product-footer .btn {
+    padding: 0.5rem 1rem;
+    font-size: 0.9rem;
+}
+
+/* Discord Section */
+
+.discord {
+    background: linear-gradient(135deg, var(--color-ocean-light) 0%, var(--color-ocean) 100%);
+    color: var(--color-white);
+    padding: var(--spacing-lg) 0;
+}
+
+.discord-content {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--spacing-lg);
+    max-width: 700px;
+    margin: 0 auto;
+}
+
+.discord-text {
+    flex: 1;
+    text-align: left;
+}
+
+.discord h2 {
+    font-family: var(--font-display);
+    font-size: 2rem;
+    margin-bottom: var(--spacing-xs);
+}
+
+.discord p {
+    color: rgba(245, 240, 232, 0.9);
+    margin-bottom: var(--spacing-md);
+}
+
+.discord-qr {
+    flex-shrink: 0;
+    background: var(--color-white);
+    padding: 1rem;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow);
+}
+
+.discord-qr img {
+    display: block;
+    width: 180px;
+    height: 180px;
+}

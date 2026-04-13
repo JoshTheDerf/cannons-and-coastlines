@@ -1,0 +1,131 @@
+/* Navigation */
+
+.nav {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 1000;
+    background: rgba(61, 43, 31, 0.98);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid rgba(173, 128, 37, 0.3);
+    transition: background 0.3s;
+}
+
+.nav.scrolled {
+    background: rgba(42, 29, 21, 0.98);
+}
+
+.nav-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 var(--spacing-sm);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 64px;
+}
+
+.logo {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--color-white);
+    text-decoration: none;
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: 1.2rem;
+}
+
+.logo-full {
+    height: 44px;
+    width: auto;
+    object-fit: contain;
+}
+
+.logo i,
+.logo-icon {
+    width: 32px;
+    height: 32px;
+}
+
+.logo svg,
+.logo i,
+.logo img {
+    color: var(--color-secondary-light);
+}
+
+.logo-icon {
+    width: 44px;
+    height: 44px;
+    object-fit: contain;
+}
+
+.nav-links {
+    display: flex;
+    list-style: none;
+    gap: 1.5rem;
+}
+
+.nav-links a {
+    color: var(--color-sand);
+    text-decoration: none;
+    font-weight: 500;
+    transition: color 0.2s;
+    font-size: 0.9rem;
+    padding: 0.5rem 0;
+    display: block;
+}
+
+.nav-links a:hover,
+.nav-links a.active {
+    color: var(--color-secondary-light);
+}
+
+.nav-toggle {
+    display: none;
+    flex-direction: column;
+    justify-content: center;
+    gap: 6px;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    padding: 8px;
+    width: 44px;
+    height: 44px;
+    border-radius: 8px;
+    transition: background 0.2s;
+}
+
+.nav-toggle:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.nav-toggle span {
+    display: block;
+    width: 24px;
+    height: 2px;
+    background: var(--color-secondary);
+    border-radius: 2px;
+    transition: transform 0.25s ease, opacity 0.25s ease;
+    transform-origin: center;
+}
+
+/* Mobile nav overlay */
+.nav-overlay {
+    display: none;
+    position: fixed;
+    top: 64px;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 998;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.nav-overlay.active {
+    display: block;
+    opacity: 1;
+}
