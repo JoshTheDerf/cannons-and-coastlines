@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#0a1628">
+<title>Cannons & Coastlines — Digital Edition</title>
+<link rel="icon" type="image/png" href="../assets/images/icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=IM+Fell+English:ital@0;1&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div id="app">
+
+  <!-- Title Screen -->
+  <div id="titleScreen">
+    <h1>CANNONS &<br>COASTLINES</h1>
+    <div class="decorLine"></div>
+    <div class="subtitle">Digital Edition</div>
+    <div class="titleBtnRow">
+      <button onclick="startSolo()">Solo Play</button>
+      <button onclick="startTwoPlayer()">Two Player</button>
+    </div>
+    <div class="titleBtnRow" style="margin-top:.4em">
+      <button onclick="showTutorial()" style="font-size:clamp(.7rem,2vw,.9rem);padding:.4em 1.2em;opacity:.7">How to Play</button>
+      <button onclick="toggleFullscreen()" style="font-size:clamp(.7rem,2vw,.9rem);padding:.4em 1.2em;opacity:.7">Fullscreen</button>
+    </div>
+    <div class="backLink">
+      <a href="../index.html">Back to cannonsandcoastlines.com</a>
+    </div>
+  </div>
+
+  <!-- Faction Selection Screen -->
+  <div id="factionScreen"></div>
+
+  <!-- Game Container -->
+  <div id="gameContainer">
+    <div id="p2Area" class="playerArea"></div>
+    <canvas id="boardCanvas"></canvas>
+    <div id="p1Area" class="playerArea"></div>
+  </div>
+
+  <!-- Turn Banner -->
+  <div id="turnBanner"></div>
+
+  <!-- Radial Menu (dynamically populated) -->
+  <div id="radialMenu"></div>
+
+  <!-- Aiming Panel -->
+  <div id="aimPanel">
+    <button id="dismissAim" onclick="dismissAiming()">&#10005;</button>
+    <div class="aimSideRow" id="sideToggle"></div>
+    <div class="aimSliderRow">
+      <span class="aimSliderLabel">Bearing</span>
+      <div class="sliderTrack" id="bearingTrack"></div>
+      <span class="aimSliderValue" id="bearingVal"></span>
+    </div>
+    <div class="aimSliderRow">
+      <span class="aimSliderLabel">Elevation</span>
+      <div class="sliderTrack" id="elevTrack"></div>
+      <span class="aimSliderValue" id="elevVal"></span>
+    </div>
+    <button id="fireBtn" onclick="fireCannon()">&#9876; FIRE &#9876;</button>
+  </div>
+
+  <!-- Game Over -->
+  <div id="gameOverScreen">
+    <h1 id="winnerText"></h1>
+    <div class="decorLine" style="margin:.5em auto"></div>
+    <div class="stats" id="statsText"></div>
+    <button onclick="location.reload()">New Game</button>
+  </div>
+
+  <!-- Tutorial -->
+  <div id="tutorialOverlay">
+    <div class="tutContent">
+      <h2>How to Play</h2>
+      <p>Two players share one device. Player 1 sits at the <b style="color:#e74c3c">bottom</b>, Player 2 at the <b style="color:#3498db">top</b>. In Solo Play, you're P1 and the AI controls P2.</p>
+
+      <h3>Factions</h3>
+      <p>Each player picks a faction with unique ships, stats, and a passive ability. Factions range from the balanced Queen's Fleet to the lightning-fast Islanders.</p>
+
+      <h3>On Your Turn</h3>
+      <p>Tap a ship. A menu appears:</p>
+      <p>&#9875; <b>Move</b> — Rings show how far you can sail. Faster factions get more/larger rings.</p>
+      <p>&#128165; <b>Fire</b> — Choose Port/Starboard, Bearing, and Elevation to aim your broadside cannons.</p>
+      <p>&#128681;/&#129689; <b>Island</b> — When touching an island: raise your flag to capture it, or collect a coin from one you own.</p>
+
+      <h3>Islands</h3>
+      <p>Islands are the economic engine. <b>Capture</b> an uncaptured island by touching it and raising your flag. <b>Collect</b> a coin each turn from islands you own. Islands score victory points!</p>
+
+      <h3>Coins</h3>
+      <p>You hold 3 coins drawn from a shared bag. Tap a coin, then tap a target ship to spend it. Spent coins return to the bag.</p>
+      <p>&#128737;&#65039; <b>Brace</b> — Next hit ignored. &#128681; <b>Signal Flags</b> — Bonus action (free). &#9973; <b>Full Sail</b> — Extended move. &#8596;&#65039; <b>Evasive</b> — Sideslip. &#127919; <b>Skilled Gunner</b> — Fire twice. &#128295; <b>Repair</b> — +1 mast. &#9876;&#65039; <b>Boarding</b> — 1 damage to adjacent enemy.</p>
+
+      <h3>Combat</h3>
+      <p>HP = masts + 1 (hull). Hits remove masts. 0 masts = "dead in the water" (can fire, can't move). One more hit = scuttled permanently.</p>
+
+      <h3>Victory</h3>
+      <p>Sink all enemies for instant victory. Or after turn 10, declare victory if you lead in VP: Ships &#215;3, Islands &#215;2, Coins &#215;1, plus &#215;2 bonuses for leading each category.</p>
+
+      <button onclick="hideTutorial()">Got it!</button>
+    </div>
+  </div>
+
+</div>
+
+<script src="constants.js"></script>
+<script src="state.js"></script>
+<script src="audio.js"></script>
+<script src="animations.js"></script>
+<script src="renderer.js"></script>
+<script src="coins.js"></script>
+<script src="ai.js"></script>
+<script src="main.js"></script>
+</body>
+</html>

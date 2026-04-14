@@ -30,6 +30,26 @@ Cannons & Coastlines is a 3D-printable tabletop game. Ships roll on built-in whe
 
 Additional factions (Treasure Fleet, Sun Fleet, Shadow Fleet, The Industry, The Islanders) are available as add-ons.
 
+## Downloads
+
+> **Early Development:** All downloads are early development versions only and have a long way to go. Rules, balance, and files are actively changing. Use at your own risk and expect rough edges.
+
+### Rulebook
+
+- [Rulebook (PDF)](rulebook/pdf/rulebook.pdf) | [View as HTML](rulebook/rulebook.html)
+
+### Faction Cards
+
+| Faction | PDF | HTML |
+|---------|-----|------|
+| Queen's Fleet | [PDF](rulebook/pdf/faction-card-queens-fleet.pdf) | [HTML](rulebook/faction-card-queens-fleet.html) |
+| Corsairs | [PDF](rulebook/pdf/faction-card-corsairs.pdf) | [HTML](rulebook/faction-card-corsairs.html) |
+| Treasure Fleet | [PDF](rulebook/pdf/faction-card-treasure-fleet.pdf) | [HTML](rulebook/faction-card-treasure-fleet.html) |
+| Sun Fleet | [PDF](rulebook/pdf/faction-card-sun-fleet.pdf) | [HTML](rulebook/faction-card-sun-fleet.html) |
+| Shadow Fleet | [PDF](rulebook/pdf/faction-card-shadow-fleet.pdf) | [HTML](rulebook/faction-card-shadow-fleet.html) |
+| The Industry | [PDF](rulebook/pdf/faction-card-the-industry.pdf) | [HTML](rulebook/faction-card-the-industry.html) |
+| The Islanders | [PDF](rulebook/pdf/faction-card-the-islanders.pdf) | [HTML](rulebook/faction-card-the-islanders.html) |
+
 ## Repository Contents
 
 ```

@@ -1,0 +1,812 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>rulebook</title>
+  <style>
+/* Google Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Oswald:wght@400;700&family=Crimson+Text:ital,wght@0,400;0,600;0,700;1,400&family=EB+Garamond:ital,wght@0,400;0,700;1,400&family=Barlow+Condensed:wght@400;700&display=swap');
+
+/* ---- Page setup — margin: 0 so parchment background bleeds to edge ---- */
+@page {
+  size: 8.5in 11in;
+  margin: 0;
+}
+
+@page landscape {
+  size: 11in 8.5in;
+  margin: 0;
+}
+
+/* ---- Base ---- */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html {
+  font-size: 10pt;
+}
+
+body {
+  font-family: "Crimson Text", "EB Garamond", serif;
+  font-size: 10pt;
+  line-height: 1.3;
+  color: #1a1209;
+  background: #fff;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+
+/* Parchment background — @page margin:0 lets this cover the full page */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background: url('assets/parchment-bg.png') center/cover;
+  opacity: 0.35;
+  pointer-events: none;
+  z-index: -1;
+}
+
+
+
+/* ---- Typography ---- */
+h1, h2, h3, h4, h5, h6 {
+  font-family: Oswald, "Barlow Condensed", sans-serif;
+  font-weight: 700;
+  color: #2c1810;
+  line-height: 1.15;
+  page-break-after: avoid;
+  break-after: avoid;
+}
+
+h1 {
+  font-size: 2.2rem;
+  text-align: center;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin: 0 0 0.08in;
+  padding-bottom: 0.06in;
+  border-bottom: 3px double #8b7355;
+}
+
+/* Title block spans both columns */
+.title-block {
+  column-span: all;
+  text-align: center;
+  margin-bottom: 0.1in;
+}
+
+.title-block img {
+  display: block;
+  margin: 0.1in auto 0.08in;
+  max-width: 5in;
+  height: auto;
+}
+
+.title-block h3 {
+  text-align: center;
+  margin-bottom: 0.04in;
+}
+
+.title-block p {
+  text-align: center;
+}
+
+h2 {
+  font-size: 1.35rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin: 0.2in 0 0.08in;
+  padding-bottom: 0.04in;
+  border-bottom: 1.5px solid #8b7355;
+  color: #4a2c17;
+}
+
+h3 {
+  font-size: 1.1rem;
+  margin: 0.15in 0 0.06in;
+  color: #5a3a1e;
+}
+
+h4 {
+  font-size: 0.95rem;
+  margin: 0.1in 0 0.04in;
+}
+
+p {
+  margin: 0 0 0.08in;
+  orphans: 2;
+  widows: 2;
+  text-align: justify;
+  hyphens: auto;
+}
+
+strong { font-weight: 700; color: #2c1810; }
+em { font-style: italic; }
+
+/* ---- Columns ---- */
+.columns {
+  column-gap: 0.3in;
+}
+
+.columns-1 { column-count: 1; }
+.columns-2 { column-count: 2; }
+.columns-3 { column-count: 3; }
+
+/* ---- Page breaks ---- */
+.page-break {
+  break-before: page;
+  page-break-before: always;
+  height: 0;
+  margin: 0;
+  padding: 0;
+}
+
+/* ---- Orientation ---- */
+.orientation-landscape {
+  page: landscape;
+  break-before: page;
+}
+
+/* ---- Horizontal rules ---- */
+hr {
+  border: none;
+  border-top: 1px solid #c4a87a;
+  margin: 0.12in 0;
+}
+
+/* ---- Lists ---- */
+ul, ol {
+  margin: 0 0 0.08in 0.25in;
+  padding: 0;
+}
+
+li {
+  margin-bottom: 0.03in;
+}
+
+li > p { margin: 0; display: inline; }
+
+/* ---- Tables ---- */
+table.rulebook-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 0.1in 0;
+  font-size: 0.9em;
+}
+
+table.rulebook-table th {
+  background: #3c2415;
+  color: #f5ebdc;
+  font-family: Oswald, "Barlow Condensed", sans-serif;
+  font-weight: 700;
+  text-transform: uppercase;
+  font-size: 0.8em;
+  letter-spacing: 0.04em;
+  padding: 0.06in 0.08in;
+  text-align: left;
+  border-bottom: 2px solid #8b7355;
+}
+
+table.rulebook-table td {
+  padding: 0.05in 0.08in;
+  border-bottom: 0.5px solid #d4c4a8;
+  vertical-align: top;
+}
+
+table.rulebook-table tbody tr:nth-child(even) {
+  background: rgba(196, 168, 122, 0.1);
+}
+
+table.rulebook-table tbody tr:hover {
+  background: rgba(196, 168, 122, 0.2);
+}
+
+table.table-wide { break-inside: avoid; page-break-inside: avoid; }
+table.table-compact { font-size: 0.8em; }
+table.table-compact td,
+table.table-compact th { padding: 0.03in 0.06in; }
+
+/* ---- Blockquotes / Callouts ---- */
+blockquote {
+  margin: 0.08in 0;
+  padding: 0.08in 0.12in;
+  border-left: 3px solid #8b7355;
+  background: rgba(196, 168, 122, 0.1);
+  font-style: italic;
+  page-break-inside: avoid;
+  break-inside: avoid;
+}
+
+blockquote p {
+  margin: 0;
+  text-align: left;
+}
+
+/* ---- Callouts ---- */
+.callout {
+  margin: 0.1in 0;
+  padding: 0.1in 0.12in;
+  border-radius: 4px;
+  page-break-inside: avoid;
+  break-inside: avoid;
+}
+
+.callout-rule-highlight {
+  background: rgba(139, 115, 85, 0.12);
+  border: 1px solid #8b7355;
+  border-left: 4px solid #8b7355;
+}
+
+.callout-rule-highlight blockquote {
+  border: none;
+  background: none;
+  padding: 0;
+  margin: 0;
+}
+
+.callout-ability-box {
+  background: linear-gradient(135deg, rgba(44, 24, 16, 0.06) 0%, rgba(139, 115, 85, 0.12) 100%);
+  border: 1.5px solid #6b4c30;
+  border-radius: 6px;
+  padding: 0.1in 0.14in;
+}
+
+.callout-ability-box h3 {
+  font-size: 0.95rem;
+  color: #3c2415;
+  margin-top: 0;
+  margin-bottom: 0.06in;
+}
+
+.callout-default {
+  background: rgba(196, 168, 122, 0.08);
+  border-left: 3px solid #c4a87a;
+}
+
+/* ---- Boxes ---- */
+.box {
+  margin: 0.1in 0;
+  padding: 0.15in 0.2in;
+  position: relative;
+}
+
+.box-bordered {
+  border: 2px solid #8b7355;
+  border-radius: 4px;
+  background: rgba(245, 235, 220, 0.15);
+}
+
+.box-high-contrast {
+  border: 2.5px solid #3c2415;
+  border-radius: 6px;
+  background: rgba(245, 235, 220, 0.25);
+  padding: 0.2in;
+}
+
+.box-label {
+  position: absolute;
+  top: -0.12in;
+  left: 0.2in;
+  background: #3c2415;
+  color: #f5ebdc;
+  font-family: Oswald, "Barlow Condensed", sans-serif;
+  font-weight: 700;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 0.02in 0.1in;
+  border-radius: 2px;
+}
+
+/* ---- Faction banner ---- */
+.faction-banner {
+  width: calc(100% + 0.5in + 0.6in);
+  margin: -0.5in -0.6in 0.1in -0.5in;
+  position: relative;
+  overflow: hidden;
+}
+
+.faction-banner img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.faction-banner .banner-title {
+  position: absolute;
+  bottom: 0.05in;
+  left: 0;
+  right: 0;
+  z-index: 2;
+  text-align: center;
+  font-family: Oswald, "Barlow Condensed", sans-serif;
+  font-weight: 700;
+  font-size: 1.6rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #2c1810;
+  margin: 0;
+  padding: 0;
+  border: none;
+  text-shadow: 0 0 8px rgba(245,235,220,0.9), 0 0 16px rgba(245,235,220,0.7);
+}
+
+.faction-banner::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to bottom,
+    transparent 55%,
+    rgba(245, 235, 220, 0.4) 75%,
+    rgba(245, 235, 220, 0.85) 90%,
+    rgba(245, 235, 220, 1) 100%
+  );
+  pointer-events: none;
+}
+
+/* Fade the left and right edges too */
+.faction-banner::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to right,
+    rgba(245, 235, 220, 0.9) 0%,
+    transparent 15%,
+    transparent 85%,
+    rgba(245, 235, 220, 0.9) 100%
+  );
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* ---- Faction card two-column body ---- */
+.card-body {
+  display: flex;
+  gap: 0.12in;
+  align-items: flex-start;
+}
+
+.card-left {
+  flex: 1;
+  min-width: 0;
+}
+
+.card-right {
+  flex: 1;
+  min-width: 0;
+}
+
+.card-right .callout {
+  margin-top: 0;
+}
+
+/* ---- Faction card stat grid ---- */
+.stat-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.03in 0.15in;
+  margin: 0.06in 0;
+  font-size: 0.85em;
+}
+
+.stat-item {
+  display: flex;
+  flex-direction: column;
+}
+
+.stat-label {
+  font-weight: 700;
+  color: #4a2c17;
+  font-size: 0.8em;
+  text-transform: uppercase;
+  font-family: Oswald, "Barlow Condensed", sans-serif;
+  letter-spacing: 0.03em;
+}
+
+.stat-value {
+  color: #2c1810;
+}
+
+/* ---- Coin icons in tables ---- */
+.coin-cell {
+  display: flex;
+  align-items: center;
+  gap: 0.06in;
+}
+
+.coin-icon {
+  width: 0.35in;
+  height: 0.35in;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+/* ---- Image placeholders ---- */
+.image-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: repeating-linear-gradient(
+    45deg,
+    rgba(196, 168, 122, 0.08),
+    rgba(196, 168, 122, 0.08) 10px,
+    rgba(196, 168, 122, 0.15) 10px,
+    rgba(196, 168, 122, 0.15) 20px
+  );
+  border: 1.5px dashed #c4a87a;
+  border-radius: 4px;
+  margin: 0.1in 0;
+  text-align: center;
+  page-break-inside: avoid;
+}
+
+.placeholder-text {
+  font-style: italic;
+  color: #8b7355;
+  font-size: 0.8em;
+  padding: 0.1in;
+  max-width: 80%;
+}
+
+/* ---- Screen preview helpers ---- */
+@media screen {
+  body {
+    max-width: 8.5in;
+    margin: 0.5in auto;
+    padding: 0.5in 0.6in 0.5in 0.5in;
+    background: #e8dcc8;
+  }
+
+  .page-break {
+    border-top: 2px dashed #c4a87a;
+    margin: 0.3in 0;
+    padding-top: 0.3in;
+  }
+}
+
+@media print {
+  body {
+    background: none;
+    box-shadow: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  /* Content margins handled via padding since @page margin is 0 */
+  .columns {
+    padding: 0.5in 0.6in 0.5in 0.5in;
+  }
+
+  .page-break {
+    padding: 0;
+    margin: 0;
+  }
+
+}
+</style>
+</head>
+<body>
+
+<div class="columns columns-2">
+<div class="title-block">
+<p><img src="assets/logo-with-wordmark.png" alt="Cannons &amp; Coastlines"></p>
+<h3>A Tabletop Naval Conquest Game — Rules of Play</h3>
+<p><strong>v0.1 — In Development</strong> <em>This rulebook is a work in progress. Rules, factions, and fleet compositions are subject to change.</em></p>
+
+</div>
+<hr>
+<h2>Welcome, Captain</h2>
+<p><strong>Cannons &amp; Coastlines</strong> is a tabletop game for 2–20 players. Rival fleets clash across an open table in a fantastical Age of Sail, racing to capture islands, hoard treasure, and sink each other. There&#39;s no board and no grid. Ships roll freely across your table on built-in wheels, and when it&#39;s time to fight, you fire real miniature cannons at each other&#39;s ships.</p>
+<p><strong>Players:</strong> 2–20 (Default mode: 2–6, Group mode: 6–20)
+<strong>Ages:</strong> 12+
+<strong>Play time:</strong> 30–90 minutes depending on player count</p>
+<h3>How It Works</h3>
+<p>Ships roll on wheels built into their hulls. No grid, no hexes, no tape measure. Tiny pressure-based cannons launch cannonballs across the table, and you aim them by rotating your ship. HP is physical: each fitting is a removable peg, and when your ship takes a hit, you pull one off and toss it overboard. 3D-printed islands sit in the middle of the table as territory to fight over, and capturing them gives you treasure coins. Those coins are drawn blind from a shared bag, and each one can be spent for a different one-time ability.</p>
+<h2>Print List</h2>
+<p>Everything in this game is 3D printed (except the draw bag and paper flags). Here&#39;s what each player needs to print before playing.</p>
+<h3>Per Player</h3>
+<table class="rulebook-table"><thead><tr><th>Piece</th><th>Quantity</th><th>Notes</th></tr></thead><tbody><tr><td>Ships (your faction)</td><td>2–5</td><td>Depends on faction. See your faction reference card.</td></tr><tr><td>Fittings (pegs)</td><td>Varies</td><td>Masts, cargo, supplies, etc. Enough for all your ships at full HP. See faction card for counts and types.</td></tr><tr><td>Cannons</td><td>3–4</td><td>Flag color or neutral (black, grey, etc.). Shared across your ships and islands.</td></tr><tr><td>Cannonballs</td><td>15–20</td><td>Flag color or neutral.</td></tr><tr><td>Flag pieces</td><td>10–15</td><td>In your alliance/team color. Enough for ships + islands you might capture.</td></tr></tbody></table><h3>Shared Pieces (Split Across Players)</h3>
+<p>Each player prints the following. Pool everything together at game time. With more players, you&#39;ll naturally end up with extra islands and coins, which is fine — bigger groups need more of both.</p>
+<table class="rulebook-table"><thead><tr><th>Piece</th><th>Per Player</th><th>Notes</th></tr></thead><tbody><tr><td>Islands</td><td>2–3</td><td>Mix of small, medium, and large.</td></tr><tr><td>Rocks / sea stacks</td><td>1</td><td>Optional terrain.</td></tr><tr><td>Reefs / shoals</td><td>1</td><td>Optional terrain.</td></tr><tr><td>Coins</td><td>20</td><td>2 Brace for Impact, 2 Signal Flags, 4 Full Sail, 2 Evasive Maneuvers, 4 Skilled Gunner, 4 Repair Crew, 2 Boarding Party.</td></tr><tr><td>Draw bag</td><td>—</td><td>One total. Cloth pouch, not printed — use any small bag. Somebody bring one.</td></tr></tbody></table><p>Extra flags can be made from paper and tape if you run short.</p>
+
+</div>
+<div class="page-break"></div>
+<div class="columns columns-2">
+<h2>Components</h2>
+
+<div class="image-placeholder" style="width: 100%; height: 3in;"><span class="placeholder-text">Annotated diagram of all component types: ship with labeled wheel, fitting sockets (masts, cargo), flag socket, cannon slots, coin slot; cannon; cannonball with tail fin; island with flag hole and cannon slots; coin token front and back; flag piece</span></div>
+<h3>Ships (3D Printed)</h3>
+<p>Each player controls a fleet of 2–5 ships depending on faction. Each ship has:</p>
+<ul>
+<li><strong>A wheel</strong> at the stern, in the rudder position. It has a flat spot so the ship sits still when you&#39;re not moving it. Wheel size varies by faction.</li>
+<li><strong>Fitting sockets</strong> where removable pegs plug in. These pegs are called <strong>fittings</strong> and represent masts, cargo, supplies, and other gear. What they look like depends on the faction (masts for the Queen&#39;s Fleet, treasure chests for the Treasure Fleet, smokestacks for the Industry, etc.). Number of fittings = starting HP minus one. <strong>Supplies go overboard before masts</strong> — when taking hits, remove cargo and supplies first, masts last. When repairing, restore masts first, then supplies.</li>
+<li><strong>A flag socket</strong> on the tallest mast or a dedicated flag post, for a flag piece.</li>
+<li><strong>Cannon slots</strong> at various positions on the deck and hull. Cannons plug into and out of these. The number and placement of slots depends on the ship.</li>
+<li><strong>A coin slot</strong> where a Brace for Impact coin can be inserted as a shield (see <em>Coin Actions</em>).</li>
+</ul>
+<p>Hull length runs about 5–7 inches depending on faction.</p>
+<h3>Cannons (3D Printed)</h3>
+<p>Small pressure-based snap launchers. You press down on a flexible mechanism, release it, and the cannonball flies out. No springs, no rubber bands, no metal parts. Everything is printable.</p>
+<p>Each player gets a handful of cannons in their flag color (or a neutral color like black or grey). You&#39;ll move them between ships and islands as needed during play. Every cannon fits every slot on every ship and island (the slot shape is the same everywhere).</p>
+<h3>Cannonballs</h3>
+<p>A rounded ball with a small tail fin so it doesn&#39;t roll away when it lands. About 10mm wide, 13mm long. 3D printed in PLA, or optionally in TPU if you want less bounce.</p>
+<p>Each player gets <strong>15–20 cannonballs</strong> in their flag color or a neutral color.</p>
+<h3>Islands (3D Printed)</h3>
+<p>These are the territories you&#39;re fighting over. Three sizes:</p>
+<table class="rulebook-table"><thead><tr><th>Size</th><th>Dimensions</th><th>Cannon Slots</th><th>Flag Holes</th></tr></thead><tbody><tr><td>Small</td><td>~3 × 3&quot;</td><td>1</td><td>1</td></tr><tr><td>Medium</td><td>~4 × 5&quot;</td><td>2</td><td>1</td></tr><tr><td>Large</td><td>~6 × 6&quot;</td><td>3</td><td>1</td></tr></tbody></table><p>They&#39;ve got sculpted palm trees, rocks, beaches, and small buildings. Use 4–12 per game depending on player count.</p>
+<h3>Other Terrain (Optional)</h3>
+<ul>
+<li><strong>Rocks / sea stacks</strong> (~2&quot; across). Block both movement and cannon shots. Can&#39;t be captured.</li>
+<li><strong>Reefs / shoals</strong> (low pieces). Block ship movement, but cannonballs pass right over them. Can&#39;t be captured.</li>
+</ul>
+<h3>Flag Pieces</h3>
+<p>Small flag-on-a-stick pieces in several colors. Each color should have enough flags to cover an alliance&#39;s worth of ships and islands (~15+ per color). Players or teams pick a flag color during setup. Ship flags plug into the flag socket on the ship.</p>
+<h3>Coins</h3>
+<p>Round tokens, about 1&quot; across, with an action icon engraved on one side. The other side is blank. You draw them blind from a shared bag. See <strong>Coin Actions</strong> for the full list.</p>
+<h3>Draw Bag</h3>
+<p>A cloth pouch. All coins live in here when they&#39;re not in somebody&#39;s hoard.</p>
+
+</div>
+<div class="page-break"></div>
+<div class="columns columns-2">
+<h2>Setup</h2>
+
+<div class="image-placeholder" style="width: 100%; height: 2.5in;"><span class="placeholder-text">Top-down diagram of table setup: islands clustered in center with 6in and 12in spacing annotations, fleets along edges within 6in, arrows showing clockwise turn order</span></div>
+<h3>1. Choose Factions</h3>
+<p>Each player picks a faction and takes that faction&#39;s ships, flags, cannons, and cannonballs. Put your faction reference card face-up in front of you.</p>
+<h3>2. Place Islands</h3>
+<p>Players take turns placing islands one at a time, going clockwise.</p>
+<ul>
+<li>Islands go in the <strong>center of the table</strong>, away from edges.</li>
+<li>No island within <strong>6 inches</strong> of another island.</li>
+<li>No island within <strong>12 inches</strong> of any table edge.</li>
+<li>Suggested island counts:</li>
+</ul>
+<table class="rulebook-table"><thead><tr><th>Players</th><th>Islands</th></tr></thead><tbody><tr><td>2</td><td>4</td></tr><tr><td>3–4</td><td>6</td></tr><tr><td>5–6</td><td>8</td></tr><tr><td>Group mode (6–20)</td><td>10–12</td></tr></tbody></table><h3>3. Place Other Terrain (Optional)</h3>
+<p>Players may add 2–6 rocks or reefs anywhere in the play area, alternating one piece at a time.</p>
+<h3>4. Deploy Fleets</h3>
+<ul>
+<li>Each player claims one <strong>edge of the table</strong> as their starting edge.</li>
+<li>Place all your ships along that edge, facing inward, within <strong>6 inches</strong> of the edge.</li>
+<li><strong>The Islanders</strong> apply <em>Home Waters</em> now: put one of your flags on the island closest to your starting edge and place one of your ships touching it. The island is yours before the game begins.</li>
+</ul>
+<h3>5. Fill the Coin Bag</h3>
+<p>Dump all the coin tokens into the draw bag. Shake it up.</p>
+<h3>6. Determine First Player and Turn Mode</h3>
+<p>Pick <strong>Default mode</strong> (2–6 players) or <strong>Group mode</strong> (6–20 players). For Default mode, the youngest player goes first. Play goes clockwise.</p>
+
+</div>
+<div class="page-break"></div>
+<div class="columns columns-2">
+<h2>How to Play — Default Mode (2–6 Players)</h2>
+<p>Players take turns clockwise. On your turn:</p>
+<ol>
+<li><strong>Spend coins</strong> (optional). You must spend any coins you want to use <strong>now</strong>, before your ships act.</li>
+<li><strong>Each of your surviving ships</strong> takes <strong>one action</strong> (see Actions below).</li>
+</ol>
+<p>Then it&#39;s the next player&#39;s turn.</p>
+<hr>
+<h2>Actions</h2>
+<p>Each of your surviving ships does exactly <strong>one</strong> of the following on your turn.</p>
+<h3>Action A — Move</h3>
+<p>Turn your ship up to <strong>90 degrees</strong> in either direction, then roll it forward. You get one rotation and then roll the wheel a number of times equal to your faction&#39;s <strong>Move Count</strong>. All rolls go in the same direction (wherever your ship is pointing after the turn).</p>
+<table class="rulebook-table"><thead><tr><th>Move Count</th><th>Sequence</th></tr></thead><tbody><tr><td>1</td><td>Turn → Roll</td></tr><tr><td>2</td><td>Turn → Roll → Roll</td></tr><tr><td>3</td><td>Turn → Roll → Roll → Roll</td></tr></tbody></table><p><strong>Rules:</strong></p>
+<ul>
+<li>You get <strong>one rotation</strong> at the start of the move: up to <strong>90 degrees</strong> left or right.</li>
+<li>Then you roll forward up to your Move Count. Each roll is one wheel rotation in a straight line.</li>
+<li>Ships <strong>can&#39;t pass through</strong> other ships, islands, rocks, or reefs. If something&#39;s in the way mid-roll, the ship stops there and loses any remaining rolls.</li>
+</ul>
+
+<div class="callout callout-rule-highlight">
+<blockquote>
+<p><strong>Queen&#39;s Fleet:</strong> The <em>Disciplined Crew</em> ability lets Queen&#39;s Fleet ships turn up to <strong>180 degrees</strong> instead of 90°. Once per turn per ship.</p>
+</blockquote>
+
+</div><!-- end callout -->
+<h3>Action B — Fire</h3>
+<ol>
+<li>Pick up one of your cannons.</li>
+<li>Pick any cannon slot on the ship. Different ships have slots in different places.</li>
+<li>Plug the cannon in.</li>
+<li>Load a cannonball and press the mechanism to fire.</li>
+<li>Pull the cannon back out.</li>
+</ol>
+<p>The cannon fires <strong>straight out from the slot</strong>. You aim by picking which slot to use and by how you positioned the ship earlier.</p>
+<p>A ship that fires <strong>doesn&#39;t move</strong> this turn.</p>
+<p>You can fire with more than one ship on your turn. Just move the cannon between them.</p>
+<h3>Action C — Island Actions</h3>
+<p>A ship touching an island can do <strong>one</strong> of these. It can&#39;t also move or fire from itself this turn.</p>
+<p><strong>Raise Flag.</strong> If the island has no flag, or you&#39;ve already cleared the enemy defenders (see <em>Island Conflicts</em>), and your ship was already touching the island <strong>at the end of your last turn</strong>, plant your flag. The island is now yours.</p>
+<p><strong>Collect.</strong> If the island flies <strong>your flag</strong>, draw 1 coin blind from the bag. Add it to your hoard.</p>
+<p><strong>Fire from Island.</strong> If the island flies <strong>your flag</strong>, plug a cannon into one of the island&#39;s cannon slots and fire from there.</p>
+<blockquote>
+<p>One island action per ship per turn, even if the ship is touching more than one island.</p>
+</blockquote>
+
+</div>
+<div class="page-break"></div>
+<div class="columns columns-2">
+<h2>Spending Coins</h2>
+<p>Coins aren&#39;t actions. You spend them <strong>at the start of your turn</strong>, before any of your ships act. Spend as many as you want, then move on to ship actions.</p>
+<p>Each coin has an action icon on its face. When you spend it, do what it says, then toss it back in the draw bag.</p>
+<p><strong>No hand limit.</strong> Hoard as many as you can get.</p>
+<p>See the <strong>Coin Actions</strong> table for what each coin does.</p>
+<hr>
+<h2>Combat</h2>
+<h3>Resolving Hits</h3>
+<p>If a cannonball <strong>hits an enemy ship</strong> (physically strikes the model), that&#39;s a hit.</p>
+<ul>
+<li><strong>Hit = lose 1 fitting.</strong> Pull a fitting off the struck ship and toss it overboard (set it on the table near the ship).</li>
+<li><strong>No fittings left = dead in the water.</strong> The ship can&#39;t move anymore, but it can still fire. It has 1 HP left (the hull).</li>
+<li><strong>Hit a dead-in-the-water ship = scuttled.</strong> Remove it from the game for good.</li>
+<li><strong>Hit terrain</strong> (an island, rock, or reef)? Shot&#39;s wasted.</li>
+<li><strong>Hit a friendly ship?</strong> No damage. No friendly fire in this game.</li>
+<li><strong>Cannonballs that miss</strong> go back to the player who fired them at end of turn. Anything that falls off the table comes back right away.</li>
+</ul>
+
+<div class="callout callout-rule-highlight">
+<blockquote>
+<p><strong>HP = Fittings + 1.</strong> A ship with 3 fittings has 4 HP total. Lose all 3 fittings and it&#39;s at 1 HP. One more hit finishes it.</p>
+</blockquote>
+
+</div><!-- end callout -->
+<h3>Boarding</h3>
+<p>If your ship is touching an enemy ship, you can spend a <strong>Boarding Party</strong> coin to deal 1 hit (pull 1 fitting, toss it overboard). This counts as that ship&#39;s action for the turn.</p>
+<p>Boarding a ship that still has fittings only does damage. It doesn&#39;t capture the ship.</p>
+<h3>Capturing a Dead-in-the-Water Ship</h3>
+<p>To take over an enemy ship that&#39;s dead in the water and add it to your fleet, spend <strong>both</strong> of these coins in the same turn while your ship is touching it:</p>
+<ol>
+<li><strong>Boarding Party</strong> (overpower the crew)</li>
+<li><strong>Repair Crew</strong> (patch it up)</li>
+</ol>
+<p>Then: pull the enemy flag, stick yours on, and restore <strong>1 fitting</strong>. The ship is yours now and can act starting next turn.</p>
+<h3>Scuttling</h3>
+<p>If a dead-in-the-water ship (1 HP) takes one more hit from anything (cannonball or boarding), it&#39;s <strong>scuttled</strong>: gone from the game for good.</p>
+<p><strong>Why scuttle?</strong> A dead-in-the-water enemy ship is a prize waiting to be claimed. If another player spends a Boarding Party + Repair Crew, they get a free ship added to their fleet. That&#39;s bad for you. Putting one more hit into that dead ship removes it from the game entirely, denying the prize. You can also scuttle your <em>own</em> dead ships (fire at them yourself) if you&#39;d rather sink them than let an opponent take them. It costs you a ship either way, but at least nobody else gets it.</p>
+<h3>Repairing Your Own Ships</h3>
+<p><strong>If the ship still has fittings</strong> (not dead in the water), spend a <strong>Repair Crew</strong> coin on it. Restore 1 fitting from the overboard pieces nearby. No other ship needs to be nearby.</p>
+<p><strong>If the ship is dead in the water</strong> (0 fittings), one of your other ships must be touching it. Spend a <strong>Repair Crew</strong> coin to restore 1 fitting. You don&#39;t need a Boarding Party coin for your own ships, but you do need a ship there to carry out the repairs.</p>
+
+</div>
+<div class="page-break"></div>
+<div class="columns columns-2">
+<h2>Island Conflicts</h2>
+<p>An island can only fly <strong>one flag</strong> at a time. Here&#39;s what happens when multiple players show up.</p>
+<h3>Uncaptured Island, Multiple Ships Arrive</h3>
+<p>If two or more players have ships touching an uncaptured island at the same time, <strong>nobody raises a flag</strong> until the fight&#39;s over. Shoot, board, or otherwise clear out the competition. Once only one player has ships at the island, that player can raise their flag next turn.</p>
+<h3>Taking an Enemy Island</h3>
+<p>You can sail to an island flying an enemy flag. The flag stays until you deal with the situation:</p>
+<ul>
+<li><strong>If there are enemy ships at the island,</strong> you need to remove all of them first (sink them, scuttle them, board them away, or wait for them to leave).</li>
+<li><strong>If the island is undefended</strong> (flag but no ships), you still need to wait. Touch the island at the end of your turn. If you&#39;re still touching it when your next turn starts, you can replace the flag.</li>
+</ul>
+<p>Either way, you must be touching the island at the end of one turn and the start of the next, then spend your action to swap the flag.</p>
+<h3>Friendly Ships at Your Island</h3>
+<p>Multiple ships with your flag can share an island. No conflict.</p>
+<h3>Dead-in-the-Water Ships at Islands</h3>
+<p>A dead-in-the-water ship touching an island <strong>can&#39;t block capture</strong>. It can&#39;t defend anything. But if someone captures that dead ship (Boarding Party + Repair Crew) before the island changes hands, the newly captured ship does count as a defender.</p>
+<h2>Coin Actions</h2>
+
+<table class="rulebook-table table-wide table-icon-col"><thead><tr><th>Coin</th><th>What It Does</th></tr></thead><tbody><tr><td class="coin-cell"><img class="coin-icon" src="assets/coin-brace.png" alt="Brace for Impact"><strong>Brace for Impact</strong></td><td>Slot this coin into a ship&#39;s coin slot. It stays there as a shield. The next time that ship is hit, the coin absorbs the hit (no fitting pulled) and is discarded back to the bag.</td></tr><tr><td class="coin-cell"><img class="coin-icon" src="assets/coin-signal.png" alt="Signal Flags"><strong>Signal Flags</strong></td><td>One of your ships or one allied ship gets a free Move action right now.</td></tr><tr><td class="coin-cell"><img class="coin-icon" src="assets/coin-fullsail.png" alt="Full Sail"><strong>Full Sail</strong></td><td>One of your ships gets <strong>two</strong> Move actions this turn instead of one. Each move is a separate turn-then-roll sequence.</td></tr><tr><td class="coin-cell"><img class="coin-icon" src="assets/coin-evasive.png" alt="Evasive Maneuvers"><strong>Evasive Maneuvers</strong></td><td>One of your ships slides exactly <strong>one ship-width sideways</strong> (port or starboard) without turning.</td></tr><tr><td class="coin-cell"><img class="coin-icon" src="assets/coin-gunner.png" alt="Skilled Gunner"><strong>Skilled Gunner</strong></td><td>One of your ships fires <strong>twice</strong> this turn. Swap the cannon between slots between shots.</td></tr><tr><td class="coin-cell"><img class="coin-icon" src="assets/coin-repair.png" alt="Repair Crew"><strong>Repair Crew</strong></td><td>Restore 1 fitting to one of your ships. If the ship is dead in the water, one of your other ships must be touching it. Also required for capturing a dead enemy ship.</td></tr><tr><td class="coin-cell"><img class="coin-icon" src="assets/coin-boarding.png" alt="Boarding Party"><strong>Boarding Party</strong></td><td>If your ship is touching an enemy ship, deal 1 hit (pull 1 fitting, toss overboard). This uses that ship&#39;s action for the turn. Also required for capturing a dead enemy ship.</td></tr></tbody></table><h3>Coin Bag Contents</h3>
+<p>The draw bag should have roughly <strong>20 coins per player</strong>. Each player prints 20 coins (see Print List) and dumps them all in the bag at game start. The ratio per 20 coins:</p>
+
+<table class="rulebook-table table-compact"><thead><tr><th>Coin</th><th>Per 20</th></tr></thead><tbody><tr><td>Brace for Impact</td><td>2</td></tr><tr><td>Signal Flags</td><td>2</td></tr><tr><td>Full Sail</td><td>4</td></tr><tr><td>Evasive Maneuvers</td><td>2</td></tr><tr><td>Skilled Gunner</td><td>4</td></tr><tr><td>Repair Crew</td><td>4</td></tr><tr><td>Boarding Party</td><td>2</td></tr></tbody></table>
+</div>
+<div class="page-break"></div>
+<div class="columns columns-2">
+<h2>Winning the Game</h2>
+<h3>Game End</h3>
+<p>The game ends when <strong>any</strong> of these happens:</p>
+<ul>
+<li><strong>Last fleet standing.</strong> Only one player still has ships on the table.</li>
+<li><strong>Victory declaration.</strong> At the start of your turn, you can declare &quot;Victory&quot; if you have at least <strong>25 victory points</strong>. Count your score right then. If you have 25 or more, the game ends and you win.</li>
+<li><strong>Stalemate.</strong> Every island has been captured and none of them changed hands during the last full round. Go straight to scoring.</li>
+</ul>
+<h3>Scoring</h3>
+<table class="rulebook-table"><thead><tr><th>What You Have</th><th>Points</th></tr></thead><tbody><tr><td>Each surviving ship with your flag</td><td><strong>3</strong></td></tr><tr><td>Each island with your flag</td><td><strong>2</strong></td></tr><tr><td>Each unspent coin in your hoard</td><td><strong>1</strong></td></tr><tr><td><strong>Bonus:</strong> Player with most ships</td><td><strong>+2</strong></td></tr><tr><td><strong>Bonus:</strong> Player with most islands</td><td><strong>+2</strong></td></tr><tr><td><strong>Bonus:</strong> Player with most coins</td><td><strong>+2</strong></td></tr></tbody></table><p>Ties on bonuses: everyone who tied gets the full +2.</p>
+<p>Highest total wins. In team play, add teammates&#39; scores together.</p>
+<h3>Scoring Example</h3>
+<ul>
+<li><strong>Player A (Queen&#39;s Fleet):</strong> 3 ships, 2 islands, 4 coins, most-ships bonus
+3×3 + 2×2 + 4×1 + 2 = <strong>19 points</strong></li>
+<li><strong>Player B (Treasure Fleet):</strong> 1 ship, 3 islands, 12 coins, most-coins and most-islands bonuses
+1×3 + 3×2 + 12×1 + 2 + 2 = <strong>25 points</strong></li>
+<li><strong>Player B wins</strong> on treasure despite losing most of their ships.</li>
+</ul>
+<h2>Group Mode (6–20 Players)</h2>
+<p>Everyone acts at the same time. Turns alternate between two phases:</p>
+<h3>Movement Phase</h3>
+<p>All players act at the same time. Spend any coins first, then each ship may take a <strong>Move</strong> action. Movement coins (<strong>Evasive Maneuvers</strong>, <strong>Full Sail</strong>, <strong>Signal Flags</strong>) go in this phase.</p>
+<p>Set a timer for <strong>60–90 seconds</strong>. When it goes off, any unfinished moves are lost.</p>
+<h3>Action Phase</h3>
+<p>All players act at the same time. Spend any coins first, then each ship may <strong>Fire</strong> or do an <strong>Island action</strong> (Raise Flag / Collect / Fire from Island). Action coins (<strong>Brace for Impact</strong>, <strong>Skilled Gunner</strong>, <strong>Repair Crew</strong>, <strong>Boarding Party</strong>) go in this phase.</p>
+<p>Same timer (60–90 seconds). If two players shoot at the same target, both shots count.</p>
+<p>Movement and Action phases keep alternating until the game ends.</p>
+<h3>Tips for Group Mode</h3>
+<ul>
+<li>Put the timer where everyone can see it.</li>
+<li>Pick one player as <strong>moderator</strong> to call phases, run the timer, and settle arguments.</li>
+<li>It&#39;s chaotic. That&#39;s the point. Works great at parties.</li>
+</ul>
+
+</div>
+<div class="page-break"></div>
+<div class="columns columns-2">
+<h2>Alliance &amp; Team Play</h2>
+<h3>Alliance Flags</h3>
+<p>Alliances are marked with flags. At the start of the game, each alliance (or team) picks a <strong>shared flag color</strong> from the game&#39;s flag stash. Allied players fly that color on all their ships and islands instead of individual colors.</p>
+<p>The game should include enough flags of each color to cover a good-sized alliance. If you run out, make extras from paper and tape, or mix two colors for the same alliance.</p>
+<h3>Team Format (2v2, 3v3, etc.)</h3>
+<ul>
+<li>Teammates sit on <strong>adjacent edges</strong> of the table.</li>
+<li>Each player still controls their own faction.</li>
+<li>All teammates fly the <strong>same flag color</strong>.</li>
+<li>Talk freely, plan together.</li>
+<li><strong>Signal Flags</strong> coins can target your own ships or a teammate&#39;s ship.</li>
+<li>Coins are not shared. Each player keeps their own hoard.</li>
+<li><strong>Winner:</strong> Team with the highest combined score.</li>
+</ul>
+<h3>Free-for-All Diplomacy (3+ Players)</h3>
+<ul>
+<li>Alliances can form and break at any time. They&#39;re verbal agreements, not rules.</li>
+<li>When players ally up, they pick a <strong>shared flag color</strong> and swap their flags to match. If the alliance falls apart, swap back.</li>
+<li><strong>Signal Flags</strong> can target your own ships or any allied ship&#39;s.</li>
+<li>Everyone scores individually.</li>
+</ul>
+<hr>
+<h2>Factions</h2>
+<p>Seven factions. <strong>Queen&#39;s Fleet</strong> and <strong>Corsairs</strong> ship with the base game. The other five are expansion packs.</p>
+<p>See the <strong>Faction Reference Cards</strong> for full stat blocks.</p>
+
+<table class="rulebook-table table-wide" style="font-size: 9pt;"><thead><tr><th>Faction</th><th>Ships</th><th>Fittings / HP</th><th>Slots</th><th>Move</th><th>Ability</th></tr></thead><tbody><tr><td>Queen&#39;s Fleet</td><td>3 frigates</td><td>3 / 4</td><td>4</td><td>1</td><td><em>Disciplined Crew</em> — 180° turns</td></tr><tr><td>Corsairs</td><td>4 sloops</td><td>2 / 3</td><td>3</td><td>2</td><td><em>Plunder</em> — extra coin on board/capture</td></tr><tr><td>Treasure Fleet</td><td>2 junks</td><td>2 / 3</td><td>4</td><td>1</td><td><em>Bountiful Harvest</em> — collect 2 coins</td></tr><tr><td>Sun Fleet</td><td>3 barges</td><td>4–5</td><td>4</td><td>1</td><td><em>Stone Hulls</em> — ignore first hit each turn</td></tr><tr><td>Shadow Fleet</td><td>3 galleons</td><td>2 / 3</td><td>3</td><td>1</td><td><em>Return from the Deep</em> — bring back sunk ships</td></tr><tr><td>The Industry</td><td>3 warships</td><td>3 / 4</td><td>1 (forward)</td><td>2</td><td>Fast, but can only shoot forward</td></tr><tr><td>The Islanders</td><td>5 canoes</td><td>1 / 2</td><td>1 (rear)</td><td>3</td><td><em>Home Waters</em> — start with a free island + ship</td></tr></tbody></table><h2>Designer Notes</h2>
+<h3>Cannon Calibration</h3>
+<p>The cannons work by flexing printed plastic, so they&#39;ll vary between prints and wear over time. <strong>Shoot a few practice rounds at the start of each game</strong> to get your eye in.</p>
+<h3>The Wheel</h3>
+<ul>
+<li>Wrap a <strong>rubber band</strong> around the wheel rim for grip on slick tables.</li>
+<li>The <strong>flat spot</strong> keeps the ship from rolling when parked.</li>
+</ul>
+<h3>Table Size</h3>
+<p><strong>4×4 ft</strong> or <strong>5×5 ft</strong> for 2 players. <strong>6×6 ft</strong> or bigger for Group mode.</p>
+<h3>Print Tips</h3>
+<ul>
+<li>Print everything in <strong>PLA</strong>. Cannonballs can be <strong>TPU</strong> for less bounce.</li>
+<li>Orient the cannon&#39;s flex arm so layer lines run <strong>across</strong> the bend, not along it.</li>
+<li>Print some spare cannon parts. The snap mechanism wears down with use.</li>
+</ul>
+
+</div>
+<div class="page-break"></div>
+<div class="columns columns-2">
+</div><div class="columns columns-1">
+<div class="orientation-landscape">
+<div style="font-size: 12pt">
+<div class="box box-high-contrast"><div class="box-label">Quick Reference</div>
+<h2>Quick Reference</h2>
+
+<div style="column-count: 2; column-gap: 0.4in;">
+<h3>Actions (One Per Ship Per Turn)</h3>
+<table class="rulebook-table"><thead><tr><th>Action</th><th>What To Do</th></tr></thead><tbody><tr><td><strong>A — Move</strong></td><td>Turn up to 90°, then roll the wheel forward up to your Move Count.</td></tr><tr><td><strong>B — Fire</strong></td><td>Plug cannon into a slot. Press to fire. Ship stays put this turn.</td></tr><tr><td><strong>C — Island</strong></td><td><em>Pick one:</em> Raise your flag / Collect 1 coin / Fire from an island slot. Ship stays put.</td></tr></tbody></table><p><strong>Spend coins</strong> at the start of your turn, before ship actions.</p>
+<h3>Cannon Firing</h3>
+<ol>
+<li>Pick a ship and a cannon slot.</li>
+<li>Plug the cannon in.</li>
+<li>Aim by positioning the <strong>ship</strong>, not the cannon.</li>
+<li>Press the mechanism. Fire.</li>
+<li>Pull the cannon out.</li>
+</ol>
+<h3>Hit Resolution</h3>
+<table class="rulebook-table"><thead><tr><th>What Happened</th><th>Result</th></tr></thead><tbody><tr><td>Cannonball hits enemy ship</td><td>Pull 1 fitting, toss overboard</td></tr><tr><td>Ship has no fittings left</td><td><strong>Dead in the water.</strong> Can&#39;t move, can still shoot. 1 HP left.</td></tr><tr><td>Dead ship gets hit again</td><td><strong>Scuttled.</strong> Gone for good.</td></tr><tr><td>Hit a friendly ship</td><td>Nothing happens</td></tr><tr><td>Hit terrain</td><td>Nothing happens</td></tr></tbody></table><h3>Capturing Things</h3>
+<table class="rulebook-table"><thead><tr><th>Target</th><th>How</th></tr></thead><tbody><tr><td><strong>Dead enemy ship</strong></td><td>Touch it + spend Boarding Party + Repair Crew (same turn). It joins your fleet at 1 fitting.</td></tr><tr><td><strong>Uncaptured island</strong></td><td>Touch the island, wait a turn, then Raise Flag.</td></tr><tr><td><strong>Enemy island (nobody guarding it)</strong></td><td>Touch the island, wait a turn, then swap the flag.</td></tr><tr><td><strong>Enemy island (ships there)</strong></td><td>Clear the defenders first, then capture as above.</td></tr></tbody></table><h3>Victory Points</h3>
+<table class="rulebook-table"><thead><tr><th>What</th><th>Points</th></tr></thead><tbody><tr><td>Each surviving ship</td><td>3</td></tr><tr><td>Each island you hold</td><td>2</td></tr><tr><td>Each unspent coin</td><td>1</td></tr><tr><td>Most in any category</td><td>+2 bonus</td></tr></tbody></table>
+</div><!-- end nested columns -->
+</div><!-- end box -->
+
+</div>
+
+</body>
+</html>

@@ -165,6 +165,34 @@
     color: var(--color-secondary);
 }
 
+.faction-downloads {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+    margin-top: auto;
+    padding-top: var(--spacing-sm);
+    border-top: 1px solid var(--color-border);
+}
+
+.faction-download-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    font-size: 0.85rem;
+    color: var(--color-accent);
+    text-decoration: none;
+    transition: color 0.2s;
+}
+
+.faction-download-link:hover {
+    color: var(--color-secondary);
+}
+
+.faction-download-link i {
+    width: 14px;
+    height: 14px;
+}
+
 /* How to Play Section */
 
 .how-to-play {

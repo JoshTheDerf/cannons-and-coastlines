@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Treasure Fleet</title>
+  <style>
+/* Google Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Oswald:wght@400;700&family=Crimson+Text:ital,wght@0,400;0,600;0,700;1,400&family=EB+Garamond:ital,wght@0,400;0,700;1,400&family=Barlow+Condensed:wght@400;700&display=swap');
+
+/* ---- Page setup — margin: 0 so parchment background bleeds to edge ---- */
+@page {
+  size: 6in 4in;
+  margin: 0;
+}
+
+@page landscape {
+  size: 4in 6in;
+  margin: 0;
+}
+
+/* ---- Base ---- */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html {
+  font-size: 9pt;
+}
+
+body {
+  font-family: "Crimson Text", "EB Garamond", serif;
+  font-size: 9pt;
+  line-height: 1.3;
+  color: #1a1209;
+  background: #fff;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+
+/* Parchment background — @page margin:0 lets this cover the full page */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background: url('assets/parchment-bg.png') center/cover;
+  opacity: 0.35;
+  pointer-events: none;
+  z-index: -1;
+}
+
+
+/* Card-specific: fixed size container */
+.card-page {
+  width: 6in;
+  height: 4in;
+  padding: 0.25in;
+  overflow: hidden;
+  position: relative;
+  background: linear-gradient(145deg, rgba(245,235,220,0.5) 0%, rgba(235,220,195,0.3) 100%);
+  border: 2px solid #8b7355;
+  border-radius: 8px;
+}
+
+@media print {
+  html, body {
+    width: 6in;
+    height: 4in;
+    overflow: hidden;
+  }
+  .card-page {
+    border: none;
+    border-radius: 0;
+  }
+}
+
+
+/* ---- Typography ---- */
+h1, h2, h3, h4, h5, h6 {
+  font-family: Oswald, "Barlow Condensed", sans-serif;
+  font-weight: 700;
+  color: #2c1810;
+  line-height: 1.15;
+  page-break-after: avoid;
+  break-after: avoid;
+}
+
+h1 {
+  font-size: 1.6rem;
+  text-align: center;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin: 0 0 0.15in;
+  padding-bottom: 0.06in;
+  border-bottom: 3px double #8b7355;
+}
+
+/* Title block spans both columns */
+.title-block {
+  column-span: all;
+  text-align: center;
+  margin-bottom: 0.1in;
+}
+
+.title-block img {
+  display: block;
+  margin: 0.1in auto 0.08in;
+  max-width: 5in;
+  height: auto;
+}
+
+.title-block h3 {
+  text-align: center;
+  margin-bottom: 0.04in;
+}
+
+.title-block p {
+  text-align: center;
+}
+
+h2 {
+  font-size: 1.1rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin: 0.2in 0 0.08in;
+  padding-bottom: 0.04in;
+  border-bottom: 1.5px solid #8b7355;
+  color: #4a2c17;
+}
+
+h3 {
+  font-size: 0.95rem;
+  margin: 0.15in 0 0.06in;
+  color: #5a3a1e;
+}
+
+h4 {
+  font-size: 0.95rem;
+  margin: 0.1in 0 0.04in;
+}
+
+p {
+  margin: 0 0 0.08in;
+  orphans: 2;
+  widows: 2;
+  text-align: justify;
+  hyphens: auto;
+}
+
+strong { font-weight: 700; color: #2c1810; }
+em { font-style: italic; }
+
+/* ---- Columns ---- */
+.columns {
+  column-gap: 0.3in;
+}
+
+.columns-1 { column-count: 1; }
+.columns-2 { column-count: 2; }
+.columns-3 { column-count: 3; }
+
+/* ---- Page breaks ---- */
+.page-break {
+  break-before: page;
+  page-break-before: always;
+  height: 0;
+  margin: 0;
+  padding: 0;
+}
+
+/* ---- Orientation ---- */
+.orientation-landscape {
+  page: landscape;
+  break-before: page;
+}
+
+/* ---- Horizontal rules ---- */
+hr {
+  border: none;
+  border-top: 1px solid #c4a87a;
+  margin: 0.12in 0;
+}
+
+/* ---- Lists ---- */
+ul, ol {
+  margin: 0 0 0.08in 0.25in;
+  padding: 0;
+}
+
+li {
+  margin-bottom: 0.03in;
+}
+
+li > p { margin: 0; display: inline; }
+
+/* ---- Tables ---- */
+table.rulebook-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 0.1in 0;
+  font-size: 0.9em;
+}
+
+table.rulebook-table th {
+  background: #3c2415;
+  color: #f5ebdc;
+  font-family: Oswald, "Barlow Condensed", sans-serif;
+  font-weight: 700;
+  text-transform: uppercase;
+  font-size: 0.8em;
+  letter-spacing: 0.04em;
+  padding: 0.06in 0.08in;
+  text-align: left;
+  border-bottom: 2px solid #8b7355;
+}
+
+table.rulebook-table td {
+  padding: 0.05in 0.08in;
+  border-bottom: 0.5px solid #d4c4a8;
+  vertical-align: top;
+}
+
+table.rulebook-table tbody tr:nth-child(even) {
+  background: rgba(196, 168, 122, 0.1);
+}
+
+table.rulebook-table tbody tr:hover {
+  background: rgba(196, 168, 122, 0.2);
+}
+
+table.table-wide { break-inside: avoid; page-break-inside: avoid; }
+table.table-compact { font-size: 0.8em; }
+table.table-compact td,
+table.table-compact th { padding: 0.03in 0.06in; }
+
+/* ---- Blockquotes / Callouts ---- */
+blockquote {
+  margin: 0.08in 0;
+  padding: 0.08in 0.12in;
+  border-left: 3px solid #8b7355;
+  background: rgba(196, 168, 122, 0.1);
+  font-style: italic;
+  page-break-inside: avoid;
+  break-inside: avoid;
+}
+
+blockquote p {
+  margin: 0;
+  text-align: left;
+}
+
+/* ---- Callouts ---- */
+.callout {
+  margin: 0.1in 0;
+  padding: 0.1in 0.12in;
+  border-radius: 4px;
+  page-break-inside: avoid;
+  break-inside: avoid;
+}
+
+.callout-rule-highlight {
+  background: rgba(139, 115, 85, 0.12);
+  border: 1px solid #8b7355;
+  border-left: 4px solid #8b7355;
+}
+
+.callout-rule-highlight blockquote {
+  border: none;
+  background: none;
+  padding: 0;
+  margin: 0;
+}
+
+.callout-ability-box {
+  background: linear-gradient(135deg, rgba(44, 24, 16, 0.06) 0%, rgba(139, 115, 85, 0.12) 100%);
+  border: 1.5px solid #6b4c30;
+  border-radius: 6px;
+  padding: 0.1in 0.14in;
+}
+
+.callout-ability-box h3 {
+  font-size: 0.95rem;
+  color: #3c2415;
+  margin-top: 0;
+  margin-bottom: 0.06in;
+}
+
+.callout-default {
+  background: rgba(196, 168, 122, 0.08);
+  border-left: 3px solid #c4a87a;
+}
+
+/* ---- Boxes ---- */
+.box {
+  margin: 0.1in 0;
+  padding: 0.15in 0.2in;
+  position: relative;
+}
+
+.box-bordered {
+  border: 2px solid #8b7355;
+  border-radius: 4px;
+  background: rgba(245, 235, 220, 0.15);
+}
+
+.box-high-contrast {
+  border: 2.5px solid #3c2415;
+  border-radius: 6px;
+  background: rgba(245, 235, 220, 0.25);
+  padding: 0.2in;
+}
+
+.box-label {
+  position: absolute;
+  top: -0.12in;
+  left: 0.2in;
+  background: #3c2415;
+  color: #f5ebdc;
+  font-family: Oswald, "Barlow Condensed", sans-serif;
+  font-weight: 700;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 0.02in 0.1in;
+  border-radius: 2px;
+}
+
+/* ---- Faction banner ---- */
+.faction-banner {
+  width: calc(100% + 0.25in + 0.25in);
+  margin: -0.25in -0.25in 0.1in -0.25in;
+  position: relative;
+  overflow: hidden;
+}
+
+.faction-banner img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.faction-banner .banner-title {
+  position: absolute;
+  bottom: 0.05in;
+  left: 0;
+  right: 0;
+  z-index: 2;
+  text-align: center;
+  font-family: Oswald, "Barlow Condensed", sans-serif;
+  font-weight: 700;
+  font-size: 1.6rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #2c1810;
+  margin: 0;
+  padding: 0;
+  border: none;
+  text-shadow: 0 0 8px rgba(245,235,220,0.9), 0 0 16px rgba(245,235,220,0.7);
+}
+
+.faction-banner::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to bottom,
+    transparent 55%,
+    rgba(245, 235, 220, 0.4) 75%,
+    rgba(245, 235, 220, 0.85) 90%,
+    rgba(245, 235, 220, 1) 100%
+  );
+  pointer-events: none;
+}
+
+/* Fade the left and right edges too */
+.faction-banner::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to right,
+    rgba(245, 235, 220, 0.9) 0%,
+    transparent 15%,
+    transparent 85%,
+    rgba(245, 235, 220, 0.9) 100%
+  );
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* ---- Faction card two-column body ---- */
+.card-body {
+  display: flex;
+  gap: 0.12in;
+  align-items: flex-start;
+}
+
+.card-left {
+  flex: 1;
+  min-width: 0;
+}
+
+.card-right {
+  flex: 1;
+  min-width: 0;
+}
+
+.card-right .callout {
+  margin-top: 0;
+}
+
+/* ---- Faction card stat grid ---- */
+.stat-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.03in 0.15in;
+  margin: 0.06in 0;
+  font-size: 0.85em;
+}
+
+.stat-item {
+  display: flex;
+  flex-direction: column;
+}
+
+.stat-label {
+  font-weight: 700;
+  color: #4a2c17;
+  font-size: 0.8em;
+  text-transform: uppercase;
+  font-family: Oswald, "Barlow Condensed", sans-serif;
+  letter-spacing: 0.03em;
+}
+
+.stat-value {
+  color: #2c1810;
+}
+
+/* ---- Coin icons in tables ---- */
+.coin-cell {
+  display: flex;
+  align-items: center;
+  gap: 0.06in;
+}
+
+.coin-icon {
+  width: 0.35in;
+  height: 0.35in;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+/* ---- Image placeholders ---- */
+.image-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: repeating-linear-gradient(
+    45deg,
+    rgba(196, 168, 122, 0.08),
+    rgba(196, 168, 122, 0.08) 10px,
+    rgba(196, 168, 122, 0.15) 10px,
+    rgba(196, 168, 122, 0.15) 20px
+  );
+  border: 1.5px dashed #c4a87a;
+  border-radius: 4px;
+  margin: 0.1in 0;
+  text-align: center;
+  page-break-inside: avoid;
+}
+
+.placeholder-text {
+  font-style: italic;
+  color: #8b7355;
+  font-size: 0.8em;
+  padding: 0.1in;
+  max-width: 80%;
+}
+
+/* ---- Screen preview helpers ---- */
+@media screen {
+  body {
+    max-width: 6in;
+    margin: 0;
+    padding: 0;
+    background: transparent;
+  }
+
+  .page-break {
+    border-top: 2px dashed #c4a87a;
+    margin: 0.3in 0;
+    padding-top: 0.3in;
+  }
+}
+
+@media print {
+  body {
+    background: none;
+    box-shadow: none;
+    margin: 0;
+    padding: 0;
+  }
+
+}
+</style>
+</head>
+<body>
+<div class="card-page">
+<div class="columns columns-1">
+<div class="faction-banner"><img src="assets/faction-treasure-fleet.png" alt="Treasure Fleet"><div class="banner-title">Treasure Fleet</div></div>
+
+
+<div class="card-body">
+<div class="card-left">
+<p><em>Two big junks. Not many ships, but every island you hold pays double.</em></p>
+<div class="stat-grid"><div class="stat-item"><span class="stat-label"><strong>Ships</strong></span><span class="stat-value">1 Flag Ship + 1 junk</span></div>
+<div class="stat-item"><span class="stat-label"><strong>HP</strong></span><span class="stat-value">4 HP Flag Ship, 3 HP other</span></div>
+<div class="stat-item"><span class="stat-label"><strong>Cannon Slots</strong></span><span class="stat-value">4 (see your ship models for positions)</span></div>
+<div class="stat-item"><span class="stat-label"><strong>Move Count</strong></span><span class="stat-value">1</span></div></div>
+</div>
+<div class="card-right">
+<div class="callout callout-ability-box">
+<h3>Passive — Bountiful Harvest</h3>
+<p>Draw <strong>2 coins</strong> instead of 1 when collecting from your islands.</p>
+
+</div><!-- end callout -->
+</div>
+</div>
+
+</div>
+</div>
+</body>
+</html>
