@@ -36,7 +36,8 @@ Additional factions (Treasure Fleet, Sun Fleet, Shadow Fleet, The Industry, The 
 
 ### Rulebook
 
-- [Rulebook (PDF)](rulebook/pdf/rulebook.pdf)
+- [Rulebook (PDF)](rulebook/pdf/rulebook.pdf) — portrait half-letter, read on screen
+- [Rulebook — Booklet Imposition (PDF)](rulebook/pdf/rulebook-booklet.pdf) — two pages per landscape letter sheet; print double-sided (flip on short edge), fold, saddle-stitch
 
 ### Faction Cards
 
