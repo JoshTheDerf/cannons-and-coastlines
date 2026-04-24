@@ -1063,6 +1063,9 @@
 .signup-support {
     max-width: 720px;
     margin: var(--spacing-md) auto 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
     text-align: center;
 }
 
@@ -1075,6 +1078,13 @@
 
 .signup-support img {
     vertical-align: middle;
+}
+
+.signup-support a,
+.signup-support > span,
+.signup-support > div {
+    margin-left: auto;
+    margin-right: auto;
 }
 
 .signup-eyebrow {
