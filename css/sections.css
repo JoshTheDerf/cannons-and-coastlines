@@ -1200,3 +1200,18 @@
     width: 180px;
     height: 180px;
 }
+
+/* Signup Legal Link */
+.signup-legal {
+    margin-top: var(--spacing-sm);
+    text-align: center;
+}
+
+.signup-legal a {
+    color: var(--color-text-light);
+    text-decoration: underline;
+}
+
+.signup-legal a:hover {
+    color: var(--color-text);
+}

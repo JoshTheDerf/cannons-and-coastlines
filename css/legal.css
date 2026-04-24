@@ -1,0 +1,82 @@
+/* Legal Page Styles */
+.legal-page {
+    background: var(--color-bg);
+    padding: var(--spacing-md) 0 var(--spacing-md);
+    padding-top: 120px;
+    min-height: 50vh;
+}
+
+.legal-page .container {
+    max-width: 680px;
+}
+
+.legal-page h1 {
+    font-family: var(--font-display);
+    font-size: 2.5rem;
+    color: var(--color-primary);
+    margin: 0 0 0.5rem;
+    font-weight: 700;
+}
+
+.legal-page .updated {
+    color: var(--color-text-light);
+    margin-bottom: var(--spacing-md);
+    font-style: italic;
+}
+
+.legal-page section {
+    margin-bottom: var(--spacing-sm);
+    padding-bottom: var(--spacing-sm);
+    border-bottom: 1px solid var(--color-border);
+}
+
+.legal-page section:last-of-type {
+    border-bottom: none;
+}
+
+.legal-page h2 {
+    font-family: var(--font-display);
+    font-size: 1.4rem;
+    color: var(--color-primary);
+    margin: 0 0 0.5rem;
+    font-weight: 600;
+}
+
+.legal-page p {
+    margin-bottom: 0.75rem;
+    line-height: 1.7;
+    color: var(--color-text);
+}
+
+.legal-page ul {
+    margin: var(--spacing-sm) 0 var(--spacing-sm) var(--spacing-md);
+    line-height: 1.7;
+}
+
+.legal-page li {
+    margin-bottom: 0.5rem;
+    color: var(--color-text);
+}
+
+.legal-page a {
+    color: var(--color-ocean);
+    text-decoration: underline;
+}
+
+.legal-page a:hover {
+    color: var(--color-ocean-light);
+}
+
+.legal-page .back-link {
+    margin-top: var(--spacing-md);
+    font-weight: 600;
+}
+
+.legal-page .back-link a {
+    color: var(--color-secondary);
+    text-decoration: none;
+}
+
+.legal-page .back-link a:hover {
+    text-decoration: underline;
+}
