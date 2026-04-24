@@ -1060,6 +1060,23 @@
     margin-top: var(--spacing-sm);
 }
 
+.signup-support {
+    max-width: 720px;
+    margin: var(--spacing-md) auto 0;
+    text-align: center;
+}
+
+.signup-support p {
+    color: var(--color-text);
+    font-size: 0.95rem;
+    margin: 0 0 0.85rem;
+    opacity: 0.85;
+}
+
+.signup-support img {
+    vertical-align: middle;
+}
+
 .signup-eyebrow {
     text-transform: uppercase;
     letter-spacing: 0.15em;
