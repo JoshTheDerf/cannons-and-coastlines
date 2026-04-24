@@ -147,36 +147,11 @@
     }
 
     /* Cards and grids */
-    .features-grid,
     .factions-grid,
     .downloads-grid,
     .shop-grid {
         grid-template-columns: 1fr;
         gap: 1.5rem;
-    }
-
-    .steps {
-        grid-template-columns: 1fr;
-        gap: 2rem;
-    }
-
-    /* Feature cards */
-    .feature {
-        padding: 1.5rem;
-    }
-
-    .feature-icon {
-        width: 64px;
-        height: 64px;
-    }
-
-    .feature-icon i {
-        width: 36px;
-        height: 36px;
-    }
-
-    .feature h3 {
-        font-size: 1.25rem;
     }
 
     /* Faction cards */

@@ -39,12 +39,11 @@
                 <img src="assets/images/logo-with-wordmark.png" alt="Cannons & Coastlines" class="logo-full">
             </a>
             <ul class="nav-links">
-                <li><a href="#features">Features</a></li>
+                <li><a href="#see-it-in-action">See It</a></li>
+                <li><a href="#how-to-play">How It Plays</a></li>
                 <li><a href="#factions">Factions</a></li>
-                <li><a href="#how-to-play">How to Play</a></li>
-                <li><a href="#playtesting">Playtesting</a></li>
-                <li><a href="#downloads">Downloads</a></li>
-                <li><a href="#shop">Shop</a></li>
+                <li><a href="#downloads">Rulebook</a></li>
+                <li><a href="#about">About</a></li>
             </ul>
             <button class="nav-toggle" aria-label="Toggle navigation" aria-expanded="false">
                 <span></span>
@@ -141,7 +140,7 @@
                     <path d="M497 415 Q488 400 482 408" stroke="#4a7a4a" stroke-width="2" fill="none"/>
                 </g>
 
-                <!-- Ship 1 (left, sailing right) - Frigate -->
+                <!-- Ship 1 (left, sailing right) - Ship-of-the-Line -->
                 <g class="hero-ship hero-ship--1">
                     <g transform="translate(250, 470)">
                         <!-- Water reflection -->
@@ -198,12 +197,12 @@
                     </g>
                 </g>
 
-                <!-- Ship 2 (right, sailing left) - Galleon -->
+                <!-- Ship 2 (right, sailing left) - Ship-of-the-Line -->
                 <g class="hero-ship hero-ship--2">
                     <g transform="translate(1050, 478) scale(-1,1)">
                         <!-- Water reflection -->
                         <ellipse cx="45" cy="22" rx="38" ry="3.5" fill="#3a5a5a" opacity="0.12"/>
-                        <!-- Hull with integrated raised stern (galleons had tall sterns) -->
+                        <!-- Hull with integrated raised stern -->
                         <path d="M-6 -8 L6 -8 L14 -2 L75 -2 Q88 0 92 5 L88 14 L78 20 L6 20 L-2 16 L-6 12 Z" fill="#5c4033"/>
                         <!-- Quarterdeck line -->
                         <path d="M14 -2 L14 2" stroke="#4a3425" stroke-width="1" opacity="0.5" fill="none"/>
@@ -306,80 +305,149 @@
             <p class="hero-subtitle">2–20 players • 30–90 minutes • Age 12+</p>
             <p class="hero-description">Command your fleet across the open sea. Fire real cannons. Capture islands. Plunder treasure. Dominate the waves.</p>
             <div class="hero-actions">
-                <a href="#downloads" class="btn btn-primary">
-                    <i data-lucide="download"></i>
-                    Download Free
+                <a href="#signup" class="btn btn-primary">
+                    <i data-lucide="mail"></i>
+                    Get Notified
                 </a>
                 <a href="#how-to-play" class="btn btn-secondary">Learn to Play</a>
             </div>
         </div>
     </header>
 
-    <!-- Development Notice -->
-    <section class="dev-notice">
+    <!-- See It in Action -->
+    <section id="see-it-in-action" class="social-proof see-it">
         <div class="container">
-            <div class="dev-notice-content">
-                <div class="dev-notice-icon">
-                    <i data-lucide="info"></i>
+            <div class="section-header">
+                <h2>See It in Action</h2>
+                <p class="social-proof-desc">The reel that kicked this off, playtest footage, and the real printed pieces.</p>
+            </div>
+
+            <div class="reel-block see-it-block">
+                <div class="reel-embed">
+                    <iframe src="https://www.instagram.com/p/DXEtgxttyCB/embed"
+                            width="100%" height="640"
+                            frameborder="0" scrolling="no" allowtransparency="true"
+                            loading="lazy"
+                            title="Cannons & Coastlines on Instagram"></iframe>
                 </div>
-                <div class="dev-notice-text">
-                    <p><strong>Development Notice:</strong> This game is in the early phases of development. Rules, factions, and balance are subject to change. Preview images are concept art only and are AI generated.</p>
+                <a href="https://www.instagram.com/p/DXEtgxttyCB/" target="_blank" rel="noopener noreferrer" class="reel-link">
+                    <i data-lucide="instagram"></i>
+                    Watch on Instagram (1.9M views)
+                </a>
+            </div>
+
+            <div class="see-it-block">
+                <p class="section-eyebrow">Printed pieces</p>
+            <div class="real-pieces-thumbs">
+                <figure class="real-photo-figure">
+                    <button type="button" class="real-photo" data-lightbox="assets/photos/queens-fleet-ship-of-the-line-hero.jpg" aria-label="Expand photo: Queen's Fleet ship with sails and flags">
+                        <img src="assets/photos/queens-fleet-ship-of-the-line-hero.jpg" alt="Queen's Fleet ship with paper sails and gold-tipped flags." loading="lazy">
+                    </button>
+                    <figcaption>Queen's Fleet ship with sails and flags.</figcaption>
+                </figure>
+                <figure class="real-photo-figure">
+                    <button type="button" class="real-photo" data-lightbox="assets/photos/playtest-overhead-island.jpg" aria-label="Expand photo: island and ship testing">
+                        <img src="assets/photos/playtest-overhead-island.jpg" alt="Four ships arranged around a central sandstone island for playtesting." loading="lazy">
+                    </button>
+                    <figcaption>Island and ship testing.</figcaption>
+                </figure>
+                <figure class="real-photo-figure">
+                    <button type="button" class="real-photo" data-lightbox="assets/photos/queens-fleet-ship-of-the-line-sails.jpg" aria-label="Expand photo: Queen's Fleet ship movement testing on a glass surface">
+                        <img src="assets/photos/queens-fleet-ship-of-the-line-sails.jpg" alt="Queen's Fleet ship being used for movement testing on a glass surface." loading="lazy">
+                    </button>
+                    <figcaption>Queen's Fleet ship movement testing (glass surface).</figcaption>
+                </figure>
+                <figure class="real-photo-figure">
+                    <button type="button" class="real-photo" data-lightbox="assets/photos/playtest-terrain-variety.jpg" aria-label="Expand photo: rocks, reefs, and terrain scale testing">
+                        <img src="assets/photos/playtest-terrain-variety.jpg" alt="A spread of printed rocks, reefs, and islands used for terrain scale testing." loading="lazy">
+                    </button>
+                    <figcaption>Rocks, reefs, and terrain scale testing.</figcaption>
+                </figure>
+            </div>
+            </div>
+
+            <div class="see-it-block">
+                <p class="section-eyebrow">Playtest footage</p>
+                <div class="playtesting-grid">
+                    <div class="playtesting-media">
+                        <iframe src="https://www.youtube.com/embed/oexjEaUXXjA"
+                            title="Cannons & Coastlines playtest"
+                            frameborder="0"
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                            referrerpolicy="strict-origin-when-cross-origin"
+                            loading="lazy"
+                            allowfullscreen></iframe>
+                </div>
+                <div class="playtesting-media">
+                    <iframe src="https://www.youtube.com/embed/ViBGuyKuE84"
+                            title="Cannons & Coastlines playtest"
+                            frameborder="0"
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                            referrerpolicy="strict-origin-when-cross-origin"
+                            loading="lazy"
+                            allowfullscreen></iframe>
+                </div>
+                <div class="playtesting-media">
+                    <iframe src="https://www.youtube.com/embed/SVqNlvkFg-w"
+                            title="Cannons & Coastlines playtest"
+                            frameborder="0"
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                            referrerpolicy="strict-origin-when-cross-origin"
+                            loading="lazy"
+                            allowfullscreen></iframe>
+                </div>
+                <div class="playtesting-media">
+                    <iframe src="https://www.youtube.com/embed/PnyHL42OJ-o"
+                            title="Cannons & Coastlines playtest"
+                            frameborder="0"
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                            referrerpolicy="strict-origin-when-cross-origin"
+                            loading="lazy"
+                            allowfullscreen></iframe>
+                </div>
                 </div>
             </div>
         </div>
     </section>
 
-    <!-- Features Section -->
-    <section id="features" class="features">
+    <!-- Lightbox -->
+    <div class="lightbox" id="lightbox" aria-hidden="true">
+        <button class="lightbox-close" type="button" aria-label="Close">
+            <i data-lucide="x"></i>
+        </button>
+        <img class="lightbox-img" src="" alt="">
+    </div>
+
+    <!-- How It Plays -->
+    <section id="how-to-play" class="features">
         <div class="container">
             <div class="section-header">
-                <h2>What Makes It Different</h2>
-                <p>No dice, no grid. You physically move your ships, aim your cannons, and fire them yourself.</p>
+                <h2>How It Plays</h2>
+                <p>No dice, no grid. Physical ships, snap cannons, and an island map built from whatever you've printed.</p>
             </div>
             <div class="features-grid">
                 <div class="feature">
-                    <div class="feature-icon">
-                        <i data-lucide="move"></i>
-                    </div>
-                    <h3>Free Movement</h3>
-                    <p>Ships roll on built-in wheels. No grid, no spaces, just push your ship across the table. Positioning is everything.</p>
+                    <span class="feature-icon"><i data-lucide="move"></i></span>
+                    <h3>Move, Fire, or Collect</h3>
+                    <p>Each ship takes one action on your turn — push it across the table, fire your cannon, or collect coins from an island you hold.</p>
                 </div>
                 <div class="feature">
-                    <div class="feature-icon">
-                        <i data-lucide="crosshair"></i>
-                    </div>
-                    <h3>Cannons</h3>
-                    <p>3D-printed snap cannons that actually fire across the table. Get good at aiming and you'll win more fights.</p>
+                    <span class="feature-icon"><i data-lucide="crosshair"></i></span>
+                    <h3>Actual Cannons</h3>
+                    <p>3D-printed snap cannons that fire cannonballs across the table. Aim matters more than dice — getting good wins fights.</p>
                 </div>
                 <div class="feature">
-                    <div class="feature-icon">
-                        <i data-lucide="map"></i>
-                    </div>
+                    <span class="feature-icon"><i data-lucide="map"></i></span>
                     <h3>Capture Islands</h3>
-                    <p>Plant your flag on islands to claim them. Captured islands generate treasure coins and can be used as gun emplacements.</p>
+                    <p>Plant your flag to claim an island. Held islands generate treasure coins and double as gun emplacements.</p>
                 </div>
                 <div class="feature">
-                    <div class="feature-icon">
-                        <i data-lucide="coins"></i>
-                    </div>
-                    <h3>Coin Economy</h3>
-                    <p>Spend treasure coins during your turn for an edge. Full sail for extra speed, repairs to stay afloat, or boarding actions to steal enemy ships.</p>
-                </div>
-                <div class="feature">
-                    <div class="feature-icon">
-                        <i data-lucide="box"></i>
-                    </div>
-                    <h3>Fully 3D Printable</h3>
-                    <p>Every component is 3D printable. Ships, cannons, islands, cannonballs. Print your own complete game for free.</p>
-                </div>
-                <div class="feature">
-                    <div class="feature-icon">
-                        <i data-lucide="users"></i>
-                    </div>
-                    <h3>2–20 Players</h3>
-                    <p>Works as a 1v1 duel or a massive free-for-all. Default mode plays 2–6, Group mode handles up to 20.</p>
+                    <span class="feature-icon"><i data-lucide="coins"></i></span>
+                    <h3>Spend Your Plunder</h3>
+                    <p>Coins buy extras: full sail for speed, repair crews to patch damage, or boarding parties to steal enemy ships.</p>
                 </div>
             </div>
+            <p class="rulebook-link">Full rules, scoring, and diagrams in the <a href="rulebook/pdf/rulebook.pdf" class="dev-download" data-download-name="Rulebook">rulebook</a>.</p>
         </div>
     </section>
 
@@ -399,12 +467,12 @@
                     <h3>Queen's Fleet</h3>
                     <p class="faction-tagline">The Well-Rounded Standard</p>
                     <div class="faction-stats">
-                        <span>3 Frigates</span>
+                        <span>3 Ships-of-the-Line</span>
                         <span>4 HP each</span>
                         <span>4 Cannon Slots</span>
                     </div>
                     <p class="faction-desc">Disciplined crews allow 180° pivots. A good pick if you're just learning the game.</p>
-                    <div class="faction-price">Included in Base Game</div>
+                    <div class="faction-price free">Free with Base Game</div>
                     <div class="faction-downloads">
                         <a href="rulebook/pdf/faction-card-queens-fleet.pdf" class="faction-download-link dev-download" data-download-name="Queen's Fleet Faction Card">
                             <i data-lucide="download"></i> Faction Card PDF
@@ -425,7 +493,7 @@
                         <span>3 Cannon Slots</span>
                     </div>
                     <p class="faction-desc">Hit-and-run specialists with double movement. Draw extra coins when boarding or capturing.</p>
-                    <div class="faction-price">Included in Base Game</div>
+                    <div class="faction-price free">Free with Base Game</div>
                     <div class="faction-downloads">
                         <a href="rulebook/pdf/faction-card-corsairs.pdf" class="faction-download-link dev-download" data-download-name="Corsairs Faction Card">
                             <i data-lucide="download"></i> Faction Card PDF
@@ -434,207 +502,75 @@
                 </div>
 
                 <div class="faction-card addon">
-                    <div class="faction-badge">Add-On</div>
+                    <div class="faction-badge">Coming Soon</div>
                     <div class="faction-header">
                         <img src="assets/ships/ship-preview-treasure-fleet.png" alt="Treasure Fleet">
                     </div>
                     <h3>Treasure Fleet</h3>
-                    <p class="faction-tagline">Economic Powerhouse</p>
-                    <div class="faction-stats">
-                        <span>2 Large Junks</span>
-                        <span>3 HP each</span>
-                        <span>4 Cannon Slots</span>
-                    </div>
-                    <p class="faction-desc">Fewer ships but superior income. Draw double coins from every captured island.</p>
-                    <div class="faction-price">Under development - Pricing TBD</div>
-                    <div class="faction-downloads">
-                        <a href="rulebook/pdf/faction-card-treasure-fleet.pdf" class="faction-download-link dev-download" data-download-name="Treasure Fleet Faction Card">
-                            <i data-lucide="download"></i> Faction Card PDF
-                        </a>
-                    </div>
+                    <p class="faction-desc">Fewer ships, better income. Double coins from held islands.</p>
                 </div>
 
                 <div class="faction-card addon">
-                    <div class="faction-badge">Add-On</div>
+                    <div class="faction-badge">Coming Soon</div>
                     <div class="faction-header">
                         <img src="assets/ships/ship-preview-sun-fleet.png" alt="Sun Fleet">
                     </div>
                     <h3>Sun Fleet</h3>
-                    <p class="faction-tagline">Stone and Sturdy</p>
-                    <div class="faction-stats">
-                        <span>3 Temple Barges</span>
-                        <span>3-5 HP</span>
-                        <span>4 Cannon Slots</span>
-                    </div>
-                    <p class="faction-desc">Carved stone ships shrug off the first hit each turn. Slow but brutally durable.</p>
-                    <div class="faction-price">Under development - Pricing TBD</div>
-                    <div class="faction-downloads">
-                        <a href="rulebook/pdf/faction-card-sun-fleet.pdf" class="faction-download-link dev-download" data-download-name="Sun Fleet Faction Card">
-                            <i data-lucide="download"></i> Faction Card PDF
-                        </a>
-                    </div>
+                    <p class="faction-desc">Carved stone ships. Slow, but shrug off the first hit each turn.</p>
                 </div>
 
                 <div class="faction-card addon">
-                    <div class="faction-badge">Add-On</div>
+                    <div class="faction-badge">Coming Soon</div>
                     <div class="faction-header">
                         <img src="assets/ships/ship-preview-shadow-fleet.png" alt="Shadow Fleet">
                     </div>
                     <h3>Shadow Fleet</h3>
-                    <p class="faction-tagline">The Ghost Ships</p>
-                    <div class="faction-stats">
-                        <span>3 Galleons</span>
-                        <span>3 HP each</span>
-                        <span>3 Cannon Slots</span>
-                    </div>
-                    <p class="faction-desc">Fragile but relentless. Return destroyed ships from the deep by spending coins at controlled islands.</p>
-                    <div class="faction-price">Under development - Pricing TBD</div>
-                    <div class="faction-downloads">
-                        <a href="rulebook/pdf/faction-card-shadow-fleet.pdf" class="faction-download-link dev-download" data-download-name="Shadow Fleet Faction Card">
-                            <i data-lucide="download"></i> Faction Card PDF
-                        </a>
-                    </div>
+                    <p class="faction-desc">Fragile but relentless. Destroyed ships return from the deep.</p>
                 </div>
 
                 <div class="faction-card addon">
-                    <div class="faction-badge">Add-On</div>
+                    <div class="faction-badge">Coming Soon</div>
                     <div class="faction-header">
                         <img src="assets/ships/ship-preview-industry.png" alt="The Industry">
                     </div>
                     <h3>The Industry</h3>
-                    <p class="faction-tagline">Steam and Iron</p>
-                    <div class="faction-stats">
-                        <span>3 Paddle Warships</span>
-                        <span>4 HP each</span>
-                        <span>1 Cannon Slot</span>
-                    </div>
-                    <p class="faction-desc">Forward-only cannons but relentless mechanical propulsion. Line up the perfect head-on shot.</p>
-                    <div class="faction-price">Under development - Pricing TBD</div>
-                    <div class="faction-downloads">
-                        <a href="rulebook/pdf/faction-card-the-industry.pdf" class="faction-download-link dev-download" data-download-name="The Industry Faction Card">
-                            <i data-lucide="download"></i> Faction Card PDF
-                        </a>
-                    </div>
+                    <p class="faction-desc">Forward-only cannons, relentless mechanical propulsion.</p>
                 </div>
 
                 <div class="faction-card addon">
-                    <div class="faction-badge">Add-On</div>
+                    <div class="faction-badge">Coming Soon</div>
                     <div class="faction-header">
                         <img src="assets/ships/ship-preview-islanders.png" alt="The Islanders">
                     </div>
                     <h3>The Islanders</h3>
-                    <p class="faction-tagline">Native Defenders</p>
-                    <div class="faction-stats">
-                        <span>5 Outrigger Canoes</span>
-                        <span>2 HP each</span>
-                        <span>1 Cannon Slot</span>
-                    </div>
-                    <p class="faction-desc">Lightning-fast with rear-firing cannons. Start with one island already under your control.</p>
-                    <div class="faction-price">Under development - Pricing TBD</div>
-                    <div class="faction-downloads">
-                        <a href="rulebook/pdf/faction-card-the-islanders.pdf" class="faction-download-link dev-download" data-download-name="The Islanders Faction Card">
-                            <i data-lucide="download"></i> Faction Card PDF
-                        </a>
-                    </div>
+                    <p class="faction-desc">Lightning-fast canoes with rear-firing cannons. Start with one island already held.</p>
                 </div>
             </div>
         </div>
     </section>
 
-    <!-- Playtesting Section -->
-    <section id="playtesting" class="playtesting">
+    <!-- Email Signup + Discord Section -->
+    <section id="signup" class="signup">
         <div class="container">
-            <div class="section-header">
-                <h2>First Round Playtesting</h2>
-                <p>See the game in action. Footage from our first playtest session.</p>
-            </div>
-            <div class="playtesting-grid">
-                <div class="playtesting-media video">
-                    <video controls loop playsinline preload="none">
-                        <source src="assets/playtesting/video1.mp4" type="video/mp4">
-                        Your browser does not support the video tag.
-                    </video>
-                </div>
-                <div class="playtesting-media video">
-                    <video controls loop playsinline preload="none">
-                        <source src="assets/playtesting/video2.mp4" type="video/mp4">
-                        Your browser does not support the video tag.
-                    </video>
-                </div>
-                <div class="playtesting-media video">
-                    <video controls loop playsinline preload="none">
-                        <source src="assets/playtesting/video3.mp4" type="video/mp4">
-                        Your browser does not support the video tag.
-                    </video>
-                </div>
-                <div class="playtesting-media photo">
-                    <img src="assets/playtesting/photo1.jpg" alt="Playtesting photo">
+            <div class="signup-content">
+                <p class="signup-eyebrow">For subscribers</p>
+                <h2>Get the Printable Rulebook</h2>
+                <p>Subscribe and we'll send you the printable ruleset booklet we use at our own playtests. You'll also get a note when a new faction is ready, along with whatever we're learning from sessions along the way.</p>
+                <div class="signup-form">
+                    <script async data-uid="a74f27ac96" src="https://cannons-and-coastlines.kit.com/a74f27ac96/index.js"></script>
                 </div>
             </div>
-            <div class="playtesting-changelog">
-                <h3>Changes After First Playtest</h3>
-                <ul>
-                    <li>Swapped out inaccurate and difficult to use catapults for a pressure-based snap cannon design</li>
-                    <li>Standardized on a smaller movement wheel and moved it to the rudder position, changing movement rules in the process</li>
-                    <li>Reduced ship height (the movement wheel required oddly tall ships)</li>
-                </ul>
-            </div>
-        </div>
-    </section>
-
-    <!-- How to Play Section -->
-    <section id="how-to-play" class="how-to-play">
-        <div class="container">
-            <div class="section-header">
-                <h2>How to Play</h2>
-                <p>Simple enough to pick up quickly, but there's a lot of room to get better.</p>
-            </div>
-            <div class="steps">
-                <div class="step">
-                    <div class="step-number">1</div>
-                    <h3>Choose Your Faction</h3>
-                    <p>Pick a faction. Each one has different ships and abilities. Grab your fleet, a cannon, and some cannonballs.</p>
+            <div class="signup-discord">
+                <div class="signup-discord-text">
+                    <h3>Or join the playtest Discord</h3>
+                    <p>Unfiltered updates and discussion, for playtesters and anyone curious about the bits and bobs before the first version lands.</p>
+                    <a href="https://discord.gg/DMuFEWJtZq" target="_blank" rel="noopener noreferrer" class="btn btn-primary">
+                        <i data-lucide="message-circle"></i>
+                        Join the Discord
+                    </a>
                 </div>
-                <div class="step">
-                    <div class="step-number">2</div>
-                    <h3>Map the Seas</h3>
-                    <p>Place islands in the center of the table. Deploy your fleet along your chosen edge. Fill the coin bag and prepare for battle.</p>
-                </div>
-                <div class="step">
-                    <div class="step-number">3</div>
-                    <h3>Take Command</h3>
-                    <p>On your turn, each ship takes ONE action: Move your ships, Fire your cannons, or Collect from a captured island.</p>
-                </div>
-                <div class="step">
-                    <div class="step-number">4</div>
-                    <h3>Spend Your Plunder</h3>
-                    <p>Coins buy you options: Full Sail for extra speed, Repair Crew to patch up damage, or Boarding Party to take an enemy ship.</p>
-                </div>
-                <div class="step">
-                    <div class="step-number">5</div>
-                    <h3>Claim Victory</h3>
-                    <p>Score points for surviving ships, captured islands, and hoarded coins. The highest score wins!</p>
-                </div>
-            </div>
-            <div class="victory-points">
-                <h3>Victory Points</h3>
-                <div class="vp-grid">
-                    <div class="vp-card">
-                        <span class="vp-value">3 pts</span>
-                        <span class="vp-label">Each surviving ship</span>
-                    </div>
-                    <div class="vp-card">
-                        <span class="vp-value">2 pts</span>
-                        <span class="vp-label">Each captured island</span>
-                    </div>
-                    <div class="vp-card">
-                        <span class="vp-value">1 pt</span>
-                        <span class="vp-label">Each coin in your hoard</span>
-                    </div>
-                    <div class="vp-card bonus">
-                        <span class="vp-value">+2 pts</span>
-                        <span class="vp-label">Be the player with the most ships, islands, or coins</span>
-                    </div>
+                <div class="signup-discord-qr">
+                    <img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=https://discord.gg/DMuFEWJtZq" alt="Discord Invite QR Code">
                 </div>
             </div>
         </div>
@@ -644,80 +580,31 @@
     <section id="downloads" class="downloads">
         <div class="container">
             <div class="section-header">
-                <h2>Free Downloads</h2>
-                <p>Print the whole game yourself, or download the rulebook to read before you play. Files and further information are available on <a href="https://github.com/JoshTheDerf/cannons-and-coastlines/tree/main" target="_blank" rel="noopener noreferrer">GitHub</a>.</p>
+                <h2>Rulebook</h2>
+                <p>The rules we're using at our own playtests. Still changing session to session.</p>
             </div>
-            <div class="dev-disclaimer">
-                <div class="dev-disclaimer-icon">
-                    <i data-lucide="alert-triangle"></i>
-                </div>
-                <div class="dev-disclaimer-text">
-                    <strong>Early Development</strong>
-                    <p>All downloads are early development versions only and have a long way to go. Rules, balance, and files are actively changing. Use at your own risk and expect rough edges.</p>
-                </div>
-            </div>
-            <div class="downloads-grid">
-                <div class="download-card">
-                    <div class="download-icon">
-                        <i data-lucide="package"></i>
+            <div class="downloads-single">
+                <div class="dev-disclaimer">
+                    <div class="dev-disclaimer-icon">
+                        <i data-lucide="alert-triangle"></i>
                     </div>
-                    <h3>Base Game Files</h3>
-                    <p>Complete 3D print files for Queen's Fleet and Corsairs. Includes ships, cannons, islands, and all components.</p>
-                    <ul class="download-includes">
-                        <li>2 Factions (7 ships total)</li>
-                        <li>Cannons & Cannonballs</li>
-                        <li>Islands & Terrain</li>
-                        <li>Coins, Flags, and Draw Bag pattern</li>
-                    </ul>
-                    <button class="btn btn-primary" disabled>
-                        <i data-lucide="download"></i>
-                        Download (ZIP)
-                    </button>
-                    <p class="coming-soon">Coming soon!</p>
+                    <div class="dev-disclaimer-text">
+                        <strong>Early Development</strong>
+                        <p>Rules are actively changing from playtest to playtest. Base game print files and a printing guide will follow once they're ready — <a href="#signup">join the mailing list</a> for release notes.</p>
+                    </div>
                 </div>
-
                 <div class="download-card">
                     <div class="download-icon">
                         <i data-lucide="file-text"></i>
                     </div>
-                    <h3>Rulebook</h3>
-                    <p>Full rules with diagrams and examples. Good as a reference at the table or to learn before your first game.</p>
-                    <ul class="download-includes">
-                        <li>Full rules reference</li>
-                        <li>Faction ability cards</li>
-                        <li>Coin action reference</li>
-                        <li>Quick start guide</li>
-                    </ul>
-                    <a href="rulebook/pdf/rulebook.pdf" class="btn btn-secondary dev-download" data-download-name="Rulebook">
+                    <h3>Digital Rulebook</h3>
+                    <p>Reference PDF for reading on screen. The printable half-letter booklet is emailed to <a href="#signup">subscribers</a>. Work-in-progress files are mirrored on <a href="https://github.com/JoshTheDerf/cannons-and-coastlines/tree/main" target="_blank" rel="noopener noreferrer">GitHub</a>.</p>
+                    <a href="rulebook/pdf/rulebook.pdf" class="btn btn-primary dev-download" data-download-name="Digital Rulebook">
                         <i data-lucide="download"></i>
                         Download PDF
                     </a>
-                    <a href="rulebook/pdf/rulebook-booklet.pdf" class="download-html-link dev-download" data-download-name="Rulebook Booklet">
-                        <i data-lucide="book-open"></i>
-                        Booklet imposition (print two-up &amp; fold)
-                    </a>
-                </div>
-
-                <div class="download-card">
-                    <div class="download-icon">
-                        <i data-lucide="settings"></i>
-                    </div>
-                    <h3>Printing Guide</h3>
-                    <p>Print settings, material suggestions, and assembly tips so your pieces come out right.</p>
-                    <ul class="download-includes">
-                        <li>Optimal print settings</li>
-                        <li>Material recommendations</li>
-                        <li>Assembly instructions</li>
-                        <li>Troubleshooting tips</li>
-                    </ul>
-                    <button class="btn btn-secondary" disabled>
-                        <i data-lucide="download"></i>
-                        Download PDF
-                    </button>
-                    <p class="coming-soon">Coming soon!</p>
                 </div>
             </div>
-
         </div>
     </section>
 
@@ -728,8 +615,8 @@
                 <i data-lucide="alert-triangle"></i>
             </div>
             <h3>Early Development Version</h3>
-            <p>This is an early development version of the <strong id="modal-file-name"></strong>. It is incomplete, may contain errors, and is subject to major changes.</p>
-            <p>Are you sure you want to download?</p>
+            <p>You're about to download <strong id="modal-file-name">this file</strong>. It's an early version. Expect missing pieces and bugs.</p>
+            <p>Continue?</p>
             <div class="modal-actions">
                 <button class="btn btn-secondary" id="modal-cancel">Cancel</button>
                 <a class="btn btn-primary" id="modal-confirm">
@@ -740,146 +627,27 @@
         </div>
     </div>
 
-    <!-- Shop Section -->
-    <section id="shop" class="shop">
+    <!-- About / Designer Section -->
+    <section id="about" class="about">
         <div class="container">
             <div class="section-header">
-                <h2>Expand Your Fleet</h2>
-                <p>Add new factions to your game with individual faction packs.</p>
+                <h2>Who's Behind This</h2>
             </div>
-            <div class="shop-grid">
-                <div class="product-card">
-                    <div class="product-image">
-                        <img src="assets/ships/ship-preview-sun-fleet-large.png" alt="Sun Fleet">
-                    </div>
-                    <div class="product-info">
-                        <h3>Sun Fleet Pack</h3>
-                        <p class="product-desc">Stone temple barges that shrug off the first hit each turn. Slow, but they can take a beating.</p>
-                        <div class="product-includes">
-                            <span>3 Ships</span>
-                            <span>1 Flag Color</span>
-                            <span>Cannonballs</span>
-                        </div>
-                        <div class="product-footer">
-                            <span class="product-price">Under development - Pricing TBD</span>
-                            <!-- <button class="btn btn-primary" onclick="alert('Sun Fleet will be available soon!')">Add to Cart</button> -->
-                        </div>
+            <div class="about-content">
+                <div class="about-video">
+                    <div class="about-video-embed">
+                        <iframe src="https://www.youtube.com/embed/I8fr532RWB0"
+                                title="Cannons & Coastlines — behind the scenes"
+                                frameborder="0"
+                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                                referrerpolicy="strict-origin-when-cross-origin"
+                                loading="lazy"
+                                allowfullscreen></iframe>
                     </div>
                 </div>
-
-                <div class="product-card">
-                    <div class="product-image">
-                        <img src="assets/ships/ship-preview-shadow-fleet-large.png" alt="Shadow Fleet">
-                    </div>
-                    <div class="product-info">
-                        <h3>Shadow Fleet Pack</h3>
-                        <p class="product-desc">Spectral galleons that come back when sunk. Hard to kill for good.</p>
-                        <div class="product-includes">
-                            <span>3 Ships</span>
-                            <span>1 Flag Color</span>
-                            <span>Cannonballs</span>
-                        </div>
-                        <div class="product-footer">
-                            <span class="product-price">Under development - Pricing TBD</span>
-                            <!-- <button class="btn btn-primary" onclick="alert('Shadow Fleet will be available soon!')">Add to Cart</button> -->
-                        </div>
-                    </div>
-                </div>
-
-                <div class="product-card">
-                    <div class="product-image">
-                        <img src="assets/ships/ship-preview-industry-large.png" alt="The Industry">
-                    </div>
-                    <div class="product-info">
-                        <h3>Industry Pack</h3>
-                        <p class="product-desc">Steam paddle warships with forward-only cannons. They only fire forward, but they never stop moving.</p>
-                        <div class="product-includes">
-                            <span>3 Ships</span>
-                            <span>1 Flag Color</span>
-                            <span>Cannonballs</span>
-                        </div>
-                        <div class="product-footer">
-                            <span class="product-price">Under development - Pricing TBD</span>
-                            <!-- <button class="btn btn-primary" onclick="alert('The Industry will be available soon!')">Add to Cart</button> -->
-                        </div>
-                    </div>
-                </div>
-
-                <div class="product-card">
-                    <div class="product-image">
-                        <img src="assets/ships/ship-preview-islanders-large.png" alt="The Islanders">
-                    </div>
-                    <div class="product-info">
-                        <h3>Islanders Pack</h3>
-                        <p class="product-desc">Fast outrigger canoes that shoot behind them. You start with an island already claimed.</p>
-                        <div class="product-includes">
-                            <span>5 Ships</span>
-                            <span>1 Flag Color</span>
-                            <span>Cannonballs</span>
-                        </div>
-                        <div class="product-footer">
-                            <span class="product-price">Under development - Pricing TBD</span>
-                            <!-- <button class="btn btn-primary" onclick="alert('The Islanders will be available soon!')">Add to Cart</button> -->
-                        </div>
-                    </div>
-                </div>
-
-                <div class="product-card">
-                    <div class="product-image">
-                        <img src="assets/ships/ship-preview-treasure-fleet-large.png" alt="Treasure Fleet">
-                    </div>
-                    <div class="product-info">
-                        <h3>Treasure Fleet Pack</h3>
-                        <p class="product-desc">Only two ships, but captured islands pay out double. Win by outearning everyone else.</p>
-                        <div class="product-includes">
-                            <span>2 Ships</span>
-                            <span>1 Flag Color</span>
-                            <span>Cannonballs</span>
-                        </div>
-                        <div class="product-footer">
-                            <span class="product-price">Under development - Pricing TBD</span>
-                            <!-- <button class="btn btn-primary" onclick="alert('Treasure Fleet will be available soon!')">Add to Cart</button> -->
-                        </div>
-                    </div>
-                </div>
-
-                <div class="product-card featured">
-                    <div class="product-badge">Best Value</div>
-                    <div class="product-image" style="background: linear-gradient(135deg, var(--color-ocean), var(--color-primary));">
-                    </div>
-                    <div class="product-info">
-                        <h3>Complete Bundle</h3>
-                        <p class="product-desc">All five expansion factions in one package.</p>
-                        <div class="product-includes">
-                            <span>16 Ships</span>
-                            <span>5 Flag Colors</span>
-                            <span>All Cannonballs</span>
-                        </div>
-                        <div class="product-footer">
-                            <span class="product-price">Under development - Pricing TBD</span>
-                            <!-- <span class="product-savings">Save $5</span> -->
-                            <!-- <button class="btn btn-primary" onclick="alert('Complete bundle will be available soon!')">Add to Cart</button> -->
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Discord Section -->
-    <section class="discord">
-        <div class="container">
-            <div class="discord-content">
-                <div class="discord-text">
-                    <h2>Join the Fleet</h2>
-                    <p>Get notified when the game launches, when files become available, and help test out early versions.</p>
-                    <a href="https://discord.gg/DMuFEWJtZq" target="_blank" class="btn btn-primary">
-                        <i data-lucide="message-circle"></i>
-                        Join the Discord Community
-                    </a>
-                </div>
-                <div class="discord-qr">
-                    <img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=https://discord.gg/DMuFEWJtZq" alt="Discord Invite QR Code">
+                <div class="about-text">
+                    <p>I'm <strong>Joshua Bemenderfer</strong>, a software engineer by day. I wanted a battleship game that was <em>actually fun</em> — where you actually move, strategize, and fire at other ships. It got away from me and went viral, and now a small crew of us (my wife and a few coworkers) are making it for real.</p>
+                    <p>We design every piece, print it, and play it. Rules get rewritten when something doesn't work in playtesting. The base game will be released for free so anyone with a printer can play. Paid add-on factions will fund the next round of work on the game.</p>
                 </div>
             </div>
         </div>
@@ -898,32 +666,28 @@
                 <div class="footer-links">
                     <div class="footer-column">
                         <h4>Game</h4>
-                        <a href="#features">Features</a>
+                        <a href="#see-it-in-action">See It</a>
+                        <a href="#how-to-play">How It Plays</a>
                         <a href="#factions">Factions</a>
-                        <a href="#how-to-play">How to Play</a>
-                        <a href="#playtesting">Playtesting</a>
                     </div>
                     <div class="footer-column">
-                        <h4>Downloads</h4>
-                        <a href="#downloads">Base Game</a>
+                        <h4>Files</h4>
                         <a href="#downloads">Rulebook</a>
-                        <a href="#downloads">Print Guide</a>
+                        <a href="https://github.com/JoshTheDerf/cannons-and-coastlines/tree/main" target="_blank" rel="noopener noreferrer">GitHub</a>
                     </div>
                     <div class="footer-column">
-                        <h4>Shop</h4>
-                        <a href="#shop">Faction Packs</a>
-                        <a href="#shop">Complete Bundle</a>
+                        <h4>More</h4>
+                        <a href="#signup">Mailing List</a>
+                        <a href="#about">About</a>
+                        <a href="https://discord.gg/DMuFEWJtZq" target="_blank" rel="noopener noreferrer">Discord</a>
                     </div>
                 </div>
             </div>
             <div class="footer-bottom">
                 <p>&copy; <span class="current-year">2026</span> Joshua Bemenderfer. Licensed under <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank" rel="noopener noreferrer">CC BY-NC-SA 4.0</a>.</p>
                 <div class="footer-social">
-                    <a href="#" aria-label="Discord">
+                    <a href="https://discord.gg/DMuFEWJtZq" aria-label="Discord" target="_blank" rel="noopener noreferrer">
                         <i data-lucide="message-circle"></i>
-                    </a>
-                    <a href="#" aria-label="Twitter">
-                        <i data-lucide="twitter"></i>
                     </a>
                     <a href="https://github.com/JoshTheDerf/cannons-and-coastlines/tree/main" aria-label="GitHub" target="_blank" rel="noopener noreferrer">
                         <i data-lucide="github"></i>

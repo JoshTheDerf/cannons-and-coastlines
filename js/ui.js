@@ -7,6 +7,46 @@ export function initUI() {
 
     initEasterEgg();
     initDownloadModal();
+    initLightbox();
+}
+
+function initLightbox() {
+    const lightbox = document.getElementById('lightbox');
+    if (!lightbox) return;
+
+    const img = lightbox.querySelector('.lightbox-img');
+    const closeBtn = lightbox.querySelector('.lightbox-close');
+
+    function open(src, alt) {
+        img.src = src;
+        img.alt = alt || '';
+        lightbox.classList.add('active');
+        lightbox.setAttribute('aria-hidden', 'false');
+        document.body.style.overflow = 'hidden';
+    }
+
+    function close() {
+        lightbox.classList.remove('active');
+        lightbox.setAttribute('aria-hidden', 'true');
+        img.src = '';
+        document.body.style.overflow = '';
+    }
+
+    document.querySelectorAll('[data-lightbox]').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const src = btn.dataset.lightbox;
+            const innerImg = btn.querySelector('img');
+            open(src, innerImg ? innerImg.alt : '');
+        });
+    });
+
+    closeBtn.addEventListener('click', close);
+    lightbox.addEventListener('click', (e) => {
+        if (e.target === lightbox) close();
+    });
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && lightbox.classList.contains('active')) close();
+    });
 }
 
 function initDownloadModal() {
@@ -18,7 +58,7 @@ function initDownloadModal() {
     const modalCancel = document.getElementById('modal-cancel');
 
     function openModal(name, href) {
-        modalFileName.textContent = name;
+        modalFileName.textContent = name || 'this file';
         modalConfirm.href = href;
         modal.classList.add('active');
         modal.setAttribute('aria-hidden', 'false');
