@@ -1,0 +1,41 @@
+# Cloudflare Pages headers
+# https://developers.cloudflare.com/pages/configuration/headers/
+
+# Long cache for hashed-or-stable static assets
+/assets/photos/*
+  Cache-Control: public, max-age=31536000, immutable
+
+/assets/images/*
+  Cache-Control: public, max-age=31536000, immutable
+
+/assets/ships/*
+  Cache-Control: public, max-age=31536000, immutable
+
+/assets/icons/*
+  Cache-Control: public, max-age=31536000, immutable
+
+/assets/playtesting/*
+  Cache-Control: public, max-age=31536000, immutable
+
+/assets/stls/*
+  Cache-Control: public, max-age=2592000
+
+# CSS/JS — short cache since filenames aren't hashed
+/css/*
+  Cache-Control: public, max-age=3600, must-revalidate
+
+/js/*
+  Cache-Control: public, max-age=3600, must-revalidate
+
+# Rulebook PDF — moderate cache, the file is rotated occasionally
+/rulebook/*
+  Cache-Control: public, max-age=3600, must-revalidate
+
+# HTML / everything else: revalidate so edits ship promptly
+/*
+  Cache-Control: public, max-age=300, must-revalidate
+  X-Content-Type-Options: nosniff
+  X-Frame-Options: SAMEORIGIN
+  Referrer-Policy: strict-origin-when-cross-origin
+  Strict-Transport-Security: max-age=31536000; includeSubDomains
+  Permissions-Policy: interest-cohort=()
