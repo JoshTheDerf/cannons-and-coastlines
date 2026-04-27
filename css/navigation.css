@@ -82,6 +82,35 @@
     color: var(--color-secondary-light);
 }
 
+/* Highlighted "starter pack" CTA in the nav */
+.nav-links a.nav-cta {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.4rem 0.9rem;
+    margin: -0.1rem 0;
+    background: var(--gradient-gold);
+    color: var(--color-white);
+    border-radius: 999px;
+    font-weight: 600;
+    border: 1px solid rgba(139, 101, 24, 0.5);
+    box-shadow: var(--shadow-gold);
+    text-shadow: 0 1px 1px rgba(0, 0, 0, 0.25);
+    transition: filter 0.15s, transform 0.15s;
+}
+
+.nav-links a.nav-cta:hover,
+.nav-links a.nav-cta.active {
+    color: var(--color-white);
+    filter: brightness(1.08);
+    transform: translateY(-1px);
+}
+
+.nav-links a.nav-cta i {
+    width: 14px;
+    height: 14px;
+}
+
 .nav-toggle {
     display: none;
     flex-direction: column;

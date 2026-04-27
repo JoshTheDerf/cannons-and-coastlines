@@ -308,3 +308,223 @@
     flex: 1;
     justify-content: center;
 }
+
+/* Announcement Bar — sits directly below the fixed nav */
+
+.announce-bar {
+    background: linear-gradient(135deg, var(--color-secondary) 0%, #ad8025 100%);
+    color: var(--color-bg-dark);
+    padding: 0.75rem 1rem;
+    margin-top: 64px;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.15);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+    position: relative;
+    z-index: 5;
+}
+
+.announce-bar a {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.65rem;
+    max-width: 1200px;
+    margin: 0 auto;
+    color: inherit;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 0.95rem;
+    line-height: 1.4;
+    flex-wrap: wrap;
+    text-align: center;
+}
+
+.announce-bar a:hover .announce-cta {
+    background: var(--color-bg-dark);
+    color: var(--color-secondary-light);
+}
+
+.announce-bar i {
+    width: 18px;
+    height: 18px;
+    flex-shrink: 0;
+}
+
+.announce-pill {
+    display: inline-block;
+    background: rgba(0, 0, 0, 0.18);
+    color: var(--color-bg-dark);
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    padding: 0.2rem 0.55rem;
+    border-radius: 999px;
+}
+
+.announce-cta {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    background: rgba(255, 255, 255, 0.92);
+    color: var(--color-primary);
+    font-weight: 700;
+    padding: 0.3rem 0.75rem;
+    border-radius: 999px;
+    font-size: 0.85rem;
+    transition: background 0.15s, color 0.15s;
+}
+
+.announce-bar + .hero {
+    padding-top: var(--spacing-sm);
+}
+
+@media (max-width: 720px) {
+    .announce-bar {
+        padding: 0.6rem 0.75rem;
+    }
+    .announce-bar a {
+        font-size: 0.85rem;
+        gap: 0.4rem;
+    }
+    .announce-bar .announce-text-long {
+        display: none;
+    }
+}
+
+/* Name Vote — used on both home and starter-pack pages */
+
+.name-vote {
+    background: var(--color-bg-dark);
+    padding: var(--spacing-md) 0;
+    border-top: 1px solid var(--color-secondary);
+    border-bottom: 1px solid var(--color-secondary);
+}
+
+.name-vote .container {
+    max-width: 720px;
+    text-align: center;
+}
+
+.name-vote-prompt {
+    color: var(--color-text);
+    font-size: 1rem;
+    line-height: 1.5;
+    margin: 0 0 0.75rem;
+}
+
+.name-vote-poll {
+    display: flex;
+    align-items: stretch;
+    justify-content: center;
+    gap: var(--spacing-sm);
+    margin: var(--spacing-sm) 0 0;
+    flex-wrap: wrap;
+}
+
+.name-card {
+    flex: 0 1 240px;
+    background: var(--color-white);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    padding: 1.1rem var(--spacing-md) 0.85rem;
+    text-align: center;
+    position: relative;
+    transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.name-card:nth-child(1) {
+    transform: rotate(-0.6deg);
+}
+
+.name-card:nth-child(3) {
+    transform: rotate(0.6deg);
+}
+
+.name-card:hover {
+    transform: translateY(-3px) rotate(0deg);
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.12);
+    border-color: var(--color-secondary);
+}
+
+.name-tag {
+    position: absolute;
+    top: -12px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 28px;
+    height: 28px;
+    background: var(--gradient-gold);
+    color: var(--color-white);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 0.9rem;
+    box-shadow: var(--shadow-gold);
+    border: 2px solid var(--color-bg-dark);
+}
+
+.name-card strong {
+    display: block;
+    font-family: var(--font-display);
+    font-size: 1.1rem;
+    color: var(--color-primary);
+    margin-top: 0.25rem;
+    line-height: 1.2;
+}
+
+.name-card .name-sub {
+    display: block;
+    color: var(--color-text-light);
+    font-size: 0.85rem;
+    margin-top: 0.3rem;
+    font-style: italic;
+}
+
+.name-vs {
+    align-self: center;
+    width: 44px;
+    height: 44px;
+    background: var(--color-bg);
+    color: var(--color-secondary);
+    border: 2px solid var(--color-secondary);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    flex-shrink: 0;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+}
+
+@media (max-width: 520px) {
+    .name-vote-poll {
+        flex-direction: column;
+        align-items: center;
+    }
+    .name-card {
+        width: 100%;
+        max-width: 280px;
+    }
+    .name-card:nth-child(1),
+    .name-card:nth-child(3) {
+        transform: none;
+    }
+}
+
+.name-vote a {
+    color: var(--color-accent);
+    font-weight: 600;
+    text-decoration: none;
+    border-bottom: 1px solid currentColor;
+}
+
+.name-vote a:hover {
+    color: var(--color-secondary);
+}

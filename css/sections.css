@@ -434,6 +434,19 @@
     justify-content: center;
 }
 
+.download-card-actions {
+    display: flex;
+    gap: var(--spacing-xs);
+}
+
+.download-card-actions .btn {
+    flex: 1;
+    width: auto;
+    min-width: 0;
+    padding-left: 0.75rem;
+    padding-right: 0.75rem;
+}
+
 /* Playtesting Section */
 
 .playtesting {

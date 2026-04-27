@@ -10,8 +10,8 @@
     <!-- Open Graph -->
     <meta property="og:title" content="Cannons & Coastlines | A Tabletop Naval Conquest Game">
     <meta property="og:description" content="A physical tabletop game for 2–20 players where rival fleets battle across an open sea. 3D printable, cannon-powered combat meets strategic island conquest.">
-    <meta property="og:image" content="https://cannonsandcoastlines.thederf.com/assets/images/logo-with-wordmark.png">
-    <meta property="og:url" content="https://cannonsandcoastlines.thederf.com/">
+    <meta property="og:image" content="https://cannonsandcoastlines.com/assets/images/logo-with-wordmark.png">
+    <meta property="og:url" content="https://cannonsandcoastlines.com/">
     <meta property="og:type" content="website">
     <meta name="twitter:card" content="summary_large_image">
     <!-- Favicon -->
@@ -42,8 +42,9 @@
                 <li><a href="#see-it-in-action">See It</a></li>
                 <li><a href="#how-to-play">How It Plays</a></li>
                 <li><a href="#factions">Factions</a></li>
-                <li><a href="#downloads">Rulebook</a></li>
+                <li><a href="#downloads">Downloads</a></li>
                 <li><a href="#about">About</a></li>
+                <li class="nav-cta-item"><a href="starter-pack/" class="nav-cta"><i data-lucide="anchor"></i> Order starter pack</a></li>
             </ul>
             <button class="nav-toggle" aria-label="Toggle navigation" aria-expanded="false">
                 <span></span>
@@ -53,6 +54,16 @@
         </div>
     </nav>
     <div class="nav-overlay" aria-hidden="true"></div>
+
+    <!-- Starter Pack announcement banner -->
+    <aside class="announce-bar" role="region" aria-label="Starter pack announcement">
+        <a href="starter-pack/">
+            <i data-lucide="anchor"></i>
+            <span class="announce-pill">First Run</span>
+            <span><strong>10 early-bird starter packs available</strong> <span class="announce-text-long">— printed, packed &amp; shipped by hand. $22 in the US.</span></span>
+            <span class="announce-cta">Order yours <i data-lucide="arrow-right"></i></span>
+        </a>
+    </aside>
 
     <!-- Hero Section -->
     <header class="hero">
@@ -314,6 +325,25 @@
         </div>
     </header>
 
+    <!-- Name Vote -->
+    <section class="name-vote" id="name-vote">
+        <div class="container">
+            <p class="name-vote-prompt">Help us pick a name — vote on <a href="https://discord.gg/DMuFEWJtZq" target="_blank" rel="noopener noreferrer">Discord</a>:</p>
+            <div class="name-vote-poll">
+                <div class="name-card">
+                    <span class="name-tag">A</span>
+                    <strong>Cannons &amp; Coastlines</strong>
+                </div>
+                <div class="name-vs" aria-hidden="true">vs</div>
+                <div class="name-card">
+                    <span class="name-tag">B</span>
+                    <strong>B.O.A.T.</strong>
+                    <span class="name-sub">Boats On A Table</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
     <!-- See It in Action -->
     <section id="see-it-in-action" class="social-proof see-it">
         <div class="container">
@@ -558,7 +588,7 @@
                 <p>Subscribe and we'll send you the printable ruleset booklet we use at our own playtests. You'll also get a note when a new faction is ready, along with whatever we're learning from sessions along the way.</p>
                 <div class="signup-form">
                     <script async data-uid="a74f27ac96" src="https://cannons-and-coastlines.kit.com/a74f27ac96/index.js"></script>
-                    <p class="signup-legal"><small><a href="privacy.html">Privacy Policy</a></small></p>
+                    <p class="signup-legal"><small><a href="privacy/">Privacy Policy</a></small></p>
                 </div>
             </div>
             <div class="signup-discord">
@@ -587,29 +617,46 @@
     <section id="downloads" class="downloads">
         <div class="container">
             <div class="section-header">
-                <h2>Rulebook</h2>
-                <p>The rules we're using at our own playtests. Still changing session to session.</p>
+                <h2>Downloads</h2>
+                <p>The rulebook and print files we're using at our own playtests. Still changing session to session.</p>
             </div>
-            <div class="downloads-single">
-                <div class="dev-disclaimer">
-                    <div class="dev-disclaimer-icon">
-                        <i data-lucide="alert-triangle"></i>
-                    </div>
-                    <div class="dev-disclaimer-text">
-                        <strong>Early Development</strong>
-                        <p>Rules are actively changing from playtest to playtest. Base game print files and a printing guide will follow once they're ready — <a href="#signup">join the mailing list</a> for release notes.</p>
-                    </div>
+            <div class="dev-disclaimer">
+                <div class="dev-disclaimer-icon">
+                    <i data-lucide="alert-triangle"></i>
                 </div>
+                <div class="dev-disclaimer-text">
+                    <strong>Early Development</strong>
+                    <p>Rules and models are still actively changing. <a href="#signup">Join the mailing list</a> or jump into the <a href="https://discord.gg/DMuFEWJtZq" target="_blank" rel="noopener noreferrer">playtest Discord</a> to get new versions as they land.</p>
+                </div>
+            </div>
+            <div class="downloads-grid">
                 <div class="download-card">
                     <div class="download-icon">
                         <i data-lucide="file-text"></i>
                     </div>
                     <h3>Digital Rulebook</h3>
-                    <p>Reference PDF for reading on screen. The printable half-letter booklet is emailed to <a href="#signup">subscribers</a>. Work-in-progress files are mirrored on <a href="https://github.com/JoshTheDerf/cannons-and-coastlines/tree/main" target="_blank" rel="noopener noreferrer">GitHub</a>.</p>
+                    <p>Reference PDF for reading on screen. The printable half-letter booklet is emailed to <a href="#signup">subscribers</a>.</p>
                     <a href="rulebook/pdf/rulebook.pdf" class="btn btn-primary dev-download" data-download-name="Digital Rulebook">
                         <i data-lucide="download"></i>
                         Download PDF
                     </a>
+                </div>
+                <div class="download-card">
+                    <div class="download-icon">
+                        <i data-lucide="printer"></i>
+                    </div>
+                    <h3>Print Files (STL)</h3>
+                    <p>Both fleets and every accessory — Corsair ships, Queen's Fleet ships, masts, sails, cannons, cannonballs, coins, islands, rocks, and reefs. Sent out to subscribers and pinned in the playtest Discord.</p>
+                    <div class="download-card-actions">
+                        <a href="#signup" class="btn btn-primary">
+                            <i data-lucide="mail"></i>
+                            Mailing list
+                        </a>
+                        <a href="https://discord.gg/DMuFEWJtZq" target="_blank" rel="noopener noreferrer" class="btn btn-secondary">
+                            <i data-lucide="message-circle"></i>
+                            Discord
+                        </a>
+                    </div>
                 </div>
             </div>
         </div>
@@ -676,17 +723,18 @@
                         <a href="#see-it-in-action">See It</a>
                         <a href="#how-to-play">How It Plays</a>
                         <a href="#factions">Factions</a>
+                        <a href="starter-pack/">Starter Pack</a>
                     </div>
                     <div class="footer-column">
                         <h4>Files</h4>
-                        <a href="#downloads">Rulebook</a>
+                        <a href="#downloads">Rulebook & STLs</a>
                         <a href="https://github.com/JoshTheDerf/cannons-and-coastlines/tree/main" target="_blank" rel="noopener noreferrer">GitHub</a>
                     </div>
                     <div class="footer-column">
                         <h4>More</h4>
                         <a href="#signup">Mailing List</a>
                         <a href="#about">About</a>
-                        <a href="privacy.html">Privacy</a>
+                        <a href="privacy/">Privacy</a>
                         <a href="https://discord.gg/DMuFEWJtZq" target="_blank" rel="noopener noreferrer">Discord</a>
                     </div>
                 </div>

@@ -83,6 +83,31 @@
         width: 100%;
     }
 
+    /* "Order starter pack" CTA in the mobile menu —
+       full-width gold button, separated from the link list */
+    .nav-links .nav-cta-item {
+        border-bottom: none;
+        margin-top: var(--spacing-sm);
+        padding-top: var(--spacing-sm);
+        border-top: 1px solid rgba(212, 196, 168, 0.15);
+    }
+
+    .nav-links a.nav-cta {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        width: 100%;
+        font-size: 1rem;
+        padding: 0.95rem 1.25rem;
+        margin: 0;
+        box-sizing: border-box;
+    }
+
+    .nav-links a.nav-cta i {
+        width: 18px;
+        height: 18px;
+    }
+
     /* Body scroll lock when menu is open */
     body.nav-open {
         overflow: hidden;
