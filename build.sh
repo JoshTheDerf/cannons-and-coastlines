@@ -8,21 +8,29 @@ DIST=dist
 rm -rf "$DIST"
 mkdir -p "$DIST"
 
-rsync -a \
-    --exclude='.git/' \
-    --exclude='.github/' \
-    --exclude='.gitignore' \
-    --exclude='.claude/' \
-    --exclude='_internal/' \
-    --exclude="$DIST/" \
-    --exclude='build.sh' \
-    --exclude='README.md' \
-    --exclude='node_modules/' \
-    --exclude='.DS_Store' \
-    --exclude='rulebook/png/' \
-    --exclude='rulebook/svg/' \
-    --exclude='rulebook/assets/' \
-    --exclude='assets/playtesting/' \
-    ./ "$DIST/"
+# Copy each public top-level item explicitly.
+# (CF Pages' build image lacks rsync, so use plain cp.)
+for item in \
+    assets \
+    css \
+    game \
+    js \
+    privacy \
+    rulebook \
+    starter-pack \
+    index.html \
+    _headers \
+    LICENSE
+do
+    if [ -e "$item" ]; then
+        cp -R "$item" "$DIST/"
+    fi
+done
 
-echo "Built $DIST/ ($(du -sh $DIST | cut -f1))"
+# Strip subdirectories we don't serve (rulebook source files, unused media).
+rm -rf "$DIST/rulebook/png" \
+       "$DIST/rulebook/svg" \
+       "$DIST/rulebook/assets" \
+       "$DIST/assets/playtesting"
+
+echo "Built $DIST/ ($(du -sh "$DIST" | cut -f1))"
