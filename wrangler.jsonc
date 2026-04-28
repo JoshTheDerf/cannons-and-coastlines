@@ -1,0 +1,11 @@
+{
+    "$schema": "node_modules/wrangler/config-schema.json",
+    "name": "cannons-and-coastlines",
+    "compatibility_date": "2026-04-28",
+    "observability": {
+        "enabled": true
+    },
+    "assets": {
+        "directory": "./dist"
+    }
+}
