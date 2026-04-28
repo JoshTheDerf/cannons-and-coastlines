@@ -1,41 +1,42 @@
 # Cloudflare Pages headers
 # https://developers.cloudflare.com/pages/configuration/headers/
+#
+# Note: CF Pages combines (not overrides) Cache-Control from multiple
+# matching rules, so we keep Cache-Control out of the catch-all /*
+# block and only set it on specific paths.
 
-# Long cache for hashed-or-stable static assets
+# Long cache for stable static assets (filenames don't change)
 /assets/photos/*
-  Cache-Control: public, max-age=31536000, immutable
+    Cache-Control: public, max-age=31536000, immutable
 
 /assets/images/*
-  Cache-Control: public, max-age=31536000, immutable
+    Cache-Control: public, max-age=31536000, immutable
 
 /assets/ships/*
-  Cache-Control: public, max-age=31536000, immutable
+    Cache-Control: public, max-age=31536000, immutable
 
 /assets/icons/*
-  Cache-Control: public, max-age=31536000, immutable
-
-/assets/playtesting/*
-  Cache-Control: public, max-age=31536000, immutable
+    Cache-Control: public, max-age=31536000, immutable
 
 /assets/stls/*
-  Cache-Control: public, max-age=2592000
+    Cache-Control: public, max-age=2592000
 
-# CSS/JS — short cache since filenames aren't hashed
+# CSS/JS — short cache because filenames aren't hashed
 /css/*
-  Cache-Control: public, max-age=3600, must-revalidate
+    Cache-Control: public, max-age=3600, must-revalidate
 
 /js/*
-  Cache-Control: public, max-age=3600, must-revalidate
+    Cache-Control: public, max-age=3600, must-revalidate
 
-# Rulebook PDF — moderate cache, the file is rotated occasionally
+# Rulebook PDFs — moderate cache, files rotate occasionally
 /rulebook/*
-  Cache-Control: public, max-age=3600, must-revalidate
+    Cache-Control: public, max-age=3600, must-revalidate
 
-# HTML / everything else: revalidate so edits ship promptly
+# Security headers everywhere (no Cache-Control here on purpose,
+# so it doesn't get concatenated with the rules above).
 /*
-  Cache-Control: public, max-age=300, must-revalidate
-  X-Content-Type-Options: nosniff
-  X-Frame-Options: SAMEORIGIN
-  Referrer-Policy: strict-origin-when-cross-origin
-  Strict-Transport-Security: max-age=31536000; includeSubDomains
-  Permissions-Policy: interest-cohort=()
+    X-Content-Type-Options: nosniff
+    X-Frame-Options: SAMEORIGIN
+    Referrer-Policy: strict-origin-when-cross-origin
+    Strict-Transport-Security: max-age=31536000; includeSubDomains
+    Permissions-Policy: interest-cohort=()
