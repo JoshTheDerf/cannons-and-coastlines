@@ -1,3 +1,4 @@
 _internal
 rulebook/svg/
 dist/
+__pycache__/

@@ -20,6 +20,7 @@ for item in \
     starter-pack \
     index.html \
     _headers \
+    _redirects \
     LICENSE
 do
     if [ -e "$item" ]; then
