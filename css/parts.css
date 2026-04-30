@@ -1,0 +1,403 @@
+/* Parts page */
+
+.parts-hero {
+    background: linear-gradient(180deg, var(--color-ocean) 0%, var(--color-ocean-light) 100%);
+    color: var(--color-white);
+    padding: 160px 0 var(--spacing-lg);
+    text-align: center;
+}
+
+.parts-hero .container {
+    max-width: 760px;
+}
+
+.parts-hero h1 {
+    font-family: var(--font-display);
+    font-size: clamp(2.2rem, 5vw, 3.4rem);
+    margin: 0 0 var(--spacing-sm);
+    color: var(--color-white);
+    text-shadow: 0 2px 12px rgba(0, 0, 0, 0.4);
+}
+
+.parts-hero p {
+    color: rgba(245, 240, 232, 0.92);
+    font-size: 1.1rem;
+    line-height: 1.6;
+    margin: 0 auto;
+    max-width: 640px;
+    text-shadow: 0 1px 6px rgba(0, 0, 0, 0.35);
+}
+
+.parts-section {
+    padding: var(--spacing-lg) 0;
+}
+
+.parts-section.alt {
+    background: var(--color-bg-dark);
+}
+
+.parts-section.bg-light {
+    background: var(--color-bg);
+}
+
+.parts-section h2 {
+    font-family: var(--font-display);
+    font-size: clamp(1.8rem, 3.4vw, 2.4rem);
+    color: var(--color-primary);
+    margin: 0 0 var(--spacing-sm);
+    text-align: center;
+}
+
+.parts-section .section-lead {
+    max-width: 760px;
+    margin: 0 auto var(--spacing-md);
+    color: var(--color-text-light);
+    text-align: center;
+    line-height: 1.65;
+}
+
+/* Parts grid */
+
+.parts-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: var(--spacing-md);
+    max-width: 1100px;
+    margin: 0 auto;
+}
+
+.part-card {
+    background: var(--color-white);
+    border-radius: var(--radius-lg);
+    padding: var(--spacing-sm) var(--spacing-sm) 1.25rem;
+    box-shadow: var(--shadow);
+    border: 1px solid var(--color-border);
+    display: flex;
+    flex-direction: column;
+}
+
+.part-card .part-render {
+    background: linear-gradient(135deg, #f3ece0 0%, #e8dec9 100%);
+    border-radius: var(--radius-md);
+    aspect-ratio: 1 / 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 0.85rem;
+    overflow: hidden;
+}
+
+.part-card .part-render img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    padding: 0.5rem;
+}
+
+.part-card h3 {
+    font-family: var(--font-display);
+    font-size: 1.2rem;
+    color: var(--color-primary);
+    margin: 0 0 0.4rem;
+}
+
+.part-card p {
+    color: var(--color-text-light);
+    font-size: 0.95rem;
+    line-height: 1.55;
+    margin: 0 0 0.6rem;
+}
+
+.part-card .part-color {
+    margin-top: auto;
+    font-size: 0.85rem;
+    color: var(--color-text);
+    background: var(--color-bg);
+    border-left: 3px solid var(--color-secondary);
+    padding: 0.5rem 0.7rem;
+    border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+}
+
+.part-card .part-color strong {
+    color: var(--color-primary);
+    font-family: var(--font-display);
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+    font-size: 0.78rem;
+    display: block;
+    margin-bottom: 0.15rem;
+}
+
+/* Assembly section */
+
+.assembly-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: var(--spacing-md);
+    max-width: 1100px;
+    margin: 0 auto;
+}
+
+.assembly-card {
+    background: var(--color-white);
+    border-radius: var(--radius-md);
+    padding: var(--spacing-sm) 1.25rem 1.25rem;
+    box-shadow: var(--shadow);
+}
+
+.assembly-card h3 {
+    font-family: var(--font-display);
+    color: var(--color-primary);
+    font-size: 1.1rem;
+    margin: 0 0 0.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.assembly-card h3 i {
+    color: var(--color-secondary);
+    width: 22px;
+    height: 22px;
+}
+
+.assembly-card p,
+.assembly-card li {
+    color: var(--color-text-light);
+    font-size: 0.95rem;
+    line-height: 1.6;
+}
+
+.assembly-card ol,
+.assembly-card ul {
+    padding-left: 1.2rem;
+    margin: 0;
+}
+
+.assembly-card li {
+    margin-bottom: 0.35rem;
+}
+
+/* Print settings table */
+
+.print-settings {
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+.print-settings .settings-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: var(--spacing-sm);
+    margin-bottom: var(--spacing-md);
+}
+
+.settings-card {
+    background: var(--color-white);
+    border-radius: var(--radius-md);
+    padding: 1.1rem 1.2rem;
+    box-shadow: var(--shadow);
+    border-top: 3px solid var(--color-secondary);
+}
+
+.settings-card h4 {
+    margin: 0 0 0.4rem;
+    color: var(--color-primary);
+    font-family: var(--font-display);
+    font-size: 1.05rem;
+}
+
+.settings-card dl {
+    margin: 0;
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 0.3rem 0.6rem;
+    font-size: 0.92rem;
+}
+
+.settings-card dt {
+    color: var(--color-text-light);
+    font-weight: 500;
+}
+
+.settings-card dd {
+    margin: 0;
+    color: var(--color-text);
+}
+
+.print-callouts {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: var(--spacing-sm);
+}
+
+.print-callout {
+    display: flex;
+    gap: 0.75rem;
+    background: var(--color-white);
+    border-radius: var(--radius-md);
+    padding: 1rem 1.1rem;
+    box-shadow: var(--shadow);
+}
+
+.print-callout i {
+    color: var(--color-secondary);
+    flex-shrink: 0;
+    margin-top: 2px;
+}
+
+.print-callout strong {
+    color: var(--color-primary);
+    font-family: var(--font-display);
+    display: block;
+    margin-bottom: 0.2rem;
+}
+
+.print-callout p {
+    margin: 0;
+    color: var(--color-text-light);
+    font-size: 0.92rem;
+    line-height: 1.55;
+}
+
+/* Quantities table */
+
+.quantities-block {
+    max-width: 900px;
+    margin: 0 auto var(--spacing-md);
+}
+
+.quantities-block h3 {
+    font-family: var(--font-display);
+    color: var(--color-primary);
+    font-size: 1.3rem;
+    margin: 0 0 0.5rem;
+}
+
+.quantities-block .quantities-lead {
+    color: var(--color-text-light);
+    margin: 0 0 var(--spacing-sm);
+}
+
+.quantities-table {
+    width: 100%;
+    background: var(--color-white);
+    border-collapse: collapse;
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    box-shadow: var(--shadow);
+    font-size: 0.95rem;
+}
+
+.quantities-table th,
+.quantities-table td {
+    text-align: left;
+    padding: 0.7rem 1rem;
+    border-bottom: 1px solid var(--color-border);
+    vertical-align: top;
+}
+
+.quantities-table tr:last-child td {
+    border-bottom: 0;
+}
+
+.quantities-table th {
+    background: var(--color-primary);
+    color: var(--color-white);
+    font-family: var(--font-display);
+    letter-spacing: 0.04em;
+    font-weight: 600;
+    font-size: 0.92rem;
+    text-transform: uppercase;
+}
+
+.quantities-table td:nth-child(1) {
+    font-weight: 600;
+    color: var(--color-primary);
+    width: 32%;
+}
+
+.quantities-table td:nth-child(2) {
+    width: 16%;
+    color: var(--color-secondary);
+    font-weight: 600;
+}
+
+.quantities-table td:nth-child(3) {
+    color: var(--color-text-light);
+}
+
+@media (max-width: 600px) {
+    .quantities-table,
+    .quantities-table tbody,
+    .quantities-table tr,
+    .quantities-table td {
+        display: block;
+        width: 100%;
+    }
+    .quantities-table thead {
+        display: none;
+    }
+    .quantities-table tr {
+        padding: 0.7rem 1rem;
+        border-bottom: 1px solid var(--color-border);
+    }
+    .quantities-table td {
+        padding: 0.15rem 0;
+        border: 0;
+    }
+    .quantities-table td:nth-child(1) {
+        font-size: 1.05rem;
+    }
+    .quantities-table td:nth-child(2)::before {
+        content: 'Qty: ';
+        color: var(--color-text-light);
+        font-weight: 500;
+    }
+}
+
+/* CTA / download */
+
+.parts-cta {
+    background: linear-gradient(135deg, var(--color-primary-dark) 0%, var(--color-primary) 100%);
+    color: var(--color-white);
+    padding: var(--spacing-lg) 0;
+    text-align: center;
+}
+
+.parts-cta h2 {
+    color: var(--color-white);
+    margin-bottom: var(--spacing-sm);
+}
+
+.parts-cta p {
+    color: rgba(245, 240, 232, 0.9);
+    max-width: 580px;
+    margin: 0 auto var(--spacing-sm);
+    line-height: 1.6;
+}
+
+.parts-cta .cta-buttons {
+    display: inline-flex;
+    flex-wrap: wrap;
+    gap: var(--spacing-xs);
+    justify-content: center;
+}
+
+/* Back link */
+
+.parts-back {
+    text-align: center;
+    padding: var(--spacing-md) 0;
+    background: var(--color-bg);
+}
+
+.parts-back a {
+    color: var(--color-text-light);
+    text-decoration: none;
+    font-size: 0.95rem;
+}
+
+.parts-back a:hover {
+    color: var(--color-primary);
+}

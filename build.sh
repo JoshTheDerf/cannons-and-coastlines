@@ -8,13 +8,17 @@ DIST=dist
 rm -rf "$DIST"
 mkdir -p "$DIST"
 
-# Copy each public top-level item explicitly.
+# Copy each public top-level item explicitly. Anything not on this list
+# stays out of dist/ and therefore out of the Cloudflare Pages deploy --
+# notably scripts/ (Blender render pipeline), _internal/ (Typst sources,
+# drafts, and other private working files), and .git*.
 # (CF Pages' build image lacks rsync, so use plain cp.)
 for item in \
     assets \
     css \
     game \
     js \
+    parts \
     privacy \
     rulebook \
     starter-pack \
