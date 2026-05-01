@@ -361,6 +361,14 @@
     border-radius: 999px;
 }
 
+.announce-strike {
+    opacity: 0.6;
+    text-decoration: line-through;
+    text-decoration-thickness: 2px;
+    margin-right: 0.15rem;
+    font-weight: 600;
+}
+
 .announce-cta {
     display: inline-flex;
     align-items: center;
