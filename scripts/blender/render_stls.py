@@ -35,7 +35,7 @@ def parse_args():
     p = argparse.ArgumentParser()
     p.add_argument("input_dir", type=Path)
     p.add_argument("output_dir", type=Path)
-    p.add_argument("--res", type=int, default=1500)
+    p.add_argument("--res", type=int, default=800)
     p.add_argument("--samples", type=int, default=64)
     p.add_argument("--elevation", type=float, default=55.0)
     p.add_argument("--azimuth", type=float, default=45.0)

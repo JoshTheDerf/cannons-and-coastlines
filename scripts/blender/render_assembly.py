@@ -174,10 +174,20 @@ def main():
     # Render frame sequence.
     bpy.ops.render.render(animation=True)
 
-    # Encode video unless skipped.
+    # Encode video unless skipped, then drop the frame PNGs -- they aren't
+    # used downstream and add ~30 MB per assembly to the repo.
     if not args.frames_only:
         encode_video(frames_dir, name, out_dir, args.fps)
-    print(f"Done. Frames: {frames_dir}")
+        import shutil
+        shutil.rmtree(frames_dir, ignore_errors=True)
+        # Clean up the parent `frames/` dir if it's now empty.
+        try:
+            frames_dir.parent.rmdir()
+        except OSError:
+            pass
+        print(f"Done. Video: {out_dir / f'{name}.mp4'}")
+    else:
+        print(f"Done. Frames: {frames_dir}")
 
 
 def encode_video(frames_dir: Path, name: str, out_dir: Path, fps: int):

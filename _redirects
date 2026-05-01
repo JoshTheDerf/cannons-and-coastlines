@@ -1,4 +1,5 @@
 # Cloudflare Pages redirects
 # https://developers.cloudflare.com/pages/configuration/redirects/
 
-/assets/stls/cannons-and-coastlines-base-set-0.1.zip  /assets/stls/cannons-and-coastlines-base-set-0.2.zip  301
+/assets/stls/cannons-and-coastlines-base-set-0.1.zip  /assets/stls/cannons-and-coastlines-base-set-0.3.zip  301
+/assets/stls/cannons-and-coastlines-base-set-0.2.zip  /assets/stls/cannons-and-coastlines-base-set-0.3.zip  301

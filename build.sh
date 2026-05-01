@@ -10,8 +10,9 @@ mkdir -p "$DIST"
 
 # Copy each public top-level item explicitly. Anything not on this list
 # stays out of dist/ and therefore out of the Cloudflare Pages deploy --
-# notably scripts/ (Blender render pipeline), _internal/ (Typst sources,
-# drafts, and other private working files), and .git*.
+# notably scripts/ (Blender render pipeline), _internal/ (drafts and other
+# private working files), and .git*. Typst sources under rulebook/typst/
+# are stripped below.
 # (CF Pages' build image lacks rsync, so use plain cp.)
 for item in \
     assets \
@@ -36,6 +37,7 @@ done
 rm -rf "$DIST/rulebook/png" \
        "$DIST/rulebook/svg" \
        "$DIST/rulebook/assets" \
+       "$DIST/rulebook/typst" \
        "$DIST/assets/playtesting"
 
 echo "Built $DIST/ ($(du -sh "$DIST" | cut -f1))"

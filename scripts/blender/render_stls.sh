@@ -16,7 +16,7 @@ set -euo pipefail
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO="$(cd "$HERE/../.." && pwd)"
 
-INPUT="${1:-$REPO/assets/stls/cannons-and-coastlines-base-set-0.2}"
+INPUT="${1:-$REPO/assets/stls/cannons-and-coastlines-base-set-0.3}"
 OUTPUT="${2:-$REPO/assets/images/renders}"
 shift $(( $# > 2 ? 2 : $# ))
 

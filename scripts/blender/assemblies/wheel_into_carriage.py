@@ -34,7 +34,7 @@ import bmesh
 
 
 REPO = Path(__file__).resolve().parents[3]
-STL_DIR = REPO / "assets" / "stls" / "cannons-and-coastlines-base-set-0.2"
+STL_DIR = REPO / "assets" / "stls" / "cannons-and-coastlines-base-set-0.3"
 
 
 # Wheel-after-rotation geometry constants. Hand-keep these in sync with the

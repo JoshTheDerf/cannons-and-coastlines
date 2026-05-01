@@ -1,4 +1,5 @@
-_internal
+_internal*
+.claude
 rulebook/svg/
 dist/
 __pycache__/

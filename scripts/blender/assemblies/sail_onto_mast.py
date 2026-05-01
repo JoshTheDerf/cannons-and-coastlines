@@ -44,7 +44,7 @@ from cc_anim import Part
 
 
 REPO = Path(__file__).resolve().parents[3]
-STL_DIR = REPO / "assets" / "stls" / "cannons-and-coastlines-base-set-0.2"
+STL_DIR = REPO / "assets" / "stls" / "cannons-and-coastlines-base-set-0.3"
 
 # Hole positions in the sail's centered mesh frame (before rotation).
 SAIL_HOLES_Y = (-28.0, -1.5, 13.0, 27.5)
