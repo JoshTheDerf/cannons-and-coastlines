@@ -73,7 +73,7 @@ function showFactionSelect(solo) {
       card.className = 'factionCard' + (factionChoice[p] === fid ? ' selected' : '');
       card.innerHTML = `<div class="fcName">${f.name}</div>` +
         `<div class="fcDesc">${f.desc}</div>` +
-        `<div class="fcStats">${f.shipCount} ships \u00B7 ${f.mastsVary ? 'varied' : f.masts + 1} HP \u00B7 MC ${f.moveCount}</div>` +
+        `<div class="fcStats">${f.shipCount} ships \u00B7 ${f.mastsVary ? 'varied' : f.masts + 1} fittings \u00B7 MC ${f.moveCount}</div>` +
         `<div class="fcPassive">${f.passiveDesc}</div>`;
       card.addEventListener('click', () => {
         factionChoice[p] = fid;
