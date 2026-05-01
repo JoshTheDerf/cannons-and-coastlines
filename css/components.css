@@ -416,10 +416,9 @@
 /* Closed-poll variant: compact, lower visual weight */
 .name-vote-closed {
     background: transparent;
-    padding: 0.65rem 0;
+    padding: 0.85rem 0;
     border-top: none;
     border-bottom: 1px solid var(--color-border);
-    opacity: 0.85;
 }
 
 .name-vote-closed .container {
@@ -428,37 +427,36 @@
 
 .name-vote-result {
     margin: 0;
-    font-size: 0.85rem;
-    color: var(--color-text-light);
-    line-height: 1.5;
+    font-size: 0.95rem;
+    color: var(--color-text);
+    line-height: 1.55;
 }
 
 .name-vote-result strong {
     color: var(--color-primary);
-    font-weight: 600;
+    font-weight: 700;
 }
 
 .name-vote-result s {
     color: var(--color-text-light);
-    opacity: 0.7;
 }
 
 .name-vote-label {
     display: inline-block;
     font-family: var(--font-display);
-    font-size: 0.7rem;
+    font-size: 0.75rem;
     text-transform: uppercase;
     letter-spacing: 0.08em;
     color: var(--color-secondary);
-    margin-right: 0.4rem;
+    margin-right: 0.45rem;
 }
 
 .name-vote-bar {
     display: block;
     width: 100%;
-    max-width: 280px;
-    height: 3px;
-    margin: 0.4rem auto 0;
+    max-width: 320px;
+    height: 4px;
+    margin: 0.5rem auto 0;
     background: var(--color-border);
     border-radius: 2px;
     overflow: hidden;
