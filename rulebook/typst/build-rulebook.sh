@@ -21,7 +21,11 @@ echo "Building rulebook PDF..."
   "$SCRIPT_DIR/rulebook.typ" \
   "$PDF_DIR/rulebook.pdf"
 
-echo "Compressing rulebook PDF..."
+echo "Building print-optimized rulebook PDF (preserved as rulebook-print.pdf)..."
+"$SCRIPT_DIR/compress-pdf.sh" --profile prepress \
+  "$PDF_DIR/rulebook.pdf" "$PDF_DIR/rulebook-print.pdf"
+
+echo "Compressing rulebook PDF for web..."
 "$SCRIPT_DIR/compress-pdf.sh" "$PDF_DIR/rulebook.pdf"
 
 echo "Building rulebook PNGs (300dpi, one per page)..."

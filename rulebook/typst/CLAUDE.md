@@ -5,7 +5,7 @@ Typst is the canonical source for the rulebook and the seven faction cards (6"×
 ## Files in this directory
 
 - `rulebook.typ` — full rulebook (portrait half-letter, 5.5 × 8.5, single column, ~17 pages). Sized so two pages fit side-by-side on a landscape letter sheet for booklet printing.
-- `rulebook-booklet.typ` — imposes per-page SVGs two-up on landscape letter using `@preview/bookletic`. Output is a saddle-stitch signature: print double-sided (flip on short edge), stack, fold, staple → spine-on-left half-letter booklet.
+- `impose-booklet.py` — pypdf script that imposes `rulebook.pdf` two-up on landscape US-letter in saddle-stitch signature order. Print double-sided (flip on short edge), stack, fold, staple → spine-on-left half-letter booklet. Replaced an earlier bookletic+SVG approach that re-emitted every parchment background per page and inflated the booklet PDF ~15x.
 - `card.typ` — faction card template: page setup, parchment background, banner, stat grid, ability box. Edit this for **layout/styling**.
 - `factions.typ` — data-only dictionary of all seven factions, dispatches on `--input faction=<id>`. Edit this for **faction content**.
 - `build-rulebook.sh` — builds `rulebook.pdf` + `rulebook-{p}.png` @ 300dpi.

@@ -97,7 +97,7 @@ def add_top_view_lights():
     # 2a. Overhead key, offset toward camera-bottom-left.
     bpy.ops.object.light_add(type="AREA", location=(-2.5, -2.5, 5.0))
     overhead_a = bpy.context.object
-    overhead_a.data.energy = 150.0
+    overhead_a.data.energy = 260.0
     overhead_a.data.size = 4.0
     overhead_a.rotation_euler = (
         Vector((0, 0, 0)) - overhead_a.location
@@ -106,7 +106,7 @@ def add_top_view_lights():
     # 2b. Overhead fill, offset opposite, weaker so flat metal shows a gradient.
     bpy.ops.object.light_add(type="AREA", location=(2.5, 2.5, 5.0))
     overhead_b = bpy.context.object
-    overhead_b.data.energy = 75.0
+    overhead_b.data.energy = 130.0
     overhead_b.data.size = 4.0
     overhead_b.rotation_euler = (
         Vector((0, 0, 0)) - overhead_b.location
@@ -115,7 +115,7 @@ def add_top_view_lights():
     # 3. Low rake to shadow any relief detail.
     bpy.ops.object.light_add(type="AREA", location=(-3.5, -3.5, 1.0))
     rake = bpy.context.object
-    rake.data.energy = 115.0
+    rake.data.energy = 180.0
     rake.data.size = 3.5
     rake.rotation_euler = (
         Vector((0, 0, 0.4)) - rake.location

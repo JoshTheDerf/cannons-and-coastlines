@@ -1,22 +1,25 @@
 #!/usr/bin/env bash
 # Build the saddle-stitch booklet imposition of the rulebook.
 #
-# Depends on per-page SVGs from build-rulebook.sh — runs it first if SVGs are
-# missing. Output is a PDF where each page is a landscape-letter sheet with
-# two half-letter rulebook pages side by side in signature order. Print
-# double-sided (flip on short edge), stack, fold, staple.
+# Imposes pages directly from rulebook.pdf via impose-booklet.py (pypdf).
+# The earlier bookletic+SVG approach worked, but composing each page from
+# its SVG export caused Typst to re-emit every parchment background, gold
+# rule, and ornament path *per page*, blowing the imposed PDF up by ~15x.
+# Working from the source PDF lets pypdf reference each page once, so the
+# imposed booklet stays close to source-PDF size.
+#
+# Print double-sided (flip on short edge), stack, fold, staple → standard
+# spine-on-left half-letter booklet.
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT_DIR="$(cd "$SCRIPT_DIR/../.." && pwd)"
 PDF_DIR="$ROOT_DIR/rulebook/pdf"
-SVG_DIR="$ROOT_DIR/rulebook/svg"
-TYPST="${TYPST:-typst}"
 
 mkdir -p "$PDF_DIR"
 
-if ! compgen -G "$SVG_DIR/rulebook-*.svg" > /dev/null; then
-  echo "No rulebook SVGs found; running build-rulebook.sh first..."
+if [[ ! -f "$PDF_DIR/rulebook.pdf" ]]; then
+  echo "rulebook.pdf not found; running build-rulebook.sh first..."
   "$SCRIPT_DIR/build-rulebook.sh"
 fi
 
@@ -27,14 +30,15 @@ if [[ -z "${PAGES:-}" ]]; then
 fi
 
 echo "Imposing $PAGES-page rulebook as booklet signatures..."
-"$TYPST" compile \
-  --root "$ROOT_DIR" \
-  --font-path "$SCRIPT_DIR/fonts" \
-  --input "pages=$PAGES" \
-  "$SCRIPT_DIR/rulebook-booklet.typ" \
+python3 "$SCRIPT_DIR/impose-booklet.py" \
+  "$PDF_DIR/rulebook.pdf" \
   "$PDF_DIR/rulebook-booklet.pdf"
 
-echo "Compressing booklet PDF (Cloudflare Pages caps assets at 25 MiB)..."
+echo "Building print-optimized booklet PDF (preserved as rulebook-booklet-print.pdf)..."
+"$SCRIPT_DIR/compress-pdf.sh" --profile prepress \
+  "$PDF_DIR/rulebook-booklet.pdf" "$PDF_DIR/rulebook-booklet-print.pdf"
+
+echo "Compressing booklet PDF for web (Cloudflare Pages caps assets at 25 MiB)..."
 "$SCRIPT_DIR/compress-pdf.sh" "$PDF_DIR/rulebook-booklet.pdf"
 
 SHEETS=$(pdfinfo "$PDF_DIR/rulebook-booklet.pdf" 2>/dev/null | awk '/^Pages:/ {print $2}')

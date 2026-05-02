@@ -3,3 +3,4 @@ _internal*
 rulebook/svg/
 dist/
 __pycache__/
+node_modules/

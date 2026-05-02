@@ -1,9 +1,11 @@
 // Cannons & Coastlines — Rulebook (portrait half-letter, pirate-themed parchment)
 //
 // Pages are 5.5 × 8.5 portrait so two fit side-by-side on a landscape-letter
-// sheet; imposed for printing via rulebook-booklet.typ.
+// sheet; imposed for printing via impose-booklet.py.
 //
 // Build via rulebook/typst/build-rulebook.sh. See CLAUDE.md in this directory.
+
+#import "@preview/tiaoma:0.3.0": qrcode
 
 #let assets = "../../rulebook/assets"
 #let renders = "../../assets/images/renders"
@@ -343,7 +345,7 @@
 
 = Welcome Aboard
 
-#drop-cap("C")[*annons \& Coastlines* is a tabletop naval game for 2 to 20 players. Each player commands a small fleet of 3D-printed ships that roll across the table on built-in wheels. The ships fire real, tension-loaded miniature cannons using and cannonballs. The game has no dice, board, or grid. Everything is played with physical 3d miniatures. Just the ships, the islands between them, and the coins earned from holding those islands.]
+#drop-cap("C")[*annons \& Coastlines* is a tabletop naval game for 2 to 20 players. Each player commands a small fleet of 3D-printed ships that roll across the table on built-in wheels. The ships fire real, tension-loaded miniature cannons and cannonballs. The game has no dice, board, or grid. Everything is played with physical 3d miniatures. Just the ships, the islands between them, and the coins earned from holding those islands.]
 
 #v(0.08in)
 
@@ -564,6 +566,8 @@ Choose one player as the *moderator*. They announce phases, run the timer, and r
 - *Sacrificial hulls.* A dead-in-the-water ship still fires and blocks. Park a damaged ship in a chokepoint and it becomes a battle arena. Opponents pile in to capture or scuttle.
 
 == Custom Armada
+
+#emph[Contributed by Joshua David]
 
 A large-scale variant for advanced games. Each player fields a mixed armada of up to *15 ships* drawn from any factions, trading coordination for sheer presence.
 
@@ -865,3 +869,42 @@ Every ship has a wheel built into the stern. Two details matter:
     Fair winds and a following sea.
   ]
 ]
+
+#pagebreak()
+
+= Set Sail Online
+
+#v(0.05in)
+
+#align(center)[
+  #box(stroke: 1pt + colors.box-border, inset: 7pt, fill: colors.cream)[
+    #qrcode("https://cannonsandcoastlines.com", options: (scale: 2.2))
+  ]
+]
+
+#v(0.1in)
+
+Drop anchor at *#link("https://cannonsandcoastlines.com")[https:\/\/cannonsandcoastlines.com]* (or scan the QR code above) to:
+
+#set list(indent: 0.15in, body-indent: 0.4em, spacing: 0.9em)
+- *Order printed sets.* Boxed games shipped to your door, plus loose components and starter packs.
+- *Download the latest rulebook & faction cards.* This is a *preview release*, so rules and cards are still in active revision. The site always carries the current version.
+- *Grab the print files.* STLs for every ship, coin, and terrain piece, free for personal printing under the license below.
+
+#v(0.1in)
+
+== License: CC BY-NC-SA 4.0
+
+This rulebook, the artwork, and the printable game files are released under the *Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International* license. Full text at #link("https://creativecommons.org/licenses/by-nc-sa/4.0")[https:\/\/creativecommons.org/licenses/by-nc-sa/4.0]. In plain terms:
+
+#set list(indent: 0.15in, body-indent: 0.4em, spacing: 0.8em)
+- *Share & remix freely.* Print sets for yourself and your crew, hand them to friends, modify the files, build on the rules.
+- *Give credit.* Attribute the original work to Joshua Bemenderfer and link back to https:\/\/cannonsandcoastlines.com.
+- *Non-commercial only.* Don't sell prints, derivatives, or merchandise. Commercial licensing is available; reach out via the website.
+- *Share alike.* If you remix or adapt, release your version under this same license so the next captain inherits the same freedoms.
+
+#place(bottom + center, dy: 0.05in,
+  text(font: body-font, size: 9pt, fill: colors.faded, tracking: 0.8pt)[
+    © Joshua Bemenderfer 2026
+  ]
+)

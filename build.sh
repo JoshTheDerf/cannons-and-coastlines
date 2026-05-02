@@ -40,4 +40,9 @@ rm -rf "$DIST/rulebook/png" \
        "$DIST/rulebook/typst" \
        "$DIST/assets/playtesting"
 
+# Print-optimized PDFs are preserved in the repo for the print pipeline but
+# blow past Cloudflare Pages' 25 MiB per-asset cap; only the web-compressed
+# versions are deployed.
+rm -f "$DIST/rulebook/pdf"/*-print.pdf
+
 echo "Built $DIST/ ($(du -sh "$DIST" | cut -f1))"
