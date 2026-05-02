@@ -557,7 +557,9 @@ Choose one player as the *moderator*. They announce phases, run the timer, and r
 
 *Fleets (team play).* Two or more players share a single fleet. Each commands one ship and resolves their action simultaneously on the fleet's turn. Coins and the faction passive belong to the fleet, so agree on spends together. Turn order alternates by fleet. Example: six players, two three-player Queen's Fleet sides. The fleets alternate, and on each turn all three teammates act at once.
 
-*Alliances.* For free-for-all games. Players form or break informal pacts at any time, updating flag colors when allegiances shift. Allies may *freely trade coins, ships, and islands*.
+*Alliances.* For free-for-all games. Players form or break informal pacts at any time, updating flag colors when allegiances shift.
+
+*Trading.* Any two players may *freely trade coins, ships, and islands* at any time, regardless of alliance. Trades can grease a new pact, buy a turn of safety, or just keep things moving; allies aren't required.
 
 *Watch for at the table.*
 

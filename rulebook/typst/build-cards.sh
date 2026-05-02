@@ -19,6 +19,8 @@ for f in "${FACTIONS[@]}"; do
     --input "faction=$f" \
     "$SCRIPT_DIR/factions.typ" \
     "$OUT_PDF/faction-card-$f.pdf"
+  "$SCRIPT_DIR/compress-pdf.sh" --profile prepress \
+    "$OUT_PDF/faction-card-$f.pdf" "$OUT_PDF/faction-card-$f-print.pdf"
   "$SCRIPT_DIR/compress-pdf.sh" "$OUT_PDF/faction-card-$f.pdf"
   "$TYPST" compile \
     --root "$ROOT_DIR" \
