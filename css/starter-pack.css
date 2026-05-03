@@ -46,6 +46,37 @@
     height: 1rem;
 }
 
+.sp-stock-badge-soldout {
+    padding: 0.55rem 1.4rem;
+    font-size: 1.4rem;
+    letter-spacing: 0.18em;
+    font-weight: 700;
+    background: linear-gradient(135deg, #a52a1f, #c0392b);
+    border: 2px solid rgba(255, 255, 255, 0.6);
+    box-shadow: 0 4px 18px rgba(0, 0, 0, 0.45);
+    transform: rotate(-2deg);
+}
+
+.sp-stock-badge-soldout i {
+    width: 1.3rem;
+    height: 1.3rem;
+}
+
+.sp-hero-strike {
+    text-decoration-thickness: 3px;
+    opacity: 0.55;
+}
+
+.sp-soldout-headline {
+    font-family: var(--font-display);
+    font-size: 1.4rem;
+    line-height: 1.35;
+    color: var(--color-secondary-light);
+    margin: 0 auto var(--spacing-sm);
+    max-width: 56ch;
+    text-shadow: 0 1px 6px rgba(0, 0, 0, 0.5);
+}
+
 .sp-hero h1 {
     font-family: var(--font-display);
     font-size: 2.2rem;
