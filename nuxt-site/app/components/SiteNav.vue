@@ -33,6 +33,7 @@ const openCart = () => { cartDrawerOpen.value = true }
         </li>
       </ul>
       <div class="flex items-center gap-1">
+        <!--
         <button
           type="button"
           class="relative size-10 rounded-lg text-white/80 hover:text-white hover:bg-white/5 flex items-center justify-center transition"
@@ -45,6 +46,7 @@ const openCart = () => { cartDrawerOpen.value = true }
             class="absolute -top-0.5 -right-0.5 min-w-5 h-5 px-1 rounded-full bg-primary-500 text-white text-[11px] font-semibold flex items-center justify-center"
           >{{ cart.totalQuantity }}</span>
         </button>
+        -->
         <button
           type="button"
           class="lg:hidden size-10 rounded-lg text-white/80 hover:text-white hover:bg-white/5 flex items-center justify-center transition"
