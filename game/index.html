@@ -50,22 +50,8 @@
   <!-- Radial Menu (dynamically populated) -->
   <div id="radialMenu"></div>
 
-  <!-- Aiming Panel -->
-  <div id="aimPanel">
-    <button id="dismissAim" onclick="dismissAiming()">&#10005;</button>
-    <div class="aimSideRow" id="sideToggle"></div>
-    <div class="aimSliderRow">
-      <span class="aimSliderLabel">Bearing</span>
-      <div class="sliderTrack" id="bearingTrack"></div>
-      <span class="aimSliderValue" id="bearingVal"></span>
-    </div>
-    <div class="aimSliderRow">
-      <span class="aimSliderLabel">Elevation</span>
-      <div class="sliderTrack" id="elevTrack"></div>
-      <span class="aimSliderValue" id="elevVal"></span>
-    </div>
-    <button id="fireBtn" onclick="fireCannon()">&#9876; FIRE &#9876;</button>
-  </div>
+  <!-- Fire-mode hint banner -->
+  <div id="fireHint">Tap a cannon slot to fire <button id="dismissAim" onclick="dismissAiming()">&#10005;</button></div>
 
   <!-- Game Over -->
   <div id="gameOverScreen">
@@ -86,8 +72,8 @@
 
       <h3>On Your Turn</h3>
       <p>Tap a ship. A menu appears:</p>
-      <p>&#9875; <b>Move</b> — Rings show how far you can sail. Faster factions get more/larger rings.</p>
-      <p>&#128165; <b>Fire</b> — Choose Port/Starboard, Bearing, and Elevation to aim your broadside cannons.</p>
+      <p>&#9875; <b>Move</b> — Set Heading (rotate up to 90°) then commit a Click. Each ring = one Click. Faster factions get more rings (Move Count).</p>
+      <p>&#128165; <b>Fire</b> — Tap one of your ship's cannon slots. The shot fires straight out from that slot.</p>
       <p>&#128681;/&#129689; <b>Island</b> — When touching an island: raise your flag to capture it, or collect a coin from one you own.</p>
 
       <h3>Islands</h3>
@@ -95,7 +81,7 @@
 
       <h3>Coins</h3>
       <p>You hold 3 coins drawn from a shared bag. Tap a coin, then tap a target ship to spend it. Spent coins return to the bag.</p>
-      <p>&#128737;&#65039; <b>Brace</b> — Next hit ignored. &#128681; <b>Signal Flags</b> — Bonus action (free). &#9973; <b>Full Sail</b> — Extended move. &#8596;&#65039; <b>Evasive</b> — Sideslip. &#127919; <b>Skilled Gunner</b> — Fire twice. &#128295; <b>Repair</b> — +1 mast. &#9876;&#65039; <b>Boarding</b> — 1 damage to adjacent enemy.</p>
+      <p>&#128737;&#65039; <b>Brace</b> — Next hit ignored. &#128681; <b>Signal Flags</b> — Bonus action (free). &#9973; <b>Full Sail</b> — Extended move. &#8596;&#65039; <b>Evasive</b> — Sideslip. &#127919; <b>Skilled Gunner</b> — Fire twice. &#128295; <b>Repair</b> — +1 fitting. &#9876;&#65039; <b>Boarding</b> — Remove 1 fitting from a touching enemy (or pair with Repair to capture a dead-in-the-water enemy).</p>
 
       <h3>Combat</h3>
       <p>Each hit removes one fitting (mast, cargo). 0 fittings = "dead in the water" (can fire, can't move). The bare hull takes one more hit before it scuttles permanently.</p>

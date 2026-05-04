@@ -11,11 +11,10 @@ let stats = { 1: { shots: 0, hits: 0, shipsSunk: 0 }, 2: { shots: 0, hits: 0, sh
 let selectedShip    = null;
 let actionMode      = null;   // null|'move'|'fire'|'coin'|'deploy'|'terrain_place'|'island'
 let moveRings       = [];
-let aimSide         = 0;
-let aimBearing      = 2;
-let aimElev         = 2;
 let selectedCoin    = null;
 let aimPreviewData  = null;
+let aimSlots        = [];     // available slots for the currently-firing ship
+let hoveredSlotIdx  = -1;
 let deployFacing    = 0;
 let selectedTerrainIdx = -1;
 
@@ -55,7 +54,7 @@ function createGameState(skipSetup) {
     const heading = player === 1 ? 0 : Math.PI;
     const ships = [];
     for (let i = 0; i < f.shipCount; i++) {
-      const masts = f.mastsVary ? f.mastsVary[i] : f.masts;
+      const masts = f.masts;
       const hp = masts + 1;
       ships.push({
         id: `p${player}_s${i}`,
@@ -75,11 +74,11 @@ function createGameState(skipSetup) {
     factions: { 1: factionChoice[1], 2: factionChoice[2] },
     terrain: [],
     terrainPieces: skipSetup ? [] : [
-      { type: 'island', r: 1.0  },
-      { type: 'island', r: 0.9  },
-      { type: 'island', r: 0.85 },
-      { type: 'rocks',  r: 0.45 },
-      { type: 'rocks',  r: 0.45 },
+      { type: 'island', r: 0.65 },
+      { type: 'island', r: 0.6  },
+      { type: 'island', r: 0.55 },
+      { type: 'rocks',  r: 0.4  },
+      { type: 'rocks',  r: 0.4  },
       { type: 'reef',   r: 0.5  },
       { type: 'reef',   r: 0.5  },
     ],
@@ -99,6 +98,8 @@ function createGameState(skipSetup) {
     bag,
     turn: 1,
     sunkShips: { 1: [], 2: [] },  // for Shadow Fleet revival
+    coinPhaseLocked: false,       // true once the active player has committed to a ship action this turn
+    collectedThisTurn: {},        // {islandIdx: true} — each island can only be collected from once per turn
   };
 
   if (skipSetup) {
@@ -349,14 +350,14 @@ function gaussRandom() {
   return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v);
 }
 
-function computeFiringSolution(ship, side, bearing, elev) {
-  const base = FIRING_TABLE_PORT[`${bearing},${elev}`] || { dx: -3, dy: 0 };
-  const mirrored = { dx: side === 1 ? -base.dx : base.dx, dy: base.dy };
-  const offset = rotVec(mirrored.dx, mirrored.dy, ship.heading);
-  const scatter = 0.25 + elev * 0.18;
+/** Compute where a shot from a given slot lands, including muzzle scatter. */
+function computeSlotShot(ship, slot) {
+  const w = slotWorld(ship, slot);
   return {
-    x: ship.x + offset.dx + gaussRandom() * scatter,
-    y: ship.y + offset.dy + gaussRandom() * scatter,
+    originX: w.x,
+    originY: w.y,
+    x: w.x + w.dx * SHOT_RANGE + gaussRandom() * SHOT_SCATTER,
+    y: w.y + w.dy * SHOT_RANGE + gaussRandom() * SHOT_SCATTER,
   };
 }
 
@@ -370,6 +371,10 @@ function endTurn() {
     s.hasActed = false;
     s.signaled = false;
   });
+  // Boarding marks expire at turn end (capture must happen on the same turn as boarding).
+  for (const p of [1, 2]) {
+    G.players[p].ships.forEach(s => { if (s.boardedBy != null) s.boardedBy = null; });
+  }
   // Draw coins from bag
   while (G.players[ap].hand.length < HAND_SIZE && G.bag.length > 0) {
     G.players[ap].hand.push(G.bag.pop());
@@ -377,6 +382,8 @@ function endTurn() {
   if (G.bag.length < 5) G.bag = G.bag.concat(shuffleCoinBag());
   G.activePlayer = ap === 1 ? 2 : 1;
   G.turn++;
+  G.coinPhaseLocked = false;  // new player begins in the coin-spend phase
+  G.collectedThisTurn = {};   // reset per-island collection state
   // Reset Stone Hulls for the new active player's ships
   if (getPassive(G.activePlayer) === 'stone_hulls') {
     G.players[G.activePlayer].ships.forEach(s => { s.stoneAbsorbed = false; });

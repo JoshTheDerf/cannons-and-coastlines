@@ -220,18 +220,29 @@ function drawMoveRings() {
 }
 
 function drawAimPreview() {
-  if (!aimPreviewData) return;
-  const { x: px, y: py } = w2s(aimPreviewData.cx, aimPreviewData.cy);
-  const pr = w2r(aimPreviewData.radius);
-  ctx.strokeStyle = 'rgba(220,220,220,.25)'; ctx.lineWidth = 1.5;
-  ctx.setLineDash([5, 5]);
-  ctx.beginPath(); ctx.arc(px, py, pr, 0, Math.PI * 2); ctx.stroke();
-  ctx.setLineDash([]);
-  ctx.strokeStyle = 'rgba(220,220,220,.18)'; ctx.lineWidth = 0.8;
-  ctx.beginPath();
-  ctx.moveTo(px - 4, py); ctx.lineTo(px + 4, py);
-  ctx.moveTo(px, py - 4); ctx.lineTo(px, py + 4);
-  ctx.stroke();
+  if (!selectedShip || actionMode !== 'fire' || !aimSlots.length) return;
+  const ship = selectedShip;
+  for (let i = 0; i < aimSlots.length; i++) {
+    const slot = aimSlots[i];
+    const w = slotWorld(ship, slot);
+    const o = w2s(w.x, w.y);
+    const e = w2s(w.x + w.dx * SHOT_RANGE, w.y + w.dy * SHOT_RANGE);
+    // Lane line
+    ctx.strokeStyle = 'rgba(231,76,60,.35)';
+    ctx.lineWidth = 2;
+    ctx.setLineDash([4, 6]);
+    ctx.beginPath(); ctx.moveTo(o.x, o.y); ctx.lineTo(e.x, e.y); ctx.stroke();
+    ctx.setLineDash([]);
+    // Slot marker
+    ctx.fillStyle = 'rgba(212,168,83,.95)';
+    ctx.strokeStyle = 'rgba(20,10,5,.9)';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.arc(o.x, o.y, 7, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = '#1a0f08';
+    ctx.font = 'bold 8px sans-serif';
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillText('•', o.x, o.y + 1);
+  }
 }
 
 // ─── Ships ─────────────────────────────────────────────

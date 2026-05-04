@@ -73,7 +73,7 @@ function showFactionSelect(solo) {
       card.className = 'factionCard' + (factionChoice[p] === fid ? ' selected' : '');
       card.innerHTML = `<div class="fcName">${f.name}</div>` +
         `<div class="fcDesc">${f.desc}</div>` +
-        `<div class="fcStats">${f.shipCount} ships \u00B7 ${f.mastsVary ? 'varied' : f.masts + 1} fittings \u00B7 MC ${f.moveCount}</div>` +
+        `<div class="fcStats">${f.shipCount} ships \u00B7 ${f.masts} fittings \u00B7 MC ${f.moveCount}</div>` +
         `<div class="fcPassive">${f.passiveDesc}</div>`;
       card.addEventListener('click', () => {
         factionChoice[p] = fid;
@@ -127,21 +127,27 @@ function buildStatusUI(p, area) {
   const coins = G.players[p].coins;
   const el = document.createElement('div');
   el.className = 'statusBar';
+  const phaseLabel = (G.activePlayer === p)
+    ? (G.coinPhaseLocked ? 'Action Phase' : 'Coin Phase')
+    : '';
   el.innerHTML = `<span class="statusFaction">${f.name}</span>` +
     `<span class="statusVP">${vp}VP</span>` +
-    `<span class="statusDetail">${islands}\uD83C\uDFDD ${coins}\uD83E\uDE99</span>`;
+    `<span class="statusDetail">${islands}\uD83C\uDFDD ${coins}\uD83E\uDE99</span>` +
+    (phaseLabel ? `<span class="statusPhase">${phaseLabel}</span>` : '');
   area.appendChild(el);
 }
 
 // ─── Coin Hand ────────────────────────────────────────
 
 function buildCoinHandUI(p, area) {
+  const locked = G.activePlayer === p && G.coinPhaseLocked;
   G.players[p].hand.forEach((cid, i) => {
     const def = COIN_DEFS[cid];
     if (!def) return;
     const el = document.createElement('div');
     el.className = 'coinSlot' + (def.free ? ' freeAction' : '') +
-      (selectedCoin === i && actionMode === 'coin' && G.activePlayer === p ? ' selected' : '');
+      (selectedCoin === i && actionMode === 'coin' && G.activePlayer === p ? ' selected' : '') +
+      (locked ? ' locked' : '');
     el.innerHTML = `<span class="coinIcon">${def.icon}</span><span class="coinName">${def.name}</span>` +
       (def.free ? '<span class="freeTag">\u26A1</span>' : '');
     el.title = def.desc;
@@ -331,6 +337,23 @@ function onCanvasTap(e) {
   }
   if (G.phase !== 'playing') return;
 
+  // Fire: tap a cannon slot
+  if (actionMode === 'fire' && selectedShip && aimSlots.length) {
+    let bestIdx = -1, bestDist = Infinity;
+    for (let i = 0; i < aimSlots.length; i++) {
+      const slot = aimSlots[i];
+      const off = rotVec(slot.lx, slot.ly, selectedShip.heading);
+      const sx = selectedShip.x + off.dx, sy = selectedShip.y + off.dy;
+      const d = dist(wx, wy, sx, sy);
+      if (d < bestDist) { bestDist = d; bestIdx = i; }
+    }
+    if (bestIdx >= 0 && bestDist < SHIP_RADIUS * 1.4) {
+      fireFromSlot(bestIdx);
+      return;
+    }
+    return;
+  }
+
   // Movement
   if (actionMode === 'move' && selectedShip && moveRings.length) {
     const dx = wx - selectedShip.x, dy = wy - selectedShip.y;
@@ -374,16 +397,20 @@ function chooseAction(action) {
   hideRadialMenu();
   if (!selectedShip) return;
   const ap = G.activePlayer;
+  // Picking a ship action (Move/Fire/Island) ends the coin-spend phase for this turn.
+  if (action === 'move' || action === 'fire' || action === 'island') {
+    G.coinPhaseLocked = true;
+  }
   actionMode = action;
   if (action === 'move') {
     moveRings = getMoveRings(ap);
   } else if (action === 'fire') {
-    showAimPanel();
+    enterFireMode(selectedShip);
   } else if (action === 'island') {
     const idx = shipTouchingIsland(selectedShip);
     if (idx >= 0) {
-      executeIslandAction(selectedShip, idx, ap);
-      selectedShip.hasActed = true;
+      const ok = executeIslandAction(selectedShip, idx, ap);
+      if (ok) selectedShip.hasActed = true;
       deselectAll(); refreshAllUI();
     }
   }
@@ -413,7 +440,8 @@ function executeIslandAction(ship, islandIdx, ap) {
   const { x: sx, y: sy } = w2s(t.x, t.y);
 
   if (owner === ap) {
-    // Collect coins from own island
+    // Collect coins from own island — but only once per island per turn.
+    if (G.collectedThisTurn[islandIdx]) return false;
     let drawCount = 1;
     if (getPassive(ap) === 'bountiful_harvest') drawCount = 2;
     for (let i = 0; i < drawCount; i++) {
@@ -422,37 +450,49 @@ function executeIslandAction(ship, islandIdx, ap) {
         G.players[ap].coins++;
       }
     }
+    G.collectedThisTurn[islandIdx] = true;
     sfxCoinPlay();
     animSparkle(sx, sy);
+    return true;
   } else {
     // Capture: raise flag (if no enemy contesting)
-    if (!enemyContestingIsland(islandIdx, ap)) {
-      G.islandOwner[islandIdx] = ap;
-      sfxSelect();
-      animFlags(sx, sy);
-      // Plunder passive: extra coin on capture
-      if (getPassive(ap) === 'plunder' && G.bag.length > 0) {
-        G.players[ap].hand.push(G.bag.pop());
-      }
+    if (enemyContestingIsland(islandIdx, ap)) return false;
+    G.islandOwner[islandIdx] = ap;
+    sfxSelect();
+    animFlags(sx, sy);
+    // Plunder passive: extra coin on capture
+    if (getPassive(ap) === 'plunder' && G.bag.length > 0) {
+      G.players[ap].hand.push(G.bag.pop());
     }
+    return true;
   }
 }
 
 // ─── Firing ────────────────────────────────────────────
 
-function fireCannon() {
+function enterFireMode(ship) {
+  aimSlots = getShipSlots(getFaction(G.activePlayer));
+  hoveredSlotIdx = -1;
+  aimPreviewData = null;
+  showFireHint();
+  refreshAllUI();
+}
+
+function fireFromSlot(slotIdx) {
   if (!selectedShip || actionMode !== 'fire') return;
   const ship = selectedShip, ap = G.activePlayer, enemy = ap === 1 ? 2 : 1;
-  const landing = computeFiringSolution(ship, aimSide, aimBearing, aimElev);
-  const s = w2s(ship.x, ship.y), e = w2s(landing.x, landing.y);
+  const slot = aimSlots[slotIdx];
+  if (!slot) return;
+  const landing = computeSlotShot(ship, slot);
+  const s = w2s(landing.originX, landing.originY), e = w2s(landing.x, landing.y);
   const isDouble = ship._doubleShot && !ship._doubleFired;
 
   stats[ap].shots++; sfxFire(); hapticThud();
   ship.hasActed = true;
-  hideAimPanel(); aimPreviewData = null;
+  aimSlots = []; hoveredSlotIdx = -1; aimPreviewData = null;
 
-  animCannonball(s.x, s.y, e.x, e.y, false, aimElev).then(() => {
-    const pathHit = shotPathCheck(ship.x, ship.y, landing.x, landing.y);
+  animCannonball(s.x, s.y, e.x, e.y, false, 2).then(() => {
+    const pathHit = shotPathCheck(landing.originX, landing.originY, landing.x, landing.y);
     if (pathHit) {
       const hp = w2s(pathHit.hitX, pathHit.hitY);
       animTerrainHit(hp.x, hp.y);
@@ -484,7 +524,13 @@ function fireCannon() {
 }
 
 function finishShot(ship, isDouble) {
-  if (isDouble && !ship._doubleFired) { ship._doubleFired = true; selectedShip = ship; actionMode = 'fire'; setTimeout(showAimPanel, 300); return; }
+  if (isDouble && !ship._doubleFired) {
+    ship._doubleFired = true;
+    selectedShip = ship;
+    actionMode = 'fire';
+    setTimeout(() => enterFireMode(ship), 300);
+    return;
+  }
   delete ship._doubleShot; delete ship._doubleFired;
   ship.hasActed = true;
   deselectAll(); refreshAllUI();
@@ -494,6 +540,7 @@ function finishShot(ship, isDouble) {
 
 function onCoinTap(player, index) {
   if (player !== G.activePlayer || G.phase !== 'playing') return;
+  if (G.coinPhaseLocked) { hapticTap(); return; }  // coin phase ended once a ship took an action
   if (selectedCoin === index && actionMode === 'coin') { selectedCoin = null; actionMode = null; refreshAllUI(); return; }
   selectedCoin = index; actionMode = 'coin'; hapticTap(); refreshAllUI();
 }
@@ -576,9 +623,9 @@ function showRadialMenu(x, y, ship) {
   const islandIdx = shipTouchingIsland(ship);
   if (islandIdx >= 0) {
     const owner = G.islandOwner[islandIdx];
-    if (owner === ap) {
+    if (owner === ap && !G.collectedThisTurn[islandIdx]) {
       buttons.push({ cls: 'island', icon: '\uD83E\uDE99', action: 'island', title: 'Collect Coin' });
-    } else if (!enemyContestingIsland(islandIdx, ap)) {
+    } else if (owner !== ap && !enemyContestingIsland(islandIdx, ap)) {
       buttons.push({ cls: 'island', icon: '\uD83D\uDEA9', action: 'island', title: 'Raise Flag' });
     }
   }
@@ -605,113 +652,29 @@ function showRadialMenu(x, y, ship) {
 function hideRadialMenu() { document.getElementById('radialMenu').style.display = 'none'; }
 
 // ═══════════════════════════════════════════════════════════════
-// AIMING PANEL
+// FIRE-MODE HINT BANNER (slot picker is rendered on the canvas)
 // ═══════════════════════════════════════════════════════════════
 
-function showAimPanel() {
-  const panel = document.getElementById('aimPanel');
-  const ap = G.activePlayer;
-  panel.className = ap === 1 ? 'p1' : 'p2';
-  panel.style.bottom = ap === 1 ? '0' : 'auto';
-  panel.style.top = ap === 1 ? 'auto' : '0';
-  panel.style.display = 'block';
-  aimSide = 0; aimBearing = 2; aimElev = 2;
-  // Industry: lock bearing to Fore
-  if (getPassive(ap) === 'forward_guns') aimBearing = 0;
-  buildDials();
+function showFireHint() {
+  const fh = document.getElementById('fireHint');
+  if (!fh) return;
+  fh.className = G.activePlayer === 1 ? 'p1' : 'p2';
+  fh.style.display = 'block';
 }
 
-function hideAimPanel() { document.getElementById('aimPanel').style.display = 'none'; }
+function hideAimPanel() {
+  const fh = document.getElementById('fireHint');
+  if (fh) fh.style.display = 'none';
+}
 
 function dismissAiming() {
-  hideAimPanel(); aimPreviewData = null; actionMode = null;
+  hideAimPanel();
+  aimPreviewData = null; aimSlots = []; hoveredSlotIdx = -1;
+  actionMode = null;
   if (selectedShip) {
     delete selectedShip._doubleShot; delete selectedShip._doubleFired;
   }
   deselectAll(); refreshAllUI();
-}
-
-let _dialsBusy = false;
-
-function buildDials() {
-  const ap = G.activePlayer;
-  const isIndustry = getPassive(ap) === 'forward_guns';
-
-  buildSideToggle();
-  const bLabels = aimSide === 0 ? BEARING_LABELS : [...BEARING_LABELS].reverse();
-  const bIdx = aimSide === 0 ? aimBearing : (4 - aimBearing);
-  buildSlider('bearingTrack', 'bearingVal', bLabels, bIdx, di => {
-    if (_dialsBusy || isIndustry) return; _dialsBusy = true;
-    aimBearing = aimSide === 0 ? di : (4 - di);
-    buildDials(); sfxDialClick(); hapticTap(); _dialsBusy = false;
-  });
-  buildSlider('elevTrack', 'elevVal', ELEV_LABELS, aimElev, v => {
-    if (_dialsBusy) return; _dialsBusy = true;
-    aimElev = v; buildDials(); sfxDialClick(); hapticTap(); _dialsBusy = false;
-  });
-  document.getElementById('bearingVal').textContent = isIndustry ? 'Fore (locked)' : BEARING_LABELS[aimBearing];
-  document.getElementById('elevVal').textContent = ELEV_LABELS[aimElev];
-  updateAimPreview();
-}
-
-function buildSideToggle() {
-  const c = document.getElementById('sideToggle');
-  c.innerHTML = '';
-  function mk(cls, txt, val) {
-    const b = document.createElement('div');
-    b.className = 'sideBtn ' + cls + (aimSide === val ? ' active' : '');
-    b.textContent = txt;
-    b.addEventListener('pointerdown', e => {
-      e.stopPropagation(); e.preventDefault();
-      if (_dialsBusy || aimSide === val) return; _dialsBusy = true;
-      aimSide = val; buildDials(); sfxDialClick(); hapticTap(); _dialsBusy = false;
-    });
-    return b;
-  }
-  const div = document.createElement('span'); div.className = 'sideDivider'; div.textContent = '\u00B7';
-  c.appendChild(mk('port', '\u25C2 Port', 0));
-  c.appendChild(div);
-  c.appendChild(mk('stbd', 'Stbd \u25B8', 1));
-}
-
-function buildSlider(trackId, valId, labels, currentVal, onChange) {
-  const track = document.getElementById(trackId);
-  track.innerHTML = '';
-  const n = labels.length, pad = 6;
-  for (let i = 0; i < n; i++) {
-    const pct = pad + i * (100 - 2 * pad) / (n - 1);
-    const notch = document.createElement('div');
-    notch.className = 'trackNotch' + (i === currentVal ? ' active' : '');
-    notch.style.left = pct + '%';
-    const lbl = document.createElement('span'); lbl.className = 'trackNotchLabel'; lbl.textContent = labels[i];
-    notch.appendChild(lbl);
-    track.appendChild(notch);
-    const segStart = i === 0 ? 0 : pad + (i - 0.5) * (100 - 2 * pad) / (n - 1);
-    const segEnd = i === n - 1 ? 100 : pad + (i + 0.5) * (100 - 2 * pad) / (n - 1);
-    const tz = document.createElement('div');
-    tz.style.cssText = `position:absolute;top:0;bottom:0;left:${segStart}%;width:${segEnd - segStart}%;cursor:pointer;z-index:1;`;
-    tz.addEventListener('pointerdown', ((idx) => e => {
-      e.stopPropagation(); e.preventDefault();
-      if (idx !== currentVal) onChange(idx);
-    })(i));
-    track.appendChild(tz);
-  }
-  const thumb = document.createElement('div'); thumb.className = 'sliderThumb';
-  thumb.style.left = `calc(${pad + currentVal * (100 - 2 * pad) / (n - 1)}% - 15px)`;
-  track.appendChild(thumb);
-}
-
-function updateAimPreview() {
-  if (!selectedShip || actionMode !== 'fire') { aimPreviewData = null; return; }
-  const base = FIRING_TABLE_PORT[`${aimBearing},${aimElev}`] || { dx: -3, dy: 0 };
-  const mir = { dx: aimSide === 1 ? -base.dx : base.dx, dy: base.dy };
-  const off = rotVec(mir.dx, mir.dy, selectedShip.heading);
-  aimPreviewData = {
-    cx: selectedShip.x + off.dx,
-    cy: selectedShip.y + off.dy,
-    radius: 0.8 + aimElev * 0.5,
-    side: aimSide,
-  };
 }
 
 // ═══════════════════════════════════════════════════════════════

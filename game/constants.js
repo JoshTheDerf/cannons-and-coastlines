@@ -14,8 +14,8 @@ const VICTORY_MIN_TURN = 10; // earliest turn to declare victory
 
 // ─── Ship Properties ──────────────────────────────────
 const SHIP_RADIUS        = 0.35;
-const SHIP_MOVE_RADIUS   = 1.8;  // base move distance per roll
-const SHIP_FULL_SAIL     = 3.5;
+const SHIP_MOVE_RADIUS   = 1.15; // base move distance per click
+const SHIP_FULL_SAIL     = 2.4;
 const SHIP_EVASIVE_DIST  = 0.9;
 const SHIP_ADJACENT_DIST = 1.3;
 const SHIP_MIN_SEP       = 0.7;
@@ -48,40 +48,71 @@ function dist(x1, y1, x2, y2) {
   return Math.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2);
 }
 
-// ─── Broadside Aiming System ───────────────────────────
-const SIDE_LABELS    = ['Port', 'Starboard'];
-const BEARING_LABELS = ['Fore', 'Fore-Mid', 'Abeam', 'Aft-Mid', 'Aft'];
-const ELEV_LABELS    = ['Flat', 'Low Arc', 'Medium', 'High Arc', 'Steep Lob'];
+// ─── Cannon Slots & Firing Lanes ───────────────────────
+// Cannons fire straight out from their slot. Each entry is in ship-local
+// coordinates: ly negative is bow (forward), lx negative is port. `ang` is
+// the firing direction in ship-local space (0 = forward, π/2 = starboard,
+// π = stern, -π/2 = port). `range` is how far the cannonball travels.
+const SHOT_RANGE = 5.5;
+const SHOT_SCATTER = 0.35;
 
-const FIRING_TABLE_PORT = {};
-(function buildFiringTable() {
-  const lateralRange = [0.8, 1.6, 2.8, 4.5, 6.2];
-  const bearingShift = [-0.8, -0.4, 0, 0.4, 0.8];
-  for (let b = 0; b < 5; b++) {
-    for (let e = 0; e < 5; e++) {
-      const range = lateralRange[e];
-      FIRING_TABLE_PORT[`${b},${e}`] = {
-        dx: -range,
-        dy: bearingShift[b] * range,
-      };
-    }
+function getShipSlots(faction) {
+  const passive = faction.passive;
+  if (passive === 'forward_guns') {
+    return [
+      { lx: 0,                ly: -SHIP_RADIUS * 0.95, ang: 0,            label: 'Bow' },
+      { lx: -SHIP_RADIUS * 0.4, ly: 0,                ang: -Math.PI / 2, label: 'Turret-P' },
+      { lx:  SHIP_RADIUS * 0.4, ly: 0,                ang:  Math.PI / 2, label: 'Turret-S' },
+    ];
   }
-})();
+  if (passive === 'home_waters') {
+    return [
+      { lx: -SHIP_RADIUS * 0.5, ly:  SHIP_RADIUS * 0.85, ang: Math.PI, label: 'Aft-P' },
+      { lx:  0,                 ly:  SHIP_RADIUS * 0.95, ang: Math.PI, label: 'Aft' },
+      { lx:  SHIP_RADIUS * 0.5, ly:  SHIP_RADIUS * 0.85, ang: Math.PI, label: 'Aft-S' },
+    ];
+  }
+  // Default: 3 broadside slots per side. Center fires perpendicular; fore slot
+  // angles ~25° forward, aft slot ~25° aft.
+  // `forwardness` rotates the lane toward the bow (positive) or stern (negative).
+  const TILT = 25 * Math.PI / 180;
+  const lanes = [
+    { ly: -0.55 * SHIP_RADIUS, fwd:  TILT, label: 'fore' },
+    { ly:  0,                  fwd:  0,    label: 'mid'  },
+    { ly:  0.55 * SHIP_RADIUS, fwd: -TILT, label: 'aft'  },
+  ];
+  const out = [];
+  for (const ln of lanes) {
+    out.push({ lx: -SHIP_RADIUS, ly: ln.ly, ang: -Math.PI / 2 + ln.fwd, label: 'P-' + ln.label });
+    out.push({ lx:  SHIP_RADIUS, ly: ln.ly, ang:  Math.PI / 2 - ln.fwd, label: 'S-' + ln.label });
+  }
+  return out;
+}
+
+/** World position + direction for a slot on a given ship. */
+function slotWorld(ship, slot) {
+  const pos = rotVec(slot.lx, slot.ly, ship.heading);
+  // Local direction (sin(ang), -cos(ang)) maps 0 → (0, -1) i.e. forward.
+  const dirLocal = { dx: Math.sin(slot.ang), dy: -Math.cos(slot.ang) };
+  const dirWorld = rotVec(dirLocal.dx, dirLocal.dy, ship.heading);
+  return { x: ship.x + pos.dx, y: ship.y + pos.dy, dx: dirWorld.dx, dy: dirWorld.dy };
+}
 
 // ─── Factions ──────────────────────────────────────────
 // Each faction defines ship count, stats, and a passive ability.
-// HP = masts + 1 (the +1 is the hull itself).
-// moveCount: how many rolls per Move action (translated to concentric rings).
+// `masts` is the fitting count. Total hits to sink = fittings + 1
+// (the +1 is the bare hull, which absorbs one hit while dead in the water).
+// moveCount: number of clicks per Move action (rendered as concentric rings).
 const FACTION_DEFS = {
   queens_fleet: {
     name: "Queen's Fleet",
     desc: 'Well-rounded baseline fleet',
     shipCount: 3,
     shipNames: ['Vanguard', 'Resolute', 'Defiance'],
-    masts: 3,  // HP = 4
-    moveCount: 1,
+    masts: 4,
+    moveCount: 2,
     passive: 'disciplined_crew',
-    passiveDesc: 'Disciplined Crew — may rotate 180\u00B0 before moving (free)',
+    passiveDesc: 'Disciplined Crew — Set Heading up to 180\u00B0 instead of 90\u00B0',
     accent: { hull: [140, 80, 50], sail: [210, 190, 160] },
   },
   corsairs: {
@@ -89,8 +120,8 @@ const FACTION_DEFS = {
     desc: 'Fast hit-and-run raiders',
     shipCount: 4,
     shipNames: ['Black Tide', 'Sea Viper', 'Cutlass', 'Rogue Wave'],
-    masts: 2,  // HP = 3
-    moveCount: 2,
+    masts: 3,
+    moveCount: 3,
     passive: 'plunder',
     passiveDesc: 'Plunder — draw 1 extra coin when boarding or capturing an island',
     accent: { hull: [50, 50, 50], sail: [30, 30, 30] },
@@ -100,7 +131,7 @@ const FACTION_DEFS = {
     desc: 'Economic powerhouse, few but rich ships',
     shipCount: 2,
     shipNames: ['Golden Junk', 'Jade Dragon'],
-    masts: 2,  // HP = 3
+    masts: 3,
     moveCount: 1,
     passive: 'bountiful_harvest',
     passiveDesc: 'Bountiful Harvest — draw 2 coins instead of 1 when collecting from an island',
@@ -111,7 +142,7 @@ const FACTION_DEFS = {
     desc: 'Heavy stone temple barges, brutally durable',
     shipCount: 3,
     shipNames: ['Obsidian Sun', 'Jade Altar', 'Stone Tide'],
-    mastsVary: [2, 3, 4],  // small/medium/large → HP 3/4/5
+    masts: 4,
     moveCount: 1,
     passive: 'stone_hulls',
     passiveDesc: 'Stone Hulls — first hit each turn is absorbed (resets at your turn start)',
@@ -122,7 +153,7 @@ const FACTION_DEFS = {
     desc: 'Fragile but persistent ghost ships',
     shipCount: 3,
     shipNames: ['Wraith', 'Phantom', 'Revenant'],
-    masts: 2,  // HP = 3
+    masts: 3,
     moveCount: 1,
     passive: 'return_from_deep',
     passiveDesc: 'Return from the Deep — spend 2 coins to revive a sunk ship at 1 HP on your island',
@@ -133,7 +164,7 @@ const FACTION_DEFS = {
     desc: 'Fast steam warships, forward-only cannons',
     shipCount: 3,
     shipNames: ['Ironclad', 'Dreadnought', 'Juggernaut'],
-    masts: 3,  // HP = 4 (smokestacks)
+    masts: 3,
     moveCount: 2,
     passive: 'forward_guns',
     passiveDesc: 'Forward Guns — can only fire from the bow (bearing locked to Fore)',
@@ -144,7 +175,7 @@ const FACTION_DEFS = {
     desc: 'Lightning-fast skirmishers, rear-firing cannons',
     shipCount: 5,
     shipNames: ['Wavecutter', 'Tideskimmer', 'Reefrunner', 'Shellstrike', 'Driftfang'],
-    masts: 1,  // HP = 2
+    masts: 2,
     moveCount: 3,
     passive: 'home_waters',
     passiveDesc: 'Home Waters — start with the nearest island already captured',
@@ -182,13 +213,13 @@ const TERRAIN_DEFS = {
 };
 
 const TERRAIN_PRESETS = [
-  { type: 'island', x: 3.0, y: 4.8, r: 1.0  },
-  { type: 'island', x: 7.2, y: 5.5, r: 0.95 },
-  { type: 'island', x: 5.0, y: 3.0, r: 0.85 },
-  { type: 'rocks',  x: 1.8, y: 3.5, r: 0.45 },
-  { type: 'rocks',  x: 8.2, y: 6.8, r: 0.45 },
-  { type: 'reef',   x: 8.0, y: 4.0, r: 0.55 },
-  { type: 'reef',   x: 2.0, y: 6.0, r: 0.55 },
+  { type: 'island', x: 3.0, y: 4.8, r: 0.65 },
+  { type: 'island', x: 7.2, y: 5.5, r: 0.6  },
+  { type: 'island', x: 5.0, y: 3.0, r: 0.55 },
+  { type: 'rocks',  x: 1.8, y: 3.5, r: 0.4  },
+  { type: 'rocks',  x: 8.2, y: 6.8, r: 0.4  },
+  { type: 'reef',   x: 8.0, y: 4.0, r: 0.5  },
+  { type: 'reef',   x: 2.0, y: 6.0, r: 0.5  },
 ];
 
 // ─── Theme Colors ──────────────────────────────────────

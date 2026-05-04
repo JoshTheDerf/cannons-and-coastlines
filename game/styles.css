@@ -75,70 +75,19 @@ html, body { width: 100%; height: 100vh; height: 100dvh; overflow: hidden;
   pointer-events: none; transition: all .4s ease; white-space: nowrap;
   box-shadow: 0 2px 12px rgba(0,0,0,.3); }
 
-/* ═══ Aiming Panel ══════════════════════════════════════ */
-#aimPanel { position: absolute; left: 0; right: 0; z-index: 30;
-  display: none; padding: 8px 10px 6px;
-  backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); }
-#aimPanel.p1 { background: linear-gradient(to top, rgba(12,6,4,.97) 50%, rgba(18,10,8,.85));
-  border-top: 2px solid #a08040; }
-#aimPanel.p2 { background: linear-gradient(to bottom, rgba(4,10,20,.97) 50%, rgba(8,16,35,.85));
-  border-bottom: 2px solid #a08040; transform: rotate(180deg); }
-
-.aimSideRow { display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 6px; }
-.sideBtn { font-family: 'Cinzel', serif; font-weight: 700;
-  font-size: clamp(.7rem, 2vw, .95rem); padding: clamp(8px, 2vw, 12px) clamp(16px, 5vw, 28px);
-  border: 2px solid #4a4035; border-radius: 5px; cursor: pointer; transition: all .12s ease;
-  user-select: none; letter-spacing: .08em; background: linear-gradient(to bottom, #2a2520, #1a1815);
-  color: #6a5a45; touch-action: manipulation; }
-.sideBtn:active { transform: scale(.95); }
-.sideBtn.port.active { background: linear-gradient(to bottom, #7a2525, #5a1818);
-  border-color: #d05050; color: #ff9090; box-shadow: 0 0 14px rgba(200,60,60,.3); }
-.sideBtn.stbd.active { background: linear-gradient(to bottom, #1a5a30, #104a20);
-  border-color: #50c070; color: #90f0b0; box-shadow: 0 0 14px rgba(50,200,100,.3); }
-.sideDivider { font-family: 'Cinzel', serif; color: #5a4a35; font-size: clamp(.6rem, 1.5vw, .75rem); }
-
-.aimSliderRow { display: flex; align-items: center; gap: 6px; margin: 5px 0; padding: 0 2px; }
-.aimSliderLabel { font-family: 'Cinzel', serif; color: #a08040;
-  font-size: clamp(.5rem, 1.4vw, .68rem); width: 52px; text-align: right;
-  letter-spacing: .05em; flex-shrink: 0; text-transform: uppercase; }
-.aimSliderValue { font-family: 'IM Fell English', serif; color: #d8c890;
-  font-size: clamp(.5rem, 1.4vw, .68rem); width: 58px; text-align: left; flex-shrink: 0; padding-left: 4px; }
-
-.sliderTrack { flex: 1; position: relative; height: clamp(42px, 11vw, 56px);
-  background: linear-gradient(to bottom, #1a1612, #252018, #1a1612);
-  border: 1px solid #4a4030; border-radius: 6px; box-shadow: inset 0 2px 6px rgba(0,0,0,.5);
-  touch-action: none; cursor: pointer; overflow: hidden; }
-.trackNotch { position: absolute; top: 0; bottom: 0; width: 1px; background: #3a3528; pointer-events: none; }
-.trackNotchLabel { position: absolute; bottom: 4px; left: 50%; transform: translateX(-50%);
-  font-family: 'IM Fell English', serif; font-size: clamp(.38rem, 1vw, .48rem);
-  color: #5a5040; white-space: nowrap; pointer-events: none; }
-.trackNotch.active { background: #a08040; }
-.trackNotch.active .trackNotchLabel { color: #c0a860; font-weight: bold; }
-.sliderThumb { position: absolute; top: 2px; bottom: 2px; width: clamp(30px, 8vw, 42px);
-  border-radius: 5px; background: linear-gradient(to bottom, #6a5a40, #4a3a28, #3a2a18);
-  border: 2px solid #8a7a55; box-shadow: 0 2px 8px rgba(0,0,0,.4); pointer-events: none;
-  transition: left .06s ease-out; }
-.sliderThumb::before { content: ''; position: absolute; left: 50%; top: 22%; height: 56%;
-  width: 10px; margin-left: -5px; border-radius: 1px;
-  background: repeating-linear-gradient(to right, transparent, transparent 2px, rgba(160,128,64,.35) 2px, rgba(160,128,64,.35) 3px); }
-.sliderThumb::after { content: ''; position: absolute; left: 50%; top: 50%;
-  width: 7px; height: 7px; margin: -3.5px 0 0 -3.5px; border-radius: 50%;
-  background: radial-gradient(circle at 40% 35%, #d4a853, #8a6a30); box-shadow: 0 0 5px rgba(212,168,83,.5); }
-
-#fireBtn { font-family: 'Cinzel', serif; font-weight: 700;
-  font-size: clamp(1rem, 3vw, 1.3rem); padding: .5em 3em; min-height: 44px;
-  background: linear-gradient(to bottom, #8a1a1a, #b82525, #8a1a1a);
-  color: #f0d0a0; border: 2px solid #a08040; border-radius: 5px; cursor: pointer;
-  letter-spacing: .12em; margin: 8px auto 4px; display: block;
-  box-shadow: 0 3px 10px rgba(0,0,0,.4); text-shadow: 0 1px 3px rgba(0,0,0,.4);
-  transition: all .1s ease; touch-action: manipulation; }
-#fireBtn:active { transform: scale(.95) translateY(1px);
-  box-shadow: 0 1px 4px rgba(0,0,0,.5); background: linear-gradient(to bottom, #6a1212, #8a1a1a, #6a1212); }
-#dismissAim { position: absolute; top: 5px; right: 8px; min-height: 32px;
-  background: rgba(40,30,20,.5); border: 1px solid rgba(100,90,70,.5);
-  color: #b0a080; font-size: clamp(.75rem, 2vw, .9rem); padding: 6px 14px;
-  border-radius: 3px; cursor: pointer; font-family: 'IM Fell English', serif; touch-action: manipulation; }
-#aimPanel.p2 #dismissAim { top: auto; bottom: 5px; }
+/* ═══ Fire-Mode Hint ════════════════════════════════════ */
+#fireHint { position: absolute; left: 50%; transform: translateX(-50%); z-index: 30;
+  display: none; padding: 6px 38px 6px 14px;
+  background: linear-gradient(to bottom, rgba(40,12,8,.95), rgba(20,6,4,.95));
+  border: 1px solid #a04040; border-radius: 4px;
+  color: #f0d0a0; font-family: 'Cinzel', serif; font-size: clamp(.7rem, 2vw, .9rem);
+  letter-spacing: .06em; box-shadow: 0 2px 12px rgba(0,0,0,.5); }
+#fireHint.p1 { bottom: 78px; }
+#fireHint.p2 { top: 78px; transform: translateX(-50%) rotate(180deg); }
+#fireHint #dismissAim { position: absolute; top: 50%; right: 4px; transform: translateY(-50%);
+  background: rgba(40,30,20,.5); border: 1px solid rgba(160,90,70,.5);
+  color: #f0c0a0; font-size: clamp(.75rem, 2vw, .9rem); padding: 2px 8px;
+  border-radius: 3px; cursor: pointer; font-family: 'IM Fell English', serif; }
 
 /* ═══ End Turn / Action Buttons ═════════════════════════ */
 .endTurnBtn { font-family: 'Cinzel', serif; font-size: clamp(.75rem, 2.5vw, 1rem);
@@ -173,6 +122,7 @@ html, body { width: 100%; height: 100vh; height: 100dvh; overflow: hidden;
 .freeTag { position: absolute; top: 1px; right: 3px; font-size: .55rem; color: #f1c40f; }
 .coinSlot.selected { border-color: #e74c3c; box-shadow: 0 0 12px rgba(231,76,60,.4);
   background: radial-gradient(circle at 40% 35%, rgba(80,25,15,.95), rgba(50,15,10,.95)); }
+.coinSlot.locked { opacity: .35; cursor: not-allowed; filter: grayscale(.6); }
 
 /* ═══ Radial Menu ═══════════════════════════════════════ */
 #radialMenu { position: absolute; z-index: 25; display: none; width: 120px; height: 120px; }
@@ -258,6 +208,8 @@ html, body { width: 100%; height: 100vh; height: 100dvh; overflow: hidden;
 .statusVP { font-size: clamp(.55rem, 1.5vw, .7rem); color: #d4a853;
   font-weight: 700; }
 .statusDetail { font-size: clamp(.4rem, 1vw, .5rem); color: #6a8a9a; }
+.statusPhase { font-size: clamp(.4rem, 1vw, .5rem); color: #d4a853; font-style: italic;
+  margin-left: auto; padding: 1px 6px; border: 1px solid rgba(212,168,83,.4); border-radius: 3px; }
 
 /* ═══ Victory Button ═══════════════════════════════════ */
 .victoryBtn { border-color: #c9a227 !important; color: #c9a227 !important;

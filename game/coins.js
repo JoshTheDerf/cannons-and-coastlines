@@ -54,14 +54,53 @@ function resolveCoin(coinId, wx, wy, ap) {
       myShip.ship._doubleShot = true;
       selectedShip = myShip.ship;
       actionMode = 'fire';
-      showAimPanel();
+      enterFireMode(myShip.ship);
       return true;
 
-    case 'repair_crew':
+    case 'repair_crew': {
+      // Capture path: dead enemy that was boarded this turn becomes ours.
+      if (enemyHit && enemyHit.ship.hp === 0 && enemyHit.ship.boardedBy === ap) {
+        const es = enemyHit.ship;
+        const adj = G.players[ap].ships.find(s =>
+          s.hp > 0 && dist(s.x, s.y, es.x, es.y) <= SHIP_ADJACENT_DIST
+        );
+        if (!adj) return false;
+        // Transfer ship to capturing player's fleet, restore 1 fitting.
+        const idx = G.players[enemy].ships.indexOf(es);
+        if (idx >= 0) G.players[enemy].ships.splice(idx, 1);
+        es.id = `p${ap}_captured_${Date.now()}`;
+        es.hp = 1;
+        es.maxHp = es.maxMasts + 1;
+        es.masts = 1;
+        es.hasActed = true;       // captured ship may act next turn
+        es.boardedBy = null;
+        es.braced = false;
+        es.signaled = false;
+        es.stoneAbsorbed = false;
+        G.players[ap].ships.push(es);
+        animFlags(tx, ty);
+        animSparkle(tx, ty);
+        if (getPassive(ap) === 'plunder' && G.bag.length > 0) {
+          G.players[ap].hand.push(G.bag.pop());
+        }
+        return true;
+      }
+      // Repair a dead-in-the-water own ship requires another own ship touching it.
+      if (myShip && myShip.ship.hp === 0) {
+        const adj = G.players[ap].ships.find(s =>
+          s !== myShip.ship && s.hp > 0 && dist(s.x, s.y, myShip.ship.x, myShip.ship.y) <= SHIP_ADJACENT_DIST
+        );
+        if (!adj) return false;
+        myShip.ship.hp = 1;
+        animSparkle(tx, ty);
+        return true;
+      }
+      // Standard repair: any own ship at less than max fittings.
       if (!myShip || myShip.ship.hp >= myShip.ship.maxHp) return false;
       myShip.ship.hp++;
       animSparkle(tx, ty);
       return true;
+    }
 
     case 'boarding_party': {
       if (!enemyHit) return false;
@@ -72,6 +111,16 @@ function resolveCoin(coinId, wx, wy, ap) {
       if (!adj) return false;
       const a = w2s(adj.x, adj.y);
       animBoarding(a.x, a.y, tx, ty);
+      // Dead-in-the-water target: this is the first half of a capture; mark and wait for Repair Crew.
+      if (es.hp === 0) {
+        es.boardedBy = ap;
+        animDamageNumber(tx, ty - 8, 'Boarded!');
+        if (getPassive(ap) === 'plunder' && G.bag.length > 0) {
+          G.players[ap].hand.push(G.bag.pop());
+        }
+        return true;
+      }
+      // Active target: remove 1 fitting.
       const dmg = applyDamage(es, 1, ap);
       animDamageNumber(tx, ty - 8, dmg > 0 ? `-${dmg}` : 'Blocked!');
       if (es.hp <= 0) {
@@ -80,7 +129,6 @@ function resolveCoin(coinId, wx, wy, ap) {
         trackSunkShip(es, enemy);
         if (allShipsSunk(enemy)) setTimeout(() => triggerGameOver(ap), 1600);
       }
-      // Plunder passive: extra coin on boarding
       if (getPassive(ap) === 'plunder' && G.bag.length > 0) {
         G.players[ap].hand.push(G.bag.pop());
       }

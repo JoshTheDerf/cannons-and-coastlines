@@ -105,14 +105,15 @@ function aiPlayTurn(ap) {
   const enemy = ap === 1 ? 2 : 1;
   const enemies = G.players[enemy].ships.filter(s => s.hp > 0);
 
-  // Priority 1: If touching own island, collect coin
+  // Priority 1: If touching own island, collect coin (skip if already collected this turn)
   const islandIdx = shipTouchingIsland(ship);
-  if (islandIdx >= 0 && G.islandOwner[islandIdx] === ap) {
-    executeIslandAction(ship, islandIdx, ap);
-    ship.hasActed = true;
-    refreshAllUI();
-    setTimeout(() => aiPlayTurn(ap), AI_DELAY);
-    return;
+  if (islandIdx >= 0 && G.islandOwner[islandIdx] === ap && !G.collectedThisTurn[islandIdx]) {
+    if (executeIslandAction(ship, islandIdx, ap)) {
+      ship.hasActed = true;
+      refreshAllUI();
+      setTimeout(() => aiPlayTurn(ap), AI_DELAY);
+      return;
+    }
   }
 
   // Priority 2: If touching uncaptured/enemy island (no enemy contesting), capture
@@ -134,15 +135,21 @@ function aiPlayTurn(ap) {
   }
 
   const target = aiPickTarget(ship, enemies);
-  const posScore = aiScorePosition(ship, target);
-  const bestShot = aiBestShot(ship, target, ap);
-  const hasLOS = !shotPathCheck(ship.x, ship.y, target.x, target.y);
+  const posScore = aiScorePosition(ship, target, ap);
+  const bestShot = posScore.shot;
+  // For LOS we need the slot's own origin point, not the ship center, since
+  // the bow/turret/rear slots can have very different sightlines.
+  let hasLOS = false;
+  if (bestShot.slotIdx >= 0) {
+    const slot = getShipSlots(getFaction(ap))[bestShot.slotIdx];
+    const w = slotWorld(ship, slot);
+    hasLOS = !shotPathCheck(w.x, w.y, target.x, target.y);
+  }
   const misses = ship._aiMisses || 0;
 
   const shouldFire = misses < 2
     && hasLOS
     && bestShot.hitProb > 0.25
-    && posScore.broadside > 0.7
     && posScore.distance < AI_MAX_RANGE;
 
   if (shouldFire) {
@@ -182,16 +189,23 @@ function aiMoveTowardIsland(ship, ap) {
   if (!target) return;
   const t = G.terrain[target.idx];
   const rings = getMoveRings(ap);
-  const moveR = Math.max(...rings);
-  const angle = Math.atan2(t.x - ship.x, -(t.y - ship.y));
-  const tx = ship.x + Math.sin(angle) * moveR;
-  const ty = ship.y - Math.cos(angle) * moveR;
-  const clampedX = Math.max(0.5, Math.min(WORLD_W - 0.5, tx));
-  const clampedY = Math.max(0.5, Math.min(WORLD_H - 0.5, ty));
-  if (canMoveTo(ship, clampedX, clampedY)) {
-    ship.heading = angleDelta(clampedX - ship.x, clampedY - ship.y);
-    ship.x = clampedX; ship.y = clampedY;
-    sfxMove();
+  const baseAng = Math.atan2(t.x - ship.x, -(t.y - ship.y));
+  // Walk each ring from farthest down, and try a small fan of nearby angles
+  // so we can route around terrain instead of just refusing to move.
+  const fan = [0, 0.25, -0.25, 0.5, -0.5, 0.85, -0.85];
+  for (let r = rings.length - 1; r >= 0; r--) {
+    for (const da of fan) {
+      const ang = baseAng + da;
+      const cx = ship.x + Math.sin(ang) * rings[r];
+      const cy = ship.y - Math.cos(ang) * rings[r];
+      if (cx < 0.5 || cx > WORLD_W - 0.5 || cy < 0.5 || cy > WORLD_H - 0.5) continue;
+      if (canMoveTo(ship, cx, cy)) {
+        ship.heading = angleDelta(cx - ship.x, cy - ship.y);
+        ship.x = cx; ship.y = cy;
+        sfxMove();
+        return;
+      }
+    }
   }
 }
 
@@ -210,48 +224,38 @@ function aiPickTarget(ship, enemies) {
   return best;
 }
 
-function aiScorePosition(ship, target) {
+function aiScorePosition(ship, target, ap) {
   const d = dist(ship.x, ship.y, target.x, target.y);
-  const angleToTarget = normAngle(Math.atan2(target.x - ship.x, -(target.y - ship.y)));
-  const relAngle = normAngle(angleToTarget - ship.heading);
-  const broadside = Math.abs(Math.sin(relAngle));
+  // "shotScore" replaces the old generic broadside metric. We ask: from this
+  // ship+heading, what is the actual best slot's firing fit on the target?
+  // This naturally handles forward-firing (Industry), rear-firing (Islanders),
+  // and broadside layouts without baking 90° into the formula.
+  const shot = ap != null ? aiBestShot(ship, target, ap) : { hitProb: 0, accuracy: Infinity };
+  const shotScore = shot.hitProb;
   const enemyAngle = normAngle(Math.atan2(ship.x - target.x, -(ship.y - target.y)) - target.heading);
   const flanking = 1 - Math.abs(Math.sin(enemyAngle));
   const rangeScore = Math.max(0, 1 - Math.abs(d - AI_OPTIMAL_RANGE) / AI_OPTIMAL_RANGE);
-  return { broadside, flanking, rangeScore, distance: d };
+  return { shotScore, broadside: shotScore, flanking, rangeScore, distance: d, shot };
 }
 
+/**
+ * For a ship/target pair, return the index of the cannon slot whose lane
+ * brings the shot closest to the target. Lane = ray from slot in slot dir.
+ */
 function aiBestShot(ship, target, ap) {
-  let bestSide = 0, bestB = 2, bestE = 2, bestDist = Infinity;
-  const isIndustry = getPassive(ap) === 'forward_guns';
-
-  for (let side = 0; side < 2; side++) {
-    for (let b = 0; b < 5; b++) {
-      // Industry can only fire Fore
-      if (isIndustry && b !== 0) continue;
-      for (let e = 0; e < 5; e++) {
-        const base = FIRING_TABLE_PORT[`${b},${e}`];
-        if (!base) continue;
-        const mir = { dx: side === 1 ? -base.dx : base.dx, dy: base.dy };
-        const off = rotVec(mir.dx, mir.dy, ship.heading);
-        const rawD = dist(ship.x + off.dx, ship.y + off.dy, target.x, target.y);
-        const scatter = 0.25 + e * 0.18;
-        const effective = rawD + scatter * 1.2;
-        if (effective < bestDist) {
-          bestDist = effective; bestSide = side; bestB = b; bestE = e;
-        }
-      }
-    }
+  const slots = getShipSlots(getFaction(ap));
+  let bestIdx = -1, bestPerp = Infinity, bestForward = 0;
+  for (let i = 0; i < slots.length; i++) {
+    const w = slotWorld(ship, slots[i]);
+    const tx = target.x - w.x, ty = target.y - w.y;
+    const forward = tx * w.dx + ty * w.dy;        // distance along lane to target
+    if (forward <= 0 || forward > SHOT_RANGE * 1.2) continue; // target behind / out of range
+    const perp = Math.abs(tx * (-w.dy) + ty * w.dx); // perpendicular distance
+    if (perp < bestPerp) { bestPerp = perp; bestIdx = i; bestForward = forward; }
   }
-
-  const scatter = 0.25 + bestE * 0.18;
-  const base = FIRING_TABLE_PORT[`${bestB},${bestE}`] || { dx: 0, dy: 0 };
-  const mir = { dx: bestSide === 1 ? -base.dx : base.dx, dy: base.dy };
-  const off = rotVec(mir.dx, mir.dy, ship.heading);
-  const rawD = dist(ship.x + off.dx, ship.y + off.dy, target.x, target.y);
-  const hitProb = Math.max(0, Math.min(0.9, HIT_RADIUS / (rawD + scatter + 0.1)));
-
-  return { side: bestSide, bearing: bestB, elevation: bestE, accuracy: bestDist, hitProb };
+  if (bestIdx < 0) return { slotIdx: -1, hitProb: 0, accuracy: Infinity };
+  const hitProb = Math.max(0, Math.min(0.9, HIT_RADIUS / (bestPerp + SHOT_SCATTER + 0.1)));
+  return { slotIdx: bestIdx, accuracy: bestPerp, distance: bestForward, hitProb };
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -260,21 +264,24 @@ function aiBestShot(ship, target, ap) {
 
 function aiTacticalMove(ship, target, allEnemies, ap) {
   const rings = getMoveRings(ap);
-  const moveR = Math.max(...rings);
   const currentDist = dist(ship.x, ship.y, target.x, target.y);
   let bestCandidate = null, bestScore = -Infinity;
 
-  for (let i = 0; i < 24; i++) {
-    const angle = (i / 24) * Math.PI * 2;
+  // Try every ring radius (each click brings the ship closer; AI may stop short).
+  // 32 angles × N rings gives a much denser search than the previous max-only sweep,
+  // which often returned no candidate when the outer ring was blocked.
+  const ANGLES = 32;
+  for (const moveR of rings) {
+   for (let i = 0; i < ANGLES; i++) {
+    const angle = (i / ANGLES) * Math.PI * 2;
     let cx = ship.x + Math.sin(angle) * moveR;
     let cy = ship.y - Math.cos(angle) * moveR;
-    cx = Math.max(0.5, Math.min(WORLD_W - 0.5, cx));
-    cy = Math.max(0.5, Math.min(WORLD_H - 0.5, cy));
+    if (cx < 0.5 || cx > WORLD_W - 0.5 || cy < 0.5 || cy > WORLD_H - 0.5) continue;
     if (!canMoveTo(ship, cx, cy)) continue;
 
     const heading = angleDelta(cx - ship.x, cy - ship.y);
     const virt = { x: cx, y: cy, heading };
-    const ps = aiScorePosition(virt, target);
+    const ps = aiScorePosition(virt, target, ap);
     let score = 0;
 
     const closingDelta = currentDist - ps.distance;
@@ -285,13 +292,18 @@ function aiTacticalMove(ship, target, allEnemies, ap) {
       score += ps.rangeScore * 25;
     }
 
-    score += ps.broadside * AI_BROADSIDE_BONUS;
+    score += ps.shotScore * AI_BROADSIDE_BONUS;
     score += ps.flanking * AI_FLANKING_BONUS;
 
-    const shot = aiBestShot(virt, target, ap);
-    const los = !shotPathCheck(cx, cy, target.x, target.y);
-    if (los && shot.hitProb > 0.3 && ps.broadside > 0.7) score += 40;
-    else if (los && shot.hitProb > 0.15) score += 10;
+    // LOS from the actual slot origin, not the ship center.
+    let los = false;
+    if (ps.shot.slotIdx >= 0) {
+      const slot = getShipSlots(getFaction(ap))[ps.shot.slotIdx];
+      const w = slotWorld(virt, slot);
+      los = !shotPathCheck(w.x, w.y, target.x, target.y);
+    }
+    if (los && ps.shot.hitProb > 0.3) score += 40;
+    else if (los && ps.shot.hitProb > 0.15) score += 10;
     else if (!los) score -= 10;
 
     // Proximity to uncaptured islands is a bonus
@@ -316,6 +328,20 @@ function aiTacticalMove(ship, target, allEnemies, ap) {
     score += (Math.random() - 0.5) * 4;
 
     if (score > bestScore) { bestScore = score; bestCandidate = { x: cx, y: cy }; }
+   }
+  }
+
+  // Fallback: if every candidate failed canMoveTo (boxed in by ships/terrain),
+  // try a slow nudge along the smallest ring at the angle toward the target.
+  if (!bestCandidate) {
+    const r = rings[0];
+    const ang = Math.atan2(target.x - ship.x, -(target.y - ship.y));
+    for (let dr = 1; dr >= 0.25; dr -= 0.25) {
+      const cx = ship.x + Math.sin(ang) * r * dr;
+      const cy = ship.y - Math.cos(ang) * r * dr;
+      if (cx < 0.5 || cx > WORLD_W - 0.5 || cy < 0.5 || cy > WORLD_H - 0.5) continue;
+      if (canMoveTo(ship, cx, cy)) { bestCandidate = { x: cx, y: cy }; break; }
+    }
   }
 
   if (bestCandidate) {
@@ -335,25 +361,26 @@ function aiTacticalMove(ship, target, allEnemies, ap) {
 
 function aiFireAtTarget(ship, target, shot, ap) {
   const enemy = ap === 1 ? 2 : 1;
+  if (shot.slotIdx < 0) {
+    ship.hasActed = true;
+    deselectAll(); refreshAllUI();
+    setTimeout(() => aiPlayTurn(ap), AI_DELAY);
+    return;
+  }
 
-  let b = shot.bearing, e = shot.elevation;
-  if (Math.random() < 0.25) b = Math.max(0, Math.min(4, b + (Math.random() < 0.5 ? -1 : 1)));
-  if (Math.random() < 0.25) e = Math.max(0, Math.min(4, e + (Math.random() < 0.5 ? -1 : 1)));
-  // Industry: lock bearing to Fore
-  if (getPassive(ap) === 'forward_guns') b = 0;
-
-  aimSide = shot.side; aimBearing = b; aimElev = e;
+  const slots = getShipSlots(getFaction(ap));
+  const slot = slots[shot.slotIdx];
   selectedShip = ship; actionMode = 'fire';
 
-  const landing = computeFiringSolution(ship, aimSide, aimBearing, aimElev);
-  const s = w2s(ship.x, ship.y);
+  const landing = computeSlotShot(ship, slot);
+  const s = w2s(landing.originX, landing.originY);
   const ep = w2s(landing.x, landing.y);
   stats[ap].shots++;
   sfxFire();
   ship.hasActed = true;
 
-  animCannonball(s.x, s.y, ep.x, ep.y, false, aimElev).then(() => {
-    const pathHit = shotPathCheck(ship.x, ship.y, landing.x, landing.y);
+  animCannonball(s.x, s.y, ep.x, ep.y, false, 2).then(() => {
+    const pathHit = shotPathCheck(landing.originX, landing.originY, landing.x, landing.y);
     if (pathHit) {
       const hp = w2s(pathHit.hitX, pathHit.hitY);
       animTerrainHit(hp.x, hp.y);
