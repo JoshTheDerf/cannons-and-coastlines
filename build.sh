@@ -1,48 +1,37 @@
 #!/usr/bin/env bash
-# Build script for Cloudflare Pages.
-# Copies the public site into dist/ so the deploy doesn't try to upload
-# .git internals, drafts in _internal/, or other dev-only files.
+# Build script invoked by Cloudflare Workers' build pipeline.
+#
+# Builds the Nuxt site in nuxt-site/. Output lands in
+# nuxt-site/.output/{server,public}/ and is consumed by `wrangler deploy`
+# per wrangler.jsonc at the repo root.
+#
+# Static artifacts the site references (rulebook PDFs, faction-card PNGs,
+# the STL zip, the standalone /game/ static HTML) are produced by the
+# typst/blender/jake pipeline at the repo root and exposed to Nuxt via
+# symlinks at nuxt-site/public/{rulebook,assets,game}. Whichever
+# environment runs this script must already have those artifacts present
+# (either committed to the repo or built earlier in CI via `jake`).
 set -euo pipefail
 
-DIST=dist
-rm -rf "$DIST"
-mkdir -p "$DIST"
+ROOT="$(dirname "$0")"
+cd "$ROOT/nuxt-site"
 
-# Copy each public top-level item explicitly. Anything not on this list
-# stays out of dist/ and therefore out of the Cloudflare Pages deploy --
-# notably scripts/ (Blender render pipeline), _internal/ (drafts and other
-# private working files), and .git*. Typst sources under rulebook/typst/
-# are stripped below.
-# (CF Pages' build image lacks rsync, so use plain cp.)
-for item in \
-    assets \
-    css \
-    game \
-    js \
-    parts \
-    privacy \
-    rulebook \
-    starter-pack \
-    index.html \
-    _headers \
-    _redirects \
-    LICENSE
-do
-    if [ -e "$item" ]; then
-        cp -R "$item" "$DIST/"
-    fi
-done
+# Stage the Cloudflare _headers/_redirects into the Nuxt public/ tree so they
+# end up in .output/public/. Copies (not symlinks) are required: Nitro
+# appends its own routing rules to .output/public/_headers during build, and
+# would write through a symlink back to the committed source. These copies
+# are gitignored so build artifacts don't pollute version control.
+cp -f ../_headers   public/_headers
+cp -f ../_redirects public/_redirects
 
-# Strip subdirectories we don't serve (rulebook source files, unused media).
-rm -rf "$DIST/rulebook/png" \
-       "$DIST/rulebook/svg" \
-       "$DIST/rulebook/assets" \
-       "$DIST/rulebook/typst" \
-       "$DIST/assets/playtesting"
+# `npm ci` if a lockfile is present and matches; otherwise fall back to
+# `npm install` (e.g. local dev where lockfile churn is fine).
+if [ -f package-lock.json ]; then
+    npm ci
+else
+    npm install
+fi
 
-# Print-optimized PDFs are preserved in the repo for the print pipeline but
-# blow past Cloudflare Pages' 25 MiB per-asset cap; only the web-compressed
-# versions are deployed.
-rm -f "$DIST/rulebook/pdf"/*-print.pdf
+npm run build
 
-echo "Built $DIST/ ($(du -sh "$DIST" | cut -f1))"
+echo "Built nuxt-site/.output/ ($(du -sh .output | cut -f1))"

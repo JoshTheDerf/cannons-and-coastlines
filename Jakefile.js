@@ -47,7 +47,7 @@ task('card-sheets', ['cards'], () => {
     sh(path.join(ROOT, 'rulebook/typst/build-card-sheets.sh'));
 });
 
-desc('Build dist/ for Cloudflare Pages deploy');
+desc('Build the Nuxt site (nuxt-site/.output/) for the Cloudflare Workers deploy');
 task('site', [], () => {
     sh(path.join(ROOT, 'build.sh'));
 });

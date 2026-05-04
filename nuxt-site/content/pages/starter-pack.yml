@@ -1,0 +1,114 @@
+# Starter pack page (/starter-pack).
+
+meta:
+  title: First-Run Starter Pack
+  description: >-
+    The first run of ten Cannons & Coastlines starter packs is sold out. Sign
+    up for the waiting list for the next batch.
+
+hero:
+  badge: Sold Out
+  title: First-Run Starter Pack
+  strike: true   # set to false to remove the strikethrough on the title
+  headline: All 10 first-run starter packs are spoken for.
+  subtitle: >-
+    We have been so encouraged by the interest in Cannons & Coastlines! The 10
+    spots for the limited first run are filled, so we're taking a brief pause
+    on orders while we get those printed, packed, and shipped, and figure out
+    how to best set things up moving forward. If you'd still like a pack, the
+    form below now feeds a **waiting list** for the next run.
+  cta: { label: Join the waiting list, to: '#order', icon: i-lucide-mail }
+
+story:
+  title: How this came about
+  paragraphs:
+    - >-
+      Originally I was just trying to make a silly little game to play with my
+      friends and the youth at my church — something like Battleship that
+      involved shooting real cannons, alternating between chaos and strategy.
+    - >-
+      I threw together a few rough models in TinkerCad just to see if the idea
+      would work, took them to my office to play around with, and it kind of
+      blew up from there. Now I really want to play this game. My friends want
+      to play it too. And apparently a ton of other people on the internet
+      would as well.
+    - >-
+      So we're trying to figure out: are there enough people interested to
+      make this worth investing the time and money to turn it into a real
+      game, or should it stay as a fun prototype?
+    - >-
+      To that end, my wife and I committed to print, package, and ship ten
+      starter packs, and all ten are now claimed. There's only the two of us
+      doing this, so each pack is printed, packed, and shipped by hand out of
+      our home, which takes a real chunk of time. We're pausing new orders so
+      we don't get too far behind on the first batch.
+    - >-
+      Once those are out the door, we'll figure out the best way to set things
+      up for a bigger run. If you'd still like one, the form below now feeds a
+      **waiting list**. We'll reach out when we have a clearer sense of timing
+      and what the next batch will cost, since pricing may shift from this
+      first run.
+  reelEmbed: https://www.instagram.com/p/DXEtgxttyCB/embed
+
+contents:
+  title: Pack contents
+  lead: For a full game, you'll probably want two packs. But you can play a stripped-down game with one.
+  showcase:
+    - src: /assets/photos/starter-pack/queens-fleet-ship-sm.jpg
+      alt: Queen's Fleet — three-ship fleet, sails, and faction card.
+      caption: Queen's Fleet Ship (x3)
+    - src: /assets/photos/starter-pack/corsair-ship-sm.jpg
+      alt: Corsair Fleet — four small ships, sails, and faction card.
+      caption: Corsair Ship (x4)
+  # Each include card has an icon, a title, and a list of bullet points.
+  # Bullet points support **bold** and [link text](url).
+  includes:
+    - icon: i-lucide-ship
+      title: A full ship set
+      items:
+        - >-
+          Full fleet: your choice of the
+          [**Corsair Fleet**](/rulebook/pdf/faction-card-corsairs.pdf) (4
+          small ships) or
+          [**Queen's Fleet**](/rulebook/pdf/faction-card-queens-fleet.pdf)
+          (3 larger ships)
+        - "**Masts, sails, and flag holders** for all ships"
+        - A pack of **cannons, cannonballs, and coins**
+        - "**Movement wheels** and cargo for all ships"
+        - Three **island toppers and flagpoles**
+        - "**Rocks and reefs**"
+    - icon: i-lucide-book-open
+      title: Printable manual
+      items:
+        - The current edition of the [**rulebook**](/rulebook/pdf/rulebook.pdf)
+        - Printable faction card
+        - (And we'll make sure you always get the latest version to print off.)
+  wide:
+    src: /assets/photos/starter-pack/all-parts-sm.jpg
+    alt: All the printed parts that come in a starter pack laid out together.
+    caption: The various parts included in a pack. Colors may vary. Quantities will match the game rulebook.
+  note: As I keep working on the models and adding new pieces, I'll do my best to keep everything backwards-compatible with this run.
+
+form:
+  title: Waiting list
+  intro: >-
+    **The first 10 packs are sold out and orders are paused while we print
+    them.** Fill this out and we'll add you to the waiting list for the next
+    run. When we're ready to print another batch, we'll reach out by email to
+    confirm details and work out payment. Pricing on future runs may be
+    different from the first batch, and we'll share the numbers when we get
+    there.
+  embed: https://docs.google.com/forms/d/1OLnbYcJYArcPI35-xBC18aw2Dtfe5haErApdzEqA3Jo/viewform?embedded=true
+  fallback: https://docs.google.com/forms/d/1OLnbYcJYArcPI35-xBC18aw2Dtfe5haErApdzEqA3Jo/viewform
+
+donate:
+  title: Want to chip in?
+  body: >-
+    Not in the US, didn't make it into the first ten, or just want to help us
+    keep printing and playtesting? Anything goes straight into more filament,
+    more parts, and more sessions at the table.
+  cta: { label: Buy me a coffee, url: https://buymeacoffee.com/joshthederf, icon: i-lucide-coffee }
+  image:
+    src: /assets/photos/starter-pack/kitten-for-scale-sm.jpg
+    alt: A kitten next to printed game pieces, for size comparison.
+    caption: Kitten for scale (not included).

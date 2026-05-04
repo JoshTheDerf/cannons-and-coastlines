@@ -1,0 +1,84 @@
+@import "tailwindcss";
+@import "@nuxt/ui";
+
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Cinzel", "Inter", serif;
+
+  --color-primary-50: #fdf7ed;
+  --color-primary-100: #faecd2;
+  --color-primary-200: #f3d6a0;
+  --color-primary-300: #ebb965;
+  --color-primary-400: #e3a13e;
+  --color-primary-500: #c8842a;
+  --color-primary-600: #a76a22;
+  --color-primary-700: #855120;
+  --color-primary-800: #6a4220;
+  --color-primary-900: #57371e;
+  --color-primary-950: #321d0d;
+
+  --color-secondary-50: #f1f6f7;
+  --color-secondary-100: #dbe8eb;
+  --color-secondary-200: #b9d2d8;
+  --color-secondary-300: #8db4be;
+  --color-secondary-400: #5e90a0;
+  --color-secondary-500: #467585;
+  --color-secondary-600: #385e6e;
+  --color-secondary-700: #2f4d5b;
+  --color-secondary-800: #28404c;
+  --color-secondary-900: #233640;
+  --color-secondary-950: #131e25;
+}
+
+:root {
+  --ui-primary: var(--color-primary-500);
+  --ui-secondary: var(--color-secondary-500);
+}
+
+/* Gold and iron gradients ported from the original site. Used as button
+ * fills and a few accent backgrounds. */
+:root {
+  --gradient-gold: linear-gradient(135deg, #c99344 0%, #b07d24 20%, #8e631a 50%, #714e14 80%, #c99344 100%);
+  --gradient-gold-flat: linear-gradient(180deg, #b07d24 0%, #8e631a 50%, #714e14 100%);
+  --gradient-iron: linear-gradient(180deg, #706b65 0%, #686360 50%, #605b58 100%);
+  --shadow-gold: 0 4px 8px rgba(173, 128, 37, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.3);
+  --shadow-gold-lg: 0 6px 16px rgba(173, 128, 37, 0.5), inset 0 2px 0 rgba(255, 255, 255, 0.3), inset 0 -1px 0 rgba(0, 0, 0, 0.2);
+}
+
+/* Primary solid buttons get the gold gradient. The Nuxt UI button keeps its
+ * own padding/sizing; we just swap the fill. */
+button[data-slot="base"].bg-primary,
+a[data-slot="base"].bg-primary {
+  background-image: var(--gradient-gold);
+  background-size: 200% 100%;
+  background-position: 0 0;
+  color: #fff;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.45);
+  transition: background-position 0.4s ease, transform 0.15s ease;
+}
+button[data-slot="base"].bg-primary:hover,
+a[data-slot="base"].bg-primary:hover {
+  background-position: 100% 0;
+  transform: translateY(-1px);
+}
+
+html {
+  font-size: 18px;
+}
+@media (min-width: 1280px) {
+  html { font-size: 19px; }
+}
+
+body {
+  font-family: var(--font-sans);
+  background: #0f1a1f;
+  color: #e9eef0;
+  line-height: 1.6;
+}
+
+h1, h2, h3, h4 {
+  font-family: var(--font-display);
+  letter-spacing: 0.01em;
+  line-height: 1.15;
+}
+

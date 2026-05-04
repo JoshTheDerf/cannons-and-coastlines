@@ -1,0 +1,64 @@
+# Site-wide settings: brand, top nav, footer, the announcement bar.
+# Edit any text here and it updates everywhere it appears on the site.
+
+brand:
+  name: Cannons & Coastlines
+  tagline: A Tabletop Naval Conquest Game
+  logo: /assets/images/logo-with-wordmark-sm.webp
+  icon: /assets/images/icon.png
+
+# Top navigation links (left side of the nav bar).
+nav:
+  - label: See It
+    to: /#see-it
+  - label: How It Plays
+    to: /#how-it-plays
+  - label: Factions
+    to: /#factions
+  - label: Parts
+    to: /parts
+  - label: Subscribe
+    to: /#signup
+  - label: About
+    to: /#about
+
+# The big call-to-action button on the right of the nav bar.
+cta:
+  label: Starter pack — sold out
+  to: /starter-pack
+  icon: i-lucide-anchor
+
+# The announcement strip that runs across the top of every page.
+# Delete this whole `announce:` block to hide the strip.
+announce:
+  pill: Sold Out
+  headline: The first run of 10 starter packs is sold out.
+  extra: Hop on the waiting list for the next batch.
+  cta: Join the list
+  to: /starter-pack
+
+footer:
+  blurb: A tabletop naval conquest game for 2–20 players.
+  columns:
+    - title: Game
+      links:
+        - { label: See It, to: /#see-it }
+        - { label: How It Plays, to: /#how-it-plays }
+        - { label: Factions, to: /#factions }
+        - { label: Parts, to: /parts }
+        - { label: Starter Pack, to: /starter-pack }
+    - title: Files
+      links:
+        - { label: Rulebook & STLs, to: /#signup }
+        - { label: GitHub, to: https://github.com/JoshTheDerf/cannons-and-coastlines/tree/main, external: true }
+    - title: More
+      links:
+        - { label: Mailing List, to: /#signup }
+        - { label: About, to: /#about }
+        - { label: Privacy, to: /privacy }
+        - { label: Discord, to: https://discord.gg/DMuFEWJtZq, external: true }
+  social:
+    - { label: Discord, to: https://discord.gg/DMuFEWJtZq, icon: i-lucide-message-circle }
+    - { label: GitHub, to: https://github.com/JoshTheDerf/cannons-and-coastlines/tree/main, icon: i-lucide-github }
+  license: © 2026 Joshua Bemenderfer. Licensed under CC BY-NC-SA 4.0.
+  licenseUrl: https://creativecommons.org/licenses/by-nc-sa/4.0/

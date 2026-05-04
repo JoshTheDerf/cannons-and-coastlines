@@ -2,10 +2,18 @@
     "$schema": "node_modules/wrangler/config-schema.json",
     "name": "cannons-and-coastlines",
     "compatibility_date": "2026-04-28",
+    // Nitro's cloudflare_module preset uses Node compat shims (Buffer, etc.).
+    "compatibility_flags": ["nodejs_compat"],
+    // Worker entry produced by `nuxt build` in nuxt-site/.
+    "main": "./nuxt-site/.output/server/index.mjs",
     "observability": {
         "enabled": true
     },
     "assets": {
-        "directory": "./dist"
+        // Static files: the Nuxt public/ tree (with symlinked rulebook/,
+        // game/, assets/). Files matching here are served directly; any
+        // other request falls through to the Worker which SSRs the page.
+        "directory": "./nuxt-site/.output/public/",
+        "binding": "ASSETS"
     }
 }

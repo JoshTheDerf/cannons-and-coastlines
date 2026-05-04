@@ -1,0 +1,180 @@
+# Home page (the landing page at /).
+# Most of this is plain text — edit and save. The structure should stay the
+# same; only swap out wording and image paths.
+
+meta:
+  title: Cannons & Coastlines | A Tabletop Naval Conquest Game
+  description: >-
+    A physical tabletop game for 2–20 players where rival fleets battle across
+    an open sea. 3D printable, cannon-powered combat meets strategic island
+    conquest.
+
+# The big top section.
+hero:
+  tagline: A Tabletop Naval Conquest Game
+  wordmark: /assets/images/wordmark-sm.webp
+  subtitle: 2–20 players • 30–90 minutes • Age 12+
+  description: >-
+    Command your fleet across the open sea. Fire real cannons. Capture islands.
+    Plunder treasure. Dominate the waves.
+  actions:
+    - { label: Get Notified, to: '#signup', variant: solid, icon: i-lucide-mail }
+    - { label: Learn to Play, to: '#how-it-plays', variant: outline }
+
+# The "name vote closed" strip. Delete this block to hide it.
+nameVote:
+  label: 'Name vote closed:'
+  winner: Cannons & Coastlines
+  winnerPct: 77
+  loser: B.O.A.T.
+  loserPct: 23
+
+seeIt:
+  title: See It in Action
+  description: The reel that kicked this off, playtest footage, and the real printed pieces.
+  reel:
+    embed: https://www.instagram.com/p/DXEtgxttyCB/embed
+    url: https://www.instagram.com/p/DXEtgxttyCB/
+    label: Watch on Instagram (1.9M views)
+  photos:
+    - src: /assets/photos/queens-fleet-ship-of-the-line-hero-sm.jpg
+      full: /assets/photos/queens-fleet-ship-of-the-line-hero.jpg
+      alt: Queen's Fleet ship with paper sails and gold-tipped flags.
+      caption: Queen's Fleet ship with sails and flags.
+    - src: /assets/photos/playtest-overhead-island-sm.jpg
+      full: /assets/photos/playtest-overhead-island.jpg
+      alt: Four ships arranged around a central sandstone island for playtesting.
+      caption: Island and ship testing.
+    - src: /assets/photos/queens-fleet-ship-of-the-line-sails-sm.jpg
+      full: /assets/photos/queens-fleet-ship-of-the-line-sails.jpg
+      alt: Queen's Fleet ship being used for movement testing on a glass surface.
+      caption: Queen's Fleet ship movement testing (glass surface).
+    - src: /assets/photos/playtest-terrain-variety-sm.jpg
+      full: /assets/photos/playtest-terrain-variety.jpg
+      alt: A spread of printed rocks, reefs, and islands used for terrain scale testing.
+      caption: Rocks, reefs, and terrain scale testing.
+  playtests:
+    - https://www.youtube.com/embed/oexjEaUXXjA
+    - https://www.youtube.com/embed/ViBGuyKuE84
+    - https://www.youtube.com/embed/SVqNlvkFg-w
+    - https://www.youtube.com/embed/PnyHL42OJ-o
+
+howItPlays:
+  title: How It Plays
+  description: >-
+    No dice, no grid. Physical ships, snap cannons, and an island map built
+    from whatever you've printed.
+  features:
+    - icon: i-lucide-move
+      title: Move, Fire, or Collect
+      body: >-
+        Each ship takes one action on your turn — push it across the table,
+        fire your cannon, or collect coins from an island you hold.
+    - icon: i-lucide-crosshair
+      title: Actual Cannons
+      body: >-
+        3D-printed snap cannons that fire cannonballs across the table. Aim
+        matters more than dice — getting good wins fights.
+    - icon: i-lucide-map
+      title: Capture Islands
+      body: >-
+        Plant your flag to claim an island. Held islands generate treasure
+        coins and double as gun emplacements.
+    - icon: i-lucide-coins
+      title: Spend Your Plunder
+      body: >-
+        Coins buy extras: full sail for speed, repair crews to patch damage,
+        or boarding parties to steal enemy ships.
+  rulebookHref: /rulebook/pdf/rulebook.pdf
+
+factions:
+  title: Choose Your Fleet
+  description: Each faction plays differently. Pick one that fits your style.
+  items:
+    - badge: Base Game
+      name: Queen's Fleet
+      image: /assets/ships/ship-preview-queen-fleet-large-sm.webp
+      tagline: The Well-Rounded Standard
+      stats:
+        - 3 Ships-of-the-Line
+        - 4 Fittings each
+        - 3 Broadside Slots / Side
+      desc: Disciplined crews allow 180° pivots. A good pick if you're just learning the game.
+      price: Free with Base Game
+      card: /rulebook/pdf/faction-card-queens-fleet.pdf
+    - badge: Base Game
+      name: Corsairs
+      image: /assets/ships/ship-preview-coarsairs-sm.webp
+      tagline: Fast and Fragile Raiders
+      stats:
+        - 4 Sloops
+        - 3 Fittings each
+        - 3 Broadside Slots / Side
+      desc: Hit-and-run specialists. Faster than the Queen's Fleet. Draw extra coins when boarding or capturing.
+      price: Free with Base Game
+      card: /rulebook/pdf/faction-card-corsairs.pdf
+    - badge: Coming Soon
+      name: Treasure Fleet
+      image: /assets/ships/ship-preview-treasure-fleet-sm.webp
+      desc: Fewer ships, better income. Double coins from held islands.
+    - badge: Coming Soon
+      name: Sun Fleet
+      image: /assets/ships/ship-preview-sun-fleet-sm.webp
+      desc: Carved stone ships. Slow, but shrug off the first hit each turn.
+    - badge: Coming Soon
+      name: Shadow Fleet
+      image: /assets/ships/ship-preview-shadow-fleet-sm.webp
+      desc: Fragile but relentless. Destroyed ships return from the deep.
+    - badge: Coming Soon
+      name: The Industry
+      image: /assets/ships/ship-preview-industry-sm.webp
+      desc: Forward-only cannons, relentless mechanical propulsion.
+    - badge: Coming Soon
+      name: The Islanders
+      image: /assets/ships/ship-preview-islanders-sm.webp
+      desc: Lightning-fast canoes with rear-firing cannons. Start with one island already held.
+
+signup:
+  eyebrow: For subscribers
+  title: The rulebook and initial STL files are available
+  body: >-
+    Subscribe and we'll send you the printable ruleset booklet plus the
+    current STL pack we use at our own playtests. You'll also get a note
+    when a new faction is ready, along with whatever we're learning from
+    sessions along the way.
+  # Items that come with a subscription. Shown as a checklist next to the form.
+  perks:
+    - Printable half-letter rulebook booklet
+    - Initial STL pack (both fleets, terrain, cannons, coins)
+    - Updates as new factions and parts land
+  # The reference rulebook PDF is public — link below the form for anyone
+  # who just wants to read the rules.
+  publicRulebook:
+    label: Or just grab the digital rulebook (PDF)
+    href: /rulebook/pdf/rulebook.pdf
+  kitUid: a74f27ac96
+  kitSrc: https://cannons-and-coastlines.kit.com/a74f27ac96/index.js
+  discord:
+    title: Or join the playtest Discord
+    body: >-
+      Unfiltered updates and discussion, for playtesters and anyone curious
+      about the bits and bobs before the first version lands. Early-release
+      files get pinned in the channel.
+    url: https://discord.gg/DMuFEWJtZq
+    qr: https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=https://discord.gg/DMuFEWJtZq
+
+about:
+  title: Who's Behind This
+  video: https://www.youtube.com/embed/I8fr532RWB0
+  # Each line below is one paragraph. Plain text — no HTML needed.
+  paragraphs:
+    - >-
+      I'm Joshua Bemenderfer, a software engineer by day. I wanted a battleship
+      game that was actually fun — where you actually move, strategize, and
+      fire at other ships. It got away from me and went viral, and now a small
+      crew of us (my wife and a few coworkers) are making it for real.
+    - >-
+      We design every piece, print it, and play it. Rules get rewritten when
+      something doesn't work in playtesting. The base game will be released
+      for free so anyone with a printer can play. Paid add-on factions will
+      fund the next round of work on the game.

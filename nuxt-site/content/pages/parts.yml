@@ -1,0 +1,237 @@
+# Parts page (/parts).
+# Lists every printed piece, how it fits together, print settings, and quantities.
+
+meta:
+  title: The Parts
+  description: >-
+    Every printed piece in the Cannons & Coastlines base set: what it does,
+    how it fits together, recommended print colors and settings, and
+    quantities to print.
+
+hero:
+  title: The Parts
+  intro: >-
+    Every printed piece in the base set, with what it does, how it fits with
+    the rest, and a recommended color. Below the gallery: print settings, and
+    how many of each to print before your first game.
+
+gallery:
+  title: Parts Gallery
+  lead: >-
+    Renders are from the base set v0.2 STL pack. Faction ships and fittings
+    vary in shape; the colors below are default suggestions, but flag color or
+    alliance color always wins if you'd rather match.
+  # Each item: a render image, a name, a description, and a recommended color.
+  # `desc` and `color` accept **bold** and *italic* markdown.
+  items:
+    - render: /assets/images/renders/ship-queens-fleet.png
+      name: Queen's Fleet Ship
+      desc: >-
+        The Queen's Fleet hull, with a wheel built into the stern and cannon
+        slots along the deck. Each faction has its own ship model; the count
+        and fitting capacity are on your faction card.
+      color: Faction or alliance color. Queen's Fleet ships shown in *blue-grey*. Pick whatever reads as your fleet across the table.
+    - render: /assets/images/renders/ship-corsair.png
+      name: Corsair Sloop
+      desc: The Corsairs' lighter hull. Smaller deck, faster across the table. Same wheel-in-stern design as the larger ships.
+      color: Black, or your fleet/alliance color. Corsair renders are shown in black.
+    - render: /assets/images/renders/mast.png
+      name: Mast
+      desc: A removable *fitting* that plugs into the deck. Masts are the last fittings to come off when a ship takes damage.
+      color: Brown or natural wood tone. White if you want printed sails to read at a distance.
+    - render: /assets/images/renders/cargo.png
+      name: Cargo
+      desc: A removable *fitting* representing crates of supplies. Goes overboard before masts when a ship is hit.
+      color: Crate-wood brown. Any natural wood tone reads correctly.
+    - render: /assets/images/renders/sail.png
+      name: Sail
+      desc: Slides over the mast. Mostly cosmetic, but it makes silhouettes readable across a crowded table.
+      color: White cardstock or off-white PLA. Some factions print sails in their flag color.
+    - render: /assets/images/renders/sail-damaged.png
+      name: Damaged Sail
+      desc: Cosmetic-only torn-sail variant. Swap in when assembling pirate or otherwise rough-around-the-edges ships. Doesn't affect gameplay.
+      color: Black or any dark, charred tone. Pure flavor, print whichever fits your fleet.
+    - render: /assets/images/renders/cannon.png
+      name: Cannon
+      desc: The tension-loaded firing mechanism. Plugs into a cannon slot on a ship or island. The same cannon is shared across all your ships.
+      color: Black or gunmetal grey, or your fleet color. Black is the default in the renders.
+    - render: /assets/images/renders/cannonball.png
+      name: Cannonball
+      desc: Loaded into the cannon and fired across the table. Retrieved at the end of your turn.
+      color: A bright color like neon green or orange so they're easy to find when one rolls off the table. **TPU** in that color bounces less and keeps shots closer to where they land.
+    - render: /assets/images/renders/movement-wheel.png
+      name: Movement Wheel
+      desc: Built into the stern. One full revolution is one *click* of movement. The flat spot on the rim parks the ship between turns.
+      color: Match the ship color. Wrap a thin rubber band around the rim before assembly; the wheel needs it to click at all.
+    - render: /assets/images/renders/movement-wheel-carriage.png
+      name: Wheel Carriage
+      desc: Cradles the movement wheel inside the hull. Printed once per ship and assembled with the wheel before first play.
+      color: Match the ship color, or any neutral hidden tone. The carriage is mostly out of sight.
+    - render: /assets/images/renders/paper-flag-holder.png
+      name: Paper Flag Holder
+      desc: >-
+        The primary flag mount. Slide a paper flag of any design into the slot
+        at the top, then plant the holder in any flag socket on a ship or
+        island. Lets each player invent their own fleet markings without
+        printing anything new.
+      color: Any neutral. The paper flag carries the color and design.
+    - render: /assets/images/renders/flag-printed.png
+      name: Printed Flag (optional)
+      desc: A fully 3D-printed flag for players who really want one in solid plastic instead of paper. Functionally identical to the paper-flag holder.
+      color: Fleet or alliance color. Print ~15+ per color so a big alliance has enough to go around.
+    - render: /assets/images/renders/island-topper.png
+      name: Island Topper
+      desc: A small puck with cannon slots and flag holes. Sits on top of a box, book, or upside-down cup to turn any household object into an island.
+      color: Sand, grey, or green. Whatever reads as terrain against your table.
+    - render: /assets/images/renders/coin-full-sail.png
+      name: Treasure Coins (7 types)
+      desc: >-
+        Drawn from the bag and spent at the start of your turn for one-time
+        effects: Brace, Signal, Full Sail, Evasive, Gunner, Repair, Boarding.
+        See the rulebook's *Coin Actions* for the full list.
+      color: Silk Gold PLA. Silk filaments give the satin sheen the renders show; matte gold also works.
+
+assembly:
+  title: How They Fit Together
+  lead: >-
+    Most parts press-fit into slots on the ship or island. There's no glue and
+    no tools required, but a few pieces need a one-time assembly before the
+    first game.
+  cards:
+    - icon: i-lucide-ship
+      title: Ship assembly (once)
+      ordered: true   # numbered list (1. 2. 3.) instead of bullets
+      items:
+        - Stretch a thin **rubber band** around the rim of the **movement wheel**. The wheel needs the band to click at all; without it the wheel just slides.
+        - Drop the wheel into the **wheel carriage**.
+        - Slide the carriage up into the slot in the stern of the **ship**. It's a snug fit, no snap; the wheel should still rotate freely.
+    - icon: i-lucide-anchor
+      title: Fittings (every game)
+      items:
+        - "**Masts** plug into the deck slots. Each mast is a fitting; ships go through cargo first, then masts."
+        - "**Sails** slide down over the mast. Cosmetic, swap in **damaged sails** for flavor."
+        - "**Cargo** sits in its own slots in the hull."
+        - Fitting capacity per ship is on your faction card. After every fitting is removed, the bare hull can take one more hit before it sinks.
+    - icon: i-lucide-crosshair
+      title: Cannons & cannonballs
+      items:
+        - The **cannon** plugs into any open cannon slot on a ship or island.
+        - Drop a **cannonball** into the muzzle, then press the firing mechanism down until it fires.
+        - The cannon is shared. Pull it from one slot and plug it into another between shots.
+    - icon: i-lucide-flag
+      title: Flags & islands
+      items:
+        - "**Paper flag holders** have a slot at the top; slide a paper flag into the slot, then plant the holder in any flag socket."
+        - "**Printed flags** are a one-piece alternative. Functionally identical."
+        - "**Island toppers** sit on a box, book, or upside-down cup. Cannon slots and flag holes match the ship sockets."
+    - icon: i-lucide-coins
+      title: Coins
+      body: >-
+        Coins don't assemble. Print them, dump them in a small cloth bag (any
+        pouch works), and shake before play. Each player contributes 20 coins
+        to the bag at setup, in the ratios on the print list below.
+    - icon: i-lucide-info
+      title: Tolerances
+      body: >-
+        The slots are designed for a snug press-fit. If a fitting is loose,
+        scale the male peg up **0.5–1%** in your slicer. If it's tight, sand
+        the peg or scale down by the same. Most slicers can rescale a single
+        STL without re-exporting.
+
+settings:
+  title: Recommended Print Settings
+  lead: >-
+    These are starting-point settings that have worked well across our test
+    prints. Tune to your printer and filament; the game is forgiving as long
+    as fittings press-fit cleanly.
+  # Each card is one part with a list of [label, value] rows.
+  cards:
+    - title: Ships & Carriages
+      rows:
+        - [Layer, 0.2 mm]
+        - [Walls, '3']
+        - [Infill, 15–20% gyroid]
+        - [Supports, 'Tree, hull-side only']
+        - [Material, PLA or PETG]
+    - title: Masts, Sails, Cargo
+      rows:
+        - [Layer, 0.16–0.2 mm]
+        - [Walls, '3']
+        - [Infill, 20%]
+        - [Supports, None (orient flat)]
+        - [Material, PLA]
+    - title: Cannons
+      rows:
+        - [Layer, 0.16–0.2 mm]
+        - [Walls, '4']
+        - [Infill, 30% (firing arm needs body)]
+        - [Supports, None if oriented per STL]
+        - [Material, PLA (PETG too brittle for the firing arm)]
+    - title: Cannonballs
+      rows:
+        - [Layer, 0.2 mm]
+        - [Walls, '2']
+        - [Infill, 100%]
+        - [Supports, None]
+        - [Material, '**TPU** (95A) preferred; PLA OK']
+    - title: Coins
+      rows:
+        - [Layer, 0.12–0.16 mm]
+        - [Walls, '3']
+        - [Infill, 20%]
+        - [Supports, None]
+        - [Material, Silk Gold PLA]
+    - title: Movement Wheels
+      rows:
+        - [Layer, 0.16 mm]
+        - [Walls, '3']
+        - [Infill, 25%]
+        - [Supports, None (orient flat-side down)]
+        - [Material, PLA]
+  callouts:
+    - icon: i-lucide-zap
+      title: TPU for cannonballs
+      body: TPU 95A bounces less than PLA, keeps shots closer to where they land, and survives floor drops. Worth dialing in even if you don't usually print flexibles.
+    - icon: i-lucide-circle-dot
+      title: Wheel grip
+      body: Wrap a thin rubber band around the rim of each wheel before assembling the ship. The wheels need the band to click at all; without it the wheel just slides instead of rolling.
+    - icon: i-lucide-alert-triangle
+      title: Cannon calibration
+      body: Two copies of the same cannon rarely shoot with exactly the same force, and the firing arm softens slightly with use. Fire a few practice rounds at the start of each game so everyone calibrates before the first real shot.
+    - icon: i-lucide-layers
+      title: Color & identity
+      body: Print one full set per faction in that fleet's color. Sails and flags do most of the silhouette work across a 5×5 ft table, so don't fuss over hull color matching exactly.
+
+quantities:
+  title: What to Print
+  lead: >-
+    A faction set is a complete print run for one player: their fleet, plus a
+    fair share of shared terrain and coins. Almost every piece is 3D-printed;
+    the only exception is the draw bag (any small cloth pouch will do).
+  subtitle: Per Faction Set
+  subLead: Print one of these per player. If two friends are each printing a faction set, the table will have everything it needs without further coordination.
+  # rows: [piece, quantity, notes]
+  rows:
+    - [Ships (your faction), 2–5, Count varies by faction. Check your faction reference card.]
+    - [Fittings (masts, cargo, supplies), varies, "Removable pieces that plug into your ship. Enough to fill every ship's slots, plus a few spares."]
+    - [Sails, 1 per mast, "Cosmetic. Print a few *damaged sails* for flavor on pirate-leaning fleets."]
+    - [Cannons, 3–4, Flag color or a neutral like black or grey. Shared across your ships and captured islands.]
+    - [Cannonballs, 15–20, Same color as the cannons. TPU prints bounce less than PLA if you want calmer shots.]
+    - [Flag pieces, 10–15, "Paper holders, printed flags, or a mix. In your fleet or alliance color, enough to cover your ships plus any islands you capture."]
+    - [Movement wheel + carriage, 1 per ship, One-time assembly. Pre-assemble before the first game.]
+    - [Islands, 2–3, "Print the included island models, or use **island toppers** on top of boxes, books, or other household objects."]
+    - [Rocks / sea stacks, '2', "Optional terrain. Blocks ships *and* cannonballs. An upside-down cup or mug also works in a pinch."]
+    - [Reefs / shoals, '2', "Optional terrain. Blocks ships only; cannonballs pass overhead. A coaster or scrap of cardstock also works."]
+    - [Coins (full sets of 20), 2 sets, 'Each set is 2 Brace, 2 Signal, 4 Full Sail, 2 Evasive, 4 Gunner, 4 Repair, 2 Boarding.']
+  drawBag: "**Draw bag:** one cloth pouch for the whole table, regardless of player count. Any small bag works; don't print it."
+
+cta:
+  title: Get the Print Files
+  body: >-
+    The full STL pack and the rulebook are sent out to subscribers and pinned
+    in the playtest Discord. Files are still actively changing session to
+    session.
+  buttons:
+    - { label: Mailing list, to: /#signup, icon: i-lucide-mail, variant: solid }
+    - { label: Discord, to: https://discord.gg/DMuFEWJtZq, icon: i-lucide-message-circle, variant: outline }
+    - { label: Rulebook PDF, to: /rulebook/pdf/rulebook.pdf, icon: i-lucide-file-text, variant: outline }

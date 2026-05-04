@@ -1,0 +1,11 @@
+node_modules
+.nuxt
+.output
+.data
+dist
+.env
+
+# Copied into place by ../build.sh before `nuxt build`. Canonical sources
+# live at the repo root.
+public/_headers
+public/_redirects
