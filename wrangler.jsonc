@@ -4,6 +4,11 @@
     "compatibility_date": "2026-04-28",
     // Nitro's cloudflare_module preset uses Node compat shims (Buffer, etc.).
     "compatibility_flags": ["nodejs_compat"],
+    // Build the Nuxt site before deploy. Cloudflare Workers Builds (git
+    // integration) and `wrangler deploy` both honor this.
+    "build": {
+        "command": "./build.sh"
+    },
     // Worker entry produced by `nuxt build` in nuxt-site/.
     "main": "./nuxt-site/.output/server/index.mjs",
     "observability": {
