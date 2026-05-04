@@ -35,5 +35,14 @@ export default defineNuxtConfig({
     // Cloudflare Workers with Static Assets. Emits .output/server/index.mjs
     // (the Worker) and .output/public/ (everything served as a static asset).
     preset: 'cloudflare_module'
+  },
+  content: {
+    // On Cloudflare Workers @nuxt/content needs a SQL backend. Bind a D1
+    // database as `DB` in wrangler.jsonc; locally Nitro falls back to
+    // better-sqlite3 so dev still works.
+    database: {
+      type: 'd1',
+      bindingName: 'DB'
+    }
   }
 })

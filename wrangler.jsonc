@@ -20,5 +20,16 @@
         // other request falls through to the Worker which SSRs the page.
         "directory": "./nuxt-site/.output/public/",
         "binding": "ASSETS"
-    }
+    },
+    // @nuxt/content v3 stores parsed YAML/Markdown in a SQL database at
+    // runtime. On Cloudflare that has to be a D1. Provision once with:
+    //   npx wrangler d1 create cannons-and-coastlines-content
+    // then paste the printed database_id below.
+    "d1_databases": [
+        {
+            "binding": "DB",
+            "database_name": "cannons-and-coastlines-content",
+            "database_id": "990aecf5-1397-4012-9860-59b47ffb2f2e"
+        }
+    ]
 }
