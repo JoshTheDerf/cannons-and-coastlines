@@ -35,7 +35,10 @@ def parse_args():
     p = argparse.ArgumentParser()
     p.add_argument("input_dir", type=Path)
     p.add_argument("output_dir", type=Path)
-    p.add_argument("--res", type=int, default=800)
+    p.add_argument("--res", type=int, default=800,
+                   help="Render width in pixels. Height matches unless --aspect is set.")
+    p.add_argument("--aspect", default=None,
+                   help="Aspect ratio W:H (e.g. '16:9'). Width is --res; height is derived.")
     p.add_argument("--samples", type=int, default=64)
     p.add_argument("--elevation", type=float, default=55.0)
     p.add_argument("--azimuth", type=float, default=45.0)
@@ -47,11 +50,29 @@ def parse_args():
                    help="Keep STL's source size instead of fitting to a unit cube.")
     p.add_argument("--only", default=None,
                    help="Glob filter relative to input_dir (e.g. 'ship-*.stl').")
+    p.add_argument("--rotate-z", type=float, default=None,
+                   help="Override per-item iso rotation_z_deg (useful for one-off camera presets).")
+    p.add_argument("--no-top", action="store_true",
+                   help="Skip the also_top pass even for items that request it.")
+    p.add_argument("--projection", default="ortho", choices=["ortho", "persp"],
+                   help="Camera projection. 'persp' uses a perspective lens for product shots.")
+    p.add_argument("--lens", type=float, default=85.0,
+                   help="Focal length in mm when --projection=persp.")
     return p.parse_args(argv)
 
 
+def _resolution(args):
+    if not args.aspect:
+        return args.res, args.res
+    w, h = args.aspect.split(":")
+    return args.res, max(1, int(round(args.res * float(h) / float(w))))
+
+
 def _render_view(cam, objs, margin, out_path):
-    cc_scene.fit_ortho_to_objects(cam, objs, margin)
+    if cam.data.type == "ORTHO":
+        cc_scene.fit_ortho_to_objects(cam, objs, margin)
+    else:
+        cc_scene.fit_persp_to_objects(cam, objs, margin)
     bpy.context.scene.render.filepath = str(out_path)
     bpy.ops.render.render(write_still=True)
 
@@ -59,12 +80,13 @@ def _render_view(cam, objs, margin, out_path):
 def render_one(stl_path: Path, output_path: Path, args):
     overrides = cc_config.overrides_for(stl_path.stem)
     preset = overrides.get("material", "grey")
-    iso_rot = float(overrides.get("rotation_z_deg", 0.0))
+    iso_rot = float(args.rotate_z) if args.rotate_z is not None else float(overrides.get("rotation_z_deg", 0.0))
     top_rot = float(overrides.get("top_rotation_z_deg", 0.0))
-    also_top = bool(overrides.get("also_top", False))
+    also_top = bool(overrides.get("also_top", False)) and not args.no_top
     shade_smooth = bool(overrides.get("shade_smooth", False))
 
-    cc_scene.reset_scene(args.engine, args.samples, args.res)
+    res_x, res_y = _resolution(args)
+    cc_scene.reset_scene(args.engine, args.samples, res_x, res_y)
     cc_scene.add_lights()
 
     objs = cc_mesh.import_stl(stl_path)
@@ -81,7 +103,10 @@ def render_one(stl_path: Path, output_path: Path, args):
                             smooth=shade_smooth)
     cc_mesh.set_rotation_z(objs, iso_rot)
     cc_mesh.center_to_origin(objs)
-    cam_iso = cc_scene.add_iso_camera(args.elevation, args.azimuth)
+    if args.projection == "persp":
+        cam_iso = cc_scene.add_persp_camera(args.elevation, args.azimuth, args.lens)
+    else:
+        cam_iso = cc_scene.add_iso_camera(args.elevation, args.azimuth)
     _render_view(cam_iso, objs, args.margin, output_path)
 
     extras = ""

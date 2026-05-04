@@ -6,7 +6,9 @@ import bpy
 from mathutils import Vector
 
 
-def reset_scene(engine: str, samples: int, res: int):
+def reset_scene(engine: str, samples: int, res_x: int, res_y: int = None):
+    if res_y is None:
+        res_y = res_x
     bpy.ops.wm.read_factory_settings(use_empty=True)
     # Purge orphan datablocks (materials, meshes, images, node trees) that
     # `read_factory_settings` leaves behind. Without this, every iteration
@@ -25,8 +27,8 @@ def reset_scene(engine: str, samples: int, res: int):
         except Exception:
             pass
 
-    scene.render.resolution_x = res
-    scene.render.resolution_y = res
+    scene.render.resolution_x = res_x
+    scene.render.resolution_y = res_y
     scene.render.resolution_percentage = 100
     scene.render.film_transparent = True
     scene.render.image_settings.file_format = "PNG"
@@ -139,6 +141,64 @@ def add_iso_camera(elevation_deg: float, azimuth_deg: float):
     return cam
 
 
+def add_persp_camera(elevation_deg: float, azimuth_deg: float, lens_mm: float = 85.0):
+    """Perspective camera placed on the same elevation/azimuth sphere as the iso
+    camera. Distance is overwritten by fit_persp_to_objects."""
+    elev = math.radians(elevation_deg)
+    azim = math.radians(azimuth_deg)
+    distance = 50.0  # placeholder; fit_persp_to_objects rewrites this
+    x = distance * math.cos(elev) * math.sin(azim)
+    y = -distance * math.cos(elev) * math.cos(azim)
+    z = distance * math.sin(elev)
+    bpy.ops.object.camera_add(location=(x, y, z))
+    cam = bpy.context.object
+    cam.data.type = "PERSP"
+    cam.data.lens = lens_mm
+    cam.data.sensor_fit = "AUTO"
+    direction = Vector((0.0, 0.0, 0.0)) - cam.location
+    cam.rotation_euler = direction.to_track_quat("-Z", "Y").to_euler()
+    bpy.context.scene.camera = cam
+    return cam
+
+
+def fit_persp_to_objects(cam, objs, margin: float):
+    """Slide the perspective camera along its view axis until every bbox corner
+    fits inside both fov axes. Camera-space is right-handed with -Z forward."""
+    bpy.context.view_layer.update()
+    forward = (cam.matrix_world.to_3x3() @ Vector((0.0, 0.0, -1.0))).normalized()
+    target = Vector((0.0, 0.0, 0.0))
+
+    r = bpy.context.scene.render
+    rx, ry = r.resolution_x, r.resolution_y
+    sensor = cam.data.sensor_width  # mm; sensor_fit AUTO with rx>=ry uses width
+    if rx >= ry:
+        half_h_x = (sensor / 2.0) / cam.data.lens          # tan(half-fov-x)
+        half_h_y = half_h_x * (ry / rx)
+    else:
+        half_h_y = (sensor / 2.0) / cam.data.lens
+        half_h_x = half_h_y * (rx / ry)
+
+    inv = cam.matrix_world.inverted()
+    # Sliding the camera along -forward by t adds t to every point's depth. The
+    # frustum constraint at the new depth is |perp_axis| <= half * (depth + t).
+    # margin > 1 inflates the apparent bbox (more padding); margin < 1 deflates
+    # it (zoom in, may crop corners). t may be negative -- camera moves closer.
+    needed = None
+    for o in objs:
+        for corner in o.bound_box:
+            wc = o.matrix_world @ Vector(corner)
+            cc = inv @ wc
+            depth = -cc.z
+            for axis_val, half in ((abs(cc.x), half_h_x), (abs(cc.y), half_h_y)):
+                t = axis_val * margin / half - depth
+                if needed is None or t > needed:
+                    needed = t
+    if needed is None:
+        return
+    cam.location = cam.location - forward * needed
+    bpy.context.view_layer.update()
+
+
 def add_lights():
     # Key: directional sun, scale-independent.
     bpy.ops.object.light_add(type="SUN", location=(5.0, -5.0, 8.0))
@@ -203,5 +263,13 @@ def fit_ortho_to_objects(cam, objs, margin: float):
             ys.append(cc.y)
     width = max(xs) - min(xs)
     height = max(ys) - min(ys)
-    extent = max(width, height) * margin
-    cam.data.ortho_scale = max(extent, 0.01)
+    # ortho_scale corresponds to the larger of render_x / render_y in world units;
+    # the smaller dim is ortho_scale * (smaller / larger). Compute the smallest
+    # ortho_scale that still contains both bbox extents.
+    r = bpy.context.scene.render
+    rx, ry = r.resolution_x, r.resolution_y
+    if rx >= ry:
+        ortho = max(width, height * rx / ry) * margin
+    else:
+        ortho = max(height, width * ry / rx) * margin
+    cam.data.ortho_scale = max(ortho, 0.01)
