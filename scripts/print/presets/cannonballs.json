@@ -1,0 +1,12 @@
+{
+    "type": "process",
+    "name": "C&C Cannonballs",
+    "inherits": "0.20mm Standard @Elegoo CC 0.4 nozzle",
+    "from": "User",
+    "wall_loops": "3",
+    "wall_sequence": "inner-outer-inner wall",
+    "enable_arc_fitting": "0",
+    "sparse_infill_density": "0%",
+    "brim_type": "no_brim",
+    "brim_width": "0"
+}

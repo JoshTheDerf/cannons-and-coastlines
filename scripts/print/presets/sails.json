@@ -1,0 +1,13 @@
+{
+    "type": "process",
+    "name": "C&C Sails",
+    "inherits": "0.20mm Standard @Elegoo CC 0.4 nozzle",
+    "from": "User",
+    "wall_sequence": "inner-outer-inner wall",
+    "enable_arc_fitting": "0",
+    "top_surface_pattern": "monotonicline",
+    "bottom_surface_pattern": "monotonicline",
+    "infill_direction": "45",
+    "brim_type": "no_brim",
+    "brim_width": "0"
+}
