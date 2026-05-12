@@ -1,0 +1,11 @@
+@import "tailwindcss";
+@import "@nuxt/ui";
+
+html, body, #app {
+  height: 100%;
+  margin: 0;
+  background: #1a1a1d;
+  color: #e6e6e6;
+  font-family: ui-sans-serif, system-ui, sans-serif;
+}
+* { box-sizing: border-box; }
