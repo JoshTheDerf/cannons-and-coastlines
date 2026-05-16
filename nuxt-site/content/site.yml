@@ -19,6 +19,8 @@ nav:
     to: /parts
   - label: Subscribe
     to: /#signup
+  - label: Live
+    to: /live
   - label: About
     to: /#about
 
@@ -31,11 +33,11 @@ cta:
 # The announcement strip that runs across the top of every page.
 # Delete this whole `announce:` block to hide the strip.
 announce:
-  pill: Sold Out
-  headline: The first run of 10 starter packs is sold out.
-  extra: Hop on the waiting list for the next batch.
-  cta: Join the list
-  to: /starter-pack
+  pill: Live
+  headline: First full playtest — all seven factions, complete ruleset.
+  extra: Streaming live on Twitch.
+  cta: Watch live
+  to: /live
 
 footer:
   blurb: A tabletop naval conquest game for 2–20 players.
