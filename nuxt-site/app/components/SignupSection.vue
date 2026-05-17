@@ -1,5 +1,5 @@
 <script setup lang="ts">
-defineProps<{
+const props = defineProps<{
   data: {
     eyebrow: string
     title: string
@@ -16,6 +16,21 @@ defineProps<{
     }
   }
 }>()
+
+const kitContainer = ref<HTMLDivElement | null>(null)
+
+onMounted(() => {
+  if (!kitContainer.value) return
+  // Kit's embed script injects the form into the parent of its <script> tag, so
+  // appending the script element directly into our container makes the form
+  // land where we want it. Doing this in onMounted (not via a templated <script>
+  // tag, which Vue strips at compile time) is what actually makes it execute.
+  const s = document.createElement('script')
+  s.async = true
+  s.dataset.uid = props.data.kitUid
+  s.src = props.data.kitSrc
+  kitContainer.value.appendChild(s)
+})
 </script>
 
 <template>
@@ -31,9 +46,7 @@ defineProps<{
             <span>{{ perk }}</span>
           </li>
         </ul>
-        <ClientOnly>
-          <component :is="'script'" async :data-uid="data.kitUid" :src="data.kitSrc" />
-        </ClientOnly>
+        <div ref="kitContainer" class="mt-6" />
         <p v-if="data.publicRulebook" class="mt-4 text-sm text-white/70">
           <a :href="data.publicRulebook.href" class="underline hover:text-primary-200">{{ data.publicRulebook.label }}</a>
         </p>
