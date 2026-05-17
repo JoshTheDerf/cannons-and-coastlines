@@ -1,48 +1,36 @@
 <script setup lang="ts">
-const channel = 'cannonsandcoastlines'
+const { data: page } = await useAsyncData('home-signup', () =>
+  queryCollection('pages').where('stem', '=', 'pages/home').first()
+)
 
-const parents = ['cannonsandcoastlines.com', 'www.cannonsandcoastlines.com', 'localhost']
-const parentParams = parents.map(p => `parent=${p}`).join('&')
-const embedUrl = `https://player.twitch.tv/?channel=${channel}&${parentParams}`
+const channel = 'cannonsandcoastlines'
 const channelUrl = `https://www.twitch.tv/${channel}`
 
 useSeoMeta({
   title: 'Live Playtest — Cannons & Coastlines',
-  description: 'Watch the first full playtest of Cannons & Coastlines — all seven factions, complete ruleset, live.',
+  description: 'The first full playtest has wrapped. Subscribe or join the Discord to hear about the next one.',
   ogTitle: 'Live Playtest — Cannons & Coastlines',
-  ogDescription: 'Watch the first full playtest of Cannons & Coastlines — all seven factions, complete ruleset, live.'
+  ogDescription: 'The first full playtest has wrapped. Subscribe or join the Discord to hear about the next one.'
 })
 </script>
 
 <template>
   <div>
-    <header class="py-12 px-4 text-center text-white">
-      <h1 class="font-display text-4xl md:text-5xl text-white">First Full Playtest — Live</h1>
-      <p class="mt-3 text-white/80 max-w-2xl mx-auto">
-        All seven factions. The full ruleset. Streaming live from the captain's table.
+    <header class="py-16 px-4 text-center text-white">
+      <span class="inline-block rounded-full bg-white/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-white/80">
+        Event ended
+      </span>
+      <h1 class="mt-4 font-display text-4xl md:text-5xl text-white">The first full playtest has wrapped</h1>
+      <p class="mt-4 text-white/80 max-w-2xl mx-auto">
+        Thanks to everyone who tuned in. Subscribe or join the Discord below and we'll let you know
+        when the next playtest goes live. Past streams stay up on
+        <a :href="channelUrl" target="_blank" rel="noopener" class="underline text-primary-300">Twitch</a>.
       </p>
     </header>
 
-    <section class="px-4 pb-16">
-      <div class="container mx-auto max-w-5xl">
-        <div class="relative w-full overflow-hidden rounded-xl bg-black shadow-2xl" style="aspect-ratio: 16 / 9;">
-          <iframe
-            :src="embedUrl"
-            title="Cannons & Coastlines — First Full Playtest"
-            frameborder="0"
-            allow="autoplay; fullscreen"
-            allowfullscreen
-            loading="lazy"
-            class="absolute inset-0 h-full w-full"
-          />
-        </div>
-        <p class="mt-4 text-sm text-white/60 text-center">
-          Stream not loading? <a :href="channelUrl" target="_blank" rel="noopener" class="underline text-primary-300">Watch it on Twitch</a>.
-        </p>
-      </div>
-    </section>
+    <SignupSection v-if="page?.signup" :data="page.signup" />
 
-    <div class="text-center pb-12 text-sm text-white/60">
+    <div class="text-center py-12 text-sm text-white/60">
       <NuxtLink to="/" class="underline hover:text-white">← Back to home page</NuxtLink>
     </div>
   </div>

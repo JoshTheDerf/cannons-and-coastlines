@@ -32,12 +32,6 @@ cta:
 
 # The announcement strip that runs across the top of every page.
 # Delete this whole `announce:` block to hide the strip.
-announce:
-  pill: Live
-  headline: First full playtest — all seven factions, complete ruleset.
-  extra: Streaming live on Twitch.
-  cta: Watch live
-  to: /live
 
 footer:
   blurb: A tabletop naval conquest game for 2–20 players.

@@ -116,40 +116,7 @@ const p = computed(() => page.value!)
     </section>
 
     <!-- Signup + Downloads (unified) -->
-    <section id="signup" class="py-20 px-4 bg-secondary-900/50">
-      <div class="container mx-auto grid lg:grid-cols-[1.4fr_1fr] gap-10">
-        <div>
-          <p class="text-xs uppercase tracking-[0.25em] text-primary-400 mb-2 font-semibold">{{ p.signup.eyebrow }}</p>
-          <h2 class="font-display text-3xl text-white">{{ p.signup.title }}</h2>
-          <p class="mt-3 text-white/70 max-w-xl">{{ p.signup.body }}</p>
-          <ul v-if="p.signup.perks?.length" class="mt-5 space-y-2 text-sm text-white/85">
-            <li v-for="perk in p.signup.perks" :key="perk" class="flex gap-2">
-              <UIcon name="i-lucide-check" class="size-5 text-primary-300 shrink-0 mt-0.5" />
-              <span>{{ perk }}</span>
-            </li>
-          </ul>
-          <ClientOnly>
-            <component :is="'script'" async :data-uid="p.signup.kitUid" :src="p.signup.kitSrc" />
-          </ClientOnly>
-          <p v-if="p.signup.publicRulebook" class="mt-4 text-sm text-white/70">
-            <a :href="p.signup.publicRulebook.href" class="underline hover:text-primary-200">{{ p.signup.publicRulebook.label }}</a>
-          </p>
-          <p class="mt-3 text-xs text-white/50">
-            <NuxtLink to="/privacy" class="underline">Privacy Policy</NuxtLink>
-          </p>
-        </div>
-        <div class="self-start rounded-2xl border border-white/10 bg-secondary-900/60 p-6 flex gap-5 items-start">
-          <div class="flex-1 min-w-0">
-            <h3 class="font-display text-lg text-white">{{ p.signup.discord.title }}</h3>
-            <p class="mt-2 text-sm text-white/70">{{ p.signup.discord.body }}</p>
-            <UButton :to="p.signup.discord.url" target="_blank" icon="i-lucide-message-circle" color="primary" size="md" class="mt-4">
-              Join the Discord
-            </UButton>
-          </div>
-          <img :src="p.signup.discord.qr" alt="Discord invite QR" class="size-28 rounded-lg bg-white p-1 shrink-0">
-        </div>
-      </div>
-    </section>
+    <SignupSection :data="p.signup" />
 
     <!-- About -->
     <section id="about" class="py-20 px-4 bg-secondary-900/50">
