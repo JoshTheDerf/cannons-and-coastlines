@@ -6,11 +6,11 @@
 # per wrangler.jsonc at the repo root.
 #
 # Static artifacts the site references (rulebook PDFs, faction-card PNGs,
-# the STL zip, the standalone /game/ static HTML) are produced by the
-# typst/blender/jake pipeline at the repo root and exposed to Nuxt via
-# symlinks at nuxt-site/public/{rulebook,assets,game}. Whichever
-# environment runs this script must already have those artifacts present
-# (either committed to the repo or built earlier in CI via `jake`).
+# the STL zip) are produced by the typst/blender pipeline at the repo
+# root and exposed to Nuxt via symlinks at nuxt-site/public/{rulebook,assets}.
+# The /game/ static HTML lives directly at nuxt-site/public/game/ (no
+# symlink). Whichever environment runs this script must already have the
+# generated artifacts present (committed to the repo or built earlier in CI).
 set -euo pipefail
 
 ROOT="$(dirname "$0")"
