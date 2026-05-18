@@ -34,10 +34,6 @@ python3 "$SCRIPT_DIR/impose-booklet.py" \
   "$PDF_DIR/rulebook.pdf" \
   "$PDF_DIR/rulebook-booklet.pdf"
 
-echo "Building print-optimized booklet PDF (preserved as rulebook-booklet-print.pdf)..."
-"$SCRIPT_DIR/compress-pdf.sh" --profile prepress \
-  "$PDF_DIR/rulebook-booklet.pdf" "$PDF_DIR/rulebook-booklet-print.pdf"
-
 echo "Compressing booklet PDF for web (Cloudflare Pages caps assets at 25 MiB)..."
 "$SCRIPT_DIR/compress-pdf.sh" "$PDF_DIR/rulebook-booklet.pdf"
 
