@@ -1,0 +1,17 @@
+{
+  "name": "cannons-and-coastlines",
+  "private": true,
+  "description": "Build orchestration for the Cannons and Coastlines static site, rulebook, faction cards, and STL zip.",
+  "scripts": {
+    "build": "jake",
+    "build:stl": "jake stl",
+    "build:rulebook": "jake rulebook",
+    "build:booklet": "jake booklet",
+    "build:cards": "jake cards",
+    "build:card-sheets": "jake card-sheets",
+    "build:site": "jake site"
+  },
+  "devDependencies": {
+    "jake": "^10.9.2"
+  }
+}

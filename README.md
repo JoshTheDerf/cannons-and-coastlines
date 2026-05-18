@@ -59,7 +59,11 @@ nuxt-site/          # The cannonsandcoastlines.com site (Nuxt 4 + Cloudflare)
   public/game/      # Static HTML easter-egg game (triggered by typing "fire")
 rulebook/           # Typst source, faction cards, generated PDFs/PNGs
 scripts/            # Build helpers (Blender renders, STL zip)
+Jakefile.js         # Single entry point for all builds (`jake`, `jake rulebook`, etc.)
+build.sh            # Nuxt site build invoked by the Cloudflare Pages pipeline
 ```
+
+Run `npm install` once, then `jake` to rebuild every artifact in dependency order, or invoke individual targets (`jake rulebook`, `jake cards`, `jake site`, etc.).
 
 This repository will eventually contain files for **3D printing** game components (ships, cannons, islands, cannonballs) and **playtesting** materials.
 
