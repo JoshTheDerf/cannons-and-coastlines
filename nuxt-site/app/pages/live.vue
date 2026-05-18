@@ -12,9 +12,9 @@ const recordingEmbedUrl = `https://www.youtube.com/embed/${videoId}?start=${game
 
 useSeoMeta({
   title: 'Live Playtest — Cannons & Coastlines',
-  description: 'The first full playtest has wrapped. Subscribe or join the Discord to hear about the next one.',
+  description: 'Recap and rule changes from the first full faction playtest. Subscribe or join the Discord to hear about the next one.',
   ogTitle: 'Live Playtest — Cannons & Coastlines',
-  ogDescription: 'The first full playtest has wrapped. Subscribe or join the Discord to hear about the next one.'
+  ogDescription: 'Recap and rule changes from the first full faction playtest. Subscribe or join the Discord to hear about the next one.'
 })
 </script>
 
@@ -47,6 +47,36 @@ useSeoMeta({
         </div>
         <p class="mt-4 text-sm text-white/60 text-center">
           Gameplay starts around 12:40 — the embed above is queued to jump straight there.
+        </p>
+      </div>
+    </section>
+
+    <!-- Playtest takeaways -->
+    <section v-if="page?.changelog" class="px-4 pb-20 bg-secondary-900/30">
+      <div class="container mx-auto max-w-4xl py-16">
+        <SectionHeader
+          :title="`What we changed: ${page.changelog.version}`"
+          :description="page.changelog.description"
+        />
+        <ul class="mt-6 space-y-4">
+          <li
+            v-for="item in page.changelog.items"
+            :key="item.title"
+            class="rounded-2xl border border-white/10 bg-secondary-900/60 p-5 flex gap-4"
+          >
+            <div class="size-10 shrink-0 rounded-lg bg-primary-500/15 text-primary-300 flex items-center justify-center">
+              <UIcon :name="item.icon" class="size-5" />
+            </div>
+            <div>
+              <h3 class="font-display text-lg text-white">{{ item.title }}</h3>
+              <p class="mt-1 text-sm text-white/70">{{ item.body }}</p>
+            </div>
+          </li>
+        </ul>
+        <p class="mt-8 text-center text-white/60 text-sm">
+          All of it lives in the
+          <NuxtLink to="/rulebook/pdf/rulebook.pdf" class="underline text-primary-300 hover:text-primary-200">rulebook PDF</NuxtLink>.
+          Subscribe below to get the booklet drop the next time we revise.
         </p>
       </div>
     </section>

@@ -108,10 +108,10 @@ factions:
       image: /assets/ships/ship-preview-coarsairs-sm.webp
       tagline: Fast and Fragile Raiders
       stats:
-        - 4 Sloops
+        - 3 Sloops
         - 3 Fittings each
         - 3 Broadside Slots / Side
-      desc: Hit-and-run specialists. Faster than the Queen's Fleet. Draw extra coins when boarding or capturing.
+      desc: Hit-and-run specialists. The fastest fleet on the table. Draw extra coins when boarding or capturing.
       price: Free with Base Game
       card: /rulebook/pdf/faction-card-corsairs.pdf
     - badge: Coming Soon
@@ -134,6 +134,55 @@ factions:
       name: The Islanders
       image: /assets/ships/ship-preview-islanders-sm.webp
       desc: Lightning-fast canoes with rear-firing cannons. Start with one island already held.
+
+changelog:
+  title: From the Playtest Table
+  description: >-
+    What the first full-fleet session taught us, now baked into rulebook v0.4.
+    Movement got faster, the Corsairs and Islanders got rebalanced, and an
+    optional Always Underway mode landed for tighter games.
+  version: v0.4
+  released: '2026-05-18'
+  items:
+    - icon: i-lucide-gauge
+      title: Faster fleets across the board
+      body: >-
+        Every faction except the Islanders gained a click of Move Count. Shadow
+        Fleet now matches Queen's Fleet for speed. Closing the distance is a
+        real decision now, not a slog.
+    - icon: i-lucide-anchor
+      title: Corsairs slimmed to three sloops
+      body: >-
+        A fourth sloop turned the Corsair turn into bookkeeping. Three ships,
+        Move Count 4 — plenty to flank with.
+    - icon: i-lucide-skull
+      title: Islanders down to a single fitting
+      body: >-
+        One hit puts a canoe dead in the water. Faster but glass-hulled —
+        exactly the hit-and-run rhythm the faction was missing.
+    - icon: i-lucide-flag
+      title: Edge-of-table deployment
+      body: >-
+        Ships now line up right at the table edge. The old 3-inch buffer felt
+        arbitrary and ate playable space.
+    - icon: i-lucide-crosshair
+      title: Ricochets resolved
+      body: >-
+        A cannonball's first ship contact takes the hit. Any further bounce
+        does no damage, friendly or enemy. No more courtroom moments over
+        deflected shots.
+    - icon: i-lucide-users
+      title: Cannons need a crew
+      body: >-
+        To fire any cannon — on a ship or an island — one of your ships has to
+        be touching it and spend a Fire action. Held islands no longer fire on
+        their own.
+    - icon: i-lucide-wind
+      title: New "Always Underway" mode
+      body: >-
+        Optional variant where ships must always move forward, and may steer or
+        fire on a given turn, never both. Closes the gap quickly and rewards
+        line-up shots over standoffs.
 
 signup:
   eyebrow: For subscribers

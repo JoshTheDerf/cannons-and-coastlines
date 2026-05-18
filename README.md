@@ -54,14 +54,10 @@ Additional factions (Treasure Fleet, Sun Fleet, Shadow Fleet, The Industry, The 
 ## Repository Contents
 
 ```
-assets/
-├── icons/          # Game action icons (SVG)
-├── images/         # Logo and branding
-├── playtesting/    # Photos and videos from playtest sessions
-└── ships/          # Faction ship preview images
-css/                # Website stylesheets
-js/                 # Website scripts
-index.html          # Game website
+assets/             # Logo, branding, photos, ship previews
+nuxt-site/          # The cannonsandcoastlines.com site (Nuxt 4 + Cloudflare)
+rulebook/           # Typst source, faction cards, generated PDFs/PNGs
+game/               # Standalone static HTML game preview
 ```
 
 This repository will eventually contain files for **3D printing** game components (ships, cannons, islands, cannonballs) and **playtesting** materials.

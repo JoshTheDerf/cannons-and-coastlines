@@ -38,8 +38,8 @@
 #let display-font = ("Pirata One",)
 #let body-font    = ("Crimson Text",)
 
-#let version      = "v0.3"
-#let version-long = "v0.3, In Development · Subject to Change"
+#let version      = "v0.4"
+#let version-long = "v0.4, In Development · Subject to Change"
 
 #let parchment-bg = {
   rect(width: 100%, height: 100%, fill: colors.parchment)

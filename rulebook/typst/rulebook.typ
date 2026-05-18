@@ -50,8 +50,8 @@
 #let display-font = ("Pirata One",)
 #let body-font    = ("Crimson Text",)
 
-#let version       = "v0.3"
-#let version-long  = "v0.3, In Development · Subject to Change"
+#let version       = "v0.4"
+#let version-long  = "v0.4, In Development · Subject to Change"
 
 // Parchment background (matches faction cards: cream base + texture + lighten)
 #let parchment-bg = {
@@ -372,7 +372,7 @@ Islands sit between the fleets. Capture one by planting your flag on it and it w
 
 + *Add terrain (optional).* Together, place 2–6 rocks or reefs anywhere on the table. Terrain blocks ships and breaks up firing lanes. You can use household objects for this. It's up to you how many obstacles to add.
 
-+ *Deploy your fleet.* Claim an edge of the table and line your ships up within *3"* of it, facing inward. (Islanders: use _Home Waters_ now to place your starting ship at an island.)
++ *Deploy your fleet.* Claim an edge of the table and line your ships up *touching that edge*, facing inward. (Islanders: use _Home Waters_ now to place your starting ship at an island.)
 
 + *Fill the bag.* Put all coins into the draw bag and shake it to mix.
 
@@ -414,9 +414,9 @@ The number of clicks equals your faction's *Move Count*:
 #tight(table(
   columns: (0.8fr, 2fr),
   table.header[Move Count][Sequence],
-  [1], [Set Heading → Click],
   [2], [Set Heading → Click → Click],
   [3], [Set Heading → Click → Click → Click],
+  [4], [Set Heading → Click → Click → Click → Click],
 ))
 
 Ships cannot pass through other ships, islands, rocks, or reefs. If a ship contacts any of these during a click, it stops there and forfeits any remaining clicks this turn.
@@ -428,11 +428,15 @@ Ships cannot pass through other ships, islands, rocks, or reefs. If a ship conta
 == Action B: Fire
 
 + Take one of your cannons.
-+ Plug it into any open slot on the ship.
++ Plug it into any open slot on the firing ship (or, for *Fire from Island* below, on the island your ship is touching).
 + Load a cannonball, then press down on the firing mechanism until the shot fires.
 + Remove the cannon from the slot.
 
 Cannons fire *straight out from the slot.* A ship that fires *does not move or rotate* this turn, so your aim is whatever direction the ship is already pointing. Line up the angle with a prior Move action, then commit to the shot. The same cannon can be used by more than one ship in a single turn; simply move it from one ship to the next.
+
+#callout[
+  *Cannons need a crew. Your ship is the crew.* To fire any cannon, on a ship or an island, one of your ships must be touching it and spend a Fire action. Held islands cannot fire on their own without a ship in contact.
+]
 
 == Action C: Island
 
@@ -450,10 +454,10 @@ Each ship takes at most one island action per turn.
 
 Each island flies *one flag at a time*.
 
-- *Empty island with ships from multiple fleets touching it.* No one may raise a flag until only one fleet's ships remain in contact with the island.
-- *Enemy flag on the island.* Drive off all enemy ships from the island first. Then capture the island as normal.
-- *Your island, your ships (or a teammate's ships).* No conflict; the flag stays.
-- *Dead-in-the-water ships do not defend an island.* A dead ship touching your island does not block an enemy capture. However, if the enemy captures the dead ship first and repairs it, that ship *does* count as a defender afterward.
+- *Multiple fleets touching an empty island.* No one may raise a flag until only one fleet's ships remain in contact.
+- *Enemy flag on the island.* Drive off all enemy ships first, then capture as normal.
+- *Your island, your ships (or a teammate's).* No conflict; the flag stays.
+- *Dead-in-the-water ships do not defend.* A dead ship at your island does not block enemy capture. But if an enemy captures and repairs the dead ship, it *does* count as a defender afterward.
 
 
 // ----- Combat -----
@@ -464,6 +468,7 @@ When a cannonball hits an enemy ship, remove one *fitting* (masts or cargo) from
 
 - *Ship has no fittings left.* It is *Dead in the Water.* It cannot move, but it can still fire. The bare hull can still take *one more hit* before sinking.
 - *Hit on a dead-in-the-water ship.* The ship is *Scuttled* and removed.
+- *Ricochets.* The first ship the cannonball touches takes the hit. Any further contact (deflections, rolling onto a second hull) does no damage. If the first ship it touches is friendly, the shot is spent and damages nothing.
 - *Missed shots.* Retrieve missed cannonballs at the end of your turn.
 
 #callout[
@@ -594,6 +599,35 @@ A large-scale variant for advanced games. Each player fields a mixed armada of u
 - *Squadron Flagship sunk.* Only that Squadron suffers shock, with the same effects limited to its ships and islands. Designate a new Squadron Flagship after.
 
 *Scoring.* Standard scoring applies, except *surviving ships are worth 0 VP*. Islands, unspent coins, and bonus categories are unchanged. A Custom Armada wins by holding ground long enough for its numbers to matter, not by size alone.
+
+== Always Underway
+
+A close-quarters variant where standing still is not an option. Captains may *steer* or *shoot*, never both, and ships are forever sailing forward. Battles become a stream of moving targets, lining up shots on whatever heading you already have.
+
+*The turn sequence.* On each of your turns, every one of your ships that is *not anchored at an island* takes a turn in this exact order:
+
++ *Set Heading or Fire,* but never both.
+  - *Set Heading* rotates the ship up to its faction's normal arc. It adds *no* movement.
+  - *Fire* resolves from the ship's current position and heading, before it moves.
++ *Click forward at least once* in its current heading. May click up to its full Move Count.
+
+Every ship steers or shoots each turn, and every ship moves. There are no idle ships in this mode.
+
+#callout[
+  *Anchored at an island.* A ship that begins its turn touching *any* island may instead take a standard Island action (Raise Flag, Collect, or Fire from Island) and skip the forward click. Islands are the only safe rest.
+]
+
+*Dead in the water.* Dead ships still cannot move. They keep their standard turn: they may Fire and skip the forward click entirely. They take no damage from the must-move rule.
+
+*Table edges.* A ship that has no room to complete its mandatory click stops at the edge and forfeits any remaining clicks. If it would be *forced off the table* with no room at all, it is *scuttled* and removed. Plan your headings ahead.
+
+=== Coins in Always Underway
+
+- #coin("signal") *Signal Flags* grants a free Move (Set Heading + clicks). The affected ship may still Fire on its regular turn afterward. This is the *only* way one ship may both turn and fire on the same turn.
+- #coin("fullsail") *Full Sail* replaces the regular turn with two Move actions (two Set Heading + click sequences). The ship does *not* fire on a Full Sail turn.
+- #coin("gunner") *Skilled Gunner* still lets a ship fire twice. Both shots resolve before the ship's mandatory click; the ship may not have Set Heading this turn.
+
+#coin("brace") Brace, #coin("evasive") Evasive, #coin("repair") Repair, and #coin("boarding") Boarding work as in the base rules. Evasive's slide is *additional* to the mandatory click, not a substitute.
 
 // ----- Factions Overview -----
 
@@ -792,10 +826,12 @@ Every ship has a wheel built into the stern. Two details matter:
   ],
 
   contrast-box("Cannon Firing")[
-    + Pick a ship and a cannon slot.
+    + Pick a ship and a cannon slot (on the ship, or on the island it's touching).
     + Plug the cannon in.
     + Ship cannot move or rotate; aim was set by a prior Move.
     + Press the mechanism. Fire.
+
+    _Cannons need a crew. Your ship is the crew._
   ],
 
   contrast-box("Victory Points")[
@@ -824,11 +860,12 @@ Every ship has a wheel built into the stern. Two details matter:
                      else if calc.odd(y) { colors.stripe }
                      else { none },
       table.header[What Happened][Result],
-      [Hits enemy ship],    [Pull 1 fitting],
-      [No fittings left],   [*Dead in the water.* No move, can fire, 1 hit left],
-      [Dead ship hit again],[*Scuttled.* Gone for good],
-      [Hits friendly ship], [Nothing],
-      [Hits terrain],       [Nothing],
+      [Hits enemy ship],     [Pull 1 fitting],
+      [No fittings left],    [*Dead in the water.* No move, can fire, 1 hit left],
+      [Dead ship hit again], [*Scuttled.* Gone for good],
+      [Hits friendly first], [Nothing. Shot is spent.],
+      [Ricochets to 2nd ship], [Nothing. First contact is the only hit.],
+      [Hits terrain],        [Nothing],
     )
   ],
 

@@ -107,6 +107,31 @@ const p = computed(() => page.value!)
       </div>
     </section>
 
+    <!-- Changelog / Playtest notes -->
+    <section v-if="p.changelog" id="changelog" class="py-20 px-4 bg-secondary-900/30">
+      <div class="container mx-auto max-w-4xl">
+        <SectionHeader :title="p.changelog.title" :description="p.changelog.description" />
+        <div class="mt-2 mb-8 text-center text-xs uppercase tracking-[0.3em] text-primary-300 font-semibold">
+          Rulebook {{ p.changelog.version }} · Released {{ p.changelog.released }}
+        </div>
+        <ul class="space-y-4">
+          <li v-for="item in p.changelog.items" :key="item.title" class="rounded-2xl border border-white/10 bg-secondary-900/60 p-5 flex gap-4">
+            <div class="size-10 shrink-0 rounded-lg bg-primary-500/15 text-primary-300 flex items-center justify-center">
+              <UIcon :name="item.icon" class="size-5" />
+            </div>
+            <div>
+              <h3 class="font-display text-lg text-white">{{ item.title }}</h3>
+              <p class="mt-1 text-sm text-white/70">{{ item.body }}</p>
+            </div>
+          </li>
+        </ul>
+        <p class="mt-8 text-center text-white/60 text-sm">
+          Full v{{ p.changelog.version.replace(/^v/, '') }} rules in the
+          <a :href="p.howItPlays.rulebookHref" class="underline text-primary-300 hover:text-primary-200">rulebook</a>.
+        </p>
+      </div>
+    </section>
+
     <!-- Factions -->
     <section id="factions" class="py-20 px-4 container mx-auto">
       <SectionHeader :title="p.factions.title" :description="p.factions.description" />
