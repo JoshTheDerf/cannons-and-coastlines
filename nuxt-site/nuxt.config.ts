@@ -57,7 +57,16 @@ export default defineNuxtConfig({
         'Cross-Origin-Embedder-Policy': 'credentialless',
         'Cross-Origin-Resource-Policy': 'cross-origin'
       }
-    }
+    },
+    // COEP cuts both ways: a page that sends it may only frame documents
+    // that also send it, and YouTube, Instagram, Google Forms and Kit do
+    // not, so on any such page every embed fails with "refused to connect".
+    // These pages carry third-party embeds, so they opt back out. They can
+    // no longer be framed by a COEP page like thederf.com; everything else
+    // on the site still can.
+    '/': { headers: { 'Cross-Origin-Embedder-Policy': 'unsafe-none' } },
+    '/live': { headers: { 'Cross-Origin-Embedder-Policy': 'unsafe-none' } },
+    '/starter-pack': { headers: { 'Cross-Origin-Embedder-Policy': 'unsafe-none' } }
   },
   content: {
     // On Cloudflare Workers @nuxt/content needs a SQL backend. Bind a D1
