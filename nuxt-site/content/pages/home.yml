@@ -93,6 +93,7 @@ factions:
   items:
     - badge: Base Game
       name: Queen's Fleet
+      set: base-set
       image: /assets/ships/ship-preview-queen-fleet-large-sm.webp
       tagline: The Well-Rounded Standard
       stats:
@@ -104,7 +105,8 @@ factions:
       card: /rulebook/pdf/faction-card-queens-fleet.pdf
     - badge: Base Game
       name: Corsairs
-      image: /assets/ships/ship-preview-coarsairs-sm.webp
+      set: base-set
+      image: /assets/ships/ship-preview-corsairs-sm.webp
       tagline: Fast and Fragile Raiders
       stats:
         - 4 Sloops
@@ -115,22 +117,27 @@ factions:
       card: /rulebook/pdf/faction-card-corsairs.pdf
     - badge: Coming Soon
       name: Treasure Fleet
+      set: treasure-fleet-set
       image: /assets/ships/ship-preview-treasure-fleet-sm.webp
       desc: Fewer ships, better income. Double coins from held islands.
     - badge: Coming Soon
       name: Sun Fleet
+      set: sun-fleet-set
       image: /assets/ships/ship-preview-sun-fleet-sm.webp
       desc: Carved stone ships. Slow, but shrug off the first hit each turn.
     - badge: Coming Soon
       name: Shadow Fleet
+      set: shadow-fleet-set
       image: /assets/ships/ship-preview-shadow-fleet-sm.webp
       desc: Fragile but relentless. Destroyed ships return from the deep.
     - badge: Coming Soon
       name: The Industry
+      set: industry-set
       image: /assets/ships/ship-preview-industry-sm.webp
       desc: Forward-only cannons, relentless mechanical propulsion.
     - badge: Coming Soon
       name: The Islanders
+      set: islander-set
       image: /assets/ships/ship-preview-islanders-sm.webp
       desc: Lightning-fast canoes with rear-firing cannons. Start with one island already held.
 

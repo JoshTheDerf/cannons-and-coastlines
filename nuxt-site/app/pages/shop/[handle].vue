@@ -28,24 +28,41 @@ const suggestions = computed(() => {
     .filter(s => s.product)
 })
 
-const initialVariant = product.value.variants.find(v => v.availableForSale) ?? product.value.variants[0]!
-const selectedVariant = ref<ShopVariant>(initialVariant)
+// A faction can be sold two ways and the page shows both on one set of tabs:
+// a printed box (Shopify variants, colors, shipping) and the STL files
+// (server/data/sets.json, Stripe, an emailed download). Either half can be
+// missing — add-on factions have no box yet, and a faction whose files are
+// still unreleased shows Coming Soon — so neither is assumed to exist.
+const { data: setsData } = await useFleetSets()
+const digital = computed(() =>
+  setsData.value?.all.find(s => s.id === product.value?.setId) ?? null
+)
+
+const hasPhysical = computed(() => product.value!.variants.length > 0)
+const hasDigital = computed(() => digital.value !== null)
+
+// Default to whichever is actually buyable, preferring the box when both are.
+const format = ref<'physical' | 'digital'>(hasPhysical.value ? 'physical' : 'digital')
+
+// undefined for a digital-only faction: there are no variants to pick from.
+const initialVariant = product.value.variants.find(v => v.availableForSale) ?? product.value.variants[0]
+const selectedVariant = ref<ShopVariant | undefined>(initialVariant)
 const quantity = ref(1)
 const activeImage = ref(product.value.images[0]?.url ?? product.value.featuredImage.url)
 const view = ref<'photo' | '3d'>('photo')
 const adding = ref(false)
 const justAdded = ref(false)
 
-const unitPrice = computed(() => Number(selectedVariant.value.price.amount))
+const unitPrice = computed(() => Number(selectedVariant.value?.price.amount ?? 0))
 const totalPrice = computed(() => (unitPrice.value * quantity.value).toFixed(2))
 
 onMounted(() => { if (!cart.value) loadCart() })
 
 async function addNow() {
-  if (!selectedVariant.value.availableForSale) return
+  if (!selectedVariant.value?.availableForSale) return
   adding.value = true
   try {
-    await addToCart(selectedVariant.value.id, quantity.value)
+    await addToCart(selectedVariant.value!.id, quantity.value)
     justAdded.value = true
     setTimeout(() => { justAdded.value = false }, 2200)
   } finally {
@@ -54,9 +71,54 @@ async function addNow() {
 }
 
 async function buyNow() {
-  if (!selectedVariant.value.availableForSale) return
+  if (!selectedVariant.value?.availableForSale) return
   await addToCart(selectedVariant.value.id, quantity.value)
   await navigateTo('/shop/cart')
+}
+
+// ── Digital: Stripe checkout, and re-sending a link to a past buyer ──
+// Stripe returns the buyer here with ?purchased=1. The entitlement is granted
+// by the webhook rather than by that redirect, so the page promises an email
+// instead of a file; the two can land seconds apart.
+const justPurchased = computed(() => route.query.purchased === '1')
+if (justPurchased.value) format.value = 'digital'
+
+const buyingFiles = ref(false)
+const filesError = ref('')
+
+async function buyFiles() {
+  buyingFiles.value = true
+  filesError.value = ''
+  try {
+    const { url } = await $fetch<{ url: string }>('/api/checkout', {
+      method: 'POST',
+      body: { setId: digital.value!.id }
+    })
+    await navigateTo(url, { external: true })
+  } catch (e: any) {
+    filesError.value = e?.data?.statusMessage ?? 'Could not start checkout. Please try again.'
+    buyingFiles.value = false
+  }
+}
+
+const email = ref('')
+const sending = ref(false)
+const sendMessage = ref('')
+
+async function resend() {
+  sending.value = true
+  sendMessage.value = ''
+  try {
+    const res = await $fetch<{ message: string }>('/api/download-link', {
+      method: 'POST',
+      body: { setId: digital.value!.id, email: email.value }
+    })
+    sendMessage.value = res.message
+  } catch (e: any) {
+    sendMessage.value = e?.data?.statusMessage ?? 'Something went wrong. Please try again.'
+  } finally {
+    sending.value = false
+  }
 }
 </script>
 
@@ -128,6 +190,36 @@ async function buyNow() {
           <p class="mt-3 text-white/80">{{ product.tagline }}</p>
         </div>
 
+        <!-- Printed box vs. STL files. Shown whenever both exist; a faction
+             with only one way to buy does not need a choice put to it. -->
+        <div v-if="hasPhysical && hasDigital" class="inline-flex rounded-lg border border-white/15 bg-secondary-900/60 p-1 text-sm self-start">
+          <button
+            type="button"
+            class="px-4 py-2 rounded-md transition"
+            :class="format === 'physical' ? 'bg-primary-500 text-white' : 'text-white/70 hover:text-white'"
+            @click="format = 'physical'"
+          >
+            <UIcon name="i-lucide-package" class="size-4 inline mr-1" /> Printed set
+          </button>
+          <button
+            type="button"
+            class="px-4 py-2 rounded-md transition"
+            :class="format === 'digital' ? 'bg-primary-500 text-white' : 'text-white/70 hover:text-white'"
+            @click="format = 'digital'"
+          >
+            <UIcon name="i-lucide-download" class="size-4 inline mr-1" /> STL files
+          </button>
+        </div>
+
+        <div v-if="justPurchased" class="rounded-xl border border-success-400/30 bg-success-500/15 p-4 text-sm text-white">
+          <p class="font-semibold">Payment received — thank you.</p>
+          <p class="text-white/80 mt-1">
+            Your download link is on its way to the email you paid with. If it has not arrived in a
+            few minutes, request another one below.
+          </p>
+        </div>
+
+        <template v-if="format === 'physical' && selectedVariant">
         <div class="flex items-baseline gap-3">
           <p class="font-display text-2xl text-white">${{ totalPrice }}</p>
           <p v-if="quantity > 1" class="text-sm text-white/60">
@@ -137,8 +229,8 @@ async function buyNow() {
 
         <div>
           <p class="text-sm text-white/70 mb-2">
-            Color: <span class="text-white font-semibold">{{ selectedVariant.title }}</span>
-            <span v-if="!selectedVariant.availableForSale" class="ml-2 text-error-300">— sold out</span>
+            Color: <span class="text-white font-semibold">{{ selectedVariant?.title }}</span>
+            <span v-if="!selectedVariant?.availableForSale" class="ml-2 text-error-300">— sold out</span>
           </p>
           <div class="flex flex-wrap gap-2">
             <button
@@ -147,7 +239,7 @@ async function buyNow() {
               type="button"
               class="size-10 rounded-full border-2 transition relative"
               :class="[
-                selectedVariant.id === v.id ? 'border-primary-400 ring-2 ring-primary-400/40' : 'border-white/30 hover:border-white/60',
+                selectedVariant?.id === v.id ? 'border-primary-400 ring-2 ring-primary-400/40' : 'border-white/30 hover:border-white/60',
                 !v.availableForSale && 'opacity-40'
               ]"
               :style="{ background: v.swatch }"
@@ -175,7 +267,7 @@ async function buyNow() {
             size="xl"
             icon="i-lucide-shopping-cart"
             :loading="adding"
-            :disabled="!selectedVariant.availableForSale"
+            :disabled="!selectedVariant?.availableForSale"
             @click="addNow"
           >
             {{ justAdded ? 'Added!' : `Add to cart — $${totalPrice}` }}
@@ -185,7 +277,7 @@ async function buyNow() {
             variant="outline"
             size="xl"
             icon="i-lucide-anchor"
-            :disabled="!selectedVariant.availableForSale"
+            :disabled="!selectedVariant?.availableForSale"
             @click="buyNow"
           >
             Buy it now
@@ -196,6 +288,94 @@ async function buyNow() {
           Printed and packed by hand. Currently shipping within the US only.
           Each set is made to order — please allow ~2 weeks before shipping.
         </p>
+        </template>
+
+        <!-- No printed box for this faction yet. Say so rather than showing
+             an empty color picker. -->
+        <template v-else-if="format === 'physical'">
+          <div class="rounded-xl border border-white/10 bg-secondary-900/40 p-5">
+            <p class="font-display text-lg text-white">No printed set yet</p>
+            <p class="mt-2 text-sm text-white/70">
+              We print the base-game factions by hand to order. This one is
+              download-only for now — switch to <button type="button" class="text-primary-300 hover:underline" @click="format = 'digital'">STL files</button>
+              to print it yourself.
+            </p>
+          </div>
+        </template>
+
+        <!-- Digital: the STL pack behind this faction. -->
+        <template v-else-if="digital">
+          <!-- Free with the base game. -->
+          <div v-if="!digital.paid">
+            <p class="font-display text-2xl text-white">Free</p>
+            <p class="mt-2 text-sm text-white/70">
+              This faction is part of the free base set — every model, at no cost, forever.
+            </p>
+            <UButton
+              v-if="digital.freeDownloadUrl"
+              :to="digital.freeDownloadUrl"
+              class="mt-4"
+              size="xl"
+              color="primary"
+              icon="i-lucide-download"
+            >
+              Download the STLs
+            </UButton>
+          </div>
+
+          <!-- Released and priced. -->
+          <div v-else-if="digital.purchasable">
+            <p class="font-display text-2xl text-white">{{ formatPrice(digital.priceUsd) }}</p>
+            <p class="mt-2 text-sm text-white/70">
+              One-time purchase. Print as many as you like, and re-download free whenever
+              the models are revised.
+            </p>
+            <UButton
+              class="mt-4"
+              size="xl"
+              color="primary"
+              icon="i-lucide-download"
+              :loading="buyingFiles"
+              @click="buyFiles"
+            >
+              Buy the files
+            </UButton>
+            <p v-if="filesError" class="mt-2 text-sm text-error-400">{{ filesError }}</p>
+
+            <div class="mt-6 pt-5 border-t border-white/10">
+              <p class="text-sm text-white/70">Already bought this?</p>
+              <form class="mt-2 flex flex-col sm:flex-row gap-2" @submit.prevent="resend">
+                <UInput v-model="email" type="email" required placeholder="you@example.com" class="flex-1" />
+                <UButton type="submit" color="neutral" variant="outline" :loading="sending">Send link</UButton>
+              </form>
+              <p v-if="sendMessage" class="mt-2 text-xs text-white/60">{{ sendMessage }}</p>
+            </div>
+          </div>
+
+          <!-- Not released. The server refuses checkout regardless of this. -->
+          <div v-else class="rounded-xl border border-white/10 bg-secondary-900/40 p-5">
+            <span class="text-[10px] uppercase tracking-widest font-semibold text-primary-300 bg-primary-500/15 px-2 py-1 rounded">
+              Coming Soon
+            </span>
+            <p class="mt-3 text-sm text-white/70">
+              This fleet is still being modeled and playtested. We release them one at a time —
+              <NuxtLink to="/#signup" class="text-primary-300 hover:underline">the newsletter</NuxtLink>
+              is where each one is announced.
+            </p>
+          </div>
+
+          <UButton
+            :to="digital.factionCard"
+            target="_blank"
+            icon="i-lucide-file-text"
+            variant="outline"
+            color="primary"
+            size="sm"
+            class="self-start"
+          >
+            Faction Card PDF
+          </UButton>
+        </template>
       </div>
     </div>
 

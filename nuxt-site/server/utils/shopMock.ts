@@ -26,7 +26,17 @@ export type Product = {
   options: { id: string, name: string, values: string[] }[]
   variants: Variant[]
   includes: { icon: string, title: string, items: string[] }[]
-  modelUrl: string
+  /**
+   * The digital set this faction's files come from, matching an id in
+   * server/data/sets.json. The store page shows a Digital tab driven by that
+   * manifest: free for the base set, priced (or Coming Soon) for the rest.
+   */
+  setId: string | null
+  /**
+   * Null when there is no printed box for this faction yet — the Physical tab
+   * then says so instead of offering an empty variant picker.
+   */
+  modelUrl: string | null
   // Bounding-box-relative positions in object space (0..1 per axis) for
   // accessory parts inserted into holes on the ship hull. Object-space
   // axes assumed: X = length (bow→stern), Y = beam (port↔starboard),
@@ -112,7 +122,8 @@ export const products: Product[] = [
         "We'll send updates as the rules evolve"
       ]}
     ],
-    modelUrl: '/assets/stls/cannons-and-coastlines-base-set-0.3/ship-queens-fleet.stl',
+    setId: 'base-set',
+    modelUrl: '/assets/stls/base-set/ship-queens-fleet.stl',
     placements: [
       { type: 'mast', position: [0.30, 0.50, 0.70] },
       { type: 'mast', position: [0.55, 0.50, 0.72] },
@@ -170,7 +181,8 @@ export const products: Product[] = [
         "We'll send updates as the rules evolve"
       ]}
     ],
-    modelUrl: '/assets/stls/cannons-and-coastlines-base-set-0.3/ship-corsair.stl',
+    setId: 'base-set',
+    modelUrl: '/assets/stls/base-set/ship-corsair.stl',
     placements: [
       { type: 'mast', position: [0.50, 0.50, 0.70] },
       { type: 'movement-wheel', position: [0.18, 0.50, 0.55] },
@@ -185,8 +197,109 @@ export const products: Product[] = [
           'Two factions, two players, one full game. The Corsairs play very differently from the Queens — bringing both lets a new group jump straight into a head-to-head match.'
       }
     ]
-  }
+  },
+
+  // ── Add-on factions ────────────────────────────────────────────────
+  //
+  // Digital-first: the files are sold as a download, and no printed box
+  // exists for these yet. They still get a full store page — the Physical tab
+  // says a box is not available rather than hiding the faction — so adding
+  // one later means filling in `variants` and `options` here and nothing else.
+  //
+  // `variants: []` is what marks a product as having no physical offering.
+  // modelUrl is null on purpose: the 3D previewer streams the STL from
+  // /assets/stls/, and these hulls are deliberately not served there.
+  ...addOnFactions()
 ]
+
+/**
+ * The five paid factions, which share a shape: no printed box, no color
+ * variants, a digital set behind them. Written as a builder rather than five
+ * near-identical literals so the differences stay visible.
+ */
+function addOnFactions(): Product[] {
+  const specs: {
+    handle: string, title: string, faction: string, setId: string
+    tagline: string, description: string, image: string, card: string
+    ships: string[]
+  }[] = [
+    {
+      handle: 'treasure-fleet-files', title: 'Treasure Fleet', faction: 'Treasure Fleet',
+      setId: 'treasure-fleet-set',
+      tagline: 'Fewer ships, deeper holds.',
+      description: 'The Treasure Fleet trades numbers for income — double coins from every island you hold, and hulls built to carry it.',
+      image: '/assets/ships/ship-preview-treasure-fleet-sm.webp',
+      card: '/rulebook/pdf/faction-card-treasure-fleet.pdf',
+      ships: ['Heavy treasure galleons', 'Faction-specific cargo fittings']
+    },
+    {
+      handle: 'sun-fleet-files', title: 'Sun Fleet', faction: 'Sun Fleet',
+      setId: 'sun-fleet-set',
+      tagline: 'Carved stone, slow to break.',
+      description: 'Stone ships that shrug off the first hit each turn. Slower across the table, far harder to sink.',
+      image: '/assets/ships/ship-preview-sun-fleet-sm.webp',
+      card: '/rulebook/pdf/faction-card-sun-fleet.pdf',
+      ships: ['Carved stone hulls', 'Sun Fleet masts and fittings']
+    },
+    {
+      handle: 'shadow-fleet-files', title: 'Shadow Fleet', faction: 'Shadow Fleet',
+      setId: 'shadow-fleet-set',
+      tagline: 'Fragile, and relentless.',
+      description: 'Thin hulls that break easily and come back from the deep. Losing a ship is a setback, not an ending.',
+      image: '/assets/ships/ship-preview-shadow-fleet-sm.webp',
+      card: '/rulebook/pdf/faction-card-shadow-fleet.pdf',
+      ships: ['Ghost hulls', 'Shadow Fleet fittings']
+    },
+    {
+      handle: 'industry-files', title: 'The Industry', faction: 'The Industry',
+      setId: 'industry-set',
+      tagline: 'Forward guns, no wind needed.',
+      description: 'Machined hulls with forward-only cannons and mechanical propulsion. They go where they point, and they do not stop.',
+      image: '/assets/ships/ship-preview-industry-sm.webp',
+      card: '/rulebook/pdf/faction-card-the-industry.pdf',
+      ships: ['Ironclad hulls', 'Smokestacks and forward turrets']
+    },
+    {
+      handle: 'islanders-files', title: 'The Islanders', faction: 'The Islanders',
+      setId: 'islander-set',
+      tagline: 'Fast canoes, rear-firing guns.',
+      description: 'Lightning-fast canoes with cannons mounted astern, and one island already held when the game begins.',
+      image: '/assets/ships/ship-preview-islanders-sm.webp',
+      card: '/rulebook/pdf/faction-card-the-islanders.pdf',
+      ships: ['Outrigger canoes', 'Islander fittings']
+    }
+  ]
+
+  return specs.map(s => ({
+    id: `gid://shopify/Product/${s.setId}`,
+    handle: s.handle,
+    title: s.title,
+    faction: s.faction,
+    tagline: s.tagline,
+    description: s.description,
+    featuredImage: { url: s.image, altText: `${s.title} ships` },
+    images: [
+      { url: s.image, altText: `${s.title} ships` },
+      { url: s.card.replace('/pdf/', '/png/').replace('.pdf', '.png'), altText: `${s.title} faction card` }
+    ],
+    options: [],
+    variants: [],
+    includes: [
+      { icon: 'i-lucide-ship', title: 'The hulls', items: s.ships },
+      { icon: 'i-lucide-book-open', title: 'Faction card', items: [
+        'Printable reference for this faction\'s rules',
+        'Works with the free base set you already have'
+      ] },
+      { icon: 'i-lucide-refresh-cw', title: 'Free updates', items: [
+        'Re-download whenever the models are revised'
+      ] }
+    ],
+    setId: s.setId,
+    modelUrl: null,
+    placements: [],
+    pairings: []
+  }))
+}
 
 export type CartLine = { id: string, variantId: string, quantity: number }
 export type Cart = { id: string, lines: CartLine[], createdAt: number, updatedAt: number }

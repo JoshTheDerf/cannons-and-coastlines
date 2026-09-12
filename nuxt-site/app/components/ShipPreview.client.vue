@@ -28,9 +28,9 @@ let resizeObs: ResizeObserver | null = null
 
 // Shared part STLs — loaded once and reused across re-renders / variants.
 const partUrls: Record<ShipPlacement['type'], string> = {
-  'mast':            '/assets/stls/cannons-and-coastlines-base-set-0.3/mast.stl',
-  'cannon':          '/assets/stls/cannons-and-coastlines-base-set-0.3/cannon.stl',
-  'movement-wheel':  '/assets/stls/cannons-and-coastlines-base-set-0.3/movement-wheel.stl'
+  'mast':            '/assets/stls/base-set/mast.stl',
+  'cannon':          '/assets/stls/base-set/cannon.stl',
+  'movement-wheel':  '/assets/stls/base-set/movement-wheel.stl'
 }
 
 // Default object-space rotations applied when a placement doesn't specify

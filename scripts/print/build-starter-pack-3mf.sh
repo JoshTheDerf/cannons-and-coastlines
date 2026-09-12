@@ -8,10 +8,10 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
+source "$SCRIPT_DIR/../lib/common.sh"
 
 ORCA="${ORCA:-$HOME/Downloads/OrcaSlicer_Linux_AppImage_Ubuntu2404_V2.3.2.AppImage}"
-STL_DIR="${STL_DIR:-$REPO_ROOT/assets/stls/cannons-and-coastlines-base-set-0.3}"
+STL_DIR="${STL_DIR:-$BASE_SET_DIR}"
 PRESETS_DIR="${PRESETS_DIR:-$SCRIPT_DIR/presets}"
 PROFILE_CACHE="${ORCA_PROFILE_CACHE:-$HOME/.cache/orcaslicer-resources}"
 

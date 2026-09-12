@@ -1,0 +1,127 @@
+{
+  "$comment": [
+    "Single source of truth for STL set DISTRIBUTION. Marketing copy stays in",
+    "content/pages/*.yml; this file owns only the facts that decide whether a",
+    "set can be bought and where its files come from.",
+    "",
+    "Two consumers read this exact file, which is why it is JSON and why it",
+    "lives inside nuxt-site/ (the Worker bundles it at build time; there is no",
+    "filesystem on Workers at runtime):",
+    "  - the Nuxt server  : imported by server/utils/sets.ts",
+    "  - the publish script: scripts/publish-paid-sets.sh, via jq",
+    "",
+    "DRIP-FEED RELEASE: `status` is the flag. 'coming-soon' renders the faction",
+    "card as it looks today and makes /api/checkout and /api/download refuse the",
+    "set outright. Flipping one set to 'available' is the entire release action",
+    "- no code change - but do it only after publish-paid-sets.sh has pushed",
+    "that set's files to R2 and stripePriceId below is filled in.",
+    "",
+    "`version` is the R2 path segment. Bump it when you re-publish changed STLs;",
+    "old buyers keep working because entitlements are per-set, not per-version,",
+    "and the download route always resolves to the current version."
+  ],
+  "sets": [
+    {
+      "id": "base-set",
+      "title": "Base Set",
+      "faction": "Queen's Fleet & Corsairs",
+      "paid": false,
+      "status": "available",
+      "version": "0.3",
+      "sourceDir": "assets/stls/base-set",
+      "freeDownloadUrl": "/assets/stls/cannons-and-coastlines-base-set-0.3.zip",
+      "stripePriceId": null,
+      "priceUsd": null,
+      "images": {
+        "preview": "/assets/ships/ship-preview-queen-fleet-large-sm.webp",
+        "large": "/assets/ships/renders/ship-queens-fleet.png"
+      },
+      "factionCard": "/rulebook/pdf/faction-card-queens-fleet.pdf"
+    },
+    {
+      "id": "treasure-fleet-set",
+      "title": "Treasure Fleet",
+      "faction": "Treasure Fleet",
+      "paid": true,
+      "status": "coming-soon",
+      "version": "1",
+      "sourceDir": "assets/stls/treasure-fleet-set",
+      "freeDownloadUrl": null,
+      "stripePriceId": null,
+      "priceUsd": null,
+      "images": {
+        "preview": "/assets/ships/ship-preview-treasure-fleet-sm.webp",
+        "large": "/assets/ships/ship-preview-treasure-fleet-large.png"
+      },
+      "factionCard": "/rulebook/pdf/faction-card-treasure-fleet.pdf"
+    },
+    {
+      "id": "sun-fleet-set",
+      "title": "Sun Fleet",
+      "faction": "Sun Fleet",
+      "paid": true,
+      "status": "coming-soon",
+      "version": "1",
+      "sourceDir": "assets/stls/sun-fleet-set",
+      "freeDownloadUrl": null,
+      "stripePriceId": null,
+      "priceUsd": null,
+      "images": {
+        "preview": "/assets/ships/ship-preview-sun-fleet-sm.webp",
+        "large": "/assets/ships/ship-preview-sun-fleet-large.png"
+      },
+      "factionCard": "/rulebook/pdf/faction-card-sun-fleet.pdf"
+    },
+    {
+      "id": "shadow-fleet-set",
+      "title": "Shadow Fleet",
+      "faction": "Shadow Fleet",
+      "paid": true,
+      "status": "coming-soon",
+      "version": "1",
+      "sourceDir": "assets/stls/shadow-fleet-set",
+      "freeDownloadUrl": null,
+      "stripePriceId": null,
+      "priceUsd": null,
+      "images": {
+        "preview": "/assets/ships/ship-preview-shadow-fleet-sm.webp",
+        "large": "/assets/ships/ship-preview-shadow-fleet-large.png"
+      },
+      "factionCard": "/rulebook/pdf/faction-card-shadow-fleet.pdf"
+    },
+    {
+      "id": "industry-set",
+      "title": "The Industry",
+      "faction": "The Industry",
+      "paid": true,
+      "status": "coming-soon",
+      "version": "1",
+      "sourceDir": "assets/stls/industry-set",
+      "freeDownloadUrl": null,
+      "stripePriceId": null,
+      "priceUsd": null,
+      "images": {
+        "preview": "/assets/ships/ship-preview-industry-sm.webp",
+        "large": "/assets/ships/ship-preview-industry-large.png"
+      },
+      "factionCard": "/rulebook/pdf/faction-card-the-industry.pdf"
+    },
+    {
+      "id": "islander-set",
+      "title": "The Islanders",
+      "faction": "The Islanders",
+      "paid": true,
+      "status": "coming-soon",
+      "version": "1",
+      "sourceDir": "assets/stls/islander-set",
+      "freeDownloadUrl": null,
+      "stripePriceId": null,
+      "priceUsd": null,
+      "images": {
+        "preview": "/assets/ships/ship-preview-islanders-sm.webp",
+        "large": "/assets/ships/ship-preview-islanders-large.png"
+      },
+      "factionCard": "/rulebook/pdf/faction-card-the-islanders.pdf"
+    }
+  ]
+}

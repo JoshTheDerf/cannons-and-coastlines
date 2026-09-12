@@ -3,7 +3,8 @@
 // Pages are 5.5 × 8.5 portrait so two fit side-by-side on a landscape-letter
 // sheet; imposed for printing via impose-booklet.py.
 //
-// Build via rulebook/typst/build-rulebook.sh. See CLAUDE.md in this directory.
+// Build via `npx jake rulebook` (scripts/rulebook/build-rulebook.sh).
+// See CLAUDE.md in this directory.
 
 #import "@preview/tiaoma:0.3.0": qrcode
 

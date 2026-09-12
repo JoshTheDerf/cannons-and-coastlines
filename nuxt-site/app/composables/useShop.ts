@@ -55,6 +55,7 @@ const PRODUCT_FRAGMENT = /* GraphQL */ `
     }
     metafields(identifiers: [
       { namespace: "cnc", key: "faction" },
+      { namespace: "cnc", key: "set_id" },
       { namespace: "cnc", key: "tagline" },
       { namespace: "cnc", key: "includes" },
       { namespace: "cnc", key: "model_url" },
@@ -153,6 +154,8 @@ export type ShopProductCard = {
   options: { id: string, name: string, values: string[] }[]
   faction: string
   tagline: string
+  /** Digital set behind this faction, or null if it has none. */
+  setId: string | null
   includes: { icon: string, title: string, items: string[] }[]
   modelUrl: string | null
   pairings: { with: string, title: string, blurb: string }[]
@@ -203,6 +206,7 @@ const flattenMeta = (mfs: { key: string, value: string }[] = []) => {
   return {
     faction: get('faction') ?? '',
     tagline: get('tagline') ?? '',
+    setId: get('set_id') || null,
     modelUrl: get('model_url') ?? null,
     includes: (() => { try { return JSON.parse(get('includes') ?? '[]') } catch { return [] } })(),
     pairings: (() => { try { return JSON.parse(get('pairings') ?? '[]') } catch { return [] } })(),
@@ -223,6 +227,7 @@ const flattenCard = (node: any): ShopProductCard => {
     variants: node.variants.edges.map((e: any) => flattenVariant(e.node)),
     faction: meta.faction,
     tagline: meta.tagline,
+    setId: meta.setId || null,
     includes: meta.includes,
     modelUrl: meta.modelUrl,
     pairings: meta.pairings,

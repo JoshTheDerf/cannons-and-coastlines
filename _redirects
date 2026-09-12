@@ -1,5 +1,6 @@
-# Cloudflare Pages redirects
-# https://developers.cloudflare.com/pages/configuration/redirects/
+# Redirects for the static assets served by the Worker. Copied into
+# nuxt-site/public/ by build.sh; see _headers for the same mechanics.
+# https://developers.cloudflare.com/workers/static-assets/redirects/
 
 /assets/stls/cannons-and-coastlines-base-set-0.1.zip  /assets/stls/cannons-and-coastlines-base-set-0.3.zip  301
 /assets/stls/cannons-and-coastlines-base-set-0.2.zip  /assets/stls/cannons-and-coastlines-base-set-0.3.zip  301

@@ -10,6 +10,8 @@ import {
   removeLines, updateLines, type Cart, type Product, findVariant
 } from '~~/server/utils/shopMock'
 
+const ZERO_USD = { amount: '0.00', currencyCode: 'USD' } as const
+
 type Edges<T> = { edges: { node: T }[] }
 const toEdges = <T,>(nodes: T[]): Edges<T> => ({ edges: nodes.map(node => ({ node })) })
 
@@ -23,9 +25,12 @@ function shapeProduct(p: Product, opts: { fullImages?: boolean } = {}) {
     featuredImage: p.featuredImage,
     images: toEdges(opts.fullImages ? p.images : [p.featuredImage]),
     options: p.options,
+    // A digital-only faction has no printed box and so no variants. Shopify
+    // would still return a priceRange, so keep the shape and zero it rather
+    // than indexing into an empty array.
     priceRange: {
-      minVariantPrice: p.variants[0]!.price,
-      maxVariantPrice: p.variants[p.variants.length - 1]!.price
+      minVariantPrice: p.variants[0]?.price ?? ZERO_USD,
+      maxVariantPrice: p.variants[p.variants.length - 1]?.price ?? ZERO_USD
     },
     variants: toEdges(p.variants.map(v => ({
       id: v.id,
@@ -38,6 +43,7 @@ function shapeProduct(p: Product, opts: { fullImages?: boolean } = {}) {
     }))),
     metafields: [
       { namespace: 'cnc', key: 'faction', value: p.faction, type: 'single_line_text_field' },
+      { namespace: 'cnc', key: 'set_id', value: p.setId, type: 'single_line_text_field' },
       { namespace: 'cnc', key: 'tagline', value: p.tagline, type: 'single_line_text_field' },
       { namespace: 'cnc', key: 'includes', value: JSON.stringify(p.includes), type: 'json' },
       { namespace: 'cnc', key: 'model_url', value: p.modelUrl, type: 'file_reference' },

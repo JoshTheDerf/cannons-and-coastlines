@@ -1,9 +1,14 @@
-# Cloudflare Pages headers
-# https://developers.cloudflare.com/pages/configuration/headers/
+# Headers for the static assets served by the Worker.
+# https://developers.cloudflare.com/workers/static-assets/headers/
 #
-# Note: CF Pages combines (not overrides) Cache-Control from multiple
-# matching rules, so we keep Cache-Control out of the catch-all /*
-# block and only set it on specific paths.
+# build.sh copies this file into nuxt-site/public/ so `nuxt build` emits it
+# into .output/public/, which wrangler.jsonc serves as the assets directory.
+# Only static assets go through here: SSR'd HTML comes from the Worker, so
+# headers for pages belong in nuxt-site/nuxt.config.ts routeRules instead.
+#
+# Note: Cache-Control from multiple matching rules is combined (not
+# overridden), so we keep Cache-Control out of the catch-all /* block and
+# only set it on specific paths.
 
 # Long cache for stable static assets (filenames don't change)
 /assets/photos/*
@@ -21,11 +26,8 @@
 /assets/stls/*
     Cache-Control: public, max-age=2592000
 
-# CSS/JS — short cache because filenames aren't hashed
-/css/*
-    Cache-Control: public, max-age=3600, must-revalidate
-
-/js/*
+# The standalone /game/ prototype — unhashed filenames, short cache.
+/game/*
     Cache-Control: public, max-age=3600, must-revalidate
 
 # Rulebook PDFs — moderate cache, files rotate occasionally

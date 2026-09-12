@@ -56,15 +56,38 @@ Additional factions (Treasure Fleet, Sun Fleet, Shadow Fleet, The Industry, The 
 ```
 assets/
 ├── icons/          # Game action icons (SVG)
-├── images/         # Logo and branding
+├── images/         # Logo, branding, and Blender part renders
 ├── playtesting/    # Photos and videos from playtest sessions
-└── ships/          # Faction ship preview images
-css/                # Website stylesheets
-js/                 # Website scripts
-index.html          # Game website
+├── ships/          # Faction ship previews (renders/ is the Blender output)
+└── stls/           # 3D-printable parts, plus the released zip
+game/               # Standalone browser prototype, served at /game/
+rulebook/           # Typst sources (typst/), plus built pdf/ and png/
+nuxt-site/          # The website (Nuxt, deployed to Cloudflare Workers)
+scripts/            # Every build step; see `npx jake -T`
+├── lib/common.sh   # Shared paths, Typst invocation, PDF compression
+├── rulebook/       # Rulebook, booklet, faction-card and imposition builds
+├── blender/        # STL render pipeline
+└── print/          # OrcaSlicer 3MF generation for print orders
+tools/bitty-cad/    # In-browser CAD scratchpad
+Jakefile.js         # Build orchestrator — the entry point for every step
+build.sh            # Nuxt/Workers build, invoked by wrangler.jsonc
 ```
 
-This repository will eventually contain files for **3D printing** game components (ships, cannons, islands, cannonballs) and **playtesting** materials.
+## Building
+
+Everything is driven by [jake](https://jakejs.com/); `npx jake -T` lists every
+step with a one-line description.
+
+```bash
+npm install                       # once, for jake itself
+TYPST=~/.local/bin/typst npx jake # full build: STLs, rulebook, cards, site
+npx jake rulebook                 # or just one step
+```
+
+`jake site` runs `build.sh`, which builds `nuxt-site/.output/` — the artifact
+`wrangler deploy` publishes. The rulebook/faction-card PDFs and PNGs, the ship
+renders, and the STL zip are all committed, so a deploy doesn't need Typst or
+Blender.
 
 ## Community
 

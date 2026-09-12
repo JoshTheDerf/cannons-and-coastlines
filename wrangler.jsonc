@@ -25,11 +25,31 @@
     // runtime. On Cloudflare that has to be a D1. Provision once with:
     //   npx wrangler d1 create cannons-and-coastlines-content
     // then paste the printed database_id below.
+    //
+    // The same database also holds the paid-set entitlement tables (cc_*),
+    // applied from nuxt-site/server/db/0001_entitlements.sql. @nuxt/content
+    // manages its own tables and ignores ours.
     "d1_databases": [
         {
             "binding": "DB",
             "database_name": "cannons-and-coastlines-content",
             "database_id": "990aecf5-1397-4012-9860-59b47ffb2f2e"
         }
+    ],
+    // Paid (non-base-game) STL sets. Deliberately NOT in git and NOT public:
+    // the bucket has no public hostname, and /api/download/<set> streams from
+    // it through the Worker after checking an entitlement. A public bucket URL
+    // would leak the files as permanently as a commit would.
+    //
+    // Provision once, then upload with scripts/publish-paid-sets.sh:
+    //   npx wrangler r2 bucket create cannons-and-coastlines-paid-sets
+    "r2_buckets": [
+        {
+            "binding": "PAID_SETS",
+            "bucket_name": "cannons-and-coastlines-paid-sets"
+        }
     ]
+    // Secrets (never in this file — set with `npx wrangler secret put <NAME>`):
+    //   STRIPE_SECRET_KEY      server/api/checkout.post.ts
+    //   STRIPE_WEBHOOK_SECRET  server/api/stripe/webhook.post.ts (whsec_...)
 }

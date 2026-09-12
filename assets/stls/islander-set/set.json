@@ -1,0 +1,7 @@
+{
+  "_comment": "Version of record for this STL set. The folder name no longer carries the version, so this file is where it lives. Bump \"version\" whenever the STLs in this folder change, then re-run `npx jake stl` (free sets) or `npx jake publish-sets` (paid sets). Keep it in step with the matching entry in nuxt-site/server/data/sets.json \u2014 `npx jake sets-sync` copies it across, and the build scripts refuse to run if the two disagree.",
+  "id": "islander-set",
+  "version": "1",
+  "paid": true,
+  "_paidNote": "Paid set: never zipped into assets/stls/ (that path is served publicly). Published to R2 by scripts/publish-paid-sets.sh."
+}

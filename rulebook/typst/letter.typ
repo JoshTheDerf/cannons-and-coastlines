@@ -1,6 +1,6 @@
 // Cannons & Coastlines — Welcome letter from Goldenbeard
 // Single-page US Letter parchment letter, signed.
-// Build via build-letter.sh.
+// Build via `npx jake letter` (scripts/rulebook/build-letter.sh).
 
 #let assets        = "../../rulebook/assets"
 #let letter-assets = "../../rulebook/assets/letter"

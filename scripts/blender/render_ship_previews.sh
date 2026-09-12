@@ -8,14 +8,15 @@
 #   ./render_ship_previews.sh [<input_dir>] [<output_dir>] [extra args]
 #
 # Defaults render every ship-*.stl from the base set into
-# assets/ships/renders/ as <stem>-preview.png.
+# assets/ships/renders/ as <stem>.png. Those renders are the canonical
+# faction preview art for the site (the -sm.webp thumbnails in
+# assets/ships/ are hand-derived from them).
 set -euo pipefail
-
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-REPO="$(cd "$HERE/../.." && pwd)"
+source "$HERE/../lib/common.sh"
 
-INPUT="${1:-$REPO/assets/stls/cannons-and-coastlines-base-set-0.3}"
-OUTPUT="${2:-$REPO/assets/ships/renders}"
+INPUT="${1:-$BASE_SET_DIR}"
+OUTPUT="${2:-$REPO_ROOT/assets/ships/renders}"
 shift $(( $# > 2 ? 2 : $# ))
 
 mkdir -p "$OUTPUT"
@@ -42,7 +43,6 @@ for stl in "${stls[@]}"; do
         "$@"
 done
 
-# Strip the iso-pass `-top` siblings that render_stls.py would normally make
-# for coin items; not relevant here but keeps the output dir clean if a non-ship
-# pattern was passed through.
+# --no-top above suppresses the top-down iso pass render_stls.py emits for
+# coin items; ship previews only need the 3/4 view.
 echo "Ship previews complete."

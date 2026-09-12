@@ -12,12 +12,11 @@
 # gets slower, eventually OOMs), so per-file invocation is the only way to
 # keep batch render time stable.
 set -euo pipefail
-
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-REPO="$(cd "$HERE/../.." && pwd)"
+source "$HERE/../lib/common.sh"
 
-INPUT="${1:-$REPO/assets/stls/cannons-and-coastlines-base-set-0.3}"
-OUTPUT="${2:-$REPO/assets/images/renders}"
+INPUT="${1:-$BASE_SET_DIR}"
+OUTPUT="${2:-$REPO_ROOT/assets/images/renders}"
 shift $(( $# > 2 ? 2 : $# ))
 
 mkdir -p "$OUTPUT"

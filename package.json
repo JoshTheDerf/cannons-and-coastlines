@@ -1,7 +1,7 @@
 {
   "name": "cannons-and-coastlines",
   "private": true,
-  "description": "Build orchestration for the Cannons and Coastlines static site, rulebook, faction cards, and STL zip.",
+  "description": "Build orchestration for the Cannons and Coastlines Nuxt site, rulebook, faction cards, and STL zip.",
   "scripts": {
     "build": "jake",
     "build:stl": "jake stl",
@@ -9,7 +9,17 @@
     "build:booklet": "jake booklet",
     "build:cards": "jake cards",
     "build:card-sheets": "jake card-sheets",
-    "build:site": "jake site"
+    "build:versatile-admiral": "jake versatile-admiral",
+    "build:versatile-admiral-booklet": "jake versatile-admiral-booklet",
+    "build:letter": "jake letter",
+    "build:site": "jake site",
+    "set-previews": "jake set-previews",
+    "sets:sync": "jake sets-sync",
+    "publish:sets": "jake publish-sets",
+    "build:renders": "jake renders",
+    "build:ship-previews": "jake ship-previews",
+    "build:banner-fade": "jake banner-fade",
+    "tasks": "jake -T"
   },
   "devDependencies": {
     "jake": "^10.9.2"

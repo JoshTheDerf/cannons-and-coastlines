@@ -35,7 +35,7 @@ useSeoMeta({
               <NuxtLink :to="`/shop/${p.handle}`" class="hover:text-primary-300">{{ p.title }}</NuxtLink>
             </h2>
             <p class="text-white/70 text-sm">{{ p.tagline }}</p>
-            <div class="flex items-center gap-2 mt-1" aria-label="Available colors">
+            <div v-if="p.variants.length" class="flex items-center gap-2 mt-1" aria-label="Available colors">
               <span
                 v-for="v in p.variants"
                 :key="v.id"
@@ -47,7 +47,8 @@ useSeoMeta({
             </div>
             <div class="mt-auto pt-4 flex items-center justify-between">
               <p class="font-display text-xl text-white">
-                ${{ p.priceRange.minVariantPrice.amount }}
+                <template v-if="p.variants.length">${{ p.priceRange.minVariantPrice.amount }}</template>
+                <template v-else>Files only</template>
               </p>
               <UButton :to="`/shop/${p.handle}`" color="primary" icon="i-lucide-arrow-right" trailing>
                 View set
