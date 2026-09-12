@@ -18,6 +18,25 @@
 set -euo pipefail
 
 ROOT="$(dirname "$0")"
+
+# Refuse to build if a paid set has been placed under assets/. Everything in
+# that tree is symlinked into nuxt-site/public/ and published as a static
+# asset, so a paid model sitting there is downloadable by anyone as soon as
+# this deploys — which is exactly what happened once. .gitignore does not
+# help: it governs what is committed, not what is served. Paid sets belong in
+# paid-sets/, outside the published tree.
+if compgen -G "$ROOT/assets/stls/*/set.json" >/dev/null; then
+    for set_json in "$ROOT"/assets/stls/*/set.json; do
+        # grep, not jq: this runs in Cloudflare's build image, which is not
+        # guaranteed to have jq, and a guard that fails open is worthless.
+        if grep -qE '"paid"[[:space:]]*:[[:space:]]*true' "$set_json"; then
+            echo "error: $(dirname "${set_json#"$ROOT"/}") is a PAID set inside the published assets tree." >&2
+            echo "       Move it to paid-sets/ before deploying — assets/ is served publicly." >&2
+            exit 1
+        fi
+    done
+fi
+
 cd "$ROOT/nuxt-site"
 
 # Stage the Cloudflare _headers/_redirects into the Nuxt public/ tree so they

@@ -29,12 +29,10 @@ tmp="$(mktemp)"
 trap 'rm -f "$tmp"' EXIT
 cp "$SETS_MANIFEST" "$tmp"
 
-shopt -s nullglob
-for dir in "$STL_ROOT"/*/; do
-    [[ -f "${dir}set.json" ]] || continue
-    set_id="$(basename "${dir%/}")"
+while read -r dir; do
+    set_id="$(basename "$dir")"
 
-    local_v="$(set_field "${dir%/}" '.version')"
+    local_v="$(set_field "$dir" '.version')"
     manifest_v="$(manifest_version "$set_id")"
 
     if [[ -z "$manifest_v" ]]; then
@@ -61,15 +59,14 @@ for dir in "$STL_ROOT"/*/; do
         mv "$tmp.next" "$tmp"
         (( changed++ )) || true
     fi
-done
-shopt -u nullglob
+done < <(all_set_dirs)
 
 # A set in the manifest with no folder on disk: the reverse drift, worth
 # flagging because its download route would 404 against R2.
 while read -r orphan; do
     [[ -z "$orphan" ]] && continue
-    if [[ ! -d "$STL_ROOT/$orphan" ]]; then
-        echo "warn  $orphan — in the manifest but has no folder under assets/stls/" >&2
+    if [[ ! -d "$STL_ROOT/$orphan" && ! -d "$PAID_SET_ROOT/$orphan" ]]; then
+        echo "warn  $orphan — in the manifest but has no folder in either set root" >&2
         drift=1
     fi
 done < <(jq -r '.sets[].id' "$SETS_MANIFEST")

@@ -16,10 +16,12 @@
 # _redirects line pointing the old zip at the new one so existing links keep
 # working (see _redirects, which already forwards 0.1 and 0.2).
 #
-# PAID SETS ARE REFUSED. Everything under assets/stls/ is served publicly by
-# the Worker, so writing a paid set's zip here would publish the files this
-# project deliberately keeps out of git. Paid sets go to R2 instead, via
-# scripts/publish-paid-sets.sh.
+# PAID SETS ARE REFUSED, and only assets/stls/ is scanned. Everything under
+# assets/ is served publicly by the Worker, so a paid set's zip written here
+# would publish the very files this project keeps out of git. Paid sets stage
+# in paid-sets/, outside the published tree, and go to R2 via
+# scripts/publish-paid-sets.sh. The paid check below is belt-and-braces in
+# case one is ever placed in the wrong root.
 set -euo pipefail
 source "$(cd "$(dirname "${BASH_SOURCE[0]}")/lib" && pwd)/common.sh"
 

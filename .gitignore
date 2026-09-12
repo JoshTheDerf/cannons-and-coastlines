@@ -13,6 +13,8 @@ node_modules/
 *.blend1
 # OrcaSlicer CLI status dump, written into the working directory
 result.json
+# wrangler's local state cache (account id, deploy bookkeeping)
+.wrangler/
 
 # Sub-project build output is ignored by that project's own .gitignore:
 #   nuxt-site/.gitignore        .output/ .nuxt/ .data/ dist/ and the
@@ -21,22 +23,25 @@ result.json
 #   tools/bitty-cad/.gitignore  dist/
 
 # ── Paid (non-base-game) STL payloads ─────────────────────────────────
-# These sets are sold, not free. The binaries must never enter git
-# history: once committed they are recoverable from every clone forever,
-# even after a later `git rm`. The local folders are the staging area you
-# drop files into; scripts/publish-paid-sets.sh pushes them to R2, which
-# is the only place they are served from.
+# These sets are sold, not free, and they are kept out of the repository in
+# two independent ways, because these are two different problems:
 #
-# Listed explicitly, one line per paid set, rather than a `*-set/` glob:
-# a glob would also swallow base-set/ (free, and tracked) and would
-# silently hide any future free set someone adds. When a new paid set is
-# created, add its line here in the same commit as its set.json.
+#   1. Not committed — this file. A committed binary is recoverable from
+#      every clone forever, even after a later `git rm`.
+#   2. Not served — paid-sets/ sits OUTSIDE assets/. The Nuxt site symlinks
+#      nuxt-site/public/assets -> ../../assets, so every file under assets/
+#      is published as a static asset and downloadable by anyone. Ignoring a
+#      file does nothing to stop that; only keeping it out of the published
+#      tree does. These models previously lived in assets/stls/ and were
+#      served publicly by a deploy. Do not move them back.
+#
+# scripts/publish-paid-sets.sh uploads from here to R2, which is the only
+# place buyers are served from, through an entitlement check in the Worker.
 #
 # Only payloads are ignored. Each set.json manifest IS tracked: it carries
-# the release flag, price, and image wiring, and holds nothing sellable.
-assets/stls/industry-set/**
-assets/stls/islander-set/**
-assets/stls/shadow-fleet-set/**
-assets/stls/sun-fleet-set/**
-assets/stls/treasure-fleet-set/**
-!assets/stls/*/set.json
+# the version of record and holds nothing sellable.
+# Excluded file-by-file rather than as whole directories: git will not look
+# inside an excluded directory, so a `paid-sets/**` rule would make the
+# set.json negation below unreachable.
+paid-sets/*/*
+!paid-sets/*/set.json

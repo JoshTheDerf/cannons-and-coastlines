@@ -59,7 +59,8 @@ assets/
 ├── images/         # Logo, branding, and Blender part renders
 ├── playtesting/    # Photos and videos from playtest sessions
 ├── ships/          # Faction ship previews (renders/ is the Blender output)
-└── stls/           # 3D-printable parts, one folder per set, plus released zips
+└── stls/           # Free 3D-printable sets, plus the released zips
+paid-sets/          # Paid sets, staged locally — gitignored, never published
 rulebook/           # Typst sources (typst/), plus built pdf/ and png/
 nuxt-site/          # The website (Nuxt, deployed to Cloudflare Workers)
 └── public/game/    # Static HTML easter-egg game (triggered by typing "fire")
@@ -91,12 +92,18 @@ Blender.
 
 ## STL sets
 
-`assets/stls/` holds one folder per set. `base-set/` is free and its zip is
-committed; the add-on faction sets are sold, so their models are **not** in
-this repository — they are staged locally and published to R2 by
-`npx jake publish-sets`. Each folder carries a `set.json` with its version of
-record, which `npx jake sets-sync` keeps in step with the site's manifest at
-`nuxt-site/server/data/sets.json`.
+Free sets live in `assets/stls/`; `base-set/` is there and its zip is
+committed. Paid sets live in `paid-sets/`, deliberately **outside** `assets/`:
+the site symlinks `nuxt-site/public/assets` at that tree, so anything under it
+is published as a static asset and downloadable by anyone. Keeping paid models
+out of git is a separate problem from keeping them off the web, and only the
+directory location solves the second. `build.sh` refuses to build if a paid set
+turns up under `assets/`.
+
+Paid models are uploaded to R2 with `npx jake publish-sets` and served only
+through `/api/download/<set>` after an entitlement check. Every set folder
+carries a `set.json` with its version of record, which `npx jake sets-sync`
+keeps in step with the site manifest at `nuxt-site/server/data/sets.json`.
 
 ## Community
 

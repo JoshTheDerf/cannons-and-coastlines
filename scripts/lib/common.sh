@@ -31,7 +31,16 @@ FONT_DIR="$TYPST_DIR/fonts"
 # it once here rather than hard-coding a version in five scripts: prefer the
 # newest versioned folder when one exists, otherwise the unversioned
 # base-set/. Override with BASE_SET_DIR=... for a one-off render.
+# Free sets live here. Everything under assets/ is SERVED PUBLICLY: the Nuxt
+# site symlinks nuxt-site/public/assets -> ../../assets, so anything in this
+# tree is downloadable by anyone the moment the site deploys.
 STL_ROOT="$REPO_ROOT/assets/stls"
+
+# Paid sets live OUTSIDE the published tree, for exactly that reason. Keeping
+# them out of git is not enough on its own — .gitignore governs what is
+# committed, not what is served — so the staging area sits where no symlink
+# reaches it. Do not move these back under assets/.
+PAID_SET_ROOT="$REPO_ROOT/paid-sets"
 if [[ -z "${BASE_SET_DIR:-}" ]]; then
     shopt -s nullglob
     _versioned=("$STL_ROOT"/cannons-and-coastlines-base-set-*/)
@@ -195,6 +204,32 @@ error: version mismatch for '$id'
 MSG
         return 1
     fi
+}
+
+# set_dir <set-id>
+# Where a set's files are, whichever root holds it. Paid sets are under
+# paid-sets/, free sets under assets/stls/.
+set_dir() {
+    local id="$1"
+    if [[ -d "$PAID_SET_ROOT/$id" ]]; then
+        echo "$PAID_SET_ROOT/$id"
+    elif [[ -d "$STL_ROOT/$id" ]]; then
+        echo "$STL_ROOT/$id"
+    else
+        echo "error: no folder for set '$id' in $PAID_SET_ROOT or $STL_ROOT" >&2
+        return 1
+    fi
+}
+
+# all_set_dirs
+# Every set folder in either root, one path per line.
+all_set_dirs() {
+    shopt -s nullglob
+    local d
+    for d in "$STL_ROOT"/*/ "$PAID_SET_ROOT"/*/; do
+        [[ -f "${d}set.json" ]] && echo "${d%/}"
+    done
+    shopt -u nullglob
 }
 
 # preview_ship_stem <set-dir>

@@ -30,17 +30,16 @@ if (( $# )); then
 else
     # Every set that has at least one hull to render.
     requested=()
-    shopt -s nullglob
-    for dir in "$STL_ROOT"/*/; do
-        [[ -f "${dir}set.json" ]] || continue
-        ships=("$dir"ship-*.stl)
-        (( ${#ships[@]} )) && requested+=("$(basename "${dir%/}")")
-    done
-    shopt -u nullglob
+    while read -r dir; do
+        shopt -s nullglob
+        ships=("$dir"/ship-*.stl)
+        shopt -u nullglob
+        (( ${#ships[@]} )) && requested+=("$(basename "$dir")")
+    done < <(all_set_dirs)
 fi
 
 if (( ${#requested[@]} == 0 )); then
-    echo "No sets with ship-*.stl files found under $STL_ROOT" >&2
+    echo "No sets with ship-*.stl files found in either set root" >&2
     exit 1
 fi
 
@@ -56,8 +55,7 @@ rendered=0
 derived=0
 
 for set_id in "${requested[@]}"; do
-    dir="$STL_ROOT/$set_id"
-    [[ -d "$dir" ]] || { echo "error: no such set folder: $dir" >&2; exit 1; }
+    dir="$(set_dir "$set_id")" || exit 1
 
     # Fails with a clear message when a multi-ship set has not said which hull
     # is the face of the fleet. Checked up front so Blender is not run for
