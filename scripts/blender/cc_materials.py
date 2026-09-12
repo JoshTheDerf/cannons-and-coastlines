@@ -191,8 +191,9 @@ def make_brown_pla():
 
 
 def make_blue_pla():
-    # Saturated medium blue for printed flags. Bright enough to read across a
-    # crowded table without going neon.
+    # Saturated medium blue. Bright enough to read across a crowded table
+    # without going neon. Currently unused -- it was the printed flag's
+    # colour, and that part is gone -- but kept as part of the palette.
     return make_matte_pla("PLA_Blue", (0.10, 0.30, 0.72))
 
 
@@ -209,9 +210,9 @@ def make_white_pla():
 
 
 def make_pine_pla():
-    # Light wood brown for the Islanders' canoes: pine, not walnut. Kept well
-    # above make_brown_pla's crate brown so the two never read as the same
-    # filament when a canoe and a cargo crate share a render.
+    # Light wood brown for the Islanders' catamarans: pine, not walnut. Kept
+    # well above make_brown_pla's crate brown so the two never read as the
+    # same filament when a hull and a cargo crate share a render.
     return make_matte_pla("PLA_Pine", (0.52, 0.33, 0.17))
 
 

@@ -52,6 +52,12 @@ def parse_args():
                    help="Glob filter relative to input_dir (e.g. 'ship-*.stl').")
     p.add_argument("--rotate-z", type=float, default=None,
                    help="Override per-item iso rotation_z_deg (useful for one-off camera presets).")
+    p.add_argument("--material-variant", default="parts",
+                   choices=["parts", "preview"],
+                   help="Which material an item uses when it declares more "
+                        "than one. 'preview' picks cc_config's "
+                        "preview_material where present; both fall back to "
+                        "`material`.")
     p.add_argument("--smooth-angle", type=float, default=35.0,
                    help="Crease angle in degrees for items rendered with "
                         "shade_smooth: faces meeting below it are smoothed, "
@@ -84,6 +90,8 @@ def _render_view(cam, objs, margin, out_path):
 def render_one(stl_path: Path, output_path: Path, args):
     overrides = cc_config.overrides_for(stl_path.stem)
     preset = overrides.get("material", "grey")
+    if args.material_variant == "preview":
+        preset = overrides.get("preview_material", preset)
     iso_rot = float(args.rotate_z) if args.rotate_z is not None else float(overrides.get("rotation_z_deg", 0.0))
     top_rot = float(overrides.get("top_rotation_z_deg", 0.0))
     also_top = bool(overrides.get("also_top", False)) and not args.no_top

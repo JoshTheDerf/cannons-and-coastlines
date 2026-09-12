@@ -8,6 +8,15 @@
 #             | "brown" | "pine" | "rust" | "stone" | "blue" | "green"
 #             | "white" | "gold-hull" | "shadow-petg"   (default "grey")
 #             See cc_materials.make_material for what each one is.
+#   preview_material: str        Material for the ship-preview pass only
+#                                (--material-variant preview). The two passes
+#                                land on backgrounds of opposite brightness --
+#                                the parts renders go on the rulebook's
+#                                parchment, the previews on the site's near
+#                                black faction card -- so a near-black hull
+#                                needs a lift in one and not the other. Same
+#                                filament, different exposure; only items with
+#                                that problem need this. Defaults to `material`.
 #   rotation_z_deg: float        Z rotation applied to the iso view (default 0).
 #   top_rotation_z_deg: float    Z rotation applied to the top view (default 0).
 #                                Top view rotation is independent so a coin can
@@ -43,12 +52,13 @@ ITEM_OVERRIDES = {
     # tessellation, and smoothing hides them without touching it.
     "ship-":             {"shade_smooth": True},
 
-    "ship-corsair":      {"material": "black-hull", "rotation_z_deg": 90},
+    "ship-corsair":      {"material": "black", "preview_material": "black-hull",
+                          "rotation_z_deg": 90},
     "ship-queens-fleet": {"material": "blue-grey", "rotation_z_deg": 90},
 
     # Paid-set hulls. Each is the filament that faction is meant to be
     # printed in: Treasure hoards coin, the Sun Fleet is carved stone, the
-    # Industry is rusting machinery, the Islanders paddle pine canoes, and
+    # Industry is rusting machinery, the Islanders sail pine catamarans, and
     # the Shadow Fleet is a translucent teal-to-purple gradient PETG -- the
     # one hull that is not opaque, which is why it has a material of its own
     # rather than a colour swap.
@@ -75,7 +85,6 @@ ITEM_OVERRIDES = {
     "cannon":            {"material": "black"},
     "cannonball":        {"material": "black"},
     "cargo":             {"material": "brown"},
-    "flag-printed":      {"material": "blue"},
     "island-topper":     {"material": "green", "shade_smooth": True},
     "sail":              {"material": "white"},
     "sail-damaged":      {"material": "black"},

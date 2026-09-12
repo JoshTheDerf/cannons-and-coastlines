@@ -115,14 +115,14 @@
     ship-render: ship-renders + "/ship-islander.png",
     tagline: [The native peoples of the islands. They fished and fought these channels long before anyone else heard of them.],
     stats: (
-      ("Ships",        [5 canoes]),
+      ("Ships",        [5 catamarans]),
       ("Fittings",     [1 each]),
       ("Cannon Slots", [3, *rear-facing only*]),
       ("Move Count",   [4]),
     ),
     ability: (
       heading: "Passive: Home Waters",
-      body: [Claim the nearest island during setup and place one canoe there.],
+      body: [Claim the nearest island during setup and place one catamaran there.],
     ),
     playstyle: [Strike early, then slip away. Lure pursuers across your home waters and rake them with stern fire as you flee.],
   ),

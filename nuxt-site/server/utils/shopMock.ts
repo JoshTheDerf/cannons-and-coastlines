@@ -260,11 +260,11 @@ function addOnFactions(): Product[] {
     {
       handle: 'islanders-files', title: 'The Islanders', faction: 'The Islanders',
       setId: 'islander-set',
-      tagline: 'Fast canoes, rear-firing guns.',
-      description: 'Fast canoes with a gun astern. Start the game already holding an island.',
+      tagline: 'Fast catamarans, rear-firing guns.',
+      description: 'Fast catamarans with a gun astern. Start the game already holding an island.',
       image: '/assets/ships/ship-preview-islanders-sm.webp',
       card: '/rulebook/pdf/faction-card-the-islanders.pdf',
-      ships: ['Outrigger canoes', 'Islander fittings']
+      ships: ['Catamaran hulls', 'Islander fittings']
     }
   ]
 

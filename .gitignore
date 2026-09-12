@@ -45,3 +45,6 @@ result.json
 # set.json negation below unreachable.
 paid-sets/*/*
 !paid-sets/*/set.json
+
+# Local deploy helper (SSH alias + server paths for this machine only)
+deploy.sh

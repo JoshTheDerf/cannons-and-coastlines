@@ -86,6 +86,7 @@ factions:
         - 3 ships of the line
         - 4 fittings each
         - 3 broadside slots per side
+        - 3 clicks per move
       desc: Disciplined crews turn a full 180°. The fleet to learn on.
       price: Free with the base game
       card: /rulebook/pdf/faction-card-queens-fleet.pdf
@@ -98,6 +99,7 @@ factions:
         - 3 sloops
         - 3 fittings each
         - 3 broadside slots per side
+        - 4 clicks per move
       desc: The quickest fleet on the table. Bonus coin on every boarding and capture.
       price: Free with the base game
       card: /rulebook/pdf/faction-card-corsairs.pdf
@@ -105,27 +107,50 @@ factions:
       name: Treasure Fleet
       set: treasure-fleet-set
       image: /assets/ships/ship-preview-treasure-fleet-sm.webp
+      stats:
+        - 2 junks
+        - 3 fittings each
+        - 2 clicks per move
       desc: Fewer ships, deeper holds. Double coins from every island you hold.
     - badge: Coming Soon
       name: Sun Fleet
       set: sun-fleet-set
       image: /assets/ships/ship-preview-sun-fleet-sm.webp
+      stats:
+        - 3 barges
+        - 4 fittings each
+        - 2 clicks per move
       desc: Carved stone hulls. Slow, and the first hit each turn bounces off.
     - badge: Coming Soon
       name: Shadow Fleet
       set: shadow-fleet-set
       image: /assets/ships/ship-preview-shadow-fleet-sm.webp
+      stats:
+        - 3 galleons
+        - 3 fittings each
+        - 3 clicks per move
       desc: Thin hulls that sink easily and rise again from any island you hold.
     - badge: Coming Soon
       name: The Industry
       set: industry-set
       image: /assets/ships/ship-preview-industry-sm.webp
+      stats:
+        - 3 warships
+        - 2 hull fittings + 1 turret
+        - 1 bow gun, forward only
+        - 1 rotating turret
+        - 3 clicks per move
       desc: Forward guns, a rotating turret, and engines instead of sails.
     - badge: Coming Soon
       name: The Islanders
       set: islander-set
       image: /assets/ships/ship-preview-islanders-sm.webp
-      desc: Fast canoes with a gun astern. Start the game already holding an island.
+      stats:
+        - 5 catamarans
+        - 1 fitting each
+        - 3 rear-facing slots
+        - 4 clicks per move
+      desc: Fast catamarans with a gun astern. Start the game already holding an island.
 
 changelog:
   title: From the Playtest Table
@@ -141,7 +166,7 @@ changelog:
       body: Four was too much to track each turn. Three sloops at Move Count 4 still flank fine.
     - icon: i-lucide-skull
       title: Islanders down to one fitting
-      body: One hit leaves a canoe dead in the water. Fast and fragile, as intended.
+      body: One hit leaves a catamaran dead in the water. Fast and fragile, as intended.
     - icon: i-lucide-flag
       title: Deploy at the table edge
       body: Ships start touching the edge. The old 3-inch buffer wasted space.

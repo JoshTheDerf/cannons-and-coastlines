@@ -54,7 +54,7 @@ gallery:
     - render: /assets/ships/renders/ship-islander.png
       name: The Islanders
       badge: Add-on
-      desc: Canoe with a gun astern. One fitting.
+      desc: Catamaran with a gun astern. One fitting.
       color: Pine.
   partsTitle: The Pieces
   partsLead: Everything else in the base set. Colors are suggestions. Your flag color always wins.
@@ -87,20 +87,12 @@ gallery:
       name: Movement Wheel
       desc: Lives in the stern. One full turn is one *click* of movement. The flat spot parks the ship.
       color: Any. Needs a thin **rubber band** around the rim or it won't click.
-    - render: /assets/images/renders/movement-wheel-carriage.png
-      name: Wheel Carriage
-      desc: Holds the wheel. One per ship, fitted once before the first game.
-      color: Any. You won't see it.
     - render: /assets/images/renders/paper-flag-holder.png
       name: Paper Flag Holder
       desc: >-
         Slide a paper flag into the slot and set the holder on a mast. Draw
         your own flag; no printing needed.
       color: Any. The paper does the talking.
-    - render: /assets/images/renders/flag-printed.png
-      name: Printed Flag
-      desc: A one-piece plastic flag, if you'd rather. Works the same as the paper holder.
-      color: Your fleet color.
     - render: /assets/images/renders/island-topper.png
       name: Island Topper
       desc: A puck with cannon slots and flag holes. Set it on a box, a book, or an upside-down mug and you have an island.
@@ -121,8 +113,7 @@ assembly:
       ordered: true
       items:
         - Stretch a thin **rubber band** around the rim of the **wheel**.
-        - Drop the wheel into the **carriage**.
-        - Push the carriage into the slot under the stern. Snug fit. The wheel should still spin.
+        - Push the wheel into the slot under the stern. Snug fit. The wheel should still spin.
     - icon: i-lucide-anchor
       title: Fittings (every game)
       items:
@@ -199,7 +190,7 @@ quantities:
     - [Cannons, 3–4, One will do. Spares are nice when one wears out.]
     - [Cannonballs, '10', You will lose some.]
     - [Flag holders, 1 per mast + 5, Covers your ships, your islands, and any ship you capture.]
-    - [Wheel + carriage, 1 per ship, Assemble once. Hard to get back out.]
+    - [Movement wheel, 1 per ship, Fit once with its rubber band. Hard to get back out.]
     - [Islands, 2–3, Print them, or use **island toppers** on household objects.]
     - [Rocks and reefs, 2–4, Optional. Rocks block ships and shots. Reefs block ships only.]
     - [Coins, 1 set of 20, 2 Brace · 2 Signal · 4 Full Sail · 2 Evasive · 4 Gunner · 4 Repair · 2 Boarding]

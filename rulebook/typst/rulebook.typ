@@ -725,20 +725,12 @@ Every printed piece in the base set, with what it does and recommended print col
     [A *bright color* like neon green or orange for easy recovery. *TPU* optional for less bounce.]),
 
   ..part-row("movement-wheel", "Movement Wheel",
-    [Insert into wheel carriage. One full revolution is one *click* of movement.],
+    [Insert into the slot in the bottom of the hull. One full revolution is one *click* of movement.],
     [*Any color*. Wrap a *thin rubber band* around the rim before assembly.]),
-
-  ..part-row("movement-wheel-carriage", "Wheel Carriage",
-    [Holds the movement wheel inside the hull. Printed once per ship and assembled with the wheel before first play.],
-    [*Any color*. Insert into rectangular slot in bottom of ship.]),
 
   ..part-row("paper-flag-holder", "Paper Flag Holder",
     [The *primary flag mount.* Slide a paper flag of any design into the slot on the side, then place the holder on top of a mast.],
     [*Any color*]),
-
-  ..part-row("flag-printed", "Printed Flag (optional)",
-    [A fully 3D-printed flag for players who really want one in solid plastic instead of paper.],
-    [*Fleet or alliance color.*]),
 
   ..part-row("island-topper", "Island Topper",
     [A small puck with cannon slots and flag holes. Turns any household object into an island.],
@@ -766,7 +758,7 @@ A *faction set* is one complete print run for one player: their fleet plus a fai
   [Cannons],              [3–4],     [You can get away with one, but it's good to have options if one fails.],
   [Cannonballs],          [10],   [Coarser layer heights causes cannonballs to shoot stronger and less predictably. *TPU* with three walls and no infill reduces bounce.],
   [Flag holders],          [1 per mast + 5 spare], [Enough to cover your ships, islands, and any ships you might capture],
-  [Movement wheel + carriage], [1 per ship], [Pre-assemble with a rubber band over the wheel before the first game. Difficult to remove once installed.],
+  [Movement wheel],       [1 per ship], [Fit with a rubber band over the rim before the first game. Difficult to remove once installed.],
   [Islands],              [2–3],     [Print island models or use *Island Toppers* that sit on top of household objects],
   [Rocks / Reefs],   [2-4],       [Optional terrain. Block movement and cannonballs.],
   [Coins],                [1 set of 20], [Each set is 2 Brace, 2 Signal, 4 Full Sail, 2 Evasive, 4 Gunner, 4 Repair, 2 Boarding.],
@@ -784,7 +776,7 @@ The cannons fire by flexing printed plastic under tension, so two copies of the 
 
 Every ship has a wheel built into the stern. Two details matter:
 
-- Wrap a thin rubber band around the rim before assembling the wheel into the carriage. The wheel needs the band to click at all; without it, the rim slides on the table instead of rolling.
+- Wrap a thin rubber band around the rim before seating the wheel in the hull. The wheel needs the band to click at all; without it, the rim slides on the table instead of rolling.
 - The wheel has a *flat spot* on one side. One full revolution brings the flat back to the table, ending one *click* and parking the ship between turns.
 
 == Print Tips

@@ -44,6 +44,7 @@ for stl in "${stls[@]}"; do
     blender --background --python "$HERE/render_stls.py" -- \
         "$INPUT" "$OUTPUT" --only "$name" \
         --projection persp --lens 85 \
+        --material-variant preview \
         --elevation 18 --azimuth -60 \
         --res 1408 --aspect 1408:768 \
         --samples 96 --margin 0.96 --no-top \

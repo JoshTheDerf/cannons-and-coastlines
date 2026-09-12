@@ -7,7 +7,7 @@ Usage:
 The assembly module must define an `ASSEMBLY` dict with this shape:
 
     ASSEMBLY = {
-        "name": "wheel-into-carriage",
+        "name": "sail-onto-mast",
         "stl_dir": "/abs/path/to/stls",          # or relative to repo root
         "frames": (1, 60),                       # inclusive
         "elevation": 35,

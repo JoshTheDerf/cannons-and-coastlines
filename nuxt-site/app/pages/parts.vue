@@ -26,7 +26,7 @@ const p = computed(() => page.value!)
     <section class="py-16 px-4">
       <div class="container mx-auto">
         <SectionHeader :title="p.gallery.title" :description="p.gallery.lead" align="left" size="sm" />
-        <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
+        <div class="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
           <div v-for="hull in p.gallery.hulls" :key="hull.name" class="rounded-2xl border border-white/10 bg-secondary-900/60 p-5">
             <div class="aspect-video bg-secondary-950/40 rounded-lg flex items-center justify-center mb-4 overflow-hidden">
               <img :src="hull.render" :alt="`${hull.name} hull`" loading="lazy" class="max-h-full max-w-full object-contain">
@@ -44,7 +44,7 @@ const p = computed(() => page.value!)
         </div>
 
         <SectionHeader :title="p.gallery.partsTitle" :description="p.gallery.partsLead" align="left" size="sm" class="mt-16" />
-        <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
+        <div class="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-5">
           <div v-for="part in p.gallery.items" :key="part.name" class="rounded-2xl border border-white/10 bg-secondary-900/60 p-5">
             <div class="aspect-square bg-secondary-950/40 rounded-lg flex items-center justify-center mb-4">
               <img :src="part.render" :alt="part.name" loading="lazy" class="max-h-full max-w-full object-contain">

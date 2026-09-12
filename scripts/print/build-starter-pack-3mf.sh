@@ -26,7 +26,7 @@ Usage: $(basename "$0") [--queens N] [--corsairs N] [--outdir DIR] [-- <orca arg
 
 Generates one set of 3MFs per faction with a non-zero order count.
 Each set contains seven files, scaled by order count:
-  <faction>-x<N>-main.3mf              ships, masts, wheels, carriages, cargo, cannons
+  <faction>-x<N>-main.3mf              ships, masts, wheels, cargo, cannons
   <faction>-x<N>-sails.3mf             sails
   <faction>-x<N>-cannonballs-tpu.3mf   half of the cannonballs (TPU)
   <faction>-x<N>-cannonballs-pla.3mf   half of the cannonballs (PLA)
@@ -134,7 +134,6 @@ resolve_preset() {
 mast_per_ship=2     # combined mast+flag-holder
 sail_per_ship=2
 wheel_per_ship=2
-carriage_per_ship=1
 cargo_per_ship=4
 
 cannons_per_pack=8
@@ -207,7 +206,6 @@ build_faction() {
     add_to main "$ship_stl"                     "$total_ships"
     add_to main "mast-flag-holder-combined.stl" "$(( mast_per_ship * total_ships ))"
     add_to main "movement-wheel.stl"            "$(( wheel_per_ship * total_ships ))"
-    add_to main "movement-wheel-carriage.stl"   "$(( carriage_per_ship * total_ships ))"
     add_to main "cargo.stl"                     "$(( cargo_per_ship * total_ships ))"
     add_to main "cannon.stl"                    "$(( cannons_per_pack * orders ))"
 

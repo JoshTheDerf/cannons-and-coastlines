@@ -41,7 +41,7 @@ const TASKS = {
 
     // Occasional steps, kept out of the full build because they need tools a
     // CI box will not have (Blender, ImageMagick, OrcaSlicer, wrangler auth).
-    'renders':       ['Render every part STL in Blender — needs Blender', 'scripts/blender/render_stls.sh'],
+    'renders':       ['Render the parts gallery: base-set pieces + every hull — needs Blender', 'scripts/blender/render_parts.sh'],
     'ship-previews': ['Render the ship 3/4 previews in Blender — needs Blender', 'scripts/blender/render_ship_previews.sh'],
     'set-previews':  ["Render one set's ship art and install it, e.g. set-previews[industry-set] — needs Blender", 'scripts/blender/render_set_previews.sh'],
     'banner-fade':   ['Regenerate the faction-card banner overlays — needs ImageMagick', 'scripts/rulebook/build-banner-fade.sh'],
