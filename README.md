@@ -59,10 +59,10 @@ assets/
 ├── images/         # Logo, branding, and Blender part renders
 ├── playtesting/    # Photos and videos from playtest sessions
 ├── ships/          # Faction ship previews (renders/ is the Blender output)
-└── stls/           # 3D-printable parts, plus the released zip
-game/               # Standalone browser prototype, served at /game/
+└── stls/           # 3D-printable parts, one folder per set, plus released zips
 rulebook/           # Typst sources (typst/), plus built pdf/ and png/
 nuxt-site/          # The website (Nuxt, deployed to Cloudflare Workers)
+└── public/game/    # Static HTML easter-egg game (triggered by typing "fire")
 scripts/            # Every build step; see `npx jake -T`
 ├── lib/common.sh   # Shared paths, Typst invocation, PDF compression
 ├── rulebook/       # Rulebook, booklet, faction-card and imposition builds
@@ -88,6 +88,15 @@ npx jake rulebook                 # or just one step
 `wrangler deploy` publishes. The rulebook/faction-card PDFs and PNGs, the ship
 renders, and the STL zip are all committed, so a deploy doesn't need Typst or
 Blender.
+
+## STL sets
+
+`assets/stls/` holds one folder per set. `base-set/` is free and its zip is
+committed; the add-on faction sets are sold, so their models are **not** in
+this repository — they are staged locally and published to R2 by
+`npx jake publish-sets`. Each folder carries a `set.json` with its version of
+record, which `npx jake sets-sync` keeps in step with the site's manifest at
+`nuxt-site/server/data/sets.json`.
 
 ## Community
 

@@ -16,9 +16,6 @@ rm -f "$PNG_DIR"/rulebook-*.png "$SVG_DIR"/rulebook-*.svg
 echo "Building rulebook PDF..."
 typst_compile rulebook.typ "$PDF_DIR/rulebook.pdf"
 
-echo "Building print-optimized rulebook PDF (preserved as rulebook-print.pdf)..."
-compress_pdf --profile prepress "$PDF_DIR/rulebook.pdf" "$PDF_DIR/rulebook-print.pdf"
-
 echo "Compressing rulebook PDF for web..."
 compress_pdf "$PDF_DIR/rulebook.pdf"
 

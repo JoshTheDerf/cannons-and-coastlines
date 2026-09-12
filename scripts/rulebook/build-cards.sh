@@ -14,8 +14,6 @@ FACTIONS=(queens-fleet corsairs treasure-fleet shadow-fleet sun-fleet the-indust
 for f in "${FACTIONS[@]}"; do
   echo "Building $f..."
   typst_compile factions.typ "$PDF_DIR/faction-card-$f.pdf" --input "faction=$f"
-  compress_pdf --profile prepress \
-    "$PDF_DIR/faction-card-$f.pdf" "$PDF_DIR/faction-card-$f-print.pdf"
   compress_pdf "$PDF_DIR/faction-card-$f.pdf"
   typst_compile factions.typ "$PNG_DIR/faction-card-$f.png" \
     --input "faction=$f" --format png --ppi 300

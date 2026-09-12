@@ -14,11 +14,6 @@ python3 "$HERE/impose-card-sheets.py" \
   "$PDF_DIR" \
   "$PDF_DIR/faction-cards-print-sheet.pdf"
 
-echo "Building print-optimized print sheet (preserved as faction-cards-print-sheet-print.pdf)..."
-compress_pdf --profile prepress \
-  "$PDF_DIR/faction-cards-print-sheet.pdf" \
-  "$PDF_DIR/faction-cards-print-sheet-print.pdf"
-
 echo "Compressing print sheet for web..."
 compress_pdf "$PDF_DIR/faction-cards-print-sheet.pdf"
 

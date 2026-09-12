@@ -13,7 +13,7 @@
       ("Ships",        [3 frigates]),
       ("Fittings",     [4 each]),
       ("Cannon Slots", [3 broadside per side]),
-      ("Move Count",   [2]),
+      ("Move Count",   [3]),
     ),
     ability: (
       heading: "Passive: Disciplined Crew",
@@ -28,10 +28,10 @@
     ship-render: renders + "/ship-corsair.png",
     tagline: [Privateers who came for the rush and stayed. They sail for whoever pays, or for themselves.],
     stats: (
-      ("Ships",        [4 sloops]),
+      ("Ships",        [3 sloops]),
       ("Fittings",     [3 each]),
       ("Cannon Slots", [3 broadside per side]),
-      ("Move Count",   [3]),
+      ("Move Count",   [4]),
     ),
     ability: (
       heading: "Passive: Plunder",
@@ -47,7 +47,7 @@
     stats: (
       ("Ships",        [2 junks]),
       ("Fittings",     [3 each]),
-      ("Move Count",   [1]),
+      ("Move Count",   [2]),
     ),
     ability: (
       heading: "Passive: Bountiful Harvest",
@@ -63,7 +63,7 @@
     stats: (
       ("Ships",        [3 galleons]),
       ("Fittings",     [3 each]),
-      ("Move Count",   [1]),
+      ("Move Count",   [3]),
     ),
     ability: (
       heading: "Passive: Return from the Deep",
@@ -79,7 +79,7 @@
     stats: (
       ("Ships",        [3 barges]),
       ("Fittings",     [4 each]),
-      ("Move Count",   [1]),
+      ("Move Count",   [2]),
     ),
     ability: (
       heading: "Passive: Stone Hulls",
@@ -96,7 +96,7 @@
       ("Ships",        [3 warships]),
       ("Fittings",     [2 hull + 1 turret]),
       ("Cannon Slots", [1 bow (forward only) + 1 turret (rotates)]),
-      ("Move Count",   [2]),
+      ("Move Count",   [3]),
     ),
     ability: (
       heading: "Passive: Rotating Turret",
@@ -111,9 +111,9 @@
     tagline: [The native peoples of the islands. They fished and fought these channels long before anyone else heard of them.],
     stats: (
       ("Ships",        [5 canoes]),
-      ("Fittings",     [2 each]),
+      ("Fittings",     [1 each]),
       ("Cannon Slots", [3, *rear-facing only*]),
-      ("Move Count",   [3]),
+      ("Move Count",   [4]),
     ),
     ability: (
       heading: "Passive: Home Waters",

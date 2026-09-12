@@ -9,11 +9,12 @@
 # Nuxt is the whole site: there is no separate static site any more.
 #
 # Static artifacts the site references (rulebook PDFs, faction-card PNGs,
-# ship renders, the STL zip, the standalone /game/ static HTML) are produced
-# by the scripts under scripts/ — run them via `jake`, see Jakefile.js — and
-# exposed to Nuxt via symlinks at nuxt-site/public/{rulebook,assets,game}.
-# Whichever environment runs this script must already have those artifacts
-# present (either committed to the repo or built earlier in CI via `jake`).
+# ship renders, the STL zip) are produced by the scripts under scripts/ —
+# run them via `jake`, see Jakefile.js — and exposed to Nuxt via symlinks at
+# nuxt-site/public/{rulebook,assets}. The /game/ static HTML lives directly at
+# nuxt-site/public/game/ (no symlink). Whichever environment runs this script
+# must already have those artifacts present (either committed to the repo or
+# built earlier in CI via `jake`).
 set -euo pipefail
 
 ROOT="$(dirname "$0")"
