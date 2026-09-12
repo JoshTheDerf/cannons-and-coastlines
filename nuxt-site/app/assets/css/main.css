@@ -1,6 +1,17 @@
 @import "tailwindcss";
 @import "@nuxt/ui";
 
+/* Tailwind v4's `container` only steps its max-width up per breakpoint,
+ * reaching 1536px on 2xl screens with no centering. Every page section uses
+ * it, so it is redefined once here: capped at 72rem and centred. The page
+ * gutter stays on the surrounding `px-4`. Narrower `max-w-*` classes on the
+ * same element still win, since single-property utilities sort after this. */
+@utility container {
+  width: 100%;
+  max-width: 72rem;
+  margin-inline: auto;
+}
+
 @theme {
   --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
   --font-display: "Cinzel", "Inter", serif;
