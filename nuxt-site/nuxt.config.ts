@@ -8,8 +8,8 @@ export default defineNuxtConfig({
       titleTemplate: '%s | Cannons & Coastlines',
       htmlAttrs: { lang: 'en' },
       link: [
-        { rel: 'icon', type: 'image/png', href: '/assets/images/icon.png' },
-        { rel: 'apple-touch-icon', href: '/assets/images/icon.png' }
+        { rel: 'icon', type: 'image/png', href: '/assets/images/logo.png' },
+        { rel: 'apple-touch-icon', href: '/assets/images/logo.png' }
       ],
       meta: [
         { name: 'viewport', content: 'width=device-width, initial-scale=1.0, viewport-fit=cover' }

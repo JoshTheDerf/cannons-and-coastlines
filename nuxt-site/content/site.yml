@@ -5,7 +5,7 @@ brand:
   name: Cannons & Coastlines
   tagline: A Tabletop Game of Naval Conquest
   logo: /assets/images/logo-with-wordmark-sm.webp
-  icon: /assets/images/icon.png
+  icon: /assets/images/logo.png
 
 # Top navigation links (left side of the nav bar).
 nav:
