@@ -2,16 +2,19 @@
 # Plain text. Keep the structure, change the words and image paths.
 
 meta:
-  title: Cannons & Coastlines | A Tabletop Naval Game
+  title: Cannons & Coastlines | A Tabletop Game of Naval Conquest
   description: >-
     A tabletop naval game for 2 to 20 players. 3D-printed ships, real
     cannons, and islands worth fighting over.
 
 hero:
-  tagline: A Tabletop Naval Game
+  tagline: A Tabletop Game of Naval Conquest
   wordmark: /assets/images/wordmark-sm.webp
   subtitle: 2–20 players • 30–90 minutes • Ages 12+
-  description: Roll your fleet across the table. Fire real cannons. Take the islands.
+  description: >-
+    Dominate the seas through skillful maneuvering, careful aim, and clever
+    resource management. Capture islands, sink ships, and collect as much
+    treasure as you can.
   actions:
     - { label: Get the Files, to: '#signup', variant: solid, icon: i-lucide-mail }
     - { label: How It Plays, to: '#how-it-plays', variant: outline }
