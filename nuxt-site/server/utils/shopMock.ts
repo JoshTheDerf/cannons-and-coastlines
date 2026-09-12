@@ -89,10 +89,9 @@ export const products: Product[] = [
     handle: 'queens-fleet-starter-set',
     title: "Queen's Fleet Starter Set",
     faction: "Queen's Fleet",
-    tagline: 'Three larger ships of the line, sails, cannons, and coins.',
+    tagline: 'Three ships of the line, rigged and armed.',
     description:
-      "The Queen's Fleet sails on disciplined broadsides and heavy hulls. " +
-      'This set includes everything you need to run the faction at the table, printed by hand at our home in Georgia.',
+      "Heavy hulls and disciplined broadsides. Everything you need to field the Queen's Fleet, printed by hand at our home in Georgia.",
     featuredImage: {
       url: '/assets/photos/starter-pack/queens-fleet-ship-sm.jpg',
       altText: "Queen's Fleet ships printed in cream and tan"
@@ -148,10 +147,9 @@ export const products: Product[] = [
     handle: 'corsair-fleet-starter-set',
     title: 'Corsair Fleet Starter Set',
     faction: 'Corsairs',
-    tagline: 'Four small, fast ships built for raiding and boarding.',
+    tagline: 'Four fast sloops for raiding and boarding.',
     description:
-      'The Corsairs win by being where the cannons are not. This set fields a four-ship raiding fleet, ' +
-      'with everything you need to play the faction in a full game.',
+      'The Corsairs win by being where the cannons are not. A four-ship raiding fleet with everything you need to play.',
     featuredImage: {
       url: '/assets/photos/starter-pack/corsair-ship-sm.jpg',
       altText: 'Corsair ships printed in dark filament'
@@ -227,7 +225,7 @@ function addOnFactions(): Product[] {
       handle: 'treasure-fleet-files', title: 'Treasure Fleet', faction: 'Treasure Fleet',
       setId: 'treasure-fleet-set',
       tagline: 'Fewer ships, deeper holds.',
-      description: 'The Treasure Fleet trades numbers for income — double coins from every island you hold, and hulls built to carry it.',
+      description: 'Fewer ships, deeper holds. Double coins from every island you hold.',
       image: '/assets/ships/ship-preview-treasure-fleet-sm.webp',
       card: '/rulebook/pdf/faction-card-treasure-fleet.pdf',
       ships: ['Heavy treasure galleons', 'Faction-specific cargo fittings']
@@ -236,7 +234,7 @@ function addOnFactions(): Product[] {
       handle: 'sun-fleet-files', title: 'Sun Fleet', faction: 'Sun Fleet',
       setId: 'sun-fleet-set',
       tagline: 'Carved stone, slow to break.',
-      description: 'Stone ships that shrug off the first hit each turn. Slower across the table, far harder to sink.',
+      description: 'Carved stone hulls. Slow, and the first hit each turn bounces off.',
       image: '/assets/ships/ship-preview-sun-fleet-sm.webp',
       card: '/rulebook/pdf/faction-card-sun-fleet.pdf',
       ships: ['Carved stone hulls', 'Sun Fleet masts and fittings']
@@ -245,7 +243,7 @@ function addOnFactions(): Product[] {
       handle: 'shadow-fleet-files', title: 'Shadow Fleet', faction: 'Shadow Fleet',
       setId: 'shadow-fleet-set',
       tagline: 'Fragile, and relentless.',
-      description: 'Thin hulls that break easily and come back from the deep. Losing a ship is a setback, not an ending.',
+      description: 'Thin hulls that sink easily and rise again from any island you hold.',
       image: '/assets/ships/ship-preview-shadow-fleet-sm.webp',
       card: '/rulebook/pdf/faction-card-shadow-fleet.pdf',
       ships: ['Ghost hulls', 'Shadow Fleet fittings']
@@ -254,7 +252,7 @@ function addOnFactions(): Product[] {
       handle: 'industry-files', title: 'The Industry', faction: 'The Industry',
       setId: 'industry-set',
       tagline: 'Forward guns, no wind needed.',
-      description: 'Machined hulls with forward-only cannons and mechanical propulsion. They go where they point, and they do not stop.',
+      description: 'Forward guns, a rotating turret, and engines instead of sails.',
       image: '/assets/ships/ship-preview-industry-sm.webp',
       card: '/rulebook/pdf/faction-card-the-industry.pdf',
       ships: ['Ironclad hulls', 'Smokestacks and forward turrets']
@@ -263,7 +261,7 @@ function addOnFactions(): Product[] {
       handle: 'islanders-files', title: 'The Islanders', faction: 'The Islanders',
       setId: 'islander-set',
       tagline: 'Fast canoes, rear-firing guns.',
-      description: 'Lightning-fast canoes with cannons mounted astern, and one island already held when the game begins.',
+      description: 'Fast canoes with a gun astern. Start the game already holding an island.',
       image: '/assets/ships/ship-preview-islanders-sm.webp',
       card: '/rulebook/pdf/faction-card-the-islanders.pdf',
       ships: ['Outrigger canoes', 'Islander fittings']

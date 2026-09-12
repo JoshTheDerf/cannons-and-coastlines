@@ -178,7 +178,7 @@ async function resend() {
         </div>
 
         <p v-if="view === '3d'" class="mt-3 text-xs text-white/50 italic">
-          Live preview re-colored as you pick a filament. The printed ship is one solid color — rigging, sails, and flags are separate parts.
+          The preview recolors as you pick a filament. The hull prints in one color; sails and flags are separate parts.
         </p>
       </div>
 
@@ -212,7 +212,7 @@ async function resend() {
         </div>
 
         <div v-if="justPurchased" class="rounded-xl border border-success-400/30 bg-success-500/15 p-4 text-sm text-white">
-          <p class="font-semibold">Payment received — thank you.</p>
+          <p class="font-semibold">Payment received. Thank you.</p>
           <p class="text-white/80 mt-1">
             Your download link is on its way to the email you paid with. If it has not arrived in a
             few minutes, request another one below.
@@ -285,8 +285,7 @@ async function resend() {
         </div>
 
         <p class="text-xs text-white/50">
-          Printed and packed by hand. Currently shipping within the US only.
-          Each set is made to order — please allow ~2 weeks before shipping.
+          Printed and packed by hand, US shipping only. Made to order, so allow about two weeks.
         </p>
         </template>
 
@@ -296,9 +295,9 @@ async function resend() {
           <div class="rounded-xl border border-white/10 bg-secondary-900/40 p-5">
             <p class="font-display text-lg text-white">No printed set yet</p>
             <p class="mt-2 text-sm text-white/70">
-              We print the base-game factions by hand to order. This one is
-              download-only for now — switch to <button type="button" class="text-primary-300 hover:underline" @click="format = 'digital'">STL files</button>
-              to print it yourself.
+              Only the base-game fleets come boxed for now. Switch to
+              <button type="button" class="text-primary-300 hover:underline" @click="format = 'digital'">STL files</button>
+              to print this one yourself.
             </p>
           </div>
         </template>
@@ -309,7 +308,7 @@ async function resend() {
           <div v-if="!digital.paid">
             <p class="font-display text-2xl text-white">Free</p>
             <p class="mt-2 text-sm text-white/70">
-              This faction is part of the free base set — every model, at no cost, forever.
+              Part of the free base set.
             </p>
             <UButton
               v-if="digital.freeDownloadUrl"
@@ -327,8 +326,7 @@ async function resend() {
           <div v-else-if="digital.purchasable">
             <p class="font-display text-2xl text-white">{{ formatPrice(digital.priceUsd) }}</p>
             <p class="mt-2 text-sm text-white/70">
-              One-time purchase. Print as many as you like, and re-download free whenever
-              the models are revised.
+              One purchase. Print as many as you like. Re-download free when the models change.
             </p>
             <UButton
               class="mt-4"
@@ -358,9 +356,9 @@ async function resend() {
               Coming Soon
             </span>
             <p class="mt-3 text-sm text-white/70">
-              This fleet is still being modeled and playtested. We release them one at a time —
-              <NuxtLink to="/#signup" class="text-primary-300 hover:underline">the newsletter</NuxtLink>
-              is where each one is announced.
+              Still being modeled and playtested.
+              <NuxtLink to="/#signup" class="text-primary-300 hover:underline">The mailing list</NuxtLink>
+              hears first when it's out.
             </p>
           </div>
 
@@ -381,8 +379,8 @@ async function resend() {
 
     <!-- Suggested products -->
     <section v-if="suggestions.length" class="mt-16">
-      <h2 class="font-display text-2xl text-white">Better together</h2>
-      <p class="mt-2 text-white/60 text-sm">Sets that pair well with this one.</p>
+      <h2 class="font-display text-2xl text-white">Something to shoot at</h2>
+      <p class="mt-2 text-white/60 text-sm">A second fleet makes it a game.</p>
       <div class="mt-6 grid md:grid-cols-2 gap-5">
         <article
           v-for="s in suggestions"

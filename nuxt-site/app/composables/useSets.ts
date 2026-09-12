@@ -55,11 +55,7 @@ export function useFleetSets() {
       desc: copy.get(set.id)?.desc
     }))
 
-    return {
-      all: sets,
-      // Paid sets only — handy for listings that exclude the free base set.
-      fleets: sets.filter(s => s.paid)
-    }
+    return { all: sets }
   })
 }
 

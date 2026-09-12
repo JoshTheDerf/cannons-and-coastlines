@@ -48,9 +48,9 @@ const p = computed(() => page.value!)
       <div class="container mx-auto max-w-3xl text-center text-white/80 text-sm">
         <p>
           <span class="text-white/60">{{ p.nameVote.label }}</span>
-          <strong class="text-white"> {{ p.nameVote.winner }}</strong> won with
-          <strong class="text-primary-300">{{ p.nameVote.winnerPct }}%</strong>
-          over <s>{{ p.nameVote.loser }}</s> at {{ p.nameVote.loserPct }}%.
+          <strong class="text-white"> {{ p.nameVote.winner }}</strong>
+          <strong class="text-primary-300">{{ p.nameVote.winnerPct }}%</strong>,
+          <s>{{ p.nameVote.loser }}</s> {{ p.nameVote.loserPct }}%.
         </p>
         <div class="mt-3 h-2 rounded-full bg-white/10 overflow-hidden">
           <div class="h-full bg-primary-500" :style="{ width: p.nameVote.winnerPct + '%' }" />
@@ -101,7 +101,7 @@ const p = computed(() => page.value!)
           </div>
         </div>
         <p class="mt-8 text-center text-white/70 text-sm">
-          Full rules, scoring, and diagrams in the
+          Everything else is in the
           <a :href="p.howItPlays.rulebookHref" class="underline text-primary-300 hover:text-primary-200">rulebook</a>.
         </p>
       </div>
@@ -114,19 +114,9 @@ const p = computed(() => page.value!)
         <div class="mt-2 mb-8 text-center text-xs uppercase tracking-[0.3em] text-primary-300 font-semibold">
           Rulebook {{ p.changelog.version }} · Released {{ p.changelog.released }}
         </div>
-        <ul class="space-y-4">
-          <li v-for="item in p.changelog.items" :key="item.title" class="rounded-2xl border border-white/10 bg-secondary-900/60 p-5 flex gap-4">
-            <div class="size-10 shrink-0 rounded-lg bg-primary-500/15 text-primary-300 flex items-center justify-center">
-              <UIcon :name="item.icon" class="size-5" />
-            </div>
-            <div>
-              <h3 class="font-display text-lg text-white">{{ item.title }}</h3>
-              <p class="mt-1 text-sm text-white/70">{{ item.body }}</p>
-            </div>
-          </li>
-        </ul>
+        <ChangelogList :items="p.changelog.items" />
         <p class="mt-8 text-center text-white/60 text-sm">
-          Full v{{ p.changelog.version.replace(/^v/, '') }} rules in the
+          Full {{ p.changelog.version }} rules in the
           <a :href="p.howItPlays.rulebookHref" class="underline text-primary-300 hover:text-primary-200">rulebook</a>.
         </p>
       </div>
@@ -140,7 +130,7 @@ const p = computed(() => page.value!)
       </div>
     </section>
 
-    <!-- Signup + Downloads (unified) -->
+    <!-- Signup -->
     <SignupSection :data="p.signup" />
 
     <!-- About -->

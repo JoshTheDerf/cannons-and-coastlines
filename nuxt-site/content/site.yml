@@ -3,7 +3,7 @@
 
 brand:
   name: Cannons & Coastlines
-  tagline: A Tabletop Naval Conquest Game
+  tagline: A Tabletop Naval Game
   logo: /assets/images/logo-with-wordmark-sm.webp
   icon: /assets/images/icon.png
 
@@ -26,15 +26,15 @@ nav:
 
 # The big call-to-action button on the right of the nav bar.
 cta:
-  label: Starter pack — sold out
+  label: Starter pack (sold out)
   to: /starter-pack
   icon: i-lucide-anchor
 
-# The announcement strip that runs across the top of every page.
-# Delete this whole `announce:` block to hide the strip.
+# To show an announcement strip on every page, add an `announce:` block here
+# with pill, headline, cta, and to (see content.config.ts).
 
 footer:
-  blurb: A tabletop naval conquest game for 2–20 players.
+  blurb: A tabletop naval game for 2 to 20 players. Print it, rig it, sink your friends.
   columns:
     - title: Game
       links:

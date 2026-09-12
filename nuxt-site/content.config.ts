@@ -42,6 +42,7 @@ export default defineContentConfig({
         seeIt: z.record(z.any()).optional(),
         howItPlays: z.record(z.any()).optional(),
         factions: z.record(z.any()).optional(),
+        changelog: z.record(z.any()).optional(),
         signup: z.record(z.any()).optional(),
         downloads: z.record(z.any()).optional(),
         about: z.record(z.any()).optional(),
@@ -51,7 +52,7 @@ export default defineContentConfig({
         donate: z.record(z.any()).optional(),
         gallery: z.record(z.any()).optional(),
         assembly: z.record(z.any()).optional(),
-        settings: z.record(z.any()).optional(),
+        printing: z.record(z.any()).optional(),
         quantities: z.record(z.any()).optional(),
         cta: z.record(z.any()).optional()
       })

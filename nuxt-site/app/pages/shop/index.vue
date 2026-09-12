@@ -6,7 +6,7 @@ onMounted(() => { if (!cart.value) loadCart() })
 
 useSeoMeta({
   title: 'Shop',
-  description: 'Order a Cannons & Coastlines starter set. Printed and packed by hand in Georgia.'
+  description: 'Boxed Cannons & Coastlines starter sets, printed and packed by hand in Georgia.'
 })
 </script>
 
@@ -17,8 +17,8 @@ useSeoMeta({
         <p class="font-display uppercase tracking-[0.25em] text-primary-300 text-sm mb-3">Shop</p>
         <h1 class="font-display text-4xl md:text-5xl">Starter sets</h1>
         <p class="mt-4 text-white/80">
-          One faction per box. Most groups grab two so they can play head-to-head.
-          Each set is printed in your choice of color, then packed by hand at our home in Georgia.
+          One fleet per box. Grab two and you have a game. Printed in your color and
+          packed by hand at our home in Georgia.
         </p>
       </div>
     </header>

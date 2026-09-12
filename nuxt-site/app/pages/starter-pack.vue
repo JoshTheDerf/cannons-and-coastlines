@@ -8,8 +8,6 @@ if (!page.value) throw createError({ statusCode: 404, statusMessage: 'Starter pa
 useSeoMeta({
   title: page.value.meta?.title,
   description: page.value.meta?.description,
-  ogTitle: `${page.value.meta?.title} — Sold Out | Cannons & Coastlines`,
-  ogDescription: page.value.meta?.description
 })
 
 const p = computed(() => page.value!)
@@ -119,8 +117,6 @@ const p = computed(() => page.value!)
       </div>
     </section>
 
-    <div class="text-center pb-12 text-sm text-white/60">
-      <NuxtLink to="/" class="underline hover:text-white">← Back to home page</NuxtLink>
-    </div>
+    <BackHome />
   </div>
 </template>
