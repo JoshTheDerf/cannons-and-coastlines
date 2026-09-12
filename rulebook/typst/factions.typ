@@ -1,13 +1,13 @@
 // All seven factions as data. Compile with `-input faction=<id>`:
 //   typst compile --input faction=corsairs factions.typ out.pdf
-#import "card.typ": faction-card, assets, renders
+#import "card.typ": faction-card, assets, renders, ship-renders
 
 #let data = (
   "queens-fleet": (
     title: "Queen's Fleet",
     accent: rgb("#1f3a5f"),
     banner-image: assets + "/faction-queens-fleet.png",
-    ship-render: renders + "/ship-queens-fleet.png",
+    ship-render: ship-renders + "/ship-queens-fleet.png",
     tagline: [The Crown's expedition to the new territory. A standing fleet sent to plant flags and hold the harbors that matter.],
     stats: (
       ("Ships",        [3 frigates]),
@@ -25,7 +25,7 @@
     title: "Corsairs",
     accent: rgb("#7a1f1f"),
     banner-image: assets + "/faction-corsairs.png",
-    ship-render: renders + "/ship-corsair.png",
+    ship-render: ship-renders + "/ship-corsair.png",
     tagline: [Privateers who came for the rush and stayed. They sail for whoever pays, or for themselves.],
     stats: (
       ("Ships",        [3 sloops]),
@@ -43,6 +43,7 @@
     title: "Treasure Fleet",
     accent: rgb("#a07020"),
     banner-image: assets + "/faction-treasure-fleet.png",
+    ship-render: ship-renders + "/ship-treasure-fleet.png",
     tagline: [Merchant junks carrying the seal of a great northern empire. Their orders are simple: fill the holds and ship the cargo home.],
     stats: (
       ("Ships",        [2 junks]),
@@ -59,6 +60,7 @@
     title: "Shadow Fleet",
     accent: rgb("#3d2845"),
     banner-image: assets + "/faction-shadow-fleet.png",
+    ship-render: ship-renders + "/ship-shadow-fleet.png",
     tagline: [Ships lost in the first rush for the islands, surfaced again somehow. Whatever crews them now does not answer hails.],
     stats: (
       ("Ships",        [3 galleons]),
@@ -75,6 +77,7 @@
     title: "Sun Fleet",
     accent: rgb("#2e7472"),
     banner-image: assets + "/faction-sun-fleet.png",
+    ship-render: ship-renders + "/ship-sun-fleet.png",
     tagline: [Stone ships from a kingdom across the sea, far more ancient than the powers crowding the islands today.],
     stats: (
       ("Ships",        [3 barges]),
@@ -91,6 +94,7 @@
     title: "The Industry",
     accent: rgb("#7a4a1f"),
     banner-image: assets + "/faction-industry.png",
+    ship-render: ship-renders + "/ship-industry.png",
     tagline: [Steam warships from a newly-independent industrial power. The first iron hulls in these waters.],
     stats: (
       ("Ships",        [3 warships]),
@@ -108,6 +112,7 @@
     title: "The Islanders",
     accent: rgb("#2a6b4a"),
     banner-image: assets + "/faction-islanders.png",
+    ship-render: ship-renders + "/ship-islander.png",
     tagline: [The native peoples of the islands. They fished and fought these channels long before anyone else heard of them.],
     stats: (
       ("Ships",        [5 canoes]),

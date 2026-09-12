@@ -52,6 +52,10 @@ def parse_args():
                    help="Glob filter relative to input_dir (e.g. 'ship-*.stl').")
     p.add_argument("--rotate-z", type=float, default=None,
                    help="Override per-item iso rotation_z_deg (useful for one-off camera presets).")
+    p.add_argument("--smooth-angle", type=float, default=35.0,
+                   help="Crease angle in degrees for items rendered with "
+                        "shade_smooth: faces meeting below it are smoothed, "
+                        "sharper joins stay sharp.")
     p.add_argument("--no-top", action="store_true",
                    help="Skip the also_top pass even for items that request it.")
     p.add_argument("--projection", default="ortho", choices=["ortho", "persp"],
@@ -94,6 +98,32 @@ def render_one(stl_path: Path, output_path: Path, args):
         print(f"[WARN] no mesh imported from {stl_path}")
         return
 
+    # Fittings: separately-printed parts that belong on this model in the
+    # preview. They are modeled in the hull's own coordinate space, so they
+    # are imported untouched -- no placement maths here, and none wanted:
+    # where a turret sits is a modeling decision, and re-deciding it in a
+    # render config is how the two drift apart.
+    #
+    # Every part is normalized, rotated and centred as one group below, which
+    # is what keeps that shared space intact: scaling each part to its own
+    # bounding box would pull the assembly apart.
+    fitting_objs = []
+    for fitting in overrides.get("fittings", []):
+        fitting_path = stl_path.parent / fitting
+        if not fitting_path.exists():
+            print(f"[WARN] {stl_path.stem}: fitting {fitting} not found, skipping")
+            continue
+        imported = cc_mesh.import_stl(fitting_path)
+        if not imported:
+            print(f"[WARN] no mesh imported from {fitting_path}")
+            continue
+        # A fitting takes the hull's filament unless it names its own, since
+        # the usual case is one ship printed in one colour.
+        fitting_preset = cc_config.overrides_for(fitting_path.stem).get(
+            "fitting_material", preset)
+        fitting_objs.append((imported, fitting_preset))
+        objs.extend(imported)
+
     if not args.no_normalize:
         cc_mesh.normalize_size(objs, target_max_dim=2.0)
     cc_mesh.recompute_normals(objs)
@@ -101,6 +131,17 @@ def render_one(stl_path: Path, output_path: Path, args):
     # Iso pass.
     cc_mesh.assign_material(objs, cc_materials.make_material(preset, grey=args.grey, view="iso"),
                             smooth=shade_smooth)
+    for imported, fitting_preset in fitting_objs:
+        if fitting_preset != preset:
+            cc_mesh.assign_material(
+                imported,
+                cc_materials.make_material(fitting_preset, grey=args.grey, view="iso"),
+                smooth=shade_smooth)
+    # After assign_material, which sets use_smooth on every polygon: this
+    # re-sharpens the edges that should stay sharp. recompute_normals above
+    # only fixed winding direction, not interpolation.
+    if shade_smooth:
+        cc_mesh.weld_and_smooth(objs, angle_deg=args.smooth_angle)
     cc_mesh.set_rotation_z(objs, iso_rot)
     cc_mesh.center_to_origin(objs)
     if args.projection == "persp":
@@ -115,6 +156,8 @@ def render_one(stl_path: Path, output_path: Path, args):
         cc_scene.add_top_view_lights()
         cc_mesh.assign_material(objs, cc_materials.make_material(preset, grey=args.grey, view="top"),
                                 smooth=shade_smooth)
+        if shade_smooth:
+            cc_mesh.weld_and_smooth(objs, angle_deg=args.smooth_angle)
         cc_mesh.set_rotation_z(objs, top_rot)
         cc_mesh.center_to_origin(objs)
         cam_top = cc_scene.add_top_camera()

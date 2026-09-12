@@ -4,8 +4,10 @@
 # ("coin-"). Multiple matches merge, with later entries winning.
 #
 # Recognized fields:
-#   material: "grey" | "gold" | "black" | "blue-grey" | "brown" | "blue"
-#             | "green" | "white"   (default "grey")
+#   material: "grey" | "gold" | "black" | "black-hull" | "blue-grey"
+#             | "brown" | "pine" | "rust" | "stone" | "blue" | "green"
+#             | "white" | "gold-hull" | "shadow-petg"   (default "grey")
+#             See cc_materials.make_material for what each one is.
 #   rotation_z_deg: float        Z rotation applied to the iso view (default 0).
 #   top_rotation_z_deg: float    Z rotation applied to the top view (default 0).
 #                                Top view rotation is independent so a coin can
@@ -13,6 +15,17 @@
 #                                rotated to align the design with the iso
 #                                camera's vertical axis.
 #   also_top: bool               Render an extra `<stem>-top.png`.
+#   fittings: [str]              Other STLs in the same folder to import into
+#                                this render. They are modeled in this model's
+#                                coordinate space, so they are placed by their
+#                                own geometry -- there is no offset to give
+#                                here. Used for hulls whose turrets/stacks
+#                                print separately but are part of the ship.
+#   fitting_material: str        Material to use when this item is imported as
+#                                someone else's fitting. Defaults to the host's
+#                                material, i.e. one ship, one filament. Its own
+#                                `material` still governs its solo render for
+#                                the parts gallery.
 #   shade_smooth: bool           Use smooth shading instead of the flat-faceted
 #                                default. Use for organic shapes where facets
 #                                read as artifacts rather than print layers.
@@ -22,24 +35,41 @@ ITEM_OVERRIDES = {
     # rotation aligns the iso view's vertical with the design's top.
     "coin-":             {"material": "gold", "also_top": True,
                           "rotation_z_deg": 45, "top_rotation_z_deg": 0},
-    "ship-corsair":      {"material": "black", "rotation_z_deg": -90},
-    "ship-queens-fleet": {"material": "blue-grey", "rotation_z_deg": -90},
+    # Every hull is shade-smoothed. STL carries no smoothing data, so the
+    # default flat shading shows the mesh's own triangles -- on a part-sized
+    # render those read as print facets, but a hull is a big curved surface
+    # where they read as low-poly faceting instead. The layer-line bump in
+    # the material is what makes these look printed; the triangles are just
+    # tessellation, and smoothing hides them without touching it.
+    "ship-":             {"shade_smooth": True},
 
-    # Paid-set hulls. Colors follow each faction's copy on the home page:
-    # Treasure hoards coin, the Sun Fleet is carved stone, the Shadow Fleet
-    # comes back from the deep, the Industry is machined metal, and the
-    # Islanders paddle wooden canoes. The -90 Z rotation matches the base-set
-    # hulls, which are modeled bow-along-+X; check the framing on a real
-    # render before trusting it for a new hull, since it is the one setting
-    # that depends on how the model was authored rather than on taste.
-    "ship-treasure-fleet": {"material": "gold", "rotation_z_deg": -90},
-    "ship-sun-fleet":      {"material": "white", "rotation_z_deg": -90},
-    "ship-shadow-fleet":   {"material": "black", "rotation_z_deg": -90},
-    "ship-industry":       {"material": "grey", "rotation_z_deg": -90},
-    "ship-islander":       {"material": "brown", "rotation_z_deg": -90},
+    "ship-corsair":      {"material": "black-hull", "rotation_z_deg": 90},
+    "ship-queens-fleet": {"material": "blue-grey", "rotation_z_deg": 90},
 
-    # Paid-set fittings. Rendered into assets/images/renders/ by
-    # `jake renders` for the parts gallery, not by the ship-preview pass.
+    # Paid-set hulls. Each is the filament that faction is meant to be
+    # printed in: Treasure hoards coin, the Sun Fleet is carved stone, the
+    # Industry is rusting machinery, the Islanders paddle pine canoes, and
+    # the Shadow Fleet is a translucent teal-to-purple gradient PETG -- the
+    # one hull that is not opaque, which is why it has a material of its own
+    # rather than a colour swap.
+    #
+    # The +90 Z rotation matches the base-set hulls: it puts the bow
+    # camera-right and the superstructure camera-left, which is the framing
+    # every existing preview uses. Check it on a real render before trusting
+    # it for a new hull, since it is the one setting that depends on how the
+    # model was authored rather than on taste.
+    "ship-treasure-fleet": {"material": "gold-hull", "rotation_z_deg": 90},
+    "ship-sun-fleet":      {"material": "stone", "rotation_z_deg": 90},
+    "ship-shadow-fleet":   {"material": "shadow-petg", "rotation_z_deg": 90},
+    "ship-industry":       {"material": "rust", "rotation_z_deg": 90,
+                            "fittings": ["industry-turret.stl",
+                                         "industry-smokestack.stl"]},
+    "ship-islander":       {"material": "pine", "rotation_z_deg": 90},
+
+    # Paid-set fittings. These render solo into assets/images/renders/ for
+    # the parts gallery, and are ALSO imported into ship-industry's preview
+    # (see its "fittings"), where they take the hull's rust unless a
+    # fitting_material below says otherwise.
     "industry-smokestack": {"material": "black"},
     "industry-turret":     {"material": "grey"},
     "cannon":            {"material": "black"},

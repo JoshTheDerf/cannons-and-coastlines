@@ -2,6 +2,11 @@
 
 #let assets = "../../rulebook/assets"
 #let renders = "../../assets/images/renders"
+// Hull art comes from the ship-preview pass, not the parts pass: same models,
+// but shot as a low-angle 3/4 product photo in each faction's filament rather
+// than the flat ortho view the parts table wants. Built by
+// `npx jake set-previews`; see scripts/blender/render_ship_previews.sh.
+#let ship-renders = "../../assets/ships/renders"
 
 #let colors = (
   ink:         rgb("#1a1209"),

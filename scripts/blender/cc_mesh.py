@@ -97,3 +97,40 @@ def assign_material(objs, mat, smooth: bool = False):
         o.data.materials.append(mat)
 
 
+
+def weld_and_smooth(objs, angle_deg: float = 35.0, distance: float = 1e-4):
+    """Make smooth shading actually work on an imported STL, and only where it
+    should apply.
+
+    Two separate things have to be true. First, neighbouring faces must share
+    vertices, or there is no shared normal to interpolate and "smooth" shading
+    renders identically to flat. Blender's STL importer already welds, so the
+    remove_doubles pass here is normally a no-op -- it is cheap insurance for
+    meshes that arrive split, not the point of this function.
+
+    The point is the second part: blanket smoothing is wrong for a hull. These
+    are hard-surface models, and averaging a normal across a deck edge or a
+    gun port rounds it off into melted plastic. Smoothing by angle keeps the
+    curved parts curved and the crisp parts crisp -- faces meeting below
+    `angle_deg` are treated as one surface, sharper joins stay sharp.
+
+    Call this AFTER assign_material: that sets use_smooth on every polygon,
+    which would otherwise flatten the distinction this draws.
+
+    `distance` is in world units and these models are normalized to a unit-2
+    cube by the time this runs, so 1e-4 welds duplicate corners without
+    pulling genuinely separate detail together.
+    """
+    for o in objs:
+        if o.type != "MESH":
+            continue
+        bpy.context.view_layer.objects.active = o
+        bpy.ops.object.select_all(action="DESELECT")
+        o.select_set(True)
+
+        bpy.ops.object.mode_set(mode="EDIT")
+        bpy.ops.mesh.select_all(action="SELECT")
+        bpy.ops.mesh.remove_doubles(threshold=distance)
+        bpy.ops.object.mode_set(mode="OBJECT")
+
+        bpy.ops.object.shade_auto_smooth(angle=math.radians(angle_deg))

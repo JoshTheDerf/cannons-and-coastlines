@@ -164,9 +164,21 @@ def make_grey_pla(grey: float = 0.75):
     return make_matte_pla("PLA_Grey", (grey, grey, grey))
 
 
-def make_black_pla():
+def make_black_pla(value: float = 0.025):
     # Pure 0,0,0 reads as a silhouette; use a deep near-black so shading reads.
-    return make_matte_pla("PLA_Black", (0.025, 0.025, 0.025))
+    #
+    # `value` is the lift. The 0.025 default is right for small parts shot
+    # against the light backgrounds of the rulebook and parts gallery. Ship
+    # previews sit on a near-black faction card instead, where 0.025 collapses
+    # the hull into its own outline -- they pass a higher value (see
+    # LIFTED_BLACK) so the form still reads there.
+    return make_matte_pla("PLA_Black", (value, value, value))
+
+
+# Black for a hull shown against the site's dark faction card. High enough to
+# hold shading and a silhouette edge on #12212c, low enough to still read as
+# black filament rather than charcoal grey.
+LIFTED_BLACK = 0.13
 
 
 def make_blue_grey_pla():
@@ -196,19 +208,156 @@ def make_white_pla():
     return make_matte_pla("PLA_White", (0.92, 0.90, 0.86))
 
 
+def make_pine_pla():
+    # Light wood brown for the Islanders' canoes: pine, not walnut. Kept well
+    # above make_brown_pla's crate brown so the two never read as the same
+    # filament when a canoe and a cargo crate share a render.
+    return make_matte_pla("PLA_Pine", (0.52, 0.33, 0.17))
+
+
+def make_rust_pla():
+    # Oxidised iron brown for the Industry's hulls -- warmer and redder than
+    # the crate brown, so the faction reads as rusting machinery.
+    return make_matte_pla("PLA_Rust", (0.30, 0.10, 0.04))
+
+
+def make_stone_pla():
+    # Neutral, faintly warm quarried grey for the Sun Fleet's carved stone
+    # hulls. Darker than make_white_pla so the carving keeps its shadows.
+    return make_matte_pla("PLA_Stone", (0.42, 0.41, 0.38))
+
+
+def make_gradient_petg(name: str = "PETG_Gradient",
+                       color_low=(0.03, 0.30, 0.34, 1.0),
+                       color_high=(0.24, 0.07, 0.40, 1.0),
+                       transmission: float = 0.35,
+                       roughness: float = 0.52,
+                       scatter_density: float = 7.0,
+                       absorption_density: float = 1.2,
+                       anisotropy: float = 0.25,
+                       subsurface: float = 0.15,
+                       subsurface_scale: float = 0.06):
+    """Partially translucent gradient PETG.
+
+    Gradient filament changes colour as it is extruded, so the sweep runs up
+    the print's Z axis -- the same direction as the layer lines, which is why
+    it is driven by Generated texture coordinates (0..1 across the object's
+    own bounding box per axis) rather than world space: the full sweep lands
+    on the hull whatever its size, and stays put when the model is rotated.
+
+    Translucency here is a volume, not a surface trick. Light enters through
+    the wall (surface Transmission) and is then scattered and absorbed inside
+    it:
+
+      - Volume Scatter is what makes the print look solid-but-glowing, the
+        way a thick translucent filament does. It dominates, because that
+        bounced-around light is the whole effect.
+      - Volume Absorption, tinted by the same ramp, is what keeps thick
+        sections darker and more saturated than thin ones. On its own it
+        reads as tinted glass.
+
+    Both are tinted from the gradient ramp, so light that travels through the
+    hull picks up the local filament colour rather than going grey.
+
+    On top of that the surface carries subsurface scattering. The volume
+    handles light crossing the whole wall; subsurface handles light that
+    enters, bounces about within a millimetre or two and leaves again on the
+    same side. That short-range term is what softens the lit faces and gives
+    thin details -- railings, rigging, the spar -- the waxy glow a translucent
+    print has, which a volume alone renders too cleanly.
+
+    The surface itself is deliberately dull -- high roughness, low specular.
+    A sharp reflection reads as polished resin and competes with the volume
+    for the eye; a matte wall lets the scattering be the thing you see.
+    """
+    mat = bpy.data.materials.new(name)
+    mat.use_nodes = True
+    nt = mat.node_tree
+    bsdf = nt.nodes["Principled BSDF"]
+
+    tex = nt.nodes.new("ShaderNodeTexCoord")
+    sep = nt.nodes.new("ShaderNodeSeparateXYZ")
+    ramp = nt.nodes.new("ShaderNodeValToRGB")
+    ramp.color_ramp.elements[0].position = 0.0
+    ramp.color_ramp.elements[0].color = color_low
+    ramp.color_ramp.elements[1].position = 1.0
+    ramp.color_ramp.elements[1].color = color_high
+    nt.links.new(tex.outputs["Generated"], sep.inputs[0])
+    nt.links.new(sep.outputs["Z"], ramp.inputs["Fac"])
+    nt.links.new(ramp.outputs["Color"], bsdf.inputs["Base Color"])
+
+    bsdf.inputs["Roughness"].default_value = roughness
+    _set_if(bsdf, "Metallic", 0.0)
+    _set_if(bsdf, "Transmission Weight", transmission)
+    _set_if(bsdf, "Transmission", transmission)
+    _set_if(bsdf, "IOR", 1.57)          # PETG
+    # Kept low on purpose: see the docstring. This is the knob that decides
+    # whether the hull reads as filament or as polished resin.
+    _set_if(bsdf, "Specular IOR Level", 0.12)
+    _set_if(bsdf, "Specular", 0.12)
+    _set_if(bsdf, "Sheen Weight", 0.0)
+    _set_if(bsdf, "Sheen", 0.0)
+    _set_if(bsdf, "Coat Weight", 0.0)
+
+    # Short-range scattering just under the surface. Radius is scaled small
+    # because the model is normalized to a unit-2 cube: a couple of hundredths
+    # here is the couple of millimetres a real wall diffuses light over.
+    _set_if(bsdf, "Subsurface Weight", subsurface)
+    _set_if(bsdf, "Subsurface", subsurface)
+    _set_if(bsdf, "Subsurface Scale", subsurface_scale)
+    _set_if(bsdf, "Subsurface Radius", (1.0, 0.75, 0.9))
+    _set_if(bsdf, "Subsurface Anisotropy", 0.2)
+    # Tint it from the same ramp so the scattered light matches the local
+    # filament colour instead of washing the gradient out with white.
+    if "Subsurface Color" in bsdf.inputs:
+        nt.links.new(ramp.outputs["Color"], bsdf.inputs["Subsurface Color"])
+
+    scatter = nt.nodes.new("ShaderNodeVolumeScatter")
+    scatter.inputs["Density"].default_value = scatter_density
+    # Forward-biased scattering: light keeps roughly its direction through a
+    # thin wall, which is what makes a backlit edge glow instead of going flat.
+    if "Anisotropy" in scatter.inputs:
+        scatter.inputs["Anisotropy"].default_value = anisotropy
+    nt.links.new(ramp.outputs["Color"], scatter.inputs["Color"])
+
+    absorb = nt.nodes.new("ShaderNodeVolumeAbsorption")
+    absorb.inputs["Density"].default_value = absorption_density
+    nt.links.new(ramp.outputs["Color"], absorb.inputs["Color"])
+
+    add = nt.nodes.new("ShaderNodeAddShader")
+    nt.links.new(scatter.outputs["Volume"], add.inputs[0])
+    nt.links.new(absorb.outputs["Volume"], add.inputs[1])
+    nt.links.new(add.outputs[0], nt.nodes["Material Output"].inputs["Volume"])
+
+    # No AO pass here: multiplying a translucent base colour by occlusion
+    # fights the volume term and just muddies the gradient.
+    _add_layer_lines(mat)
+    return mat
+
+
 def make_silk_gold_pla(noise_scale: float = 35.0,
                        noise_strength: float = 0.10,
                        noise_distance: float = 0.025,
                        layer_strength: float = LAYER_BUMP_STRENGTH,
                        ao_distance: float = 0.20,
                        ao_strength: float = 1.0,
-                       ao_contrast: float = 2.0):
+                       ao_contrast: float = 2.0,
+                       roughness: float = 0.20,
+                       metallic: float = 0.75,
+                       sheen: float = 0.20):
     """Silk gold FDM PLA: rich saturated gold with a satin metallic finish.
     Lean metallic for the shiny silk-PLA pearlescent look while keeping a
     dielectric sheen layer on top to soften pure metal harshness.
 
     Noise-bump tuning is exposed because flat surfaces seen straight-on (e.g.
-    coin top view) need a stronger surface texture than angled iso shots."""
+    coin top view) need a stronger surface texture than angled iso shots.
+
+    So is the finish, because scale changes what silk gold looks like. A coin
+    is small and mostly flat, and reads as gold precisely because it catches a
+    tight highlight. A whole hull at the same roughness turns into a mirror
+    with no surface, which is the one thing a print never looks like -- it
+    wants a broader, duller sheen so the extrusion texture stays visible.
+    See the "gold-hull" preset."""
     mat = bpy.data.materials.new("PLA_SilkGold")
     mat.use_nodes = True
     bsdf = mat.node_tree.nodes["Principled BSDF"]
@@ -217,16 +366,16 @@ def make_silk_gold_pla(noise_scale: float = 35.0,
     # Orange-leaning rich gold (think antique doubloon, not lemon gold).
     base = (1.00, 0.66, 0.20, 1.0)
     bsdf.inputs["Base Color"].default_value = base
-    bsdf.inputs["Roughness"].default_value = 0.20
-    bsdf.inputs["Metallic"].default_value = 0.75
+    bsdf.inputs["Roughness"].default_value = roughness
+    bsdf.inputs["Metallic"].default_value = metallic
 
     _set_if(bsdf, "Specular IOR Level", 0.6)
     _set_if(bsdf, "Specular", 0.6)
     _set_if(bsdf, "IOR", 1.5)
 
     # Soft warm sheen to keep the satin/silk character on top of the metal.
-    _set_if(bsdf, "Sheen Weight", 0.20)
-    _set_if(bsdf, "Sheen", 0.20)
+    _set_if(bsdf, "Sheen Weight", sheen)
+    _set_if(bsdf, "Sheen", sheen)
     _set_if(bsdf, "Sheen Roughness", 0.30)
     _set_if(bsdf, "Sheen Tint", (1.0, 0.78, 0.45, 1.0))
 
@@ -257,8 +406,30 @@ def make_material(preset: str, grey: float = 0.75, view: str = "iso"):
                                   noise_distance=0.02,
                                   ao_distance=0.06, ao_strength=0.5,
                                   ao_contrast=1.0)
+    if preset == "gold-hull":
+        # Treasure Fleet hull. Much rougher and less metallic than the coin
+        # gold above: silk PLA on a large printed surface is satin, not
+        # polished. The stronger layer and noise bumps are what sell it as an
+        # extruded print rather than a gold-plated prop.
+        return make_silk_gold_pla(roughness=0.48, metallic=0.55, sheen=0.28,
+                                  noise_scale=60.0, noise_strength=0.14,
+                                  noise_distance=0.03,
+                                  layer_strength=LAYER_BUMP_STRENGTH * 1.6,
+                                  ao_distance=0.06, ao_strength=0.5,
+                                  ao_contrast=1.0)
     if preset == "black":
         return make_black_pla()
+    if preset == "black-hull":
+        # Same filament, lifted for the dark faction card. See LIFTED_BLACK.
+        return make_black_pla(LIFTED_BLACK)
+    if preset == "pine":
+        return make_pine_pla()
+    if preset == "rust":
+        return make_rust_pla()
+    if preset == "stone":
+        return make_stone_pla()
+    if preset == "shadow-petg":
+        return make_gradient_petg("PETG_ShadowFleet")
     if preset == "blue-grey":
         return make_blue_grey_pla()
     if preset == "brown":

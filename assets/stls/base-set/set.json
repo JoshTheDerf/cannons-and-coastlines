@@ -3,5 +3,10 @@
   "id": "base-set",
   "version": "0.3",
   "paid": false,
-  "publicZipBaseName": "cannons-and-coastlines-base-set"
+  "publicZipBaseName": "cannons-and-coastlines-base-set",
+  "previewShip": "ship-queens-fleet.stl",
+  "_extraPreviewsNote": "Hulls that back a faction card of their own rather than the set's. The site manifest has one image pair per set, but base-set fields two factions on the home page, so the Corsairs thumbnail is declared here and rendered by scripts/make-ship-derivatives.sh alongside the set's own.",
+  "extraPreviews": {
+    "ship-corsair": "/assets/ships/ship-preview-corsairs-sm.webp"
+  }
 }
