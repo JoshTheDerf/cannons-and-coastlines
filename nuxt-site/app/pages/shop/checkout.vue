@@ -9,7 +9,7 @@ useSeoMeta({ title: 'Checkout' })
 
 <template>
   <div class="py-16 px-4 container mx-auto max-w-2xl">
-    <div class="rounded-2xl border border-white/10 bg-secondary-900/60 p-8 text-center">
+    <div class="card-deck p-8 text-center">
       <UIcon name="i-lucide-anchor" class="size-10 text-primary-300 mx-auto" />
       <h1 class="font-display text-2xl text-white mt-4">Shopify checkout (stub)</h1>
       <p class="mt-3 text-white/70">

@@ -12,16 +12,17 @@ defineProps<{
 </script>
 
 <template>
-  <footer class="bg-secondary-950 text-white/80 mt-20">
+  <footer class="band-deck text-white/80 mt-20">
     <div class="container mx-auto px-4 py-12">
       <div class="grid gap-10 md:grid-cols-[1.4fr_2fr]">
         <div>
           <img :src="brand.logo" :alt="brand.name" class="h-12 w-auto mb-3">
-          <p class="text-sm">{{ data.blurb }}</p>
+          <p class="font-serif text-sm">{{ data.blurb }}</p>
         </div>
         <div class="grid gap-8 sm:grid-cols-3">
           <div v-for="col in data.columns" :key="col.title">
-            <h4 class="font-display text-white text-sm uppercase tracking-widest mb-3">{{ col.title }}</h4>
+            <h4 class="font-display text-white text-sm uppercase tracking-widest">{{ col.title }}</h4>
+            <hr class="rule-gold my-3">
             <ul class="space-y-2 text-sm">
               <li v-for="l in col.links" :key="l.to">
                 <a v-if="l.external" :href="l.to" target="_blank" rel="noopener" class="hover:text-white">{{ l.label }}</a>
@@ -31,7 +32,8 @@ defineProps<{
           </div>
         </div>
       </div>
-      <div class="mt-10 pt-6 border-t border-white/10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 text-xs">
+      <hr class="rule-gold mt-10">
+      <div class="pt-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 font-serif text-xs">
         <p>
           {{ data.license.replace('CC BY-NC-SA 4.0.', '') }}
           <a :href="data.licenseUrl" target="_blank" rel="noopener" class="underline hover:text-white">CC BY-NC-SA 4.0</a>.

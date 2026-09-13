@@ -18,12 +18,12 @@ useSeoMeta({
 
 <template>
   <div>
-    <header class="py-16 px-4 text-center text-white">
-      <span class="inline-block rounded-full bg-white/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-white/80">
-        Event ended
-      </span>
+    <header class="band-sea py-16 px-4 text-center text-white">
+      <div class="band-watermark"><UIcon name="i-lucide-anchor" /></div>
+      <span class="stamp stamp-gold">Event ended</span>
       <h1 class="mt-4 font-display text-4xl md:text-5xl text-white">The first full playtest is done</h1>
-      <p class="mt-4 text-white/80 max-w-2xl mx-auto">
+      <hr class="rule-gold my-5 mx-auto w-40">
+      <p class="font-serif lead text-white/80 max-w-2xl mx-auto">
         Thanks for watching. Subscribe or join the Discord below to hear about the next one.
         Past streams stay up on
         <a :href="channelUrl" target="_blank" rel="noopener" class="underline text-primary-300">Twitch</a>.
@@ -32,7 +32,7 @@ useSeoMeta({
 
     <section class="px-4 pb-16">
       <div class="container mx-auto max-w-5xl">
-        <div class="relative w-full overflow-hidden rounded-xl bg-black shadow-2xl" style="aspect-ratio: 16 / 9;">
+        <div class="relative w-full overflow-hidden rounded-sm bg-black border border-white/15 shadow-2xl" style="aspect-ratio: 16 / 9;">
           <iframe
             :src="recordingEmbedUrl"
             title="Cannons & Coastlines: First Full Playtest Recording"
@@ -43,21 +43,21 @@ useSeoMeta({
             class="absolute inset-0 h-full w-full"
           />
         </div>
-        <p class="mt-4 text-sm text-white/60 text-center">
+        <p class="mt-4 font-serif text-sm text-white/60 text-center">
           Gameplay starts at 12:40. The embed skips ahead for you.
         </p>
       </div>
     </section>
 
     <!-- Playtest takeaways -->
-    <section v-if="page?.changelog" class="px-4 pb-20 bg-secondary-900/30">
+    <section v-if="page?.changelog" class="px-4 pb-20 band-deck">
       <div class="container mx-auto max-w-4xl py-16">
         <SectionHeader
           :title="`What changed in ${page.changelog.version}`"
           :description="page.changelog.description"
         />
         <ChangelogList :items="page.changelog.items" />
-        <p class="mt-8 text-center text-white/60 text-sm">
+        <p class="mt-8 text-center font-serif text-white/60 text-sm">
           Full rules in the
           <NuxtLink to="/rulebook/pdf/rulebook.pdf" class="underline text-primary-300 hover:text-primary-200">rulebook PDF</NuxtLink>.
         </p>

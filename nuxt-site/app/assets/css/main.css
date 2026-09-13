@@ -93,3 +93,259 @@ h1, h2, h3, h4 {
   line-height: 1.15;
 }
 
+
+/* ---------------------------------------------------------------------------
+ * Board-game materials.
+ *
+ * The site is a dark table. Everything on it is a physical object: parchment
+ * cards (light islands, hard offset shadow, like a printed card laid down),
+ * deck panels (dark stained wood with a gold inner rule), and rulebook tables.
+ * Corners stay small; nothing is glassy or blurred.
+ * ------------------------------------------------------------------------- */
+
+@theme {
+  --font-serif: "Crimson Pro", "EB Garamond", Georgia, "Times New Roman", serif;
+}
+
+:root {
+  --paper: #efe3cb;
+  --paper-edge: #ded0b3;
+  --ink: #2b2318;
+  --ink-soft: #57483a;
+  --gold: #c8a04a;
+  --gold-dim: rgba(200, 160, 74, 0.38);
+  --deck: #1b2c34;
+  --deck-deep: #142229;
+}
+
+/* Serif body face for lead paragraphs, card copy and tables. */
+.font-serif,
+.lead,
+.card-parchment,
+.rulebook {
+  font-family: var(--font-serif);
+}
+
+.lead {
+  font-size: 1.06em;
+  line-height: 1.65;
+}
+
+/* --- Parchment card: a printed card sitting on the table ------------------ */
+.card-parchment {
+  position: relative;
+  color: var(--ink);
+  border: 1px solid #3a2f22;
+  border-radius: 3px;
+  background-color: var(--paper);
+  background-image:
+    repeating-linear-gradient(0deg, rgba(120, 96, 60, 0.045) 0 1px, transparent 1px 3px),
+    repeating-linear-gradient(90deg, rgba(120, 96, 60, 0.035) 0 1px, transparent 1px 4px),
+    radial-gradient(120% 90% at 20% 0%, rgba(255, 252, 240, 0.85) 0%, transparent 60%),
+    radial-gradient(100% 80% at 90% 100%, rgba(160, 128, 78, 0.22) 0%, transparent 65%);
+  box-shadow: 3px 3px 0 rgba(0, 0, 0, 0.45);
+}
+.card-parchment h1,
+.card-parchment h2,
+.card-parchment h3,
+.card-parchment h4 { color: #23190f; }
+.card-parchment .muted { color: var(--ink-soft); }
+.card-parchment a { color: #7a5316; }
+.card-parchment a:hover { color: #5a3c0f; }
+
+/* --- Deck panel: stained wood / deep hull, gold inner rule ---------------- */
+.card-deck {
+  position: relative;
+  color: #e7eef0;
+  border: 1px solid #0b1519;
+  border-radius: 3px;
+  background-color: var(--deck);
+  background-image:
+    repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.022) 0 2px, transparent 2px 7px),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.05) 0%, transparent 45%, rgba(0, 0, 0, 0.22) 100%);
+  box-shadow: inset 0 0 0 1px var(--gold-dim), 3px 3px 0 rgba(0, 0, 0, 0.4);
+}
+.card-deck .muted { color: rgba(231, 238, 240, 0.68); }
+
+/* --- Section bands -------------------------------------------------------- */
+.band-deck {
+  background-color: var(--deck-deep);
+  background-image:
+    repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.018) 0 3px, transparent 3px 11px);
+  border-block: 1px solid var(--gold-dim);
+}
+.band-parchment {
+  color: var(--ink);
+  background-color: var(--paper);
+  background-image:
+    repeating-linear-gradient(0deg, rgba(120, 96, 60, 0.05) 0 1px, transparent 1px 3px),
+    radial-gradient(120% 70% at 50% 0%, rgba(255, 252, 240, 0.8) 0%, transparent 70%);
+  border-block: 2px solid #3a2f22;
+}
+.band-parchment .muted { color: var(--ink-soft); }
+.band-parchment a { color: #7a5316; }
+
+/* --- Header band: sea navy, wave lines, gold hairlines -------------------- */
+.band-sea {
+  position: relative;
+  overflow: hidden;
+  background-color: #16303c;
+  background-image:
+    repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.035) 0 1px, transparent 1px 9px),
+    repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.18) 0 1px, transparent 1px 4px),
+    linear-gradient(180deg, #1d3b49 0%, #12262f 100%);
+  border-top: 1px solid var(--gold-dim);
+  border-bottom: 1px solid var(--gold-dim);
+}
+.band-sea::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(80% 70% at 50% 45%, rgba(0, 0, 0, 0.28) 0%, transparent 70%);
+}
+.band-sea > * { position: relative; z-index: 1; }
+.band-watermark {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  z-index: 0;
+}
+.band-watermark > * {
+  width: 22rem;
+  height: 22rem;
+  max-width: 70vw;
+  max-height: 70vw;
+  color: var(--gold);
+  opacity: 0.07;
+}
+
+/* --- Gold hairline rule --------------------------------------------------- */
+.rule-gold {
+  height: 1px;
+  border: 0;
+  background: linear-gradient(90deg, transparent, var(--gold) 20%, var(--gold) 80%, transparent);
+  opacity: 0.55;
+}
+
+/* --- Stamped label (replaces tinted pills) -------------------------------- */
+.stamp {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35em;
+  font-family: var(--font-serif);
+  font-size: 0.7rem;
+  font-weight: 600;
+  font-variant-caps: all-small-caps;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  line-height: 1;
+  padding: 0.35em 0.6em;
+  border: 1px solid currentColor;
+  border-radius: 2px;
+  background: transparent;
+}
+.stamp-gold { color: #b8913f; }
+.card-deck .stamp-gold,
+.band-sea .stamp-gold,
+.band-deck .stamp-gold { color: var(--gold); }
+
+/* --- Rulebook table / definition list ------------------------------------ */
+.rulebook {
+  width: 100%;
+  border-collapse: collapse;
+}
+.rulebook thead th {
+  font-family: var(--font-serif);
+  font-variant-caps: all-small-caps;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  text-align: left;
+  padding: 0.5rem 1rem 0.5rem 0;
+  border-bottom: 3px solid #3a2f22;
+}
+.rulebook tbody td {
+  padding: 0.5rem 1rem 0.5rem 0;
+  vertical-align: top;
+  border-bottom: 1px solid rgba(58, 47, 34, 0.25);
+}
+.rulebook tbody tr:nth-child(odd) { background: rgba(120, 96, 60, 0.085); }
+.rulebook tbody td:last-child { padding-right: 0; }
+
+.rulebook-dl {
+  font-family: var(--font-serif);
+  border-top: 3px solid #3a2f22;
+}
+.rulebook-dl > div {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.25rem 1.5rem;
+  padding: 0.55rem 0.75rem;
+  border-bottom: 1px solid rgba(58, 47, 34, 0.25);
+}
+.rulebook-dl > div:nth-child(odd) { background: rgba(120, 96, 60, 0.085); }
+.rulebook-dl dt {
+  font-variant-caps: all-small-caps;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--ink-soft);
+  font-size: 0.8rem;
+}
+
+/* --- Diamond bullets ------------------------------------------------------ */
+.list-diamond > li { position: relative; padding-left: 1.15em; }
+.list-diamond > li::before {
+  content: "◆";
+  position: absolute;
+  left: 0;
+  top: 0.05em;
+  font-size: 0.62em;
+  line-height: 1.9;
+  color: var(--gold);
+}
+.card-parchment .list-diamond > li::before,
+.band-parchment .list-diamond > li::before { color: #9a7526; }
+
+/* --- Ink button: replaces outline/ghost variants -------------------------- */
+a.btn-ink[data-slot="base"],
+button.btn-ink[data-slot="base"] {
+  background: rgba(239, 227, 203, 0.06);
+  border: 1px solid var(--gold-dim);
+  border-radius: 2px;
+  color: #eadcbd;
+  box-shadow: none;
+  --tw-ring-shadow: 0 0 #0000;
+  font-family: var(--font-serif);
+  font-variant-caps: all-small-caps;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  font-weight: 600;
+  transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+}
+a.btn-ink[data-slot="base"]:hover,
+button.btn-ink[data-slot="base"]:hover {
+  background: rgba(200, 160, 74, 0.16);
+  border-color: var(--gold);
+  color: #fbf2df;
+}
+.card-parchment a.btn-ink[data-slot="base"],
+.band-parchment a.btn-ink[data-slot="base"] {
+  background: rgba(58, 47, 34, 0.05);
+  border-color: rgba(58, 47, 34, 0.55);
+  color: #3a2f22;
+}
+.card-parchment a.btn-ink[data-slot="base"]:hover,
+.band-parchment a.btn-ink[data-slot="base"]:hover {
+  background: rgba(58, 47, 34, 0.1);
+  border-color: #3a2f22;
+  color: #23190f;
+}
+
+/* Solid buttons keep the gold gradient but lose the pill radius. */
+button[data-slot="base"].bg-primary,
+a[data-slot="base"].bg-primary { border-radius: 2px; }

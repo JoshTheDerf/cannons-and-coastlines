@@ -32,7 +32,7 @@ async function checkout() {
       leave-active-class="transition-opacity duration-200"
       enter-from-class="opacity-0" leave-to-class="opacity-0"
     >
-      <div v-if="open" class="fixed inset-0 z-[60] bg-black/60 backdrop-blur-sm" @click="close" />
+      <div v-if="open" class="fixed inset-0 z-[60] bg-black/70" @click="close" />
     </Transition>
 
     <Transition

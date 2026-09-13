@@ -25,7 +25,7 @@ useSeoMeta({
 
     <section class="py-16 px-4 container mx-auto">
       <div class="grid md:grid-cols-2 gap-8">
-        <article v-for="p in products" :key="p.id" class="rounded-2xl overflow-hidden border border-white/10 bg-secondary-900/60 flex flex-col">
+        <article v-for="p in products" :key="p.id" class="card-deck overflow-hidden flex flex-col">
           <NuxtLink :to="`/shop/${p.handle}`" class="block">
             <img :src="p.featuredImage.url" :alt="p.featuredImage.altText" class="w-full aspect-[4/3] object-cover">
           </NuxtLink>

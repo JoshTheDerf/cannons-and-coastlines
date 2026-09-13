@@ -24,7 +24,7 @@ function checkout() {
     <NuxtLink to="/shop" class="text-sm text-white/60 hover:text-white">← Continue shopping</NuxtLink>
     <h1 class="font-display text-3xl text-white mt-4">Your cart</h1>
 
-    <div v-if="!cart || cart.lines.length === 0" class="mt-10 rounded-2xl border border-white/10 bg-secondary-900/60 p-10 text-center">
+    <div v-if="!cart || cart.lines.length === 0" class="mt-10 card-deck p-10 text-center">
       <UIcon name="i-lucide-shopping-cart" class="size-10 text-white/40 mx-auto" />
       <p class="mt-3 text-white/70">Your cart is empty.</p>
       <UButton to="/shop" color="primary" class="mt-5" icon="i-lucide-arrow-right" trailing>Browse starter sets</UButton>
@@ -32,7 +32,7 @@ function checkout() {
 
     <div v-else class="mt-8 grid lg:grid-cols-[1.4fr_1fr] gap-8">
       <ul class="flex flex-col gap-3">
-        <li v-for="line in cart.lines" :key="line.id" class="rounded-xl border border-white/10 bg-secondary-900/60 p-4 flex gap-4 items-center">
+        <li v-for="line in cart.lines" :key="line.id" class="card-deck p-4 flex gap-4 items-center">
           <NuxtLink :to="`/shop/${line.product.handle}`" class="shrink-0">
             <img :src="line.product.image.url" :alt="line.product.image.altText" class="size-24 rounded-lg object-cover">
           </NuxtLink>
@@ -55,7 +55,7 @@ function checkout() {
         </li>
       </ul>
 
-      <aside class="rounded-2xl border border-white/10 bg-secondary-900/60 p-6 h-fit">
+      <aside class="card-deck p-6 h-fit">
         <h2 class="font-display text-xl text-white">Summary</h2>
         <dl class="mt-4 space-y-2 text-sm">
           <div class="flex justify-between text-white/70">

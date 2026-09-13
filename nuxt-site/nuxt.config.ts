@@ -27,7 +27,8 @@ export default defineNuxtConfig({
   fonts: {
     families: [
       { name: 'Cinzel', provider: 'google', weights: [400, 600, 700] },
-      { name: 'Inter', provider: 'google', weights: [400, 500, 600] }
+      { name: 'Inter', provider: 'google', weights: [400, 500, 600] },
+      { name: 'Crimson Pro', provider: 'google', weights: [400, 500, 600], styles: ['normal', 'italic'] }
     ]
   },
   compatibilityDate: '2026-05-04',

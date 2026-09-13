@@ -352,7 +352,7 @@ async function resend() {
 
           <!-- Not released. The server refuses checkout regardless of this. -->
           <div v-else class="rounded-xl border border-white/10 bg-secondary-900/40 p-5">
-            <span class="text-[10px] uppercase tracking-widest font-semibold text-primary-300 bg-primary-500/15 px-2 py-1 rounded">
+            <span class="stamp stamp-gold">
               Coming Soon
             </span>
             <p class="mt-3 text-sm text-white/70">
@@ -385,7 +385,7 @@ async function resend() {
         <article
           v-for="s in suggestions"
           :key="s.product!.id"
-          class="rounded-2xl border border-white/10 bg-secondary-900/60 overflow-hidden flex flex-col sm:flex-row"
+          class="card-deck overflow-hidden flex flex-col sm:flex-row"
         >
           <NuxtLink :to="`/shop/${s.product!.handle}`" class="sm:w-44 shrink-0 block bg-secondary-900">
             <img :src="s.product!.featuredImage.url" :alt="s.product!.featuredImage.altText" class="w-full h-full object-cover aspect-[4/3] sm:aspect-auto">
@@ -411,7 +411,7 @@ async function resend() {
     <section class="mt-16">
       <h2 class="font-display text-2xl text-white">What's in the box</h2>
       <div class="mt-6 grid md:grid-cols-3 gap-5">
-        <div v-for="inc in product.includes" :key="inc.title" class="rounded-2xl border border-white/10 bg-secondary-900/60 p-6">
+        <div v-for="inc in product.includes" :key="inc.title" class="card-deck p-6">
           <h3 class="font-display text-lg text-white flex items-center gap-2">
             <UIcon :name="inc.icon" class="size-5 text-primary-300" /> {{ inc.title }}
           </h3>
