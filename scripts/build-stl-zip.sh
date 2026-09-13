@@ -12,9 +12,11 @@
 #   { "version": "0.3", "publicZipBaseName": "cannons-and-coastlines-base-set" }
 #     -> assets/stls/cannons-and-coastlines-base-set-0.3.zip
 #
-# Bumping a version means editing set.json and re-running this; add a
-# _redirects line pointing the old zip at the new one so existing links keep
-# working (see _redirects, which already forwards 0.1 and 0.2).
+# This builds a zip at whatever version set.json currently names; it is not
+# how you cut a release. Use `npx jake "bump-set[<set-id>,<version>]"`, which
+# calls this script and also handles the manifest, the _redirects rule and
+# retiring the superseded zip -- the steps that are easy to forget and that
+# nothing else checks.
 #
 # PAID SETS ARE REFUSED, and only assets/stls/ is scanned. Everything under
 # assets/ is served publicly by the Worker, so a paid set's zip written here

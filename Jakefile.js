@@ -46,6 +46,7 @@ const TASKS = {
     'set-previews':  ["Render one set's ship art and install it, e.g. set-previews[industry-set] — needs Blender", 'scripts/blender/render_set_previews.sh'],
     'banner-fade':   ['Regenerate the faction-card banner overlays — needs ImageMagick', 'scripts/rulebook/build-banner-fade.sh'],
     'starter-pack-3mf': ['Slice starter-pack 3MFs, e.g. starter-pack-3mf[--queens,2] — needs OrcaSlicer', 'scripts/print/build-starter-pack-3mf.sh'],
+    'bump-set':      ['Release a new version of a set, e.g. bump-set[base-set,0.4] — zip, manifest, redirects', 'scripts/bump-set.sh'],
     'sets-sync':     ['Copy each set.json version into the site manifest (CHECK=1 to only report)', 'scripts/sync-sets-manifest.sh'],
     'publish-sets':  ['Upload paid STL sets to R2, e.g. publish-sets[treasure-fleet-set] — needs wrangler auth', 'scripts/publish-paid-sets.sh'],
 };

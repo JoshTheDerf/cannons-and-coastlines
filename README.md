@@ -102,8 +102,23 @@ turns up under `assets/`.
 
 Paid models are uploaded to R2 with `npx jake publish-sets` and served only
 through `/api/download/<set>` after an entitlement check. Every set folder
-carries a `set.json` with its version of record, which `npx jake sets-sync`
-keeps in step with the site manifest at `nuxt-site/server/data/sets.json`.
+carries a `set.json` with its version of record, kept in step with the site
+manifest at `nuxt-site/server/data/sets.json`.
+
+Cutting a new version of a set is one command:
+
+```sh
+npx jake "bump-set[base-set,0.4]"      # add --dry-run to see the plan first
+```
+
+It writes the version into `set.json`, syncs the site manifest including the
+versioned `freeDownloadUrl`, rebuilds the public zip, adds the `_redirects`
+rule pointing the old download at the new one, and deletes the superseded zip
+— that last step matters, because a real file at the old path would take
+precedence over the redirect replacing it. Paid sets stop after the manifest
+and go to R2 via `publish-sets`. Don't edit `version` by hand: the build
+scripts refuse to package anything while `set.json` and the site manifest
+disagree.
 
 ## Community
 
