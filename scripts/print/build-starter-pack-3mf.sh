@@ -131,7 +131,7 @@ resolve_preset() {
 }
 
 # --- Per-pack quantities --------------------------------------------------
-mast_per_ship=2     # combined mast+flag-holder
+mast_per_ship=2     # the mast carries the flag holder at its top
 sail_per_ship=2
 wheel_per_ship=2
 cargo_per_ship=4
@@ -204,7 +204,7 @@ build_faction() {
     local -a main=() sails=() balls=() coins=() islands=() terrain=()
 
     add_to main "$ship_stl"                     "$total_ships"
-    add_to main "mast-flag-holder-combined.stl" "$(( mast_per_ship * total_ships ))"
+    add_to main "mast.stl"                      "$(( mast_per_ship * total_ships ))"
     add_to main "movement-wheel.stl"            "$(( wheel_per_ship * total_ships ))"
     add_to main "cargo.stl"                     "$(( cargo_per_ship * total_ships ))"
     add_to main "cannon.stl"                    "$(( cannons_per_pack * orders ))"

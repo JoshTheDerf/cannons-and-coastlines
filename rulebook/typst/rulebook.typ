@@ -701,7 +701,7 @@ Every printed piece in the base set, with what it does and recommended print col
     [Faction or alliance color. Queen's Fleet ships shown in *blue-grey*; Corsairs in *black*.]),
 
   ..part-row("mast", "Mast",
-    [A removable *fitting* that plugs into the deck. Print horizontally.],
+    [A removable *fitting* that plugs into the deck, with the flag holder built into the top: slide a paper flag of any design into the slot. Print horizontally.],
     [*Wood/Brown or Black*]),
 
   ..part-row("cargo", "Cargo",
@@ -728,10 +728,6 @@ Every printed piece in the base set, with what it does and recommended print col
     [Insert into the slot in the bottom of the hull. One full revolution is one *click* of movement.],
     [*Any color*. Wrap a *thin rubber band* around the rim before assembly.]),
 
-  ..part-row("paper-flag-holder", "Paper Flag Holder",
-    [The *primary flag mount.* Slide a paper flag of any design into the slot on the side, then place the holder on top of a mast.],
-    [*Any color*]),
-
   ..part-row("island-topper", "Island Topper",
     [A small puck with cannon slots and flag holes. Turns any household object into an island.],
     [*Sand*, *grey*, or *green*; Terrain colors.]),
@@ -757,7 +753,7 @@ A *faction set* is one complete print run for one player: their fleet plus a fai
   [Sails],                [1 per mast], [Decorate to customize your fleet.],
   [Cannons],              [3–4],     [You can get away with one, but it's good to have options if one fails.],
   [Cannonballs],          [10],   [Coarser layer heights causes cannonballs to shoot stronger and less predictably. *TPU* with three walls and no infill reduces bounce.],
-  [Flag holders],          [1 per mast + 5 spare], [Enough to cover your ships, islands, and any ships you might capture],
+  [Masts],                [1 per ship + 1 per island], [The flag holder is part of the mast; print a few spares.],
   [Movement wheel],       [1 per ship], [Fit with a rubber band over the rim before the first game. Difficult to remove once installed.],
   [Islands],              [2–3],     [Print island models or use *Island Toppers* that sit on top of household objects],
   [Rocks / Reefs],   [2-4],       [Optional terrain. Block movement and cannonballs.],

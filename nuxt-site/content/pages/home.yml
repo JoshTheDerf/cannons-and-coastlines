@@ -19,14 +19,6 @@ hero:
     - { label: Get the Files, to: '#signup', variant: solid, icon: i-lucide-mail }
     - { label: How It Plays, to: '#how-it-plays', variant: outline }
 
-# The "name vote closed" strip. Delete this block to hide it.
-nameVote:
-  label: 'Name vote:'
-  winner: Cannons & Coastlines
-  winnerPct: 77
-  loser: B.O.A.T.
-  loserPct: 23
-
 seeIt:
   title: See It
   description: The reel that started it, the printed pieces, and a few playtests.
@@ -191,7 +183,7 @@ signup:
     with. You'll hear when a new faction lands.
   perks:
     - Half-letter rulebook booklet
-    - STL pack: both fleets, terrain, cannons, coins
+    - 'STL pack: both fleets, terrain, cannons, coins'
     - New factions and parts as they come
   publicRulebook:
     label: Or just read the rulebook (PDF)

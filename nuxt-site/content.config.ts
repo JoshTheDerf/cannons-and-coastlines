@@ -38,7 +38,6 @@ export default defineContentConfig({
       schema: z.object({
         meta: z.object({ title: z.string(), description: z.string() }).optional(),
         hero: z.record(z.any()).optional(),
-        nameVote: z.record(z.any()).optional(),
         seeIt: z.record(z.any()).optional(),
         howItPlays: z.record(z.any()).optional(),
         factions: z.record(z.any()).optional(),

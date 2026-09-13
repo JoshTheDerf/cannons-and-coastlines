@@ -61,7 +61,7 @@ gallery:
   items:
     - render: /assets/images/renders/mast.png
       name: Mast
-      desc: A *fitting*. Plugs into the deck and comes off when the ship takes a hit. Flag holders sit on top.
+      desc: A *fitting*. Plugs into the deck and comes off when the ship takes a hit. The flag holder is built into the top.
       color: Brown or black.
     - render: /assets/images/renders/cargo.png
       name: Cargo
@@ -87,12 +87,6 @@ gallery:
       name: Movement Wheel
       desc: Lives in the stern. One full turn is one *click* of movement. The flat spot parks the ship.
       color: Any. Needs a thin **rubber band** around the rim or it won't click.
-    - render: /assets/images/renders/paper-flag-holder.png
-      name: Paper Flag Holder
-      desc: >-
-        Slide a paper flag into the slot and set the holder on a mast. Draw
-        your own flag; no printing needed.
-      color: Any. The paper does the talking.
     - render: /assets/images/renders/island-topper.png
       name: Island Topper
       desc: A puck with cannon slots and flag holes. Set it on a box, a book, or an upside-down mug and you have an island.
@@ -129,7 +123,7 @@ assembly:
     - icon: i-lucide-flag
       title: Flags and islands
       items:
-        - Slide a paper flag into a **flag holder** and set the holder on a mast.
+        - Slide a paper flag into the slot at the top of a **mast**.
         - "**Island toppers** go on top of anything the right height. Same cannon slots and flag holes as a ship."
     - icon: i-lucide-coins
       title: Coins
@@ -189,7 +183,6 @@ quantities:
     - [Sails, 1 per mast, Decorate them.]
     - [Cannons, 3–4, One will do. Spares are nice when one wears out.]
     - [Cannonballs, '10', You will lose some.]
-    - [Flag holders, 1 per mast + 5, Covers your ships, your islands, and any ship you capture.]
     - [Movement wheel, 1 per ship, Fit once with its rubber band. Hard to get back out.]
     - [Islands, 2–3, Print them, or use **island toppers** on household objects.]
     - [Rocks and reefs, 2–4, Optional. Rocks block ships and shots. Reefs block ships only.]
