@@ -54,8 +54,16 @@ while read -r dir; do
         echo "DRIFT $set_id  set.json v$local_v  ≠  manifest v$manifest_v"
     else
         echo "sync  $set_id  v$manifest_v → v$local_v"
-        jq --arg id "$set_id" --arg v "$local_v" \
-           '(.sets[] | select(.id == $id) | .version) = $v' "$tmp" > "$tmp.next"
+        # freeDownloadUrl carries the version in its filename, so syncing the
+        # version alone leaves the manifest pointing at the previous zip -- a
+        # dead link the moment the old file is retired. Rewrite it from the
+        # same source of truth, but only for a free set that already has one:
+        # paid sets hold null here and resolve through R2 instead.
+        jq --arg id "$set_id" --arg v "$local_v" '
+             (.sets[] | select(.id == $id) | .version) = $v
+           | (.sets[] | select(.id == $id and (.freeDownloadUrl // "") != "")
+               | .freeDownloadUrl) |= sub("-[^-/]+\\.zip$"; "-" + $v + ".zip")
+           ' "$tmp" > "$tmp.next"
         mv "$tmp.next" "$tmp"
         (( changed++ )) || true
     fi

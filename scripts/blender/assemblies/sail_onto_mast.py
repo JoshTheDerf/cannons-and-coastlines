@@ -44,7 +44,10 @@ from cc_anim import Part
 
 
 REPO = Path(__file__).resolve().parents[3]
-STL_DIR = REPO / "assets" / "stls" / "cannons-and-coastlines-base-set-0.3"
+# Set folders no longer carry the release version in their name (that moved
+# into set.json), so this is the plain path -- the old
+# cannons-and-coastlines-base-set-0.3/ has not existed for some time.
+STL_DIR = REPO / "assets" / "stls" / "base-set"
 
 # Hole positions in the sail's centered mesh frame (before rotation).
 SAIL_HOLES_Y = (-28.0, -1.5, 13.0, 27.5)
