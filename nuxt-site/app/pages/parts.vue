@@ -18,9 +18,9 @@ const p = computed(() => page.value!)
     <header class="band-sea py-24 px-4">
       <div class="band-watermark"><UIcon name="i-lucide-compass" /></div>
       <div class="container mx-auto max-w-3xl text-center">
-        <h1 class="font-display text-4xl md:text-5xl text-white">{{ p.hero.title }}</h1>
+        <h1 class="font-display text-4xl md:text-5xl text-ink">{{ p.hero.title }}</h1>
         <hr class="rule-gold my-5 mx-auto w-40">
-        <p class="font-serif lead text-white/80">{{ p.hero.intro }}</p>
+        <p class="font-serif lead text-ink-soft">{{ p.hero.intro }}</p>
       </div>
     </header>
 
@@ -65,13 +65,13 @@ const p = computed(() => page.value!)
     </section>
 
     <!-- Assembly -->
-    <section class="py-16 px-4 band-deck">
+    <section class="py-16 px-4 band-parchment">
       <div class="container mx-auto">
         <SectionHeader :title="p.assembly.title" :description="p.assembly.lead" align="left" size="sm" />
         <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
-          <div v-for="card in p.assembly.cards" :key="card.title" class="card-deck p-6">
-            <h3 class="font-display text-lg text-white flex items-center gap-2">
-              <UIcon :name="card.icon" class="size-5 text-primary-300" /> {{ card.title }}
+          <div v-for="card in p.assembly.cards" :key="card.title" class="card-parchment p-6">
+            <h3 class="font-display text-lg flex items-center gap-2">
+              <UIcon :name="card.icon" class="size-5 text-[color:var(--gold)]" /> {{ card.title }}
             </h3>
             <hr class="rule-gold mt-3">
             <ol v-if="card.items && card.ordered" class="mt-3 space-y-2 font-serif text-sm muted list-decimal pl-5">
@@ -142,9 +142,9 @@ const p = computed(() => page.value!)
     <!-- CTA -->
     <section class="py-16 px-4">
       <div class="container mx-auto max-w-3xl text-center">
-        <h2 class="font-display text-2xl text-white">{{ p.cta.title }}</h2>
+        <h2 class="font-display text-2xl text-ink">{{ p.cta.title }}</h2>
         <hr class="rule-gold my-4 mx-auto w-32">
-        <p class="font-serif lead text-white/80">{{ p.cta.body }}</p>
+        <p class="font-serif lead text-ink-soft">{{ p.cta.body }}</p>
         <div class="mt-6 flex flex-wrap gap-3 justify-center">
           <UButton
             v-for="b in p.cta.buttons"

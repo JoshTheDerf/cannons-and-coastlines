@@ -39,6 +39,17 @@
   --color-secondary-800: #28404c;
   --color-secondary-900: #233640;
   --color-secondary-950: #131e25;
+
+  /* Rulebook ink + paper, exposed as Tailwind colors so `text-ink`,
+   * `text-ink-soft`, `border-ink/20` and `bg-paper` work as utilities.
+   * Dark bands re-point these same variables at light values (below), so
+   * one set of utilities reads correctly on paper and on stained wood. */
+  --color-ink: #1a1209;
+  --color-ink-soft: #5a3a1e;
+  --color-ink-faint: #8a6f45;
+  --color-paper: #f7eed9;
+  --color-paper-edge: #e8dcc0;
+  --color-deck: #2b2018;
 }
 
 :root {
@@ -46,31 +57,13 @@
   --ui-secondary: var(--color-secondary-500);
 }
 
+
 /* Gold and iron gradients ported from the original site. Used as button
  * fills and a few accent backgrounds. */
 :root {
   --gradient-gold: linear-gradient(135deg, #c99344 0%, #b07d24 20%, #8e631a 50%, #714e14 80%, #c99344 100%);
   --gradient-gold-flat: linear-gradient(180deg, #b07d24 0%, #8e631a 50%, #714e14 100%);
-  --gradient-iron: linear-gradient(180deg, #706b65 0%, #686360 50%, #605b58 100%);
   --shadow-gold: 0 4px 8px rgba(173, 128, 37, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.3);
-  --shadow-gold-lg: 0 6px 16px rgba(173, 128, 37, 0.5), inset 0 2px 0 rgba(255, 255, 255, 0.3), inset 0 -1px 0 rgba(0, 0, 0, 0.2);
-}
-
-/* Primary solid buttons get the gold gradient. The Nuxt UI button keeps its
- * own padding/sizing; we just swap the fill. */
-button[data-slot="base"].bg-primary,
-a[data-slot="base"].bg-primary {
-  background-image: var(--gradient-gold);
-  background-size: 200% 100%;
-  background-position: 0 0;
-  color: #fff;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.45);
-  transition: background-position 0.4s ease, transform 0.15s ease;
-}
-button[data-slot="base"].bg-primary:hover,
-a[data-slot="base"].bg-primary:hover {
-  background-position: 100% 0;
-  transform: translateY(-1px);
 }
 
 html {
@@ -82,8 +75,11 @@ html {
 
 body {
   font-family: var(--font-sans);
-  background: #0f1a1f;
-  color: #e9eef0;
+  /* Rulebook page colour. One soft radial only - no tiling patterns. */
+  background-color: var(--paper);
+  background-image: radial-gradient(120% 80% at 50% 0%, #fbf5e6 0%, rgba(251, 245, 230, 0) 65%);
+  background-attachment: fixed;
+  color: var(--ink);
   line-height: 1.6;
 }
 
@@ -91,16 +87,15 @@ h1, h2, h3, h4 {
   font-family: var(--font-display);
   letter-spacing: 0.01em;
   line-height: 1.15;
+  color: var(--heading);
 }
 
-
 /* ---------------------------------------------------------------------------
- * Board-game materials.
+ * Board-game materials, in rulebook colours.
  *
- * The site is a dark table. Everything on it is a physical object: parchment
- * cards (light islands, hard offset shadow, like a printed card laid down),
- * deck panels (dark stained wood with a gold inner rule), and rulebook tables.
- * Corners stay small; nothing is glassy or blurred.
+ * The site is the rulebook's paper. Dark stained-wood bands are the exception:
+ * page headers and the footer only. Cards on paper are parchment with an ink
+ * border; card-deck is reserved for the inside of dark bands.
  * ------------------------------------------------------------------------- */
 
 @theme {
@@ -108,14 +103,52 @@ h1, h2, h3, h4 {
 }
 
 :root {
-  --paper: #efe3cb;
-  --paper-edge: #ded0b3;
-  --ink: #2b2318;
-  --ink-soft: #57483a;
-  --gold: #c8a04a;
-  --gold-dim: rgba(200, 160, 74, 0.38);
-  --deck: #1b2c34;
-  --deck-deep: #142229;
+  --paper: #f7eed9;
+  --paper-card: #fbf4e3;
+  --paper-tint: #eee1c3;
+  --paper-edge: #e8dcc0;
+  --ink: #1a1209;
+  --ink-soft: #5a3a1e;
+  --ink-faint: #8a6f45;
+  --heading: #2c1810;
+  --gold: #a8801a;
+  --gold-bright: #c8a04a;
+  --gold-dim: rgba(168, 128, 26, 0.45);
+  --rule: #c4a87a;
+  --crimson: #8b1a1a;
+  --box-border: #6b4c30;
+  --deck: #2b2018;
+  --deck-deep: #1e1610;
+}
+
+/* Dark bands and deck cards re-point the ink scale at light values, so every
+ * `text-ink*` / `border-ink*` utility inside them flips automatically. */
+.band-sea,
+.band-deck,
+.band-announce,
+.card-deck {
+  --color-ink: #f6edd9;
+  --color-ink-soft: rgba(246, 237, 217, 0.8);
+  --color-ink-faint: rgba(246, 237, 217, 0.6);
+  --color-paper-edge: rgba(246, 237, 217, 0.12);
+  --ink: #f6edd9;
+  --ink-soft: rgba(246, 237, 217, 0.8);
+  --heading: #f6edd9;
+  --gold: var(--gold-bright);
+  --gold-dim: rgba(200, 160, 74, 0.4);
+  color: var(--ink);
+}
+/* A parchment card inside a dark band is still paper. */
+.band-sea .card-parchment,
+.band-deck .card-parchment {
+  --color-ink: #1a1209;
+  --color-ink-soft: #5a3a1e;
+  --color-ink-faint: #8a6f45;
+  --ink: #1a1209;
+  --ink-soft: #5a3a1e;
+  --heading: #2c1810;
+  --gold: #a8801a;
+  color: var(--ink);
 }
 
 /* Serif body face for lead paragraphs, card copy and tables. */
@@ -131,24 +164,24 @@ h1, h2, h3, h4 {
   line-height: 1.65;
 }
 
+.muted { color: var(--ink-soft); }
+
 /* --- Parchment card: a printed card sitting on the table ------------------ */
 .card-parchment {
   position: relative;
   color: var(--ink);
-  border: 1px solid #3a2f22;
+  border: 1px solid var(--box-border);
   border-radius: 3px;
-  background-color: var(--paper);
+  background-color: var(--paper-card);
   background-image:
-    repeating-linear-gradient(0deg, rgba(120, 96, 60, 0.045) 0 1px, transparent 1px 3px),
-    repeating-linear-gradient(90deg, rgba(120, 96, 60, 0.035) 0 1px, transparent 1px 4px),
-    radial-gradient(120% 90% at 20% 0%, rgba(255, 252, 240, 0.85) 0%, transparent 60%),
-    radial-gradient(100% 80% at 90% 100%, rgba(160, 128, 78, 0.22) 0%, transparent 65%);
-  box-shadow: 3px 3px 0 rgba(0, 0, 0, 0.45);
+    radial-gradient(120% 90% at 20% 0%, rgba(255, 253, 245, 0.9) 0%, transparent 60%),
+    radial-gradient(100% 80% at 90% 100%, rgba(160, 128, 78, 0.16) 0%, transparent 65%);
+  box-shadow: 2px 2px 0 rgba(60, 36, 21, 0.18);
 }
 .card-parchment h1,
 .card-parchment h2,
 .card-parchment h3,
-.card-parchment h4 { color: #23190f; }
+.card-parchment h4 { color: var(--heading); }
 .card-parchment .muted { color: var(--ink-soft); }
 .card-parchment a { color: #7a5316; }
 .card-parchment a:hover { color: #5a3c0f; }
@@ -156,44 +189,39 @@ h1, h2, h3, h4 {
 /* --- Deck panel: stained wood / deep hull, gold inner rule ---------------- */
 .card-deck {
   position: relative;
-  color: #e7eef0;
-  border: 1px solid #0b1519;
+  border: 1px solid #120d09;
   border-radius: 3px;
   background-color: var(--deck);
   background-image:
-    repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.022) 0 2px, transparent 2px 7px),
     linear-gradient(180deg, rgba(255, 255, 255, 0.05) 0%, transparent 45%, rgba(0, 0, 0, 0.22) 100%);
-  box-shadow: inset 0 0 0 1px var(--gold-dim), 3px 3px 0 rgba(0, 0, 0, 0.4);
+  box-shadow: inset 0 0 0 1px var(--gold-dim), 3px 3px 0 rgba(0, 0, 0, 0.35);
 }
-.card-deck .muted { color: rgba(231, 238, 240, 0.68); }
+.card-deck h1, .card-deck h2, .card-deck h3, .card-deck h4 { color: var(--ink); }
+.card-deck .muted { color: var(--ink-soft); }
 
 /* --- Section bands -------------------------------------------------------- */
-.band-deck {
-  background-color: var(--deck-deep);
-  background-image:
-    repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.018) 0 3px, transparent 3px 11px);
-  border-block: 1px solid var(--gold-dim);
-}
+/* Paper sections alternate plain page and a slightly deeper parchment tint. */
 .band-parchment {
   color: var(--ink);
-  background-color: var(--paper);
+  background-color: var(--paper-tint);
   background-image:
-    repeating-linear-gradient(0deg, rgba(120, 96, 60, 0.05) 0 1px, transparent 1px 3px),
-    radial-gradient(120% 70% at 50% 0%, rgba(255, 252, 240, 0.8) 0%, transparent 70%);
-  border-block: 2px solid #3a2f22;
+    radial-gradient(120% 70% at 50% 0%, rgba(255, 252, 240, 0.75) 0%, transparent 70%);
+  border-block: 1px solid var(--rule);
 }
 .band-parchment .muted { color: var(--ink-soft); }
 .band-parchment a { color: #7a5316; }
 
-/* --- Header band: sea navy, wave lines, gold hairlines -------------------- */
+/* --- Dark bands: stained wood. Page headers and the footer only. ---------- */
+.band-deck {
+  background-color: var(--deck-deep);
+  background-image: radial-gradient(90% 80% at 50% 0%, rgba(255, 232, 190, 0.06) 0%, transparent 70%);
+  border-block: 1px solid var(--gold-dim);
+}
 .band-sea {
   position: relative;
   overflow: hidden;
-  background-color: #16303c;
-  background-image:
-    repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.035) 0 1px, transparent 1px 9px),
-    repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.18) 0 1px, transparent 1px 4px),
-    linear-gradient(180deg, #1d3b49 0%, #12262f 100%);
+  background-color: #2a1f17;
+  background-image: linear-gradient(180deg, #33261b 0%, #1a130d 100%);
   border-top: 1px solid var(--gold-dim);
   border-bottom: 1px solid var(--gold-dim);
 }
@@ -219,8 +247,27 @@ h1, h2, h3, h4 {
   height: 22rem;
   max-width: 70vw;
   max-height: 70vw;
-  color: var(--gold);
+  color: var(--gold-bright);
   opacity: 0.07;
+}
+
+/* --- Announcement bar: a dark gold-brown ribbon over the nav ------------- */
+.band-announce {
+  background-color: #6b4c30;
+  background-image: radial-gradient(80% 140% at 50% 0%, rgba(255, 232, 190, 0.14) 0%, transparent 70%);
+  border-bottom: 1px solid rgba(26, 18, 9, 0.5);
+}
+.band-announce a { color: var(--ink); }
+
+/* --- Sticky nav: paper with an ink rule ----------------------------------- */
+.site-nav {
+  background-color: rgba(247, 238, 217, 0.96);
+  border-bottom: 1px solid var(--box-border);
+  box-shadow: 0 1px 0 rgba(196, 168, 122, 0.6);
+  color: var(--ink);
+}
+@supports (backdrop-filter: blur(4px)) {
+  .site-nav { background-color: rgba(247, 238, 217, 0.9); backdrop-filter: blur(6px); }
 }
 
 /* --- Gold hairline rule --------------------------------------------------- */
@@ -228,7 +275,7 @@ h1, h2, h3, h4 {
   height: 1px;
   border: 0;
   background: linear-gradient(90deg, transparent, var(--gold) 20%, var(--gold) 80%, transparent);
-  opacity: 0.55;
+  opacity: 0.7;
 }
 
 /* --- Stamped label (replaces tinted pills) -------------------------------- */
@@ -237,21 +284,20 @@ h1, h2, h3, h4 {
   align-items: center;
   gap: 0.35em;
   font-family: var(--font-serif);
-  font-size: 0.7rem;
+  font-size: 0.8rem;
   font-weight: 600;
-  font-variant-caps: all-small-caps;
   text-transform: uppercase;
-  letter-spacing: 0.14em;
+  letter-spacing: 0.12em;
   line-height: 1;
-  padding: 0.35em 0.6em;
+  padding: 0.4em 0.65em;
   border: 1px solid currentColor;
   border-radius: 2px;
   background: transparent;
 }
-.stamp-gold { color: #b8913f; }
+.stamp-gold { color: #8a6512; }
 .card-deck .stamp-gold,
 .band-sea .stamp-gold,
-.band-deck .stamp-gold { color: var(--gold); }
+.band-deck .stamp-gold { color: var(--gold-bright); }
 
 /* --- Rulebook table / definition list ------------------------------------ */
 .rulebook {
@@ -260,24 +306,24 @@ h1, h2, h3, h4 {
 }
 .rulebook thead th {
   font-family: var(--font-serif);
-  font-variant-caps: all-small-caps;
+  font-size: 0.95rem;
   text-transform: uppercase;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.1em;
   text-align: left;
+  color: var(--heading);
   padding: 0.5rem 1rem 0.5rem 0;
-  border-bottom: 3px solid #3a2f22;
+  border-bottom: 3px solid var(--box-border);
 }
 .rulebook tbody td {
   padding: 0.5rem 1rem 0.5rem 0;
   vertical-align: top;
-  border-bottom: 1px solid rgba(58, 47, 34, 0.25);
+  border-bottom: 1px solid rgba(107, 76, 48, 0.28);
 }
-.rulebook tbody tr:nth-child(odd) { background: rgba(120, 96, 60, 0.085); }
 .rulebook tbody td:last-child { padding-right: 0; }
 
 .rulebook-dl {
   font-family: var(--font-serif);
-  border-top: 3px solid #3a2f22;
+  border-top: 3px solid var(--box-border);
 }
 .rulebook-dl > div {
   display: flex;
@@ -285,22 +331,21 @@ h1, h2, h3, h4 {
   align-items: baseline;
   justify-content: space-between;
   gap: 0.25rem 1.5rem;
-  padding: 0.55rem 0.75rem;
-  border-bottom: 1px solid rgba(58, 47, 34, 0.25);
+  padding: 0.6rem 0.75rem;
+  border-bottom: 1px solid rgba(107, 76, 48, 0.28);
 }
-.rulebook-dl > div:nth-child(odd) { background: rgba(120, 96, 60, 0.085); }
 .rulebook-dl dt {
-  font-variant-caps: all-small-caps;
   text-transform: uppercase;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.1em;
   color: var(--ink-soft);
-  font-size: 0.8rem;
+  font-size: 0.85rem;
 }
+.rulebook-dl dd { font-size: 1rem; color: var(--ink); }
 
 /* --- Diamond bullets ------------------------------------------------------ */
 .list-diamond > li { position: relative; padding-left: 1.15em; }
 .list-diamond > li::before {
-  content: "◆";
+  content: "\25C6";
   position: absolute;
   left: 0;
   top: 0.05em;
@@ -308,44 +353,75 @@ h1, h2, h3, h4 {
   line-height: 1.9;
   color: var(--gold);
 }
-.card-parchment .list-diamond > li::before,
-.band-parchment .list-diamond > li::before { color: #9a7526; }
 
-/* --- Ink button: replaces outline/ghost variants -------------------------- */
+/* ---------------------------------------------------------------------------
+ * Buttons. Every UButton variant shares one geometry: same height, padding,
+ * 3px radius, serif small-caps face. Solid = gold gradient; outline/ghost =
+ * 1px ink border on a transparent fill.
+ * ------------------------------------------------------------------------- */
+a[data-slot="base"],
+button[data-slot="base"] {
+  min-height: 2.75rem;
+  padding-inline: 1.15rem;
+  padding-block: 0.5rem;
+  border-radius: 3px;
+  font-family: var(--font-serif);
+  font-size: 1rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  line-height: 1.2;
+}
+
+/* Solid (primary) buttons: gold gradient with an ink text shadow. */
+button[data-slot="base"].bg-primary,
+a[data-slot="base"].bg-primary {
+  background-image: var(--gradient-gold);
+  background-size: 200% 100%;
+  background-position: 0 0;
+  border: 1px solid #5c400f;
+  color: #fdf6e4;
+  text-shadow: 0 1px 2px rgba(26, 18, 9, 0.55);
+  box-shadow: var(--shadow-gold);
+  transition: background-position 0.4s ease, transform 0.15s ease;
+}
+button[data-slot="base"].bg-primary:hover,
+a[data-slot="base"].bg-primary:hover {
+  background-position: 100% 0;
+  transform: translateY(-1px);
+}
+
+/* Outline / ghost buttons: same box, ink border, no fill. */
 a.btn-ink[data-slot="base"],
 button.btn-ink[data-slot="base"] {
-  background: rgba(239, 227, 203, 0.06);
-  border: 1px solid var(--gold-dim);
-  border-radius: 2px;
-  color: #eadcbd;
+  background: transparent;
+  border: 1px solid var(--box-border);
+  color: var(--ink);
   box-shadow: none;
   --tw-ring-shadow: 0 0 #0000;
-  font-family: var(--font-serif);
-  font-variant-caps: all-small-caps;
-  text-transform: uppercase;
-  letter-spacing: 0.14em;
-  font-weight: 600;
   transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
 }
 a.btn-ink[data-slot="base"]:hover,
 button.btn-ink[data-slot="base"]:hover {
+  background: rgba(107, 76, 48, 0.1);
+  border-color: var(--ink);
+  color: var(--heading);
+}
+.band-sea a.btn-ink[data-slot="base"],
+.band-sea button.btn-ink[data-slot="base"],
+.band-deck a.btn-ink[data-slot="base"],
+.card-deck a.btn-ink[data-slot="base"] {
+  border-color: var(--gold-dim);
+  color: #f2e4c4;
+}
+.band-sea a.btn-ink[data-slot="base"]:hover,
+.band-deck a.btn-ink[data-slot="base"]:hover,
+.card-deck a.btn-ink[data-slot="base"]:hover {
   background: rgba(200, 160, 74, 0.16);
-  border-color: var(--gold);
+  border-color: var(--gold-bright);
   color: #fbf2df;
 }
-.card-parchment a.btn-ink[data-slot="base"],
-.band-parchment a.btn-ink[data-slot="base"] {
-  background: rgba(58, 47, 34, 0.05);
-  border-color: rgba(58, 47, 34, 0.55);
-  color: #3a2f22;
-}
-.card-parchment a.btn-ink[data-slot="base"]:hover,
-.band-parchment a.btn-ink[data-slot="base"]:hover {
-  background: rgba(58, 47, 34, 0.1);
-  border-color: #3a2f22;
-  color: #23190f;
-}
 
-/* Solid buttons keep the gold gradient but lose the pill radius. */
-button[data-slot="base"].bg-primary,
-a[data-slot="base"].bg-primary { border-radius: 2px; }
+/* --- Minimum type size ---------------------------------------------------- */
+/* Nothing on the page drops below 0.85rem. */
+.text-xs { font-size: 0.85rem; line-height: 1.5; }

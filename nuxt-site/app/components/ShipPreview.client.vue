@@ -315,7 +315,7 @@ function stopRotation() {
     />
     <div
       v-if="loading"
-      class="absolute inset-0 flex items-center justify-center text-white/60 text-sm pointer-events-none"
+      class="absolute inset-0 flex items-center justify-center text-ink-soft text-sm pointer-events-none"
     >
       <UIcon name="i-lucide-loader-2" class="size-5 animate-spin mr-2" /> Loading 3D model…
     </div>
@@ -325,7 +325,7 @@ function stopRotation() {
     >
       Could not load preview.
     </div>
-    <div v-else class="absolute bottom-2 right-3 text-[10px] uppercase tracking-wider text-white/40 pointer-events-none">
+    <div v-else class="absolute bottom-2 right-3 text-sm uppercase tracking-wider text-ink-faint pointer-events-none">
       Drag to rotate
     </div>
   </div>

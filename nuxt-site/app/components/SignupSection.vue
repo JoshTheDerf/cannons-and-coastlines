@@ -34,24 +34,24 @@ onMounted(() => {
 </script>
 
 <template>
-  <section id="signup" class="py-20 px-4 band-deck">
+  <section id="signup" class="py-20 px-4">
     <div class="container mx-auto grid lg:grid-cols-[1.4fr_1fr] gap-10">
       <div>
         <div class="flex items-center gap-3 mb-3">
-          <UIcon name="i-lucide-anchor" class="size-4 shrink-0 text-primary-400" />
+          <UIcon name="i-lucide-anchor" class="size-4 shrink-0 text-[color:var(--gold)]" />
           <span class="rule-gold w-16" />
         </div>
         <p class="stamp stamp-gold mb-3">{{ data.eyebrow }}</p>
-        <h2 class="font-display text-3xl text-white">{{ data.title }}</h2>
-        <p class="mt-3 font-serif lead text-white/75 max-w-xl">{{ data.body }}</p>
-        <ul v-if="data.perks?.length" class="list-diamond mt-5 space-y-2 font-serif text-sm text-white/85">
+        <h2 class="font-display text-3xl text-ink">{{ data.title }}</h2>
+        <p class="mt-3 font-serif lead text-ink-soft max-w-xl">{{ data.body }}</p>
+        <ul v-if="data.perks?.length" class="list-diamond mt-5 space-y-2 font-serif text-sm text-ink-soft">
           <li v-for="perk in data.perks" :key="perk">{{ perk }}</li>
         </ul>
         <div ref="kitContainer" class="mt-6" />
-        <p v-if="data.publicRulebook" class="mt-4 font-serif text-sm text-white/70">
-          <a :href="data.publicRulebook.href" class="underline hover:text-primary-200">{{ data.publicRulebook.label }}</a>
+        <p v-if="data.publicRulebook" class="mt-4 font-serif text-sm text-ink-soft">
+          <a :href="data.publicRulebook.href" class="underline hover:text-[color:var(--heading)]">{{ data.publicRulebook.label }}</a>
         </p>
-        <p class="mt-3 text-xs text-white/50">
+        <p class="mt-3 text-sm text-ink-faint">
           <NuxtLink to="/privacy" class="underline">Privacy Policy</NuxtLink>
         </p>
       </div>

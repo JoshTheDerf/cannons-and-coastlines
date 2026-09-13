@@ -11,10 +11,10 @@ defineProps<{
 </script>
 
 <template>
-  <aside class="bg-primary-600 text-white">
+  <aside class="band-announce">
     <NuxtLink :to="data.to" class="container mx-auto flex flex-wrap items-center gap-3 px-4 py-2 text-sm">
       <UIcon name="i-lucide-anchor" class="size-4" />
-      <span class="stamp text-white">{{ data.pill }}</span>
+      <span class="stamp text-ink">{{ data.pill }}</span>
       <span class="flex-1">
         <strong>{{ data.headline }}</strong><span v-if="data.extra" class="hidden sm:inline">&nbsp;{{ data.extra }}</span>
       </span>

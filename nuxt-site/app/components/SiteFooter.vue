@@ -12,7 +12,7 @@ defineProps<{
 </script>
 
 <template>
-  <footer class="band-deck text-white/80 mt-20">
+  <footer class="band-deck text-ink-soft mt-20">
     <div class="container mx-auto px-4 py-12">
       <div class="grid gap-10 md:grid-cols-[1.4fr_2fr]">
         <div>
@@ -21,25 +21,25 @@ defineProps<{
         </div>
         <div class="grid gap-8 sm:grid-cols-3">
           <div v-for="col in data.columns" :key="col.title">
-            <h4 class="font-display text-white text-sm uppercase tracking-widest">{{ col.title }}</h4>
+            <h4 class="font-display text-ink text-sm uppercase tracking-widest">{{ col.title }}</h4>
             <hr class="rule-gold my-3">
             <ul class="space-y-2 text-sm">
               <li v-for="l in col.links" :key="l.to">
-                <a v-if="l.external" :href="l.to" target="_blank" rel="noopener" class="hover:text-white">{{ l.label }}</a>
-                <NuxtLink v-else :to="l.to" class="hover:text-white">{{ l.label }}</NuxtLink>
+                <a v-if="l.external" :href="l.to" target="_blank" rel="noopener" class="hover:text-ink">{{ l.label }}</a>
+                <NuxtLink v-else :to="l.to" class="hover:text-ink">{{ l.label }}</NuxtLink>
               </li>
             </ul>
           </div>
         </div>
       </div>
       <hr class="rule-gold mt-10">
-      <div class="pt-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 font-serif text-xs">
+      <div class="pt-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 font-serif text-sm">
         <p>
           {{ data.license.replace('CC BY-NC-SA 4.0.', '') }}
-          <a :href="data.licenseUrl" target="_blank" rel="noopener" class="underline hover:text-white">CC BY-NC-SA 4.0</a>.
+          <a :href="data.licenseUrl" target="_blank" rel="noopener" class="underline hover:text-ink">CC BY-NC-SA 4.0</a>.
         </p>
         <div class="flex items-center gap-4">
-          <a v-for="s in data.social" :key="s.to" :href="s.to" :aria-label="s.label" target="_blank" rel="noopener" class="hover:text-white">
+          <a v-for="s in data.social" :key="s.to" :href="s.to" :aria-label="s.label" target="_blank" rel="noopener" class="hover:text-ink">
             <UIcon :name="s.icon" class="size-5" />
           </a>
         </div>

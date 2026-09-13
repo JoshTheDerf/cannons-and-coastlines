@@ -14,8 +14,8 @@ useSeoMeta({
 <template>
   <article class="container mx-auto max-w-3xl px-4 py-16">
     <ContentRenderer v-if="page" :value="page" />
-    <p class="mt-10 text-sm text-white/60">
-      <NuxtLink to="/" class="underline hover:text-white">← Back to main site</NuxtLink>
+    <p class="mt-10 text-sm text-ink-soft">
+      <NuxtLink to="/" class="underline hover:text-ink">← Back to main site</NuxtLink>
     </p>
   </article>
 </template>

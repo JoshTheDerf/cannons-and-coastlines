@@ -17,21 +17,21 @@ const p = computed(() => page.value!)
   <div>
     <!-- Hero -->
     <header
-      class="band-sea relative py-24 md:py-32 px-4 text-center text-white min-h-[60vh] flex items-center justify-center"
-      style="background-image: linear-gradient(180deg, rgba(22,48,60,0.86) 0%, rgba(15,34,43,0.92) 100%), url('/assets/photos/starter-pack/both-ships-and-background-sm.jpg'); background-size: cover; background-position: center;"
+      class="band-sea relative py-24 md:py-32 px-4 text-center text-ink min-h-[60vh] flex items-center justify-center"
+      style="background-image: linear-gradient(180deg, rgba(51,38,27,0.88) 0%, rgba(26,19,13,0.94) 100%), url('/assets/photos/starter-pack/both-ships-and-background-sm.jpg'); background-size: cover; background-position: center;"
     >
       <div class="band-watermark"><UIcon name="i-lucide-compass" /></div>
       <div class="max-w-2xl mx-auto" style="text-shadow: 0 2px 12px rgba(0,0,0,0.45);">
       <span class="stamp text-error-300">
         <UIcon name="i-lucide-ban" class="size-3.5" /> {{ p.hero.badge }}
       </span>
-      <h1 class="font-display text-4xl md:text-5xl text-white mt-4">
-        <s v-if="p.hero.strike" class="text-white/40">{{ p.hero.title }}</s>
+      <h1 class="font-display text-4xl md:text-5xl text-ink mt-4">
+        <s v-if="p.hero.strike" class="text-ink-faint">{{ p.hero.title }}</s>
         <template v-else>{{ p.hero.title }}</template>
       </h1>
       <hr class="rule-gold my-5 mx-auto w-40">
-      <p class="font-serif lead text-lg text-white">{{ p.hero.headline }}</p>
-      <RichText tag="p" :text="p.hero.subtitle" class="mt-3 max-w-3xl mx-auto font-serif text-white/75" />
+      <p class="font-serif lead text-lg text-ink">{{ p.hero.headline }}</p>
+      <RichText tag="p" :text="p.hero.subtitle" class="mt-3 max-w-3xl mx-auto font-serif text-ink-soft" />
       <UButton :to="p.hero.cta.to" :icon="p.hero.cta.icon" color="primary" size="xl" class="mt-6">
         {{ p.hero.cta.label }}
       </UButton>
@@ -42,24 +42,24 @@ const p = computed(() => page.value!)
     <section class="py-16 px-4">
       <div class="container mx-auto grid lg:grid-cols-[1.4fr_1fr] gap-10">
         <div>
-          <h2 class="font-display text-2xl text-white">{{ p.story.title }}</h2>
+          <h2 class="font-display text-2xl text-ink">{{ p.story.title }}</h2>
           <hr class="rule-gold mt-4 max-w-xs">
-          <div class="mt-4 space-y-4 font-serif lead text-white/80">
+          <div class="mt-4 space-y-4 font-serif lead text-ink-soft">
             <RichText v-for="(para, i) in p.story.paragraphs" :key="i" tag="p" :text="para" />
           </div>
         </div>
-        <aside class="rounded-sm overflow-hidden bg-black border border-white/15 aspect-[3/4] max-w-sm w-full lg:justify-self-end">
+        <aside class="rounded-sm overflow-hidden bg-black border border-ink/25 aspect-[3/4] max-w-sm w-full lg:justify-self-end">
           <iframe :src="p.story.reelEmbed" width="100%" height="100%" frameborder="0" scrolling="no" loading="lazy" title="Cannons & Coastlines reel" class="w-full h-full" />
         </aside>
       </div>
     </section>
 
     <!-- Contents -->
-    <section class="py-16 px-4 band-deck">
+    <section class="py-16 px-4 band-parchment">
       <div class="container mx-auto">
-        <h2 class="font-display text-2xl text-white">{{ p.contents.title }}</h2>
+        <h2 class="font-display text-2xl text-ink">{{ p.contents.title }}</h2>
         <hr class="rule-gold mt-3 max-w-xs">
-        <p class="mt-3 font-serif lead text-white/70">{{ p.contents.lead }}</p>
+        <p class="mt-3 font-serif lead text-ink-soft">{{ p.contents.lead }}</p>
 
         <div class="mt-8 grid sm:grid-cols-2 gap-6">
           <figure v-for="s in p.contents.showcase" :key="s.src" class="card-parchment overflow-hidden p-2">
@@ -87,22 +87,22 @@ const p = computed(() => page.value!)
           <figcaption class="pt-2 px-1 text-sm muted">{{ p.contents.wide.caption }}</figcaption>
         </figure>
 
-        <p class="mt-6 font-serif text-sm text-white/60 italic">{{ p.contents.note }}</p>
+        <p class="mt-6 font-serif text-sm text-ink-soft italic">{{ p.contents.note }}</p>
       </div>
     </section>
 
     <!-- Form -->
     <section id="order" class="py-16 px-4">
       <div class="container mx-auto max-w-3xl">
-        <h2 class="font-display text-2xl text-white">{{ p.form.title }}</h2>
+        <h2 class="font-display text-2xl text-ink">{{ p.form.title }}</h2>
         <hr class="rule-gold mt-3 max-w-xs">
-        <RichText tag="p" :text="p.form.intro" class="mt-3 font-serif lead text-white/80" />
+        <RichText tag="p" :text="p.form.intro" class="mt-3 font-serif lead text-ink-soft" />
         <div class="mt-6 rounded-sm overflow-hidden bg-white border border-[#3a2f22]/50">
           <iframe :src="p.form.embed" title="Starter Pack Form" loading="lazy" class="w-full h-[1200px]">Loading form…</iframe>
         </div>
-        <p class="mt-3 font-serif text-sm text-white/60">
+        <p class="mt-3 font-serif text-sm text-ink-soft">
           Form not loading?
-          <a :href="p.form.fallback" target="_blank" rel="noopener" class="underline text-primary-300">Open it in a new tab</a>.
+          <a :href="p.form.fallback" target="_blank" rel="noopener" class="underline text-[color:var(--gold)]">Open it in a new tab</a>.
         </p>
       </div>
     </section>
@@ -111,9 +111,9 @@ const p = computed(() => page.value!)
     <section class="py-16 px-4">
       <div class="container mx-auto grid md:grid-cols-[1.2fr_1fr] gap-8 items-center">
         <div>
-          <h2 class="font-display text-2xl text-white">{{ p.donate.title }}</h2>
+          <h2 class="font-display text-2xl text-ink">{{ p.donate.title }}</h2>
           <hr class="rule-gold mt-3 max-w-xs">
-          <p class="mt-3 font-serif lead text-white/80">{{ p.donate.body }}</p>
+          <p class="mt-3 font-serif lead text-ink-soft">{{ p.donate.body }}</p>
           <UButton :to="p.donate.cta.url" target="_blank" :icon="p.donate.cta.icon" color="primary" size="xl" class="mt-5">{{ p.donate.cta.label }}</UButton>
         </div>
         <figure class="card-parchment overflow-hidden p-2">
