@@ -34,7 +34,7 @@ cta:
 # with pill, headline, cta, and to (see content.config.ts).
 
 footer:
-  blurb: A tabletop naval game for 2 to 20 players. Print it, rig it, sink your friends.
+  blurb: A 3D-printable naval game for 2 to 20 players, where you sink your friends' ships with actual cannons.
   columns:
     - title: Game
       links:

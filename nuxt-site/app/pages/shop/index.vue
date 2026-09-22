@@ -17,8 +17,8 @@ useSeoMeta({
         <p class="font-display uppercase tracking-[0.25em] text-[color:var(--gold)] text-sm mb-3">Shop</p>
         <h1 class="font-display text-4xl md:text-5xl">Starter sets</h1>
         <p class="mt-4 text-ink-soft">
-          One fleet per box. Grab two and you have a game. Printed in your color and
-          packed by hand at our home in Georgia.
+          Each box is one fleet, so grab two for a full game. They're printed in your
+          color and packed by hand at our home in Georgia.
         </p>
       </div>
     </header>
@@ -42,7 +42,7 @@ useSeoMeta({
                 class="size-5 rounded-full border border-ink/25"
                 :class="!v.availableForSale && 'opacity-30'"
                 :style="{ background: v.swatch }"
-                :title="`${v.title}${v.availableForSale ? '' : ' — sold out'}`"
+                :title="`${v.title}${v.availableForSale ? '' : ' (sold out)'}`"
               />
             </div>
             <div class="mt-auto pt-4 flex items-center justify-between">

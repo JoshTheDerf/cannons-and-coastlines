@@ -72,7 +72,7 @@ function checkout() {
           </div>
         </dl>
         <UButton color="primary" size="xl" icon="i-lucide-anchor" class="mt-6 w-full justify-center" @click="checkout">
-          Checkout — ${{ cart.subtotal.amount }}
+          Checkout (${{ cart.subtotal.amount }})
         </UButton>
         <p class="mt-3 text-sm text-ink-faint">
           Checkout is hosted by Shopify on a secure subdomain. Payment, taxes, and shipping

@@ -138,7 +138,7 @@ export const products: Product[] = [
         with: 'corsair-fleet-starter-set',
         title: 'Pair with the Corsairs',
         blurb:
-          'Grab one of each and you have a complete two-player game out of the box. Queens vs. Corsairs is the matchup we tune the rules around — heavy broadsides against quick raiders.'
+          'Grab one of each and you have a complete two-player game out of the box. Queens vs. Corsairs (heavy broadsides against quick raiders) is the matchup we tune the rules around.'
       }
     ]
   },
@@ -192,7 +192,7 @@ export const products: Product[] = [
         with: 'queens-fleet-starter-set',
         title: "Pair with the Queen's Fleet",
         blurb:
-          'Two factions, two players, one full game. The Corsairs play very differently from the Queens — bringing both lets a new group jump straight into a head-to-head match.'
+          'The Corsairs play very differently from the Queens, so bringing both lets a new group jump straight into a head-to-head game.'
       }
     ]
   },
@@ -224,8 +224,8 @@ function addOnFactions(): Product[] {
     {
       handle: 'treasure-fleet-files', title: 'Treasure Fleet', faction: 'Treasure Fleet',
       setId: 'treasure-fleet-set',
-      tagline: 'Fewer ships, deeper holds.',
-      description: 'Fewer ships, deeper holds. Double coins from every island you hold.',
+      tagline: 'Fewer ships with deeper holds.',
+      description: 'Fewer ships, but double coins from every island you hold.',
       image: '/assets/ships/ship-preview-treasure-fleet-sm.webp',
       card: '/rulebook/pdf/faction-card-treasure-fleet.pdf',
       ships: ['Heavy treasure galleons', 'Faction-specific cargo fittings']
@@ -234,7 +234,7 @@ function addOnFactions(): Product[] {
       handle: 'sun-fleet-files', title: 'Sun Fleet', faction: 'Sun Fleet',
       setId: 'sun-fleet-set',
       tagline: 'Carved stone, slow to break.',
-      description: 'Carved stone hulls. Slow, and the first hit each turn bounces off.',
+      description: 'Carved stone ships. Slow, but each ship ignores the first hit it takes each turn.',
       image: '/assets/ships/ship-preview-sun-fleet-sm.webp',
       card: '/rulebook/pdf/faction-card-sun-fleet.pdf',
       ships: ['Carved stone hulls', 'Sun Fleet masts and fittings']
@@ -242,7 +242,7 @@ function addOnFactions(): Product[] {
     {
       handle: 'shadow-fleet-files', title: 'Shadow Fleet', faction: 'Shadow Fleet',
       setId: 'shadow-fleet-set',
-      tagline: 'Fragile, and relentless.',
+      tagline: 'Fragile ships that keep coming back.',
       description: 'Thin hulls that sink easily and rise again from any island you hold.',
       image: '/assets/ships/ship-preview-shadow-fleet-sm.webp',
       card: '/rulebook/pdf/faction-card-shadow-fleet.pdf',
@@ -251,8 +251,8 @@ function addOnFactions(): Product[] {
     {
       handle: 'industry-files', title: 'The Industry', faction: 'The Industry',
       setId: 'industry-set',
-      tagline: 'Forward guns, no wind needed.',
-      description: 'Forward guns, a rotating turret, and engines instead of sails.',
+      tagline: 'Engine-driven warships with forward guns.',
+      description: 'Engine-driven warships with a forward bow gun and a rotating turret.',
       image: '/assets/ships/ship-preview-industry-sm.webp',
       card: '/rulebook/pdf/faction-card-the-industry.pdf',
       ships: ['Ironclad hulls', 'Smokestacks and forward turrets']
@@ -260,7 +260,7 @@ function addOnFactions(): Product[] {
     {
       handle: 'islanders-files', title: 'The Islanders', faction: 'The Islanders',
       setId: 'islander-set',
-      tagline: 'Fast catamarans, rear-firing guns.',
+      tagline: 'Fast catamarans with rear-firing guns.',
       description: 'Fast catamarans with a gun astern. Start the game already holding an island.',
       image: '/assets/ships/ship-preview-islanders-sm.webp',
       card: '/rulebook/pdf/faction-card-the-islanders.pdf',

@@ -5,12 +5,12 @@
 meta:
   title: The Parts
   description: >-
-    Every piece in the Cannons & Coastlines base set. What it does, how it
-    fits, how to print it, and how many you need.
+    What each piece in the Cannons & Coastlines base set does, how it goes
+    together, how to print it and how many you need.
 
 hero:
   title: The Parts
-  intro: Every piece in the base set. What it does, how it fits, and how to print it.
+  intro: What each piece in the base set does, how it goes together and how to print it.
 
 gallery:
   title: The Hulls
@@ -57,7 +57,7 @@ gallery:
       desc: Catamaran with a gun astern. One fitting.
       color: Pine.
   partsTitle: The Pieces
-  partsLead: Everything else in the base set. Colors are suggestions. Your flag color always wins.
+  partsLead: Everything else in the base set. The colors are just suggestions.
   items:
     - render: /assets/images/renders/mast.png
       name: Mast
@@ -82,7 +82,7 @@ gallery:
     - render: /assets/images/renders/cannonball.png
       name: Cannonball
       desc: Goes in the muzzle. Easy to lose.
-      color: Something bright. Neon green or orange finds itself under the couch. **TPU** bounces less.
+      color: Something bright, since neon green or orange is a lot easier to find under the couch. **TPU** bounces less.
     - render: /assets/images/renders/movement-wheel.png
       name: Movement Wheel
       desc: Lives in the stern. One full turn is one *click* of movement. The flat spot parks the ship.
@@ -100,14 +100,14 @@ gallery:
 
 assembly:
   title: Putting It Together
-  lead: Everything press-fits. No glue, no tools. The wheel is the only thing you build once.
+  lead: Everything press-fits, so you don't need glue or tools. The wheel is the only part you fit once and leave in.
   cards:
     - icon: i-lucide-ship
       title: The ship (once)
       ordered: true
       items:
         - Stretch a thin **rubber band** around the rim of the **wheel**.
-        - Push the wheel into the slot under the stern. Snug fit. The wheel should still spin.
+        - Push the wheel into the slot under the stern. It should be snug but still spin.
     - icon: i-lucide-anchor
       title: Fittings (every game)
       items:
@@ -119,7 +119,7 @@ assembly:
       items:
         - Plug the **cannon** into any open slot on a ship or an island.
         - Drop in a **cannonball** and press the arm down until it fires.
-        - Cannons aren't fixed. Pull one and move it to another slot between shots.
+        - You can pull a cannon and move it to another slot between shots.
     - icon: i-lucide-flag
       title: Flags and islands
       items:
@@ -150,9 +150,9 @@ printing:
     - icon: i-lucide-crosshair
       title: Cannons
       body: >-
-        Orient the flex arm so the layers run **across** the bend, not along
-        it. Layers parallel to the flex split under load. Print a couple of
-        spares; the arm loses tension after a few hundred shots.
+        Orient the flex arm so the layers run **across** the bend. If they
+        run along it, the arm splits under load. Print a couple of spares,
+        since the arm loses tension after a few hundred shots.
     - icon: i-lucide-circle-dot
       title: Cannonballs
       body: >-
@@ -174,7 +174,7 @@ quantities:
   title: The Print List
   lead: >-
     One faction set is one player's fleet plus their share of terrain and
-    coins. You print one, a friend prints one, and you have a game.
+    coins. If you print one and a friend prints another, you have a game.
   # rows: [piece, quantity, notes]. Notes accept **bold** and *italic*.
   rows:
     - [Ships, 2–5, Count is on your faction card.]
@@ -193,7 +193,7 @@ cta:
   title: Get the Files
   body: >-
     The STL pack and rulebook go out to the mailing list and get pinned in
-    the Discord. They still change between playtests.
+    the Discord. Expect them to change between playtests.
   buttons:
     - { label: Mailing list, to: /#signup, icon: i-lucide-mail, variant: solid }
     - { label: Discord, to: https://discord.gg/DMuFEWJtZq, icon: i-lucide-message-circle, variant: outline }

@@ -230,7 +230,7 @@ async function resend() {
         <div>
           <p class="text-sm text-ink-soft mb-2">
             Color: <span class="text-ink font-semibold">{{ selectedVariant?.title }}</span>
-            <span v-if="!selectedVariant?.availableForSale" class="ml-2 text-error-300">— sold out</span>
+            <span v-if="!selectedVariant?.availableForSale" class="ml-2 text-error-300">(sold out)</span>
           </p>
           <div class="flex flex-wrap gap-2">
             <button
@@ -243,7 +243,7 @@ async function resend() {
                 !v.availableForSale && 'opacity-40'
               ]"
               :style="{ background: v.swatch }"
-              :title="`${v.title}${v.availableForSale ? '' : ' — sold out'}`"
+              :title="`${v.title}${v.availableForSale ? '' : ' (sold out)'}`"
               :aria-label="v.title"
               @click="selectedVariant = v"
             >
@@ -270,7 +270,7 @@ async function resend() {
             :disabled="!selectedVariant?.availableForSale"
             @click="addNow"
           >
-            {{ justAdded ? 'Added!' : `Add to cart — $${totalPrice}` }}
+            {{ justAdded ? 'Added!' : `Add to cart ($${totalPrice})` }}
           </UButton>
           <UButton
             color="neutral"
@@ -326,7 +326,7 @@ async function resend() {
           <div v-else-if="digital.purchasable">
             <p class="font-display text-2xl text-ink">{{ formatPrice(digital.priceUsd) }}</p>
             <p class="mt-2 text-sm text-ink-soft">
-              One purchase. Print as many as you like. Re-download free when the models change.
+              Buy once and print as many as you like. Re-downloads are free when the models change.
             </p>
             <UButton
               class="mt-4"

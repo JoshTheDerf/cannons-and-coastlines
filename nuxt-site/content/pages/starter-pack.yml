@@ -21,25 +21,27 @@ story:
   title: How this happened
   paragraphs:
     - >-
-      I wanted a silly game to play with friends and the youth at my church.
-      Battleship, but you shoot real cannons.
+      I was just trying to make a silly little game to play with my friends
+      and the youth at my church, something like Battleship with real
+      cannons.
     - >-
-      I roughed out a few models in TinkerCad, took them to the office, and it
-      got out of hand. Now I want to play it. My friends want to play it. A
-      lot of people on the internet want to play it too.
+      I threw together a few rough models in Tinkercad to see if the idea
+      would work, took them to the office, and it kind of blew up from there.
+      Now I really want to play this game, and so do my friends (and
+      apparently a lot of people on the internet).
     - >-
-      So my wife and I committed to print, pack, and ship ten starter packs
-      by hand, to see if there's enough interest to make this a real game.
-      All ten are claimed.
+      So my wife and I committed to printing, packing and shipping ten
+      starter packs by hand, to see if there's enough interest to make this a
+      real game. All ten are claimed.
     - >-
-      Once they ship we'll work out a bigger run. If you want one, join the
-      waiting list below. We'll write when we know the timing and the price,
-      which may change from this first batch.
+      Once they ship we'll figure out a bigger run. If you'd like one, join
+      the waiting list below and we'll email you when we know the timing and
+      the price (which may change from this first batch).
   reelEmbed: https://www.instagram.com/p/DXEtgxttyCB/embed
 
 contents:
   title: In the pack
-  lead: One pack is a small game. Two packs is a proper one.
+  lead: You can play a stripped-down game with one pack, but you'll probably want two for a full game.
   showcase:
     - src: /assets/photos/starter-pack/queens-fleet-ship-sm.jpg
       alt: Queen's Fleet three-ship fleet with sails and faction card.
@@ -50,7 +52,7 @@ contents:
   # Bullets support **bold** and [link text](url).
   includes:
     - icon: i-lucide-ship
-      title: One fleet, ready to sail
+      title: One fleet
       items:
         - >-
           Your choice of the
@@ -72,7 +74,7 @@ contents:
   wide:
     src: /assets/photos/starter-pack/all-parts-sm.jpg
     alt: All the printed parts in a starter pack laid out together.
-    caption: Everything in a pack. Colors vary. Quantities match the rulebook.
+    caption: Everything in a pack. Colors may vary, and quantities match the rulebook.
   note: New pieces will stay compatible with this run wherever I can manage it.
 
 form:
@@ -87,10 +89,10 @@ form:
 donate:
   title: Want to chip in?
   body: >-
-    Outside the US, missed the first ten, or just want to help? It all goes
-    to filament and table time.
+    Outside the US, missed the first ten, or just want to help out? It all
+    goes into more filament and more playtesting.
   cta: { label: Buy me a coffee, url: https://buymeacoffee.com/joshthederf, icon: i-lucide-coffee }
   image:
     src: /assets/photos/starter-pack/kitten-for-scale-sm.jpg
     alt: A kitten next to printed game pieces, for size comparison.
-    caption: Kitten for scale. Not included.
+    caption: Kitten for scale (not included).

@@ -4,8 +4,9 @@
 meta:
   title: Cannons & Coastlines | A Tabletop Game of Naval Conquest
   description: >-
-    A tabletop naval game for 2 to 20 players. 3D-printed ships, real
-    cannons, and islands worth fighting over.
+    A 3D-printable tabletop naval game for 2 to 20 players. Ships roll
+    across the table, the cannons actually fire, and you fight over islands
+    for treasure.
 
 hero:
   tagline: A Tabletop Game of Naval Conquest
@@ -21,7 +22,7 @@ hero:
 
 seeIt:
   title: See It
-  description: The reel that started it, the printed pieces, and a few playtests.
+  description: The Instagram reel that started all this, plus the printed pieces and some playtest footage.
   reel:
     embed: https://www.instagram.com/p/DXEtgxttyCB/embed
     url: https://www.instagram.com/p/DXEtgxttyCB/
@@ -52,25 +53,25 @@ seeIt:
 
 howItPlays:
   title: How It Plays
-  description: No dice. No board. Ships roll, cannons fire, islands pay out.
+  description: There are no dice and no board. Your ships roll across the table and you aim the cannons yourself.
   features:
     - icon: i-lucide-move
       title: One action per ship
       body: Move it, fire from it, or collect from the island it's touching.
     - icon: i-lucide-crosshair
       title: Real cannons
-      body: Load a ball, press the arm, and watch it go. Where it lands is up to you.
+      body: Load a cannonball and press the arm down to fire. Where it lands is up to you.
     - icon: i-lucide-map
       title: Take islands
-      body: Plant a flag to claim one. Held islands pay coins and mount cannons.
+      body: Plant a flag on an island to claim it. Islands you hold pay out coins and can mount cannons.
     - icon: i-lucide-coins
       title: Spend coins
-      body: Full sail for speed. Repair crews to patch a hull. Boarding parties to steal a ship.
+      body: Coins buy Full Sail for extra speed, Repair to patch a hull, or Boarding to steal an enemy ship.
   rulebookHref: /rulebook/pdf/rulebook.pdf
 
 factions:
   title: Pick a Fleet
-  description: Each one fights differently.
+  description: Each fleet plays a bit differently.
   items:
     - badge: Base Game
       name: Queen's Fleet
@@ -82,7 +83,7 @@ factions:
         - 4 fittings each
         - 3 broadside slots per side
         - 3 clicks per move
-      desc: Disciplined crews turn a full 180°. The fleet to learn on.
+      desc: Disciplined crews can pivot a full 180°. A good pick if you're just learning the game.
       price: Free with the base game
       card: /rulebook/pdf/faction-card-queens-fleet.pdf
     - badge: Base Game
@@ -95,7 +96,7 @@ factions:
         - 3 fittings each
         - 3 broadside slots per side
         - 4 clicks per move
-      desc: The quickest fleet on the table. Bonus coin on every boarding and capture.
+      desc: The fastest fleet on the table. Gets an extra coin for every successful boarding or capture.
       price: Free with the base game
       card: /rulebook/pdf/faction-card-corsairs.pdf
     - badge: Coming Soon
@@ -106,7 +107,7 @@ factions:
         - 2 junks
         - 3 fittings each
         - 2 clicks per move
-      desc: Fewer ships, deeper holds. Double coins from every island you hold.
+      desc: Fewer ships, but double coins from every island you hold.
     - badge: Coming Soon
       name: Sun Fleet
       set: sun-fleet-set
@@ -115,7 +116,7 @@ factions:
         - 3 barges
         - 4 fittings each
         - 2 clicks per move
-      desc: Carved stone hulls. Slow, and the first hit each turn bounces off.
+      desc: Carved stone ships. Slow, but each ship ignores the first hit it takes each turn.
     - badge: Coming Soon
       name: Shadow Fleet
       set: shadow-fleet-set
@@ -135,7 +136,7 @@ factions:
         - 1 bow gun, forward only
         - 1 rotating turret
         - 3 clicks per move
-      desc: Forward guns, a rotating turret, and engines instead of sails.
+      desc: Engine-driven warships with a forward bow gun and a rotating turret.
     - badge: Coming Soon
       name: The Islanders
       set: islander-set
@@ -173,14 +174,15 @@ changelog:
       body: To fire any cannon, a ship of yours must be touching it and spend its action. Islands no longer fire on their own.
     - icon: i-lucide-wind
       title: Always Underway
-      body: Optional mode. Ships must move forward every turn and may steer or fire, not both.
+      body: An optional mode where ships have to move forward every turn, and can steer or fire but not both.
 
 signup:
   eyebrow: Free
   title: Rulebook and STL files
   body: >-
-    Subscribe and we'll send the printable rulebook and the STL pack we play
-    with. You'll hear when a new faction lands.
+    Subscribe and we'll send you the printable rulebook and the STL pack we
+    use at our own playtests. We'll also let you know when a new faction is
+    ready.
   perks:
     - Half-letter rulebook booklet
     - 'STL pack: both fleets, terrain, cannons, coins'
@@ -192,7 +194,7 @@ signup:
   kitSrc: https://cannons-and-coastlines.kit.com/a74f27ac96/index.js
   discord:
     title: Or join the Discord
-    body: Playtest chatter, rule arguments, and early files pinned in the channel.
+    body: Updates and discussion for playtesters and anyone curious. Early files get pinned in the channel.
     url: https://discord.gg/DMuFEWJtZq
     qr: https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=https://discord.gg/DMuFEWJtZq
 
@@ -202,10 +204,11 @@ about:
   paragraphs:
     - >-
       I'm Joshua Bemenderfer, a software engineer by day. I wanted a
-      Battleship where you move, aim, and fire for real. It got away from me
-      and went viral, so now a small crew of us (my wife and a few
-      coworkers) are making it properly.
+      battleship game where you actually move your ships around and aim your
+      own shots. It got away from me and went viral, so now a small crew of
+      us (my wife and a few coworkers) are making it for real.
     - >-
-      We design every piece, print it, and play it. If a rule doesn't work at
-      the table, it gets rewritten. The base game is free for anyone with a
-      printer. Paid add-on fleets pay for the next round.
+      We design, print and playtest every piece ourselves, and rewrite the
+      rules whenever something doesn't work at the table. The base game is
+      free for anyone with a printer, and the paid add-on fleets fund the next
+      round of work.
