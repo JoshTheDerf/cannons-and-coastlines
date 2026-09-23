@@ -5,26 +5,15 @@
 #   scripts/bump-set.sh base-set 0.4
 #   scripts/bump-set.sh base-set 0.4 --dry-run
 #
-# A version bump used to be six manual steps in a fixed order, and skipping
-# any one of them left something broken in a way nothing checked:
-#
-#   edit set.json · sync the manifest · fix freeDownloadUrl · rebuild the zip
-#   · add a _redirects line · delete the superseded zip
-#
-# Miss the URL and the site links at a file you are about to delete. Miss the
-# redirect and every link anyone has shared 404s. Delete nothing and the old
-# zip shadows its own redirect, so the fix silently does nothing. None of that
-# is interesting work, so this script owns all of it and the checklist is gone.
-#
 # What it does, for a FREE set:
 #   1. writes the new version into the set's set.json (source of truth)
-#   2. runs sync-sets-manifest.sh, which copies it into the site manifest and
-#      rewrites freeDownloadUrl to match
-#   3. rebuilds the public zip at the new version
-#   4. points every _redirects rule that aimed at the old zip to the new one,
-#      and adds a rule for the version just superseded
-#   5. deletes the superseded zip, because a real file at that path would take
-#      precedence over the redirect that replaces it
+#   2. runs sync-sets-manifest.sh, which copies it into the site manifest
+#   3. rebuilds the public zip
+#
+# The zip's filename carries no version (cannons-and-coastlines-base-set.zip,
+# with a versioned folder inside), so its URL never changes: no redirects to
+# add, no old zip to retire. _headers gives zips a short cache so a new
+# release reaches people straight away.
 #
 # For a PAID set only steps 1-2 apply: its files never enter the published
 # tree. The script says so and stops, leaving `npx jake publish-sets` to push
@@ -126,47 +115,22 @@ MSG
 fi
 
 base_name="$(set_field "$dir" '.publicZipBaseName')"
-old_zip="$STL_ROOT/${base_name}-${old_version}.zip"
-new_zip="$STL_ROOT/${base_name}-${new_version}.zip"
+zip_path="$STL_ROOT/${base_name}.zip"
 
 run_quiet "" "$REPO_ROOT/scripts/build-stl-zip.sh" "$set_id"
-[[ -n "$dry_run" ]] || echo "  zip           → $(basename "$new_zip") ($(du -h "$new_zip" | cut -f1))"
+[[ -n "$dry_run" ]] || echo "  zip           → $(basename "$zip_path") ($(du -h "$zip_path" | cut -f1)), same URL as before"
 
-# ── Redirects ────────────────────────────────────────────────────────────
-# Only the root _redirects is edited. nuxt-site/public/_redirects is a build
-# artifact that build.sh copies there, and is gitignored.
-REDIRECTS="$REPO_ROOT/_redirects"
-old_url="/assets/stls/$(basename "$old_zip")"
-new_url="/assets/stls/$(basename "$new_zip")"
-
-if [[ "$old_version" != "$new_version" && -f "$REDIRECTS" ]]; then
-    if [[ -n "$dry_run" ]]; then
-        echo "    would repoint _redirects rules at $new_url and add $old_url"
-    else
-        tmp="$(mktemp)"
-        # Existing rules aimed at the old zip now aim at the new one, so a
-        # chain of past versions never points at a file that just went away.
-        # The [[:space:]]\+ matches the whole gap; consuming only one space
-        # would leave the rewritten column misaligned.
-        sed "s#[[:space:]]\+${old_url}[[:space:]]*301\$#  ${new_url}  301#" \
-            "$REDIRECTS" > "$tmp"
-        # ...and the version being retired gets a rule of its own.
-        if ! grep -qF "$old_url  " "$tmp"; then
-            printf '%s  %s  301\n' "$old_url" "$new_url" >> "$tmp"
-        fi
-        mv "$tmp" "$REDIRECTS"
-        echo "  _redirects    → $(grep -c '301$' "$REDIRECTS") rule(s), all → v$new_version"
-    fi
-fi
-
-# ── Retire the superseded zip ────────────────────────────────────────────
-# Must happen: a static file at the old path outranks the redirect above it.
-if [[ "$old_zip" != "$new_zip" && -f "$old_zip" ]]; then
-    run rm -f "$old_zip"
-    [[ -n "$dry_run" ]] || echo "  retired       → $(basename "$old_zip")"
-fi
+# Zips from before the URL stopped carrying a version: a real file at one of
+# those paths would outrank the _redirects rule that sends it to the zip
+# above, so they must not linger.
+shopt -s nullglob
+for legacy in "$STL_ROOT/${base_name}"-*.zip; do
+    run rm -f "$legacy"
+    [[ -n "$dry_run" ]] || echo "  removed       → $(basename "$legacy") (old versioned filename)"
+done
+shopt -u nullglob
 
 if [[ -z "$dry_run" ]]; then
     echo
-    echo "Done. Review with: git status && git diff -- _redirects nuxt-site/server/data/sets.json"
+    echo "Done. Review with: git status && git diff -- nuxt-site/server/data/sets.json"
 fi

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Build the public, versioned STL zip for every FREE set under assets/stls/.
+# Build the public STL zip for every FREE set under assets/stls/.
 #
 #   npx jake stl                 # every free set
 #   scripts/build-stl-zip.sh base-set
@@ -10,13 +10,17 @@
 # the zip's filename stem:
 #
 #   { "version": "0.3", "publicZipBaseName": "cannons-and-coastlines-base-set" }
-#     -> assets/stls/cannons-and-coastlines-base-set-0.3.zip
+#     -> assets/stls/cannons-and-coastlines-base-set.zip
+#        (everything inside a cannons-and-coastlines-base-set-0.3/ folder)
+#
+# The zip's own filename never changes, so its download URL is permanent and
+# a release is just a new file at the same address (served with a short
+# cache; see _headers). The version lives in the folder inside, so anyone can
+# tell which one they have.
 #
 # This builds a zip at whatever version set.json currently names; it is not
 # how you cut a release. Use `npx jake "bump-set[<set-id>,<version>]"`, which
-# calls this script and also handles the manifest, the _redirects rule and
-# retiring the superseded zip -- the steps that are easy to forget and that
-# nothing else checks.
+# calls this script and also syncs the site manifest.
 #
 # PAID SETS ARE REFUSED, and only assets/stls/ is scanned. Everything under
 # assets/ is served publicly by the Worker, so a paid set's zip written here
@@ -101,7 +105,7 @@ for set_id in "${requested[@]}"; do
 
     version="$(set_field "$dir" '.version')"
     base_name="$(set_field "$dir" '.publicZipBaseName')"
-    zip_name="${base_name}-${version}.zip"
+    zip_name="${base_name}.zip"
     zip_path="$STL_ROOT/$zip_name"
 
     shopt -s nullglob
@@ -115,11 +119,9 @@ for set_id in "${requested[@]}"; do
     echo "▸ $set_id v$version → $zip_name (${#contents[@]} files)"
     rm -f "$zip_path"
 
-    # Every entry sits under a single top-level folder named after the zip, so
-    # extracting drops one tidy directory rather than 26 loose STLs into
-    # someone's Downloads. That is the structure previously published zips had
-    # (back when the source folder itself carried the version), and existing
-    # links still point at this filename — so it has to stay that way.
+    # Every entry sits under a single top-level folder carrying the version,
+    # so extracting drops one tidy directory rather than 26 loose STLs into
+    # someone's Downloads, and says which release it is.
     #
     # Staged through a temp directory because the source folder is now named
     # base-set/, not the versioned name the archive needs. Only model files are

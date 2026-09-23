@@ -30,9 +30,9 @@
       "faction": "Queen's Fleet & Corsairs",
       "paid": false,
       "status": "available",
-      "version": "0.5",
+      "version": "0.5.1",
       "sourceDir": "assets/stls/base-set",
-      "freeDownloadUrl": "/assets/stls/cannons-and-coastlines-base-set-0.5.zip",
+      "freeDownloadUrl": "/assets/stls/cannons-and-coastlines-base-set.zip",
       "stripePriceId": null,
       "priceUsd": null,
       "images": {

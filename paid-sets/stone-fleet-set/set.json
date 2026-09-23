@@ -1,5 +1,5 @@
 {
-  "_comment": "Version of record for this STL set; the folder name no longer carries it. Do not edit \"version\" by hand \u2014 run `npx jake bump-set[<set-id>,<version>]`, which writes it here, syncs nuxt-site/server/data/sets.json (freeDownloadUrl included), rebuilds the public zip for a free set, adds the _redirects rule and retires the superseded zip. Editing this file alone leaves the site pointing at a version that was never built; the build scripts refuse to run while the two manifests disagree.",
+  "_comment": "Version of record for this STL set. Do not edit \"version\" by hand; run `npx jake bump-set[<set-id>,<version>]`, which writes it here, syncs nuxt-site/server/data/sets.json, and rebuilds the public zip for a free set (at the same URL: the zip's filename carries no version). Editing this file alone leaves the site and the zip disagreeing, and the build scripts refuse to run while the two manifests disagree.",
   "id": "stone-fleet-set",
   "version": "1",
   "paid": true,
