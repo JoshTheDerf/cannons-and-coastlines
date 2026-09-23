@@ -45,21 +45,21 @@ for (const n of [2, 3, 5, 7]) {
   const r = engine.act(1, { t: 'fire', ship: ind.id, source: 'ship', slot: 1, h: Math.PI / 2, D: 30 });
   ok(r.ok && ind.h === h0 && Math.abs(ind.turretRel - Math.PI / 2) < 1e-9 && ind.stage === 'click', 'turret aims any way, keeps its facing, the hull stays put and the ship still owes its click');
   ok(!engine.act(1, { t: 'move', ship: ind.id, h: 1, clicks: 1 }).ok || Math.abs(ind.h - h0) < 1e-9, 'no steering after firing the turret');
-  // Hits take the fitting nearest the impact.
-  const tw = engine.fittingWorld(ind, 2);
+  // Fittings come off turret, cargo, then smokestack; repairs go the other way.
   engine.G.players[1].ships.forEach(s => { s.acted = true; });
-  let res = engine.applyHit(ind, { x: tw.x + 1.9, y: tw.y });
-  ok(res === 'fitting' && ind.lastLost === 2 && !engine.hasTurret(ind) && engine.shipSlots(ind).length === 1, 'a hit on the turret knocks it off: only the bow gun is left');
-  const bw = engine.fittingWorld(ind, 0);
-  res = engine.applyHit(ind, { x: bw.x, y: bw.y - 1 });
-  ok(res === 'fitting' && ind.lastLost === 0 && ind.fit === 1, 'a hit near the bow takes the bow fitting');
-  ind.fit = 3; ind.fitMask = [true, true, true];
-  engine.applyHit(ind, null, 1);
-  ok(ind.lastLost === 1 && ind.fitMask.join() === 'true,false,true', 'boarding takes the fitting the attacker picks');
-  ind.fitMask = [true, false, false]; ind.fit = 1;
-  ok(engine.defaultRestore(ind) === 2, 'Repair puts the turret back by default');
+  const kinds = engine.fittingLayout(ind).map(f => f.kind).join(',');
+  ok(kinds === 'stack,cargo,turret', `Industry fittings are ${kinds}`);
+  const order = [engine.applyHit(ind), ind.lastLost, engine.applyHit(ind), ind.lastLost, engine.applyHit(ind), ind.lastLost];
+  ok(order.join() === 'fitting,2,fitting,1,dead,0', `lost turret, then cargo, then smokestack (${order.join()})`);
+  ok(engine.shipSlots(ind).length === 1, 'turret gone: only the bow gun');
+  const back = []; for (let k = 0; k < 3; k++) { const i = engine.nextToRestore(ind); back.push(i); ind.fitMask[i] = true; ind.fit++; }
+  ok(back.join() === '0,1,2', `repairs put back smokestack, cargo, then turret (${back.join()})`);
   engine.oneFitting(ind);
-  ok(ind.fit === 1 && engine.hasTurret(ind), 'captured or raised at 1 fitting: the turret');
+  ok(ind.fit === 1 && ind.fitMask.join() === 'true,false,false' && !engine.hasTurret(ind), 'captured or raised Industry ship has 1 fitting (smokestack) and only its bow gun');
+  const qf = engine.G.players[2].ships[0];
+  ok(engine.fittingLayout(qf).map(f => f.kind).join() === 'mast,cargo,mast,cargo', "Queen's Fleet: mast, cargo, mast, cargo");
+  const qorder = []; for (let k = 0; k < 4; k++) { qf.stoneUsed = true; qf.braced = false; engine.applyHit(qf); qorder.push(engine.fittingLayout(qf)[qf.lastLost].kind); }
+  ok(qorder.join() === 'cargo,cargo,mast,mast', `sail ships lose cargo before masts (${qorder.join()})`);
   ind.fit = 0; ind.fitMask = [false, false, false];
   ok(engine.applyHit(ind, { x: 0, y: 0 }) === 'sunk', 'fittings + 1 hits to sink');
   // Auto end of turn.

@@ -283,6 +283,11 @@ function drawShip(ship) {
   drawShipBody(ship, ship, spent ? 0.55 : 1, false);
   const c = w2s(ship.x, ship.y);
   const R = w2r(ship.len * 0.62);
+  if (UI.signalPick === ship || UI.hoverShip === ship) {
+    ctx.strokeStyle = UI.signalPick === ship ? 'rgba(139,26,26,.95)' : 'rgba(255,215,110,.7)';
+    ctx.lineWidth = UI.signalPick === ship ? 3.5 : 2.5;
+    ctx.beginPath(); ctx.arc(c.x, c.y, R + 3, 0, TAU); ctx.stroke();
+  }
   if (UI.sel === ship) {
     ctx.strokeStyle = `rgba(255,215,110,${0.55 + Math.sin(wavePhase * 5) * 0.35})`;
     ctx.lineWidth = 2.5;
@@ -428,7 +433,9 @@ function drawShipBody(ship, pose, alpha, ghost) {
     if (mask[i]) {
       ctx.fillStyle = col.light; ctx.strokeStyle = 'rgba(40,25,10,.8)'; ctx.lineWidth = 1;
       ctx.beginPath();
-      if (f.kind === 'cargo') ctx.rect(-fr * 0.85, cy - fr * 0.85, fr * 1.7, fr * 1.7); else ctx.arc(0, cy, fr, 0, TAU);
+      if (f.kind === 'stack') { ctx.fillStyle = '#26262c'; ctx.rect(-fr * 0.7, cy - fr * 1.1, fr * 1.4, fr * 2.2); }
+      else if (f.kind === 'cargo') ctx.rect(-fr * 0.85, cy - fr * 0.85, fr * 1.7, fr * 1.7);
+      else ctx.arc(0, cy, fr, 0, TAU);
       ctx.fill(); ctx.stroke();
     } else if (!ghost) {
       ctx.strokeStyle = 'rgba(30,20,10,.7)'; ctx.lineWidth = 1.2;
@@ -436,10 +443,6 @@ function drawShipBody(ship, pose, alpha, ghost) {
       ctx.beginPath(); ctx.moveTo(-x, cy - x); ctx.lineTo(x, cy + x); ctx.moveTo(x, cy - x); ctx.lineTo(-x, cy + x); ctx.stroke();
     }
   });
-  if (ship.guns === 'industry' && !ghost) {
-    ctx.fillStyle = '#222';
-    ctx.fillRect(-W * 0.12, L * 0.12, W * 0.24, W * 0.3);
-  }
   ctx.restore();
 
   if (dead && !ghost) {
@@ -471,9 +474,10 @@ function drawMovePreview() {
     const kx = c.x + hf.x * R, ky = c.y + hf.y * R;
     ctx.strokeStyle = 'rgba(250,243,224,.8)'; ctx.lineWidth = 1.5;
     ctx.beginPath(); ctx.moveTo(c.x, c.y); ctx.lineTo(kx, ky); ctx.stroke();
-    ctx.fillStyle = '#faf3e0'; ctx.strokeStyle = '#3c2415'; ctx.lineWidth = 2;
-    ctx.beginPath(); ctx.arc(kx, ky, 9, 0, TAU); ctx.fill(); ctx.stroke();
-    ctx.fillStyle = '#3c2415';
+    // Open knob while previewing; solid crimson once the heading is set.
+    ctx.fillStyle = m.locked ? '#8b1a1a' : '#faf3e0'; ctx.strokeStyle = m.locked ? '#faf3e0' : '#3c2415'; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.arc(kx, ky, m.locked ? 11 : 9, 0, TAU); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = m.locked ? '#faf3e0' : '#3c2415';
     ctx.beginPath(); ctx.arc(kx, ky, 3, 0, TAU); ctx.fill();
   }
   // Planned track with a tick per click.
@@ -506,7 +510,8 @@ function drawEvasivePreview() {
   if (UI.mode !== 'evasive' || !UI.evasive) return;
   for (const side of ['port', 'stbd']) {
     const pl = UI.evasive[side];
-    drawShipBody(UI.evasive.ship, pl.end, 0.45, true);
+    const on = UI.evasive.pick === side || UI.evasive.hover === side;
+    drawShipBody(UI.evasive.ship, pl.end, UI.evasive.pick === side ? 0.85 : on ? 0.65 : 0.4, true);
     const s = w2s(pl.end.x, pl.end.y);
     ctx.fillStyle = 'rgba(255,255,255,.9)';
     ctx.font = 'bold 12px "Crimson Text",serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
@@ -541,19 +546,20 @@ function drawFirePreview() {
   const F = UI.fire;
   if (UI.mode !== 'fire' || !F) return;
   if (F.stage === 'slot') {
-    F.slots.forEach(sl => {
+    F.slots.forEach((sl, i) => {
+      const hot = F.hover === i;
       const w = slotWorld(F.ship, sl);
       const o = w2s(w.x, w.y);
       if (!sl.free) {
         const e = w2s(w.x + fwdVec(w.h).x * RANGE_MAX, w.y + fwdVec(w.h).y * RANGE_MAX);
-        ctx.strokeStyle = 'rgba(255,120,90,.35)'; ctx.lineWidth = 1.5; ctx.setLineDash([4, 6]);
+        ctx.strokeStyle = hot ? 'rgba(255,120,90,.9)' : 'rgba(255,120,90,.35)'; ctx.lineWidth = hot ? 2.5 : 1.5; ctx.setLineDash([4, 6]);
         ctx.beginPath(); ctx.moveTo(o.x, o.y); ctx.lineTo(e.x, e.y); ctx.stroke(); ctx.setLineDash([]);
       } else {
         ctx.strokeStyle = 'rgba(255,120,90,.35)'; ctx.lineWidth = 1.5; ctx.setLineDash([4, 6]);
         ctx.beginPath(); ctx.arc(o.x, o.y, w2r(RANGE_MAX * 0.5), 0, TAU); ctx.stroke(); ctx.setLineDash([]);
       }
-      const r = Math.max(9, w2r(1.4));
-      ctx.fillStyle = 'rgba(230,185,90,.95)'; ctx.strokeStyle = 'rgba(20,10,5,.9)'; ctx.lineWidth = 1.5;
+      const r = Math.max(9, w2r(1.4)) * (hot ? 1.3 : 1);
+      ctx.fillStyle = hot ? 'rgba(139,26,26,.95)' : 'rgba(230,185,90,.95)'; ctx.strokeStyle = 'rgba(20,10,5,.9)'; ctx.lineWidth = 1.5;
       ctx.beginPath(); ctx.arc(o.x, o.y, r, 0, TAU); ctx.fill(); ctx.stroke();
     });
     return;
@@ -567,9 +573,9 @@ function drawFirePreview() {
     const kx = c.x + f.x * R, ky = c.y + f.y * R;
     ctx.strokeStyle = 'rgba(250,243,224,.85)'; ctx.lineWidth = 1.5; ctx.setLineDash([3, 3]);
     ctx.beginPath(); ctx.arc(c.x, c.y, R, 0, TAU); ctx.stroke(); ctx.setLineDash([]);
-    ctx.fillStyle = '#faf3e0'; ctx.strokeStyle = '#8b1a1a'; ctx.lineWidth = 2;
-    ctx.beginPath(); ctx.arc(kx, ky, 9, 0, TAU); ctx.fill(); ctx.stroke();
-    ctx.fillStyle = '#8b1a1a'; ctx.beginPath(); ctx.arc(kx, ky, 3, 0, TAU); ctx.fill();
+    ctx.fillStyle = F.locked ? '#8b1a1a' : '#faf3e0'; ctx.strokeStyle = F.locked ? '#faf3e0' : '#8b1a1a'; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.arc(kx, ky, F.locked ? 11 : 9, 0, TAU); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = F.locked ? '#faf3e0' : '#8b1a1a'; ctx.beginPath(); ctx.arc(kx, ky, 3, 0, TAU); ctx.fill();
     return;
   }
   if (F.stage === 'power') drawLane(o.x, o.y, o.h, powerToRange(currentPower()), true);

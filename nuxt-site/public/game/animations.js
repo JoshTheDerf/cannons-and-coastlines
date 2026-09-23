@@ -306,6 +306,9 @@ function drawAnimations(ctx) {
           ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(L, 0); ctx.stroke();
           ctx.fillStyle = 'rgba(245,235,215,.95)';
           ctx.beginPath(); ctx.moveTo(L * 0.25, 0); ctx.lineTo(L * 0.8, 0); ctx.lineTo(L * 0.55, L * 0.35); ctx.closePath(); ctx.fill();
+        } else if (a.kind === 'stack') {
+          ctx.fillStyle = '#26262c'; ctx.strokeStyle = '#111'; ctx.lineWidth = 1;
+          ctx.fillRect(0, -L * 0.3, L * 0.9, L * 0.6); ctx.strokeRect(0, -L * 0.3, L * 0.9, L * 0.6);
         } else if (a.kind === 'turret') {
           ctx.fillStyle = '#3a3a44'; ctx.strokeStyle = '#111'; ctx.lineWidth = Math.max(1.5, L * 0.2);
           ctx.beginPath(); ctx.arc(L * 0.4, 0, L * 0.45, 0, TAU); ctx.fill();

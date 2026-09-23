@@ -385,25 +385,23 @@ const turretIdx = ship => (ship.guns === 'industry' ? ship.maxFit - 1 : -1);
 function hasTurret(ship) { const i = turretIdx(ship); return i >= 0 && fitMaskOf(ship)[i]; }
 function presentFittings(ship) { return fitMaskOf(ship).map((v, i) => (v ? i : -1)).filter(i => i >= 0); }
 function missingFittings(ship) { return fitMaskOf(ship).map((v, i) => (v ? -1 : i)).filter(i => i >= 0); }
-/** The fitting nearest a point on the table (the impact of a shot). */
-function nearestFitting(ship, at) {
-  const idx = presentFittings(ship);
-  if (!at) return idx[0];
-  let best = idx[0], bd = Infinity;
-  for (const i of idx) { const w = fittingWorld(ship, i); const d = dist(w.x, w.y, at.x, at.y); if (d < bd) { bd = d; best = i; } }
-  return best;
+// Fittings always come off in this order: turret, then cargo, then masts
+// (or the Industry's smokestack). Repair puts them back in reverse.
+const LOSS_RANK = { turret: 0, cargo: 1, mast: 2, stack: 2 };
+function nextToLose(ship) {
+  const lay = fittingLayout(ship);
+  return presentFittings(ship).sort((a, b) => (LOSS_RANK[lay[a].kind] - LOSS_RANK[lay[b].kind]) || (b - a))[0];
 }
-/** Which fitting a Repair puts back by default: the turret if it is missing. */
-function defaultRestore(ship) {
-  const miss = missingFittings(ship), t = turretIdx(ship);
-  return miss.includes(t) ? t : miss[0];
+function nextToRestore(ship) {
+  const lay = fittingLayout(ship);
+  return missingFittings(ship).sort((a, b) => (LOSS_RANK[lay[b].kind] - LOSS_RANK[lay[a].kind]) || (a - b))[0];
 }
 function loseFitting(ship, idx) { fitMaskOf(ship)[idx] = false; ship.fit--; ship.lastLost = idx; }
 function gainFitting(ship, idx) { const m = fitMaskOf(ship); if (!m[idx]) { m[idx] = true; ship.fit++; } }
-/** Leave the ship with exactly one fitting (captured or raised ships). */
+/** Leave the ship with exactly one fitting (captured or raised ships): the first a Repair would put back. */
 function oneFitting(ship) {
   ship.fitMask = Array(ship.maxFit).fill(false); ship.fit = 0;
-  gainFitting(ship, turretIdx(ship) >= 0 ? turretIdx(ship) : 0);
+  gainFitting(ship, nextToRestore(ship));
 }
 
 /**
@@ -411,16 +409,14 @@ function oneFitting(ship) {
  * 'stone' | 'brace' | 'fitting' | 'dead' | 'sunk'.
  * Order when both could apply: Stone Hulls first (free), then Brace, so the
  * brace coin is kept for a later hit.
- * A cannonball knocks off the fitting nearest where it hit (`at`); a
- * boarding party takes the fitting the attacker picks (`choice`).
+ * Cannonball or boarding party, the fitting lost is always the next in
+ * the loss order (see nextToLose).
  */
-function applyHit(ship, at, choice) {
+function applyHit(ship) {
   if (passiveOf(ship.owner) === 'stone' && !ship.stoneUsed) { ship.stoneUsed = true; return 'stone'; }
   if (ship.braced) { ship.braced = false; G.bag.push('brace'); return 'brace'; }
   if (ship.fit > 0) {
-    const m = fitMaskOf(ship);
-    const idx = choice != null && m[choice] ? choice : nearestFitting(ship, at);
-    loseFitting(ship, idx);
+    loseFitting(ship, nextToLose(ship));
     return ship.fit === 0 ? 'dead' : 'fitting';
   }
   sinkShip(ship);

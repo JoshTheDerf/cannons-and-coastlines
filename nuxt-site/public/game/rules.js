@@ -158,7 +158,7 @@ ACTIONS.fire = (p, a) => {
       shot.friendly = true;
       shot.msg = `The shot hits ${t.name} first. No damage.`;
     } else {
-      const res = applyHit(t, { x: tr.x, y: tr.y });
+      const res = applyHit(t);
       shot.res = res; shot.fitAfter = t.fit; shot.mask = fitMaskOf(t).slice();
       if (res === 'fitting' || res === 'dead') shot.lost = t.lastLost;
       if (res === 'sunk') { shot.wreck = snapShip(t); G.stats[p].sunk++; }
@@ -333,9 +333,8 @@ ACTIONS.coin = (p, a) => {
     case 'repair':
       if (target.owner !== p) { capture(p, target); break; }
       {
-        // The owner picks which fitting goes back; the turret by default.
-        const miss = missingFittings(target);
-        const idx = a.fitting != null && miss.includes(+a.fitting) ? +a.fitting : defaultRestore(target);
+        // Fittings go back in reverse loss order: masts first, turret last.
+        const idx = nextToRestore(target);
         payCoin(p, id);
         gainFitting(target, idx);
         const what = fittingLayout(target)[idx].kind === 'turret' ? 'turret back on' : `${target.fit}/${target.maxFit}`;
@@ -346,8 +345,7 @@ ACTIONS.coin = (p, a) => {
       if (isDead(target)) { capture(p, target); break; }
       payCoin(p, id);
       const from = boarder(p, target);
-      // The boarding party takes the fitting the attacker picks.
-      const res = applyHit(target, null, a.fitting != null ? +a.fitting : (hasTurret(target) ? turretIdx(target) : null));
+      const res = applyHit(target);
       const e = ev({ e: 'board', p, from: from.id, ship: target.id, res, fitAfter: target.fit, mask: fitMaskOf(target).slice(), lost: target.lastLost, msg: `Boarding party on ${target.name}: ${hitWords(res)}.` });
       if (res === 'sunk') e.wreck = snapShip(target);
       if (res === 'fitting' || res === 'dead' || res === 'sunk') { G.stats[p].hits++; plunder(p, from); }

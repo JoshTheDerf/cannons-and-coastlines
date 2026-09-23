@@ -184,13 +184,14 @@ function planMove(ship, targetH, clicks, pivotDeg) {
 
 // ─── Fittings ─────────────────────────────────────────
 // Where each fitting sits on the deck, in ship coordinates (lx toward
-// starboard, ly toward the bow). Index 0 is nearest the bow. The Industry's
-// last fitting is its turret, amidships.
+// starboard, ly toward the bow). Index 0 is nearest the bow. Sail ships
+// alternate masts and cargo; the Industry has a smokestack, cargo and its
+// turret amidships.
 function fittingLayout(ship) {
   const L = ship.len, out = [];
   const industry = ship.guns === 'industry';
   const n = industry ? ship.maxFit - 1 : ship.maxFit;
-  for (let i = 0; i < n; i++) out.push({ kind: i % 2 ? 'cargo' : 'mast', lx: 0, ly: n === 1 ? 0 : L * 0.3 - i * (L * 0.6) / (n - 1) });
+  for (let i = 0; i < n; i++) out.push({ kind: i % 2 ? 'cargo' : industry ? 'stack' : 'mast', lx: 0, ly: n === 1 ? 0 : L * 0.3 - i * (L * 0.6) / (n - 1) });
   if (industry) out.push({ kind: 'turret', lx: 0, ly: L * 0.08 });
   return out;
 }

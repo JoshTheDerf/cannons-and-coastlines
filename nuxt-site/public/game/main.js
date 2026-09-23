@@ -359,6 +359,7 @@ function bindCanvas() {
   canvas.addEventListener('pointermove', onPointerMove);
   canvas.addEventListener('pointerup', onPointerUp);
   canvas.addEventListener('pointercancel', onPointerUp);
+  canvas.addEventListener('pointerleave', onPointerLeave);
   canvas.addEventListener('contextmenu', e => e.preventDefault());
   canvas.addEventListener('wheel', e => {
     e.preventDefault();
@@ -399,15 +400,28 @@ function onPointerDown(e) {
   if (G.phase === 'terrain') { setupPlace(w, UI.placeType); return; }
   if (G.phase === 'deploy') { deployTap(w); return; }
   if (G.phase !== 'play') return;
+  const sp = eventScreen(e);
   switch (UI.mode) {
-    case 'move': UI.dragging = true; setMoveHeading(w); return;
-    case 'fire': firePointer(w, true); return;
+    case 'move': {
+      // A set heading only changes from its handle or the ship itself;
+      // anywhere else on the board just pans.
+      const m = UI.move;
+      if (m.lockHeading || (m.locked && !onMoveHandle(sp) && pickShip(w, G.active) !== m.ship)) { pan = { x: e.clientX, y: e.clientY, moved: false, tap: null }; return; }
+      m.locked = false; UI.dragging = true; setMoveHeading(w);
+      return;
+    }
+    case 'fire': {
+      const F = UI.fire;
+      if (F.stage === 'dir' && F.locked && !onAimHandle(sp)) { pan = { x: e.clientX, y: e.clientY, moved: false, tap: null }; return; }
+      if (F.stage === 'dir') F.locked = false;
+      firePointer(w, true);
+      return;
+    }
     case 'coin': coinTap(w); return;
     case 'signalTo': signalToTap(w); return;
     case 'evasive': {
-      const ev = UI.evasive;
-      const dp = dist(w.x, w.y, ev.port.end.x, ev.port.end.y), ds = dist(w.x, w.y, ev.stbd.end.x, ev.stbd.end.y);
-      if (Math.min(dp, ds) < 6) chooseEvasive(dp < ds ? 'port' : 'stbd');
+      const side = evasiveSideAt(w);
+      if (side) { UI.evasive.pick = side; refresh(); }
       return;
     }
     case 'revive': reviveTap(w); return;
@@ -444,13 +458,62 @@ function onPointerMove(e) {
     return;
   }
   if (G.phase === 'deploy') { deployGhost(w); return; }
-  if (UI.mode === 'move' && (UI.dragging || mouse)) setMoveHeading(w);
-  if (UI.mode === 'fire' && UI.fire && UI.fire.stage === 'dir' && (UI.dragging || mouse)) firePointer(w, false);
+  // Mouse hover previews; a click (or lifting a finger) commits.
+  if (UI.mode === 'move' && !UI.move.locked && (UI.dragging || mouse)) setMoveHeading(w);
+  if (UI.mode === 'fire' && UI.fire && UI.fire.stage === 'dir' && !UI.fire.locked && (UI.dragging || mouse)) firePointer(w, false);
+  if (UI.mode === 'fire' && UI.fire && UI.fire.stage === 'slot' && mouse) UI.fire.hover = slotAt(w);
+  if (UI.mode === 'evasive' && mouse) UI.evasive.hover = evasiveSideAt(w);
+  if ((UI.mode === 'signalTo' || UI.mode === 'coin') && mouse) UI.hoverShip = nearestTarget(w);
+}
+
+/** Leaving the board without committing drops the preview back to the committed value. */
+function onPointerLeave() {
+  if (UI.dragging) return;
+  if (UI.mode === 'move' && !UI.move.locked && !UI.move.lockHeading) { UI.move.h = UI.move.hc; replanMove(); refreshPrompt(); }
+  if (UI.mode === 'fire' && UI.fire && UI.fire.stage === 'dir' && !UI.fire.locked) UI.fire.h = UI.fire.hc;
+  if (UI.mode === 'fire' && UI.fire) UI.fire.hover = -1;
+  if (UI.evasive) UI.evasive.hover = null;
+  UI.hoverShip = null;
+}
+
+function commitDrag() {
+  if (UI.mode === 'move' && UI.move && !UI.move.lockHeading) {
+    const m = UI.move; m.hc = m.plan.rot.h; m.h = m.hc; m.locked = true; replanMove(); sfxSelect(); refresh();
+  } else if (UI.mode === 'fire' && UI.fire && UI.fire.stage === 'dir') {
+    const F = UI.fire; F.hc = F.h; F.locked = true; sfxSelect(); refresh();
+  }
+}
+function unlockAim() {
+  if (UI.mode === 'move' && UI.move) { UI.move.locked = false; refresh(); }
+  else if (UI.mode === 'fire' && UI.fire) { UI.fire.stage = 'dir'; UI.fire.locked = false; UI.fire.fixed = null; refresh(); }
+}
+
+function onMoveHandle(sp) {
+  const m = UI.move; if (!m || !m.plan) return false;
+  const c = w2s(m.ship.x, m.ship.y), f = fwdVec(m.plan.rot.h), R = w2r(m.ship.len * 1.1);
+  return Math.hypot(sp.x - (c.x + f.x * R), sp.y - (c.y + f.y * R)) < 24;
+}
+function aimPivot(F) { return F.source === 'island' ? F.island : slotWorld(F.ship, F.slot); }
+function onAimHandle(sp) {
+  const F = UI.fire; if (!F || F.stage !== 'dir') return false;
+  const p = aimPivot(F), c = w2s(p.x, p.y), f = fwdVec(F.h), R = Math.max(34, w2r(9));
+  return Math.hypot(sp.x - (c.x + f.x * R), sp.y - (c.y + f.y * R)) < 24 || Math.hypot(sp.x - c.x, sp.y - c.y) < 16;
+}
+function slotAt(w) {
+  const F = UI.fire; let best = -1, bd = Infinity;
+  F.slots.forEach((sl, i) => { const p = slotWorld(F.ship, sl); const d = dist(w.x, w.y, p.x, p.y); if (d < bd) { bd = d; best = i; } });
+  return best >= 0 && bd < Math.max(2.5, 20 / worldScale) ? best : -1;
+}
+function evasiveSideAt(w) {
+  const ev = UI.evasive; if (!ev) return null;
+  const dp = dist(w.x, w.y, ev.port.end.x, ev.port.end.y), ds = dist(w.x, w.y, ev.stbd.end.x, ev.stbd.end.y);
+  return Math.min(dp, ds) < 6 ? (dp < ds ? 'port' : 'stbd') : null;
 }
 
 function onPointerUp(e) {
   ptrs.delete(e.pointerId);
   if (ptrs.size < 2) pinch = null;
+  if (UI.dragging && ptrs.size === 0) { UI.dragging = false; commitDrag(); }
   UI.dragging = false;
   if (pan && ptrs.size === 0) {
     if (!pan.moved && pan.tap && canInteract()) {
@@ -468,13 +531,27 @@ function onKey(e) {
   if (e.key === '+' || e.key === '=') camZoomAt(canvasW / 2, canvasH / 2, 1.25);
   if (e.key === '-') camZoomAt(canvasW / 2, canvasH / 2, 0.8);
   if (!canInteract()) return;
-  if (e.key === 'Escape') { cancelMode(); refresh(); }
-  if (UI.mode === 'move' && !UI.move.lockHeading && (e.key === 'ArrowLeft' || e.key === 'ArrowRight')) {
-    UI.move.h = normAngle(UI.move.h + (e.key === 'ArrowLeft' ? -1 : 1) * Math.PI / 36);
-    replanMove(); refreshPrompt(); e.preventDefault();
+  const ok = e.key === 'Enter' || e.key === ' ';
+  if (ok) e.preventDefault();
+  if (e.key === 'Escape') {
+    // Back one step: a set heading or aim unlocks first, then the mode closes.
+    if (UI.mode === 'move' && UI.move.locked && !UI.move.lockHeading) { unlockAim(); return; }
+    if (UI.mode === 'fire' && UI.fire.free && (UI.fire.stage === 'power' || UI.fire.locked)) { unlockAim(); return; }
+    if (UI.mode === 'move' && UI.move.ship.stage === 'click') return; // the click after firing must happen
+    cancelMode(); refresh(); return;
   }
-  if (UI.mode === 'move' && e.key === 'Enter') commitMove();
-  if (UI.mode === 'fire' && UI.fire.stage === 'power' && (e.key === ' ' || e.key === 'Enter')) { e.preventDefault(); releaseShot(); }
+  if (UI.mode === 'move' && !UI.move.lockHeading && (e.key === 'ArrowLeft' || e.key === 'ArrowRight')) {
+    UI.move.locked = false;
+    UI.move.h = normAngle(UI.move.h + (e.key === 'ArrowLeft' ? -1 : 1) * Math.PI / 36);
+    replanMove(); UI.move.hc = UI.move.plan.rot.h; UI.move.locked = true; refresh(); e.preventDefault();
+    return;
+  }
+  if (!ok) return;
+  if (UI.mode === 'move') { if (!UI.move.locked && !UI.move.lockHeading) commitDrag(); else commitMove(); return; }
+  if (UI.mode === 'fire' && UI.fire.stage === 'dir') { if (!UI.fire.locked) commitDrag(); else lockAim(); return; }
+  if (UI.mode === 'fire' && UI.fire.stage === 'power') { releaseShot(); return; }
+  if (UI.mode === 'evasive' && UI.evasive.pick) { chooseEvasive(UI.evasive.pick); return; }
+  if (UI.mode === 'signalTo' && UI.signalPick) { confirmSignal(); return; }
 }
 
 function pickShip(w, p) {
@@ -489,7 +566,7 @@ function pickShip(w, p) {
 }
 
 function cancelMode() {
-  UI.signalFrom = null; UI.fitChoice = null;
+  UI.signalFrom = null; UI.signalPick = null; UI.hoverShip = null;
   UI.mode = null; UI.move = null; UI.fire = null; UI.coin = null; UI.evasive = null; UI.targets = null;
 }
 
@@ -602,7 +679,8 @@ function startMove(ship, kind) {
   cancelMode();
   UI.sel = ship;
   UI.mode = 'move';
-  UI.move = { ship, kind, h: ship.h, clicks: ship.moveCount, lockHeading: kind === 'sail', plan: null };
+  // h: what the preview shows; hc: the committed heading Sail uses.
+  UI.move = { ship, kind, h: ship.h, hc: ship.h, locked: false, clicks: ship.moveCount, lockHeading: kind === 'sail', plan: null };
   replanMove();
   refresh();
 }
@@ -632,7 +710,7 @@ async function commitMove() {
   if (!m || UI.busy) return;
   const { ship, clicks } = m;
   const id = ship.id;
-  const hh = m.lockHeading ? ship.h : m.plan.rot.h;
+  const hh = m.lockHeading ? ship.h : m.hc;
   cancelMode();
   const res = await perform({ t: 'move', ship: id, h: hh, clicks });
   if (!res.ok || !G || G.phase !== 'play') return;
@@ -648,8 +726,8 @@ function startFire(ship, source, island) {
   UI.sel = ship;
   UI.mode = 'fire';
   const slots = source === 'ship' ? shipSlots(ship) : [];
-  UI.fire = { ship, source, island, slots, slot: null, slotIdx: -1, h: ship.h, stage: source === 'ship' ? 'slot' : 'dir', t0: 0 };
-  if (source === 'island') UI.fire.h = headingTo(island.x - ship.x, island.y - ship.y);
+  UI.fire = { ship, source, island, slots, slot: null, slotIdx: -1, h: ship.h, hc: ship.h, locked: false, free: source === 'island', hover: -1, stage: source === 'ship' ? 'slot' : 'dir', t0: 0 };
+  if (source === 'island') UI.fire.h = UI.fire.hc = headingTo(island.x - ship.x, island.y - ship.y);
   if (source === 'ship' && slots.length === 1) chooseSlot(0);
   refresh();
 }
@@ -657,7 +735,7 @@ function startFire(ship, source, island) {
 function chooseSlot(idx) {
   const F = UI.fire;
   F.slot = F.slots[idx]; F.slotIdx = idx;
-  if (F.slot.free) { F.stage = 'dir'; F.h = normAngle(F.ship.h + (F.ship.turretRel || 0)); }
+  if (F.slot.free) { F.stage = 'dir'; F.free = true; F.locked = false; F.h = F.hc = normAngle(F.ship.h + (F.ship.turretRel || 0)); }
   else startPower();
   sfxSelect();
   refresh();
@@ -682,13 +760,8 @@ function fireOrigin(F) { return fireOriginFor(F.ship, F); }
 function firePointer(w, isDown) {
   const F = UI.fire;
   if (F.stage === 'slot') {
-    let best = -1, bd = Infinity;
-    F.slots.forEach((sl, i) => {
-      const p = slotWorld(F.ship, sl);
-      const d = dist(w.x, w.y, p.x, p.y);
-      if (d < bd) { bd = d; best = i; }
-    });
-    if (best >= 0 && bd < Math.max(2.5, 20 / worldScale)) chooseSlot(best);
+    const best = slotAt(w);
+    if (best >= 0) chooseSlot(best);
     return;
   }
   if (F.stage === 'dir') {
@@ -700,14 +773,19 @@ function firePointer(w, isDown) {
   if (F.stage === 'power' && isDown) releaseShot();
 }
 
-function lockAim() { if (UI.fire && UI.fire.stage === 'dir') { startPower(); refresh(); } }
+function lockAim() {
+  const F = UI.fire;
+  if (!F || F.stage !== 'dir') return;
+  F.h = F.hc; F.locked = true;
+  startPower(); refresh();
+}
 
 async function releaseShot() {
   const F = UI.fire;
   if (!F || F.stage !== 'power' || UI.busy) return;
   const D = powerToRange(currentPower());
   const id = F.ship.id;
-  const a = { t: 'fire', ship: id, source: F.source, slot: F.slotIdx, island: F.island ? F.island.id : null, h: F.h, D };
+  const a = { t: 'fire', ship: id, source: F.source, slot: F.slotIdx, island: F.island ? F.island.id : null, h: F.free ? F.hc : F.h, D };
   cancelMode();
   const res = await perform(a);
   if (!res.ok || !G || G.phase !== 'play') return;
@@ -807,8 +885,13 @@ function nearestTarget(w) {
   return target && bd <= Math.max(3, 18 / worldScale) ? target : null;
 }
 
-async function signalToTap(w) {
-  const to = nearestTarget(w), from = UI.signalFrom;
+function signalToTap(w) {
+  const to = nearestTarget(w);
+  if (!to) return; // tapping water keeps the current pick
+  UI.signalPick = to; sfxSelect(); refresh();
+}
+async function confirmSignal() {
+  const to = UI.signalPick, from = UI.signalFrom;
   if (!to || !from) return;
   cancelMode();
   await perform({ t: 'coin', coin: 'signal', from: from.id, target: to.id });
@@ -843,30 +926,9 @@ async function playCoin(id, target) {
     refresh();
     return;
   }
-  // Industry ships: the turret is its own fitting, so Boarding and Repair
-  // ask which one when it matters.
-  const boardLive = id === 'boarding' && !isDead(target), repairOwn = id === 'repair' && target.owner === G.active;
-  if (target.guns === 'industry' && (boardLive || repairOwn)) {
-    const ti = turretIdx(target);
-    const hull = (id === 'boarding' ? presentFittings(target) : missingFittings(target)).filter(i => i !== ti);
-    const turretThere = id === 'boarding' ? hasTurret(target) : missingFittings(target).includes(ti);
-    if (turretThere && hull.length) {
-      UI.mode = 'fitChoice'; UI.sel = target;
-      UI.fitChoice = { coin: id, target, options: [{ label: id === 'boarding' ? 'Take the turret' : 'Put the turret back', idx: ti }, { label: id === 'boarding' ? 'Take a hull fitting' : 'Put a hull fitting back', idx: hull[0] }] };
-      refresh();
-      return;
-    }
-  }
   await perform({ t: 'coin', coin: id, target: target.id });
 }
 
-async function chooseFitting(idx) {
-  const c = UI.fitChoice;
-  if (!c) return;
-  cancelMode();
-  await perform({ t: 'coin', coin: c.coin, target: c.target.id, fitting: idx });
-  UI.sel = null; refresh();
-}
 
 async function chooseEvasive(side) {
   const ev = UI.evasive;
@@ -1000,7 +1062,9 @@ function movePrompt() {
   const m = UI.move;
   const pl = m.plan;
   const n = pl ? Math.round(pl.moved / CLICK_LEN * 10) / 10 : 0;
-  const head = m.lockHeading ? 'Heading held.' : `Drag the handle or tap the water to set heading (up to ${pivotFor(m.ship)}\u00B0).`;
+  const head = m.lockHeading ? 'Heading held.'
+    : m.locked ? 'Heading set. Sail, or drag the handle to change it.'
+    : `Drag the handle, or move the mouse and click, to set heading (up to ${pivotFor(m.ship)}\u00B0).`;
   const stop = pl && pl.stoppedBy && pl.moved < pl.planned - 0.05 ? ` Stops after ${n} of ${m.clicks}.` : '';
   const off = pl && pl.stoppedBy === 'edge' && pl.moved < 0.05 ? ' No room: the ship would be scuttled!' : '';
   return `${head} Sail ${m.clicks} click${m.clicks > 1 ? 's' : ''} forward.${stop}${off}`;
@@ -1039,6 +1103,7 @@ function fillBar(p, prompt, acts) {
     const m = UI.move;
     acts.appendChild(btn('\u2212', () => changeClicks(-1), { act: 'less', disabled: m.clicks <= 1 }));
     acts.appendChild(btn('+', () => changeClicks(1), { act: 'more', disabled: m.clicks >= m.ship.moveCount }));
+    if (!m.lockHeading && m.locked) acts.appendChild(btn('Adjust', unlockAim, { act: 'adjust' }));
     acts.appendChild(btn('Sail', commitMove, { cls: 'go', act: 'sail' }));
     if (m.ship.stage !== 'click') acts.appendChild(btn('Cancel', () => { cancelMode(); refresh(); }, { act: 'cancel' }));
     return;
@@ -1046,9 +1111,12 @@ function fillBar(p, prompt, acts) {
   if (UI.mode === 'fire') {
     const F = UI.fire;
     if (F.stage === 'slot') say(`Tap a cannon slot on ${F.ship.name}. Shots go straight out from the slot.`);
-    else if (F.stage === 'dir') say(F.source === 'island' ? 'Tap to aim the island gun.' : 'Tap to aim the turret.');
-    else say('Tap to fire when the ring is where you want the ball to land.');
-    if (F.stage === 'dir') acts.appendChild(btn('Aim here', lockAim, { cls: 'go', act: 'aim' }));
+    else if (F.stage === 'dir') {
+      const gun = F.source === 'island' ? 'island gun' : 'turret';
+      say(F.locked ? `Aim set. Press Ready to fire, or drag the handle to change it.` : `Drag the handle, or move the mouse and click, to aim the ${gun}. The hull does not turn.`);
+    } else say('Tap the table (or press Space) when the ring is where you want the ball to land.');
+    if (F.stage === 'dir') acts.appendChild(btn('Ready to fire', lockAim, { cls: 'go', act: 'aim' }));
+    if (F.stage === 'power' && F.free) acts.appendChild(btn('Adjust aim', unlockAim, { act: 'adjust' }));
     if (F.stage === 'power') {
       const m = document.createElement('div');
       m.className = 'meter'; m.innerHTML = '<span>Tension</span><div class="bar"><i id="powerFill"></i></div>';
@@ -1066,20 +1134,16 @@ function fillBar(p, prompt, acts) {
     acts.appendChild(btn('Cancel', () => { cancelMode(); refresh(); }, { act: 'cancel' }));
     return;
   }
-  if (UI.mode === 'fitChoice') {
-    const c = UI.fitChoice;
-    say(c.coin === 'boarding' ? `Boarding ${c.target.name}: which fitting do you take?` : `Repair ${c.target.name}: which fitting goes back?`);
-    for (const o of c.options) acts.appendChild(btn(o.label, () => chooseFitting(o.idx), { act: 'fit' + o.idx, cls: o === c.options[0] ? 'go' : '' }));
-    acts.appendChild(btn('Cancel', () => { cancelMode(); refresh(); }, { act: 'cancel' }));
-    return;
-  }
   if (UI.mode === 'signalTo') {
-    say(`Signal Flags: ${UI.signalFrom.name} gives up its action and only sails. Tap the ship that takes two turns.`);
+    say(UI.signalPick ? `Signal Flags: ${UI.signalFrom.name} only sails, ${UI.signalPick.name} takes two turns.` : `Signal Flags: ${UI.signalFrom.name} gives up its action and only sails. Tap the ship that takes two turns.`);
+    if (UI.signalPick) acts.appendChild(btn('Confirm', confirmSignal, { cls: 'go', act: 'confirm' }));
     acts.appendChild(btn('Cancel', () => { cancelMode(); refresh(); }, { act: 'cancel' }));
     return;
   }
   if (UI.mode === 'evasive') {
-    say(`Evasive: slide ${UI.evasive.ship.name} one ship-width.`);
+    const pk = UI.evasive.pick;
+    say(pk ? `Evasive: slide ${UI.evasive.ship.name} to ${pk === 'port' ? 'port' : 'starboard'}?` : `Evasive: slide ${UI.evasive.ship.name} one ship-width. Tap a side, or use the buttons.`);
+    if (pk) acts.appendChild(btn('Slide', () => chooseEvasive(pk), { cls: 'go', act: 'slide' }));
     acts.appendChild(btn('Port', () => chooseEvasive('port'), { act: 'port' }));
     acts.appendChild(btn('Starboard', () => chooseEvasive('stbd'), { act: 'stbd' }));
     acts.appendChild(btn('Cancel', () => { cancelMode(); refresh(); }, { act: 'cancel' }));
