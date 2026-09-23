@@ -17,7 +17,6 @@
 #let coin-files = (
   brace:    "coin-brace-for-impact-top",
   signal:   "coin-signal-flag-top",
-  fullsail: "coin-full-sail-top",
   evasive:  "coin-evasive-maneuver-top",
   gunner:   "coin-skilled-gunner-top",
   repair:   "coin-repair-crew-top",
@@ -51,8 +50,8 @@
 #let display-font = ("Pirata One",)
 #let body-font    = ("Crimson Text",)
 
-#let version       = "v0.4"
-#let version-long  = "v0.4, In Development · Subject to Change"
+#let version       = "v0.5"
+#let version-long  = "v0.5, In Development · Subject to Change"
 
 // Parchment background (matches faction cards: cream base + texture + lighten)
 #let parchment-bg = {
@@ -346,7 +345,7 @@
 
 = Welcome Aboard
 
-#drop-cap("C")[*annons \& Coastlines* is a tabletop naval game for 2 to 20 players. Each player commands a small fleet of 3D-printed ships that roll across the table on built-in wheels. The ships fire real, tension-loaded miniature cannons and cannonballs. The game has no dice, board, or grid. Everything is played with physical 3d miniatures. Just the ships, the islands between them, and the coins earned from holding those islands.]
+#drop-cap("C")[*annons \& Coastlines* is a tabletop naval game for 2 to 20 players. Each player commands a small fleet of 3D-printed ships that roll across the table on built-in wheels. The ships fire real, tension-loaded miniature cannons and cannonballs. The game has no dice, board, or grid. Just the ships, the islands between them, and the coins earned from holding those islands.]
 
 #v(0.08in)
 
@@ -356,7 +355,7 @@
 
 == How It Works
 
-On each turn, every one of the ships in your fleet takes one action: it either moves, fires, or (if it's touching an island) performs an island action. To move, swivel the ship and push it forward along its wheels. The wheels click to count movement. To fire, plug one of your cannons into a slot on the ship and press down on the firing mechanism until the shot releases. The shot goes straight out from the slot, so you line up your aim with a Move action *before* the turn you fire.
+On each turn, every one of the ships in your fleet steers or fires, never both, and then sails forward. A ship touching an island may take an island action instead and hold still. To steer, swivel the ship; to move it, push it along its wheels, which click to count the distance. To fire, plug one of your cannons into a slot on the ship and press down on the firing mechanism until the shot releases. The shot goes straight out from the slot, so you line up your aim *before* the turn you fire.
 
 Each cannonball hit removes one *fitting* (a removable piece off your ship, like masts or cargo) from the target ship. A ship with no fittings left is *dead in the water:* it can no longer move, but it can still fire. The bare hull can absorb *one more hit* after the last fitting is gone; the hit after that sinks the ship.
 
@@ -367,11 +366,11 @@ Islands sit between the fleets. Capture one by planting your flag on it and it w
 
 = Setup
 
-+ *Build your fleet.* Claim a faction's ships, flags, cannons, and cannonballs. Place your faction card in front of you for reference. (Bonus: Design your own paper flags!)
++ *Build your fleet.* Claim a faction's ships, flags, cannons, and cannonballs. Place your faction card in front of you. (Bonus: Design your own paper flags!)
 
 + *Place the islands.* Going clockwise, each player sets one island on the table. Keep islands at least *6" apart* and *12" from any table edge*.
 
-+ *Add terrain (optional).* Together, place 2–6 rocks or reefs anywhere on the table. Terrain blocks ships and breaks up firing lanes. You can use household objects for this. It's up to you how many obstacles to add.
++ *Add terrain (optional).* Together, place 2–6 rocks or reefs anywhere on the table. Terrain blocks ships and breaks up firing lanes. You can use household objects for this.
 
 + *Deploy your fleet.* Claim an edge of the table and line your ships up *touching that edge*, facing inward. (Islanders: use _Home Waters_ now to place your starting ship at an island.)
 
@@ -396,7 +395,7 @@ Islands sit between the fleets. Capture one by planting your flag on it and it w
 A turn has two steps, in this order:
 
 + *Spend coins* you want to use, before any ship moves or fires.
-+ *Each of your ships takes one action.*
++ *Each of your ships takes its turn.*
 
 Play then passes to the next player.
 
@@ -406,21 +405,37 @@ Coins are not actions. They are spent *at the start of your turn,* before any sh
 
 There is *no hand limit.* You may hold as many coins as you collect.
 
-== Action A: Move
+== Each Ship
 
-A Move action has two steps: *Set Heading* (rotate the ship up to *90°*, port or starboard), then *click* the ship forward. One click is one revolution of the ship's movement wheel (see *The Wheel*). You cannot change heading between clicks.
+Ships are forever sailing forward. On its turn, each of your ships does two things, in this order:
 
-The number of clicks equals your faction's *Move Count*:
++ *One action:* Set Heading, Fire, or, if it is touching an island, an Island action.
++ *Click forward* at least once, up to its faction's *Move Count*.
 
-#tight(table(
+A ship that takes an Island action skips the forward click. No ship both steers and fires on the same turn.
+
+*Passing a turn.* A #coin("signal") *Signal Flags* coin passes one ship's action to another. The first only clicks forward; the second takes two full turns, so it may steer on one and fire on the other. The giving ship must be yours and not dead in the water; the receiving ship may be yours or an ally's. One ship may receive more than one transfer, but *Skilled Gunner* still applies to a single turn.
+
+== Movement
+
+One click is one revolution of the ship's movement wheel (see *The Wheel*). Every ship ends its turn by clicking forward along its current heading. You cannot change heading between clicks.
+
+// Only three rows; keep them together rather than letting the header repeat.
+#block(width: 100%, above: 0.08in, below: 0.12in, breakable: false, table(
   columns: (0.8fr, 2fr),
-  table.header[Move Count][Sequence],
-  [2], [Set Heading → Click → Click],
-  [3], [Set Heading → Click → Click → Click],
-  [4], [Set Heading → Click → Click → Click → Click],
+  table.header[Move Count][Clicks per turn],
+  [2], [1–2],
+  [3], [1–3],
+  [4], [1–4],
 ))
 
 Ships cannot pass through other ships, islands, rocks, or reefs. If a ship contacts any of these during a click, it stops there and forfeits any remaining clicks this turn.
+
+*Table edges.* A ship that has no room to complete its mandatory click stops at the edge and forfeits any remaining clicks. If it would be forced off the table with no room at all, it is *scuttled* and removed. Plan your headings ahead.
+
+== Action A: Set Heading
+
+Rotate the ship up to *90°*, port or starboard. It adds *no* movement.
 
 #callout[
   *Queen's Fleet, Disciplined Crew.* Queen's Fleet ships can swing a full *180°* instead of 90°, once per ship per turn.
@@ -433,7 +448,7 @@ Ships cannot pass through other ships, islands, rocks, or reefs. If a ship conta
 + Load a cannonball, then press down on the firing mechanism until the shot fires.
 + Remove the cannon from the slot.
 
-Cannons fire *straight out from the slot.* A ship that fires *does not move or rotate* this turn, so your aim is whatever direction the ship is already pointing. Line up the angle with a prior Move action, then commit to the shot. The same cannon can be used by more than one ship in a single turn; simply move it from one ship to the next.
+Cannons fire *straight out from the slot.* A ship that fires *does not Set Heading* this turn, so your aim is whatever direction the ship is already pointing. Line up the angle on an earlier turn, then commit to the shot. The shot resolves before the ship clicks forward. The same cannon can be used by more than one ship in a single turn; simply move it from one ship to the next.
 
 #callout[
   *Cannons need a crew. Your ship is the crew.* To fire any cannon, on a ship or an island, one of your ships must be touching it and spend a Fire action. Held islands cannot fire on their own without a ship in contact.
@@ -441,7 +456,7 @@ Cannons fire *straight out from the slot.* A ship that fires *does not move or r
 
 == Action C: Island
 
-If your ship is *touching an island*, it may take one of the following actions instead of moving or firing:
+If your ship is *touching an island*, it may take one of the following actions instead of steering or firing. It then skips its forward click:
 
 - *Raise Flag.* Plant your flag on the island. The island must be empty (or have just been cleared of defenders), and your ship must have been touching the island *at the end of your previous turn*.
 - *Collect.* The island must already fly *your flag*. Draw 1 coin from the bag at random.
@@ -467,7 +482,7 @@ Each island flies *one flag at a time*.
 
 When a cannonball hits an enemy ship, remove one *fitting* (masts or cargo) from the ship and set it in the water beside the ship. No friendly fire.
 
-- *Ship has no fittings left.* It is *Dead in the Water.* It cannot move, but it can still fire. The bare hull can still take *one more hit* before sinking.
+- *Ship has no fittings left.* It is *Dead in the Water.* It cannot move, so it skips its forward click, but it can still fire. The bare hull can still take *one more hit* before sinking.
 - *Hit on a dead-in-the-water ship.* The ship is *Scuttled* and removed.
 - *Ricochets.* The first ship the cannonball touches takes the hit. Any further contact (deflections, rolling onto a second hull) does no damage. If the first ship it touches is friendly, the shot is spent and damages nothing.
 - *Missed shots.* Retrieve missed cannonballs at the end of your turn.
@@ -498,22 +513,21 @@ Spend #coin("repair") *Repair Crew* to restore 1 fitting to one of your ships.
 // ----- Coin Actions (placed here to share the Combat page; flows inline
 // without forcing a new column so it sits right below the Combat content) ---
 
-#v(0.2in, weak: true)
+#v(0.1in, weak: true)
 #section-title[Coin Actions]
 
 #tight(table(
-  columns: (0.6fr, 1.1fr, 2.5fr),
+  columns: (0.5fr, 1.05fr, 2.65fr),
   table.header[ ][Coin][What It Does],
   coin("brace"),    [*Brace for Impact*],  [Place the coin in a ship's coin slot. The next hit that ship takes is negated (no fitting lost) and the coin returns to the bag.],
-  coin("signal"),   [*Signal Flags*],      [One of your ships, or one allied ship, immediately takes a free Move action. They may still take a Fire action afterwards.],
-  coin("fullsail"), [*Full Sail*],         [One of your ships takes *two* Move actions this turn. Each is a full Set Heading followed by Move-Count clicks.],
-  coin("evasive"),  [*Evasive Maneuvers*], [One of your ships slides exactly *one ship-width sideways* (port or starboard) without rotating. This does not use that ship's action.],
-  coin("gunner"),   [*Skilled Gunner*],    [One of your ships *fires twice* this turn. You may move the cannon between shots.],
+  coin("signal"),   [*Signal Flags*],      [One of your ships gives up its action; another ship takes two full turns instead of one.],
+  coin("evasive"),  [*Evasive Maneuvers*], [One of your ships slides exactly *one ship-width sideways* (port or starboard) without rotating. The slide is on top of that ship's turn.],
+  coin("gunner"),   [*Skilled Gunner*],    [One of your ships *fires twice* this turn. You may move the cannon between shots. Both resolve before it clicks forward.],
   coin("repair"),   [*Repair Crew*],       [Restore 1 fitting to one of your ships. *Required to capture a dead-in-the-water enemy ship.*],
   coin("boarding"), [*Boarding Party*],    [While touching an enemy ship, remove 1 fitting from it. *Required to capture a dead-in-the-water enemy ship.*],
 ))
 
-Each player contributes 20 coins to the bag at setup: 2 Brace · 2 Signal · 4 Full Sail · 2 Evasive · 4 Gunner · 4 Repair · 2 Boarding.
+Each player contributes 20 coins to the bag at setup: 4 Brace · 2 Signal · 2 Evasive · 4 Gunner · 4 Repair · 4 Boarding.
 
 
 // ----- Winning -----
@@ -548,24 +562,24 @@ Ties on bonuses: every tied player receives the full +2. Highest total wins. In 
 
 = Alternate Modes
 
-Three optional modes layer on top of the standard 2–5 player game: *Group Mode* for parties, *Fleets \& Alliances* for cooperative or shifting-loyalty play, and *Custom Armada* for large mixed-faction battles.
+Three optional modes layer on top of the standard 2–6 player game: *Group Mode* for parties, *Fleets \& Alliances* for cooperative or shifting-loyalty play, and *Custom Armada* for large mixed-faction battles.
 
 == Group Mode (6–20 Players)
 
 All players act simultaneously. Play alternates between two phases, each on a *60–90 second timer*:
 
-- *Movement phase.* Spend movement coins (*Evasive*, *Full Sail*, *Signal Flags*), then each ship may take a Move action.
-- *Action phase.* Spend action coins (*Brace*, *Gunner*, *Repair*, *Boarding*), then each ship may Fire or take an Island action.
+- *Movement phase.* Spend *Evasive Maneuvers*, then every ship away from an island sets heading or holds it, and clicks forward.
+- *Action phase.* Spend action coins (*Brace*, *Gunner*, *Repair*, *Boarding*, *Signal Flags*), then every ship that held its heading may Fire, and every ship at an island may take an Island action. A *Signal Flags* transfer passes one ship's Fire to another, even if that ship set heading.
 
-Choose one player as the *moderator*. They announce phases, run the timer, and resolve disputes. Group mode is intentionally more chaotic than the standard game and is best suited for parties or large gatherings.
+Choose one player as the *moderator*. They announce phases, run the timer, and resolve disputes. Group mode is intentionally more chaotic than the standard game.
 
 == Fleets \& Alliances
 
-*Fleets (team play).* Two or more players share a single fleet. Each commands one ship and resolves their action simultaneously on the fleet's turn. Coins and the faction passive belong to the fleet, so agree on spends together. Turn order alternates by fleet. Example: six players, two three-player Queen's Fleet sides. The fleets alternate, and on each turn all three teammates act at once.
+*Fleets (team play).* Two or more players share a single fleet. Each commands one ship and resolves their action simultaneously on the fleet's turn. Coins and the faction passive belong to the fleet, so agree on spends together. Turn order alternates by fleet. Example: six players, two three-player Queen's Fleet sides.
 
 *Alliances.* For free-for-all games. Players form or break informal pacts at any time, updating flag colors when allegiances shift.
 
-*Trading.* Any two players may *freely trade coins, ships, and islands* at any time, regardless of alliance. Trades can grease a new pact, buy a turn of safety, or just keep things moving; allies aren't required.
+*Trading.* Any two players may *freely trade coins, ships, and islands* at any time, regardless of alliance. Trades can grease a new pact, buy a turn of safety, or just keep things moving.
 
 *Watch for at the table.*
 
@@ -589,46 +603,17 @@ A large-scale variant for advanced games. Each player fields a mixed armada of u
 
 *Restricted actions.* Coordinating a large mixed fleet is hard:
 
-- Only *3 ships* may take Move actions each turn.
-- Any number of ships may *Fire* or take *Island actions*.
+- Only *3 ships* may *Set Heading* each turn. The rest hold their heading.
+- Every ship still clicks forward. Any number of ships may *Fire* or take *Island actions*.
 
 *Squadrons (optional).* Divide the armada into 2–3 Squadrons of 3–6 ships each. Each Squadron picks a *Squadron Flagship*; the whole armada also picks a single *Fleet Flagship*. Fleet Flagship effects apply armada-wide. Squadron Flagship effects apply only within their Squadron.
 
 *Command Shock.* If a Flagship is sunk, the affected force loses control.
 
-- *Fleet Flagship sunk.* The entire armada suffers shock. Remove your flags from every island you hold (they become neutral). Move every ship currently touching an island within *6"* of your table edge, facing inward. Take no actions and spend no coins for one full turn. Then designate a new Fleet Flagship and resume.
+- *Fleet Flagship sunk.* The entire armada suffers shock. Remove your flags from every island you hold (they become neutral). Move every ship currently touching an island within *6"* of your table edge, facing inward. Take no actions and spend no coins for one full turn; your ships only click forward. Then designate a new Fleet Flagship and resume.
 - *Squadron Flagship sunk.* Only that Squadron suffers shock, with the same effects limited to its ships and islands. Designate a new Squadron Flagship after.
 
-*Scoring.* Standard scoring applies, except *surviving ships are worth 0 VP*. Islands, unspent coins, and bonus categories are unchanged. A Custom Armada wins by holding ground long enough for its numbers to matter, not by size alone.
-
-== Always Underway
-
-A close-quarters variant where standing still is not an option. Captains may *steer* or *shoot*, never both, and ships are forever sailing forward. Battles become a stream of moving targets, lining up shots on whatever heading you already have.
-
-*The turn sequence.* On each of your turns, every one of your ships that is *not anchored at an island* takes a turn in this exact order:
-
-+ *Set Heading or Fire,* but never both.
-  - *Set Heading* rotates the ship up to its faction's normal arc. It adds *no* movement.
-  - *Fire* resolves from the ship's current position and heading, before it moves.
-+ *Click forward at least once* in its current heading. May click up to its full Move Count.
-
-Every ship steers or shoots each turn, and every ship moves. There are no idle ships in this mode.
-
-#callout[
-  *Anchored at an island.* A ship that begins its turn touching *any* island may instead take a standard Island action (Raise Flag, Collect, or Fire from Island) and skip the forward click. Islands are the only safe rest.
-]
-
-*Dead in the water.* Dead ships still cannot move. They keep their standard turn: they may Fire and skip the forward click entirely. They take no damage from the must-move rule.
-
-*Table edges.* A ship that has no room to complete its mandatory click stops at the edge and forfeits any remaining clicks. If it would be *forced off the table* with no room at all, it is *scuttled* and removed. Plan your headings ahead.
-
-=== Coins in Always Underway
-
-- #coin("signal") *Signal Flags* grants a free Move (Set Heading + clicks). The affected ship may still Fire on its regular turn afterward. This is the *only* way one ship may both turn and fire on the same turn.
-- #coin("fullsail") *Full Sail* replaces the regular turn with two Move actions (two Set Heading + click sequences). The ship does *not* fire on a Full Sail turn.
-- #coin("gunner") *Skilled Gunner* still lets a ship fire twice. Both shots resolve before the ship's mandatory click; the ship may not have Set Heading this turn.
-
-#coin("brace") Brace, #coin("evasive") Evasive, #coin("repair") Repair, and #coin("boarding") Boarding work as in the base rules. Evasive's slide is *additional* to the mandatory click, not a substitute.
+*Scoring.* Standard scoring applies, except *surviving ships are worth 0 VP*. The *most ships* bonus still counts. An armada wins on islands and coins.
 
 // ----- Factions Overview -----
 
@@ -660,7 +645,7 @@ Every ship steers or shoots each turn, and every ship moves. There are no idle s
 #faction-entry("Sun Fleet")[
   Slow to cross the table, but punishing to chip at.
 
-  *Stone Hulls:* *ignores the first hit* each turn, which makes spreading fire on them useless. One big salvo works; pecking at them doesn't.
+  *Stone Hulls:* *ignores the first hit* each turn. One big salvo works; pecking at them doesn't.
 ]
 #faction-entry("Shadow Fleet")[
   Average across every stat, with one trick that changes the math.
@@ -689,7 +674,7 @@ Every ship steers or shoots each turn, and every ship moves. There are no idle s
 
 = The Parts
 
-Every printed piece in the base set, with what it does and recommended print color. Faction ships and fittings vary in shape; the colors below are the default suggestions, but flag color or alliance color always wins if you'd rather match.
+Every printed piece in the base set, with what it does and recommended print color. Faction ships and fittings vary in shape; flag or alliance color always wins if you'd rather match.
 
 #tight(table(
   columns: (0.8in, 1.7fr, 1.1fr),
@@ -732,7 +717,7 @@ Every printed piece in the base set, with what it does and recommended print col
     [A small puck with cannon slots and flag holes. Turns any household object into an island.],
     [*Sand*, *grey*, or *green*; Terrain colors.]),
 
-  ..part-row("coin-boarding-party", "Coins (×7 types)",
+  ..part-row("coin-boarding-party", "Coins (×6 types)",
     [Drawn from the bag and spent at the start of your turn for one-time effects.],
     [*Gold*]),
 ))
@@ -741,7 +726,7 @@ Every printed piece in the base set, with what it does and recommended print col
 
 = The Print List
 
-A *faction set* is one complete print run for one player: their fleet plus a fair share of shared terrain and coins. Print one set per player. The only non-printed parts are the draw bag (any small cloth pouch) and the wheel rubber bands. Print at *0.2 or 0.16mm* layer height, *15%* infill.
+A *faction set* is one complete print run for one player: their fleet plus a fair share of shared terrain and coins. The only non-printed parts are the draw bag (any small cloth pouch) and the wheel rubber bands. Print at *0.2 or 0.16mm* layer height, *15%* infill.
 
 == Per Faction Set
 
@@ -749,15 +734,15 @@ A *faction set* is one complete print run for one player: their fleet plus a fai
   columns: (0.6fr, 0.7fr, 1.7fr),
   table.header[Piece][Quantity][Notes],
   [Ships], [2–5],     [Some ship models may print better with supports enabled.],
-  [Masts],             [1 per ship + 1 per island],  [Good to have a few spares as well.],
+  [Masts],             [1 per ship + 1 per island],  [The flag holder is part of the mast. Print a few spares.],
+  [Cargo],             [Varies by ship],             [Enough to fill your ships' fitting slots.],
   [Sails],                [1 per mast], [Decorate to customize your fleet.],
   [Cannons],              [3–4],     [You can get away with one, but it's good to have options if one fails.],
-  [Cannonballs],          [10],   [Coarser layer heights causes cannonballs to shoot stronger and less predictably. *TPU* with three walls and no infill reduces bounce.],
-  [Masts],                [1 per ship + 1 per island], [The flag holder is part of the mast; print a few spares.],
+  [Cannonballs],          [10],   [Coarser layer heights cause cannonballs to shoot stronger and less predictably. *TPU* with three walls and no infill reduces bounce.],
   [Movement wheel],       [1 per ship], [Fit with a rubber band over the rim before the first game. Difficult to remove once installed.],
-  [Islands],              [2–3],     [Print island models or use *Island Toppers* that sit on top of household objects],
+  [Islands],              [2–3],     [Print island models or use *Island Toppers* that sit on top of household objects.],
   [Rocks / Reefs],   [2-4],       [Optional terrain. Block movement and cannonballs.],
-  [Coins],                [1 set of 20], [Each set is 2 Brace, 2 Signal, 4 Full Sail, 2 Evasive, 4 Gunner, 4 Repair, 2 Boarding.],
+  [Coins],                [1 set of 20], [Each set is 4 Brace, 2 Signal, 2 Evasive, 4 Gunner, 4 Repair, 4 Boarding.],
 ))
 
 // ----- Designer Notes (8th-grade level — for whoever's building the game) -----
@@ -781,7 +766,7 @@ Every ship has a wheel built into the stern. Two details matter:
 - Cannonballs can be printed in *TPU*. They weigh about the same but bounce far less, which keeps shots closer to where they land.
 - The cannon's flex arm is the part to orient carefully. Lay it so the print layers run *across* the bending direction, not along it. Layer lines parallel to the flex will split under load.
 - Print a few spare cannons per player. The snap mechanism loses tension after hundreds of shots. Swapping in a fresh cannon restores the original feel without reprinting the whole fleet.
-- Bed leveling is critical. A nozzle to close to the bed may cause pieces like masts not to fit in their slots.
+- Bed leveling is critical. A nozzle too close to the bed may cause pieces like masts not to fit in their slots.
 
 // ==== QUICK REFERENCE (stacked boxed reference) ========================
 
@@ -805,11 +790,12 @@ Every ship has a wheel built into the stern. Two details matter:
   columns: 1,
   row-gutter: 0.12in,
 
-  contrast-box("Actions: One per ship per turn")[
+  contrast-box("Each Ship: One action, then click forward")[
     #set par(leading: 0.5em)
-    - *A, Move:* Set Heading (≤ 90°), then click forward × Move Count.
-    - *B, Fire:* Plug cannon into a slot. Press to fire. Ship stays put.
-    - *C, Island:* _Pick one:_ Raise flag · Collect 1 coin · Fire from island slot. Ship stays put.
+    - *A, Set Heading:* Rotate up to 90°. Adds no movement.
+    - *B, Fire:* Plug cannon into a slot. Press to fire. No rotating.
+    - *C, Island:* _Pick one:_ Raise flag · Collect 1 coin · Fire from island slot.
+    - *Then click forward* 1 to Move Count. An Island action skips it.
 
     _Spend coins at the start of your turn, before ship actions._
   ],
@@ -817,8 +803,8 @@ Every ship has a wheel built into the stern. Two details matter:
   contrast-box("Cannon Firing")[
     + Pick a ship and a cannon slot (on the ship, or on the island it's touching).
     + Plug the cannon in.
-    + Ship cannot move or rotate; aim was set by a prior Move.
-    + Press the mechanism. Fire.
+    + Ship cannot Set Heading; aim was set on an earlier turn.
+    + Press the mechanism. Fire, then click the ship forward.
 
     _Cannons need a crew. Your ship is the crew._
   ],
@@ -878,8 +864,7 @@ Every ship has a wheel built into the stern. Two details matter:
     #set par(first-line-indent: 0pt, leading: 0.6em, spacing: 0.7em)
     #stack(dir: ttb, spacing: 0.5em,
       [#coin("brace", size: 1.6em) *Brace:* shield next hit.],
-      [#coin("signal", size: 1.6em) *Signal:* free Move (ally ok).],
-      [#coin("fullsail", size: 1.6em) *Full Sail:* double Move.],
+      [#coin("signal", size: 1.6em) *Signal:* one ship idles, another acts twice.],
       [#coin("evasive", size: 1.6em) *Evasive:* slide one ship-width.],
       [#coin("gunner", size: 1.6em) *Gunner:* fire twice.],
       [#coin("repair", size: 1.6em) *Repair:* restore 1 fitting.],

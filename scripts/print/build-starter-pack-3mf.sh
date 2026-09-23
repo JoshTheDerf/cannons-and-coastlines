@@ -142,12 +142,17 @@ islands_per_pack=3
 rocks_per_pack=2
 reefs_per_pack=2
 
-# Coin ratio: skilled-gunner, repair-crew, and full-sail print at 2× the
-# count of the other four faces.
-coin_common_per_pack=2
-coin_double_per_pack=4
-COMMON_COINS=(coin-boarding-party coin-brace-for-impact coin-evasive-maneuver coin-signal-flag)
-DOUBLE_COINS=(coin-full-sail coin-repair-crew coin-skilled-gunner)
+# Coins per pack, as "<stem>:<count>", matching the rulebook's 20-coin set:
+# 4 Brace · 2 Signal · 2 Evasive · 4 Gunner · 4 Repair · 4 Boarding.
+# Listed in a fixed order so plate layout stays reproducible.
+COIN_COUNTS=(
+    coin-brace-for-impact:4
+    coin-signal-flag:2
+    coin-evasive-maneuver:2
+    coin-skilled-gunner:4
+    coin-repair-crew:4
+    coin-boarding-party:4
+)
 
 # --- Helpers --------------------------------------------------------------
 # Append `count` copies of $STL_DIR/$file to the array named in $1.
@@ -181,8 +186,7 @@ run_orca_group() {
 # arrange spacing — open the resulting 3MF in Orca and tweak if too sparse
 # or too crowded. Cannonball footprint ≈10×10 mm, coin ≈15×15 mm.
 BULK_CANNONBALLS=400
-BULK_COIN_COMMON=20
-BULK_COIN_DOUBLE=40  # 2× the common count for the three favored faces
+BULK_COIN_SETS=10  # the bulk plate holds ten full 20-coin sets
 
 build_bulk_single() {
     local out_path="$1" process="$2" stl="$3" count="$4"
@@ -212,12 +216,10 @@ build_faction() {
     add_to sails "sail.stl"       "$(( sail_per_ship * total_ships ))"
     add_to balls "cannonball.stl" "$(( cannonballs_per_pack * orders ))"
 
-    local c
-    for c in "${COMMON_COINS[@]}"; do
-        add_to coins "${c}.stl" "$(( coin_common_per_pack * orders ))"
-    done
-    for c in "${DOUBLE_COINS[@]}"; do
-        add_to coins "${c}.stl" "$(( coin_double_per_pack * orders ))"
+    local spec c n
+    for spec in "${COIN_COUNTS[@]}"; do
+        c="${spec%:*}"; n="${spec#*:}"
+        add_to coins "${c}.stl" "$(( n * orders ))"
     done
 
     add_to islands "island-topper.stl" "$(( islands_per_pack * orders ))"
@@ -258,11 +260,9 @@ build_bulk_single "$OUTDIR/bulk-cannonballs-tpu.3mf" "$P_CANNONBALLS" cannonball
 build_bulk_single "$OUTDIR/bulk-cannonballs-pla.3mf" "$P_CANNONBALLS" cannonball.stl "$BULK_CANNONBALLS"
 
 bulk_coins=()
-for c in "${COMMON_COINS[@]}"; do
-    for ((i=0; i<BULK_COIN_COMMON; i++)); do bulk_coins+=("$STL_DIR/${c}.stl"); done
-done
-for c in "${DOUBLE_COINS[@]}"; do
-    for ((i=0; i<BULK_COIN_DOUBLE; i++)); do bulk_coins+=("$STL_DIR/${c}.stl"); done
+for spec in "${COIN_COUNTS[@]}"; do
+    c="${spec%:*}"; n="${spec#*:}"
+    for ((i=0; i<n*BULK_COIN_SETS; i++)); do bulk_coins+=("$STL_DIR/${c}.stl"); done
 done
 run_orca_group "$OUTDIR/bulk-coins.3mf" "$P_COINS" "${bulk_coins[@]}"
 

@@ -91,12 +91,12 @@ gallery:
       name: Island Topper
       desc: A puck with cannon slots and flag holes. Set it on a box, a book, or an upside-down mug and you have an island.
       color: Sand, grey, or green.
-    - render: /assets/images/renders/coin-full-sail.png
+    - render: /assets/images/renders/coin-skilled-gunner.png
       name: Coins
       desc: >-
-        There are seven kinds (Brace, Signal, Full Sail, Evasive, Gunner,
-        Repair and Boarding). You draw them from the bag and spend them at the
-        start of your turn.
+        There are six kinds (Brace, Signal, Evasive, Gunner, Repair and
+        Boarding). You draw them from the bag and spend them at the start of
+        your turn.
       color: Gold. Silk PLA if you have it.
 
 assembly:
@@ -188,7 +188,7 @@ quantities:
     - [Movement wheel, 1 per ship, Fit once with its rubber band. Hard to get back out.]
     - [Islands, 2–3, Print them, or use **island toppers** on household objects.]
     - [Rocks and reefs, 2–4, Optional. They block ships and cannonballs.]
-    - [Coins, 1 set of 20, 2 Brace · 2 Signal · 4 Full Sail · 2 Evasive · 4 Gunner · 4 Repair · 2 Boarding]
+    - [Coins, 1 set of 20, 4 Brace · 2 Signal · 2 Evasive · 4 Gunner · 4 Repair · 4 Boarding]
   notPrinted: "**Not printed:** one cloth draw bag for the table, and a thin rubber band per wheel."
 
 cta:

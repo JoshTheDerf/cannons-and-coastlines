@@ -1,20 +1,21 @@
 <script setup lang="ts">
-// The rulebook change notes. Shared by the home page and /live.
+// The rulebook change notes, newest release first. Shared by the home page and /live.
 defineProps<{
-  items: Array<{ icon: string, title: string, body: string }>
+  releases: Array<{ version: string, released: string, items: string[] }>
 }>()
 </script>
 
 <template>
-  <ul class="space-y-4">
-    <li v-for="item in items" :key="item.title" class="card-parchment p-5 flex gap-4">
-      <div class="size-10 shrink-0 rounded-sm border border-[color:var(--gold)]/50 text-[color:var(--gold)] flex items-center justify-center">
-        <UIcon :name="item.icon" class="size-5" />
-      </div>
-      <div>
-        <h3 class="font-display text-lg text-ink">{{ item.title }}</h3>
-        <p class="mt-1 font-serif text-sm muted">{{ item.body }}</p>
-      </div>
-    </li>
-  </ul>
+  <div class="space-y-6">
+    <div v-for="rel in releases" :key="rel.version" class="card-parchment p-6">
+      <h3 class="font-display text-lg flex items-baseline gap-3">
+        {{ rel.version }}
+        <span class="font-serif text-sm muted">{{ rel.released }}</span>
+      </h3>
+      <hr class="rule-gold mt-3">
+      <ul class="list-diamond mt-3 space-y-2 font-serif text-sm muted">
+        <li v-for="(item, i) in rel.items" :key="i"><RichText :text="item" /></li>
+      </ul>
+    </div>
+  </div>
 </template>
