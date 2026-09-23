@@ -58,7 +58,11 @@ const FACTION_DEFS = {
   queens_fleet: {
     name: "Queen's Fleet", shipCount: 3, fittings: 4, moveCount: 3, pivot: 180,
     guns: 'broadside', len: 13.4, wid: 3.6, hull: 'frigate',
-    names: ['Vanguard', 'Resolute', 'Defiance'],
+    names: {
+      forms: ['{v}', '{v}', 'Royal {n}', "Queen's {n}"],
+      v: ['Vanguard', 'Resolute', 'Defiance', 'Valiant', 'Steadfast', 'Dauntless', 'Intrepid', 'Formidable', 'Sovereign', 'Vigilant', 'Illustrious', 'Invincible', 'Endeavour', 'Triumph'],
+      n: ['Oak', 'Crown', 'Lion', 'Standard', 'Charter', 'Sceptre', 'Herald', 'Guardian', 'Rose', 'Albion'],
+    },
     passive: 'disciplined', passiveName: 'Disciplined Crew',
     passiveText: 'Set Heading up to 180\u00B0 instead of 90\u00B0.',
     blurb: 'Balanced and forgiving. A good first pick.',
@@ -67,7 +71,13 @@ const FACTION_DEFS = {
   corsairs: {
     name: 'Corsairs', shipCount: 3, fittings: 3, moveCount: 4, pivot: 90,
     guns: 'broadside', len: 11.9, wid: 3.6, hull: 'sloop',
-    names: ['Black Tide', 'Sea Viper', 'Cutlass'],
+    names: {
+      forms: ['{a} {n}', '{a} {n}', "{o}'s {t}"],
+      a: ['Black', 'Red', 'Salt', 'Crimson', 'Rotten', 'Grim', 'Rusty', 'Mad', 'Sly', 'Wicked'],
+      n: ['Tide', 'Viper', 'Gull', 'Jackal', 'Cutlass', 'Kraken', 'Shark', 'Wolf', 'Raven', 'Hook', 'Barracuda'],
+      o: ['Widow', 'Devil', 'Rogue', 'Beggar', 'Gambler', 'Mutineer'],
+      t: ['Revenge', 'Fortune', 'Folly', 'Grin', 'Luck', 'Bargain', 'Ransom'],
+    },
     passive: 'plunder', passiveName: 'Plunder',
     passiveText: 'Draw 1 extra coin on every successful board or island capture.',
     blurb: 'Fast raiders with thinner hulls.',
@@ -76,7 +86,11 @@ const FACTION_DEFS = {
   treasure_fleet: {
     name: 'Treasure Fleet', shipCount: 2, fittings: 3, moveCount: 2, pivot: 90,
     guns: 'broadside', len: 14.0, wid: 4.4, hull: 'junk',
-    names: ['Golden Junk', 'Jade Dragon'],
+    names: {
+      forms: ['{a} {b}'],
+      a: ['Golden', 'Jade', 'Silver', 'Pearl', 'Amber', 'Lotus', 'Silk', 'Imperial', 'Jewel', 'Scarlet'],
+      b: ['Dragon', 'Junk', 'Phoenix', 'Lantern', 'Tiger', 'Crane', 'Harvest', 'Moon', 'Tortoise', 'Carp'],
+    },
     passive: 'harvest', passiveName: 'Bountiful Harvest',
     passiveText: 'Collect draws 2 coins instead of 1.',
     blurb: 'Two ships. Every island pays double.',
@@ -85,7 +99,11 @@ const FACTION_DEFS = {
   sun_fleet: {
     name: 'Sun Fleet', shipCount: 3, fittings: 4, moveCount: 2, pivot: 90,
     guns: 'broadside', len: 13.0, wid: 4.4, hull: 'barge',
-    names: ['Obsidian Sun', 'Jade Altar', 'Stone Tide'],
+    names: {
+      forms: ['{a} {b}'],
+      a: ['Obsidian', 'Jade', 'Stone', 'Basalt', 'Granite', 'Golden', 'Serpent', 'Jaguar', 'Eagle', 'Onyx'],
+      b: ['Sun', 'Altar', 'Tide', 'Temple', 'Idol', 'Pyramid', 'Dawn', 'Colossus', 'Throne', 'Monolith'],
+    },
     passive: 'stone', passiveName: 'Stone Hulls',
     passiveText: 'Each ship ignores the first hit it takes each turn.',
     blurb: 'Slow, and very hard to chip at.',
@@ -94,7 +112,12 @@ const FACTION_DEFS = {
   shadow_fleet: {
     name: 'Shadow Fleet', shipCount: 3, fittings: 3, moveCount: 3, pivot: 90,
     guns: 'broadside', len: 13.0, wid: 3.8, hull: 'galleon',
-    names: ['Wraith', 'Phantom', 'Revenant'],
+    names: {
+      forms: ['{v}', '{a} {b}', '{a} {b}'],
+      v: ['Wraith', 'Phantom', 'Revenant', 'Spectre', 'Banshee', 'Shade', 'Haunt', 'Wisp'],
+      a: ['Drowned', 'Hollow', 'Silent', 'Grey', 'Pale', 'Lost', 'Sunken', 'Forgotten'],
+      b: ['Maiden', 'Crown', 'Lantern', 'Bell', 'Mariner', 'Widow', 'Promise', 'Anchor'],
+    },
     passive: 'deep', passiveName: 'Return from the Deep',
     passiveText: 'Spend 2 coins to raise a sunk ship with 1 fitting at an island you hold.',
     blurb: 'Average ships that come back.',
@@ -103,7 +126,12 @@ const FACTION_DEFS = {
   industry: {
     name: 'The Industry', shipCount: 3, fittings: 3, moveCount: 3, pivot: 90,
     guns: 'industry', len: 12.5, wid: 3.8, hull: 'steam',
-    names: ['Ironclad', 'Dreadnought', 'Juggernaut'],
+    names: {
+      forms: ['{v}', '{a} {b}', '{a} {b}'],
+      v: ['Ironclad', 'Dreadnought', 'Juggernaut', 'Monitor', 'Leviathan', 'Vulcan', 'Titan', 'Colossus'],
+      a: ['Iron', 'Steel', 'Brass', 'Coal', 'Steam', 'Rivet', 'Boiler', 'Furnace'],
+      b: ['Duke', 'Hammer', 'Anvil', 'Engine', 'Piston', 'Baron', 'Magnate', 'Works'],
+    },
     passive: 'turret', passiveName: 'Rotating Turret',
     passiveText: 'Bow gun fires forward. The turret is a fitting that turns to fire any way. Shot off, it stays silent until repaired.',
     blurb: 'Iron steamers with a bow gun and a turret.',
@@ -112,7 +140,11 @@ const FACTION_DEFS = {
   islanders: {
     name: 'The Islanders', shipCount: 5, fittings: 1, moveCount: 4, pivot: 90,
     guns: 'stern', len: 10.0, wid: 4.2, hull: 'cat',
-    names: ['Wavecutter', 'Tideskimmer', 'Reefrunner', 'Shellstrike', 'Driftfang'],
+    names: {
+      forms: ['{a}{b}'],
+      a: ['Wave', 'Tide', 'Reef', 'Shell', 'Drift', 'Salt', 'Coral', 'Palm', 'Spray', 'Gull', 'Surf', 'Sand'],
+      b: ['cutter', 'skimmer', 'runner', 'strike', 'fang', 'dancer', 'rider', 'song', 'glider', 'darter'],
+    },
     passive: 'home', passiveName: 'Home Waters',
     passiveText: 'Start with the nearest island flagged and one catamaran touching it.',
     blurb: 'Five fast catamarans. One hit each. Guns face the stern.',
@@ -170,6 +202,22 @@ function clamp(v, a, b) { return v < a ? a : v > b ? b : v; }
 // seeded generator so results come from the server, never the client.
 let rand = Math.random;
 function setRand(fn) { rand = fn || Math.random; }
+
+// Ship names are built from each fleet's word lists (FACTION_DEFS[f].names),
+// so every game gets a new crew. They use rand(), so an online game's names
+// come from the server's seed and match on every screen. `used` keeps them
+// unique across the table.
+function shipName(fid, used) {
+  const spec = FACTION_DEFS[fid].names;
+  const pick = (a) => a[Math.floor(rand() * a.length)];
+  for (let tries = 0; tries < 40; tries++) {
+    const name = pick(spec.forms).replace(/\{(\w)\}/g, (_, k) => pick(spec[k]));
+    if (!used.has(name)) { used.add(name); return name; }
+  }
+  const name = `${FACTION_DEFS[fid].name} ${used.size + 1}`;
+  used.add(name);
+  return name;
+}
 function seededRandom(seed) {
   let a = seed >>> 0;
   const fn = () => {

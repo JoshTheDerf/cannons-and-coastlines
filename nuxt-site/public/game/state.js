@@ -5,11 +5,11 @@
 
 let G = null;
 
-function makeShip(p, fid, i) {
+function makeShip(p, fid, i, used = new Set()) {
   const f = FACTION_DEFS[fid];
   return {
     id: `p${p}s${i}`, owner: p, build: fid,
-    name: f.names[i] || `Ship ${i + 1}`,
+    name: shipName(fid, used),
     len: f.len, wid: f.wid, guns: f.guns, moveCount: f.moveCount, hullStyle: f.hull,
     maxFit: f.fittings, fit: f.fittings,
     fitMask: Array(f.fittings).fill(true),  // which fittings are aboard (see fittingLayout)
@@ -59,6 +59,7 @@ function newGame(opts) {
     stats: {},
     ai: null,
   };
+  const usedNames = new Set();
   opts.seats.forEach((s, i) => {
     const p = i + 1;
     G.factions[p] = s.faction;
@@ -66,7 +67,7 @@ function newGame(opts) {
     G.terrainPlaced[p] = 0;
     G.stats[p] = { shots: 0, hits: 0, sunk: 0 };
     const f = FACTION_DEFS[s.faction];
-    for (let k = 0; k < f.shipCount; k++) G.players[p].ships.push(makeShip(p, s.faction, k));
+    for (let k = 0; k < f.shipCount; k++) G.players[p].ships.push(makeShip(p, s.faction, k, usedNames));
   });
   if (opts.setup === 'quick') {
     randomIslands();
