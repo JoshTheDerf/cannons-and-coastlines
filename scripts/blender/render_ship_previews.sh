@@ -32,6 +32,14 @@ shopt -s nullglob
 stls=("$INPUT"/ship-*.stl)
 shopt -u nullglob
 
+# ship-tolerance-test.stl shares the hull prefix but is a fit-check block, not
+# a ship; it has a parts-gallery render and no business on a faction card.
+hulls=()
+for stl in "${stls[@]}"; do
+    [[ "$(basename "$stl")" == ship-tolerance-test.stl ]] || hulls+=("$stl")
+done
+stls=("${hulls[@]}")
+
 if (( ${#stls[@]} == 0 )); then
     echo "No ship-*.stl files found in $INPUT" >&2
     exit 1

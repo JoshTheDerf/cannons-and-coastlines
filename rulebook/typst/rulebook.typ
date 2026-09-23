@@ -689,8 +689,12 @@ Every printed piece in the base set, with what it does and recommended print col
     [A removable *fitting* that plugs into the deck, with the flag holder built into the top: slide a paper flag of any design into the slot. Print horizontally.],
     [*Wood/Brown or Black*]),
 
-  ..part-row("cargo", "Cargo",
-    [A removable *fitting* representing crates of supplies.],
+  ..part-row("mast-short", "Short Mast",
+    [The same mast, shorter. Used on islands and on Islander catamarans.],
+    [Same as your masts]),
+
+  ..part-row("cargo", "Cargo & Barrel",
+    [Removable *fittings*: a chest of supplies, or a barrel. Either one fills a cargo slot.],
     [*Wood/Brown.* Any natural wood tone reads correctly.]),
 
   ..part-row("sail", "Sail",
@@ -713,6 +717,10 @@ Every printed piece in the base set, with what it does and recommended print col
     [Insert into the slot in the bottom of the hull. One full revolution is one *click* of movement.],
     [*Any color*. Wrap a *thin rubber band* around the rim before assembly.]),
 
+  ..part-row("island", "Island",
+    [A freestanding island with cannon slots and a hole for a short mast to fly your flag. Needs nothing under it.],
+    [*Green*, *sand*, or *grey*; Terrain colors.]),
+
   ..part-row("island-topper", "Island Topper",
     [A small puck with cannon slots and flag holes. Turns any household object into an island.],
     [*Sand*, *grey*, or *green*; Terrain colors.]),
@@ -726,7 +734,7 @@ Every printed piece in the base set, with what it does and recommended print col
 
 = The Print List
 
-A *faction set* is one complete print run for one player: their fleet plus a fair share of shared terrain and coins. The only non-printed parts are the draw bag (any small cloth pouch) and the wheel rubber bands. Print at *0.2 or 0.16mm* layer height, *15%* infill.
+A *faction set* is one complete print run for one player: their fleet plus a fair share of shared terrain and coins. The only non-printed parts are the draw bag (any small cloth pouch) and the wheel rubber bands. Print at *0.2 or 0.16mm* layer height, *15%* infill. Print the *fit test* block first: it has the same slots as a hull, so you can check masts, cargo and cannons fit before committing to a fleet.
 
 == Per Faction Set
 
@@ -734,8 +742,8 @@ A *faction set* is one complete print run for one player: their fleet plus a fai
   columns: (0.6fr, 0.7fr, 1.7fr),
   table.header[Piece][Quantity][Notes],
   [Ships], [2–5],     [Some ship models may print better with supports enabled.],
-  [Masts],             [1 per ship + 1 per island],  [The flag holder is part of the mast. Print a few spares.],
-  [Cargo],             [Varies by ship],             [Enough to fill your ships' fitting slots.],
+  [Masts],             [1 per ship + 1 per island],  [The flag holder is part of the mast. Use *Short Masts* on islands and Islander ships. Print a few spares.],
+  [Cargo and barrels], [Varies by ship],             [Enough to fill your ships' fitting slots.],
   [Sails],                [1 per mast], [Decorate to customize your fleet.],
   [Cannons],              [3–4],     [You can get away with one, but it's good to have options if one fails.],
   [Cannonballs],          [10],   [Coarser layer heights cause cannonballs to shoot stronger and less predictably. *TPU* with three walls and no infill reduces bounce.],

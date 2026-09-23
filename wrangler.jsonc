@@ -52,4 +52,6 @@
     // Secrets (never in this file — set with `npx wrangler secret put <NAME>`):
     //   STRIPE_SECRET_KEY      server/api/checkout.post.ts
     //   STRIPE_WEBHOOK_SECRET  server/api/stripe/webhook.post.ts (whsec_...)
+    //   PAID_SHARE_TOKEN       server/api/download/[set].get.ts — TEMPORARY
+    //                          ?share= links for paid sets; delete to revoke
 }
