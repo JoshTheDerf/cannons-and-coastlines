@@ -168,7 +168,7 @@ fleets:
     and either one works for your first game.
   base:
     - name: Queen's Fleet
-      image: /assets/ships/ship-preview-queen-fleet-large-sm.webp
+      image: /assets/ships/ship-preview-queen-fleet-large-sm.webp?v=0.5
       summary: Well-armed frigates, and the easiest fleet to learn.
       stats:
         - [Ships, '3']
@@ -179,7 +179,7 @@ fleets:
       abilityBody: Ships can turn up to 180° instead of 90° when they steer.
       card: /rulebook/pdf/faction-card-queens-fleet.pdf
     - name: Corsairs
-      image: /assets/ships/ship-preview-corsairs-sm.webp
+      image: /assets/ships/ship-preview-corsairs-sm.webp?v=0.5
       summary: Fast sloops with thin hulls. They do best when they pick their fights.
       stats:
         - [Ships, '3']

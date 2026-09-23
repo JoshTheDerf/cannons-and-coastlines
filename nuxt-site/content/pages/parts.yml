@@ -20,13 +20,15 @@ gallery:
   # Renders come from assets/ships/renders/ (scripts/blender/render_ship_previews.sh),
   # in the filament each fleet is meant to be printed in (scripts/blender/cc_config.py).
   # `desc` and `color` accept **bold** and *italic*.
+  # _headers caches /assets/images/ and /assets/ships/ as immutable for a year,
+  # so a re-rendered image needs a new ?v= here or returning visitors keep the old one.
   hulls:
-    - render: /assets/ships/renders/ship-queens-fleet.png
+    - render: /assets/ships/renders/ship-queens-fleet.png?v=0.5
       name: Queen's Fleet
       badge: Base set
       desc: A frigate with three broadside slots on each side and four fittings.
       color: Blue-grey, or your fleet color.
-    - render: /assets/ships/renders/ship-corsair.png
+    - render: /assets/ships/renders/ship-corsair.png?v=0.5
       name: Corsairs
       badge: Base set
       desc: A sloop. It's smaller and quicker than the frigate, with three fittings.
@@ -59,7 +61,7 @@ gallery:
   partsTitle: The Pieces
   partsLead: Everything else in the base set. The colors are just suggestions.
   items:
-    - render: /assets/images/renders/mast.png
+    - render: /assets/images/renders/mast.png?v=0.5
       name: Mast
       desc: A *fitting*. Plugs into the deck and comes off when the ship takes a hit. The flag holder is built into the top.
       color: Brown or black.
@@ -67,7 +69,7 @@ gallery:
       name: Short Mast
       desc: The same mast, cut down. It goes on islands and on Islander catamarans.
       color: Same as your masts.
-    - render: /assets/images/renders/cargo.png
+    - render: /assets/images/renders/cargo.png?v=0.5
       name: Cargo
       desc: A *fitting*. A chest of supplies that comes off when the ship takes a hit.
       color: Wood brown.
@@ -83,7 +85,7 @@ gallery:
       name: Damaged Sail
       desc: A torn sail. It's just cosmetic, but it looks good on pirates.
       color: Same as your sails, or something scorched.
-    - render: /assets/images/renders/cannon.png
+    - render: /assets/images/renders/cannon.png?v=0.5
       name: Cannon
       desc: The gun. It plugs into any cannon slot on a ship or island, and you press the arm down until it fires.
       color: Black or gunmetal.
@@ -91,7 +93,7 @@ gallery:
       name: Cannonball
       desc: Goes in the muzzle. They're really easy to lose.
       color: Something bright, since neon green or orange is a lot easier to find under the couch. **TPU** bounces less.
-    - render: /assets/images/renders/movement-wheel.png
+    - render: /assets/images/renders/movement-wheel.png?v=0.5
       name: Movement Wheel
       desc: Lives in the stern. One full turn is one *click* of movement. The flat spot parks the ship.
       color: Any. Needs a thin **rubber band** around the rim or it won't click.
