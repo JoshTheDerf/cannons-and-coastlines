@@ -368,6 +368,12 @@ export class GameRoom extends DurableObject {
   async afterAction(events, by, id) {
     this.meta.seq++;
     this.setDeadline();
+    // Every ship has gone and nothing is left to spend: end the turn by
+    // itself, a beat after the last move has played on everyone's screen.
+    const G1 = this.game;
+    const human = G1.phase === 'play' && !G1.players[G1.active].ai;
+    const done = human && this.withEngine(() => engine.turnIsOver(G1.active));
+    this.meta.autoEndAt = done ? Date.now() + engine.eventsDuration(events) + 1000 : null;
     const over = this.game.phase === 'over';
     if (over) this.room.status = 'over';
     await this.save();
@@ -396,7 +402,8 @@ export class GameRoom extends DurableObject {
     this.meta.deadlineTurn = null;
     this.setDeadline();
     if (before && this.meta.deadline && before < this.meta.deadline) this.meta.deadline = before;
-    if (this.meta.deadline) await this.ctx.storage.setAlarm(this.meta.deadline);
+    const at = [this.meta.deadline, this.meta.autoEndAt].filter(Boolean);
+    if (at.length) await this.ctx.storage.setAlarm(Math.min(...at));
     else await this.ctx.storage.deleteAlarm();
   }
 
@@ -414,6 +421,19 @@ export class GameRoom extends DurableObject {
       let res = this.withEngine(() => engine.act(p, engine.aiNextAction(p)));
       if (!res.ok) res = this.withEngine(() => engine.act(p, { t: 'endTurn' }));
       await this.afterAction(res.events, p, null);
+      return;
+    }
+    if (this.meta.autoEndAt && Date.now() >= this.meta.autoEndAt - 50) {
+      this.meta.autoEndAt = null;
+      const res = this.withEngine(() => {
+        if (!engine.turnIsOver(p)) return null;
+        const r = engine.act(p, { t: 'endTurn' });
+        if (r.ok) r.events.unshift({ e: 'msg', msg: 'Turn over.' });
+        return r;
+      });
+      if (res && res.ok) { await this.afterAction(res.events, p, null); return; }
+      await this.save();
+      await this.schedule();
       return;
     }
     if (this.meta.deadline && Date.now() >= this.meta.deadline - 50) {

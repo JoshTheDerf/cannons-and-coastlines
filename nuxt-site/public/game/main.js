@@ -207,21 +207,48 @@ function resyncUI() {
 
 function afterEvents(events) {
   if (events.some(e => e.e === 'over') || G.phase === 'over') { setTimeout(showGameOver, 700 / GAME_SPEED); return; }
-  if (events.some(e => e.e === 'turn')) { UI.sel = null; cancelMode(); refresh(); announceTurn(); }
+  if (events.some(e => e.e === 'turn')) {
+    UI.sel = null; cancelMode(); refresh(); announceTurn();
+    if (!aiControlled[1] && !aiControlled[2]) showPassScreen();
+  } else if (!aiControlled[G.active]) autoEndSoon();
   kickAI();
 }
 
-function hitDisplay(t, res, fitAfter, wreck) {
+// Local games: once every ship has gone there is nothing left to do, so
+// the turn ends by itself after a short beat. (Online, the server does it.)
+function autoEndSoon() {
+  if (!G || isOnline() || !turnIsOver(G.active)) return;
+  const turn = G.turn;
+  const tryEnd = async () => {
+    if (!G || G.turn !== turn || G.phase !== 'play' || aiControlled[G.active] || !turnIsOver(G.active)) return;
+    if (UI.busy || isAnimating()) { setTimeout(tryEnd, 250); return; }
+    logMsg('Turn over.');
+    cancelMode(); UI.sel = null;
+    await perform({ t: 'endTurn' });
+  };
+  setTimeout(tryEnd, 1000);
+}
+
+/** Hot-seat: hand the device over between turns. */
+function showPassScreen() {
+  if (!G || G.phase !== 'play') return;
+  $('passWho').textContent = `${seatName(G.active)}, your turn`;
+  $('passWho').style.color = colorOf(G.active).dark;
+  $('passScreen').style.display = 'flex';
+}
+function hidePassScreen() { $('passScreen').style.display = 'none'; }
+
+function hitDisplay(t, res, fitAfter, wreck, mask, lost) {
   const x = t.x, y = t.y;
   if (res === 'stone') { animText(x, y, 'Stone hull', '220,210,180'); animThud(x, y); return; }
   if (res === 'brace') { t.braced = false; animText(x, y, 'Braced', '241,196,15'); animThud(x, y); return; }
   animHitFlash(x, y);
   if (res === 'fitting' || res === 'dead') {
     t.fit = fitAfter;
-    // Which slot along the keel just emptied (Industry: the turret goes last).
-    const idx = t.guns === 'industry' ? (t.fit === 0 ? t.maxFit - 1 : t.fit - 1) : t.fit;
-    animFittingFall(t, idx, idx % 2 === 0 && !(t.guns === 'industry' && t.fit === 0));
-    animText(x, y, res === 'dead' ? 'Dead in the water' : '-1 fitting');
+    if (mask) t.fitMask = mask.slice();
+    animFittingFall(t, lost);
+    const turret = lost != null && fittingLayout(t)[lost] && fittingLayout(t)[lost].kind === 'turret';
+    animText(x, y, res === 'dead' ? 'Dead in the water' : turret ? 'Turret shot off' : '-1 fitting');
     sfxMastFall();
   }
   if (res === 'sunk') {
@@ -259,7 +286,7 @@ async function playEvents(events) {
           animRicochet(e.x, e.y, e.h);
           const t = shipById(e.target);
           if (e.friendly) { animThud(e.x, e.y); if (t) animText(t.x, t.y, 'No friendly fire', '200,200,200'); }
-          else if (t) hitDisplay(t, e.res, e.fitAfter, e.wreck);
+          else if (t) hitDisplay(t, e.res, e.fitAfter, e.wreck, e.mask, e.lost);
         } else if (e.kind === 'terrain') { animThud(e.x, e.y); animRicochet(e.x, e.y, e.h); }
         else if (e.kind === 'none') animSplash(e.x, e.y);
         logMsg(e.msg);
@@ -271,7 +298,7 @@ async function playEvents(events) {
         logMsg(e.msg);
         if (from && s) animBoarding(from.x, from.y, s.x, s.y);
         await sleep(550);
-        if (s) hitDisplay(s, e.res, e.fitAfter, e.wreck);
+        if (s) hitDisplay(s, e.res, e.fitAfter, e.wreck, e.mask, e.lost);
         break;
       }
       case 'capture': {
@@ -302,7 +329,7 @@ async function playEvents(events) {
         if (s) {
           const col = { brace: '241,196,15', gunner: '255,140,90', signal: '120,220,255' }[e.coin];
           if (e.coin === 'signal') { const g = shipById(e.from); if (g) animRing(g.x, g.y, '200,200,200'); }
-          if (e.coin === 'repair') { s.fit = e.fit; animSparkle(s.x, s.y); animText(s.x, s.y, '+1 fitting', '120,240,160'); }
+          if (e.coin === 'repair') { s.fit = e.fit; if (e.mask) s.fitMask = e.mask.slice(); animSparkle(s.x, s.y); animText(s.x, s.y, '+1 fitting', '120,240,160'); }
           else animRing(s.x, s.y, col);
           if (e.coin === 'brace') s.braced = true;
         }
@@ -462,7 +489,7 @@ function pickShip(w, p) {
 }
 
 function cancelMode() {
-  UI.signalFrom = null;
+  UI.signalFrom = null; UI.fitChoice = null;
   UI.mode = null; UI.move = null; UI.fire = null; UI.coin = null; UI.evasive = null; UI.targets = null;
 }
 
@@ -630,7 +657,7 @@ function startFire(ship, source, island) {
 function chooseSlot(idx) {
   const F = UI.fire;
   F.slot = F.slots[idx]; F.slotIdx = idx;
-  if (F.slot.free) { F.stage = 'dir'; F.h = F.ship.h; }
+  if (F.slot.free) { F.stage = 'dir'; F.h = normAngle(F.ship.h + (F.ship.turretRel || 0)); }
   else startPower();
   sfxSelect();
   refresh();
@@ -816,7 +843,29 @@ async function playCoin(id, target) {
     refresh();
     return;
   }
+  // Industry ships: the turret is its own fitting, so Boarding and Repair
+  // ask which one when it matters.
+  const boardLive = id === 'boarding' && !isDead(target), repairOwn = id === 'repair' && target.owner === G.active;
+  if (target.guns === 'industry' && (boardLive || repairOwn)) {
+    const ti = turretIdx(target);
+    const hull = (id === 'boarding' ? presentFittings(target) : missingFittings(target)).filter(i => i !== ti);
+    const turretThere = id === 'boarding' ? hasTurret(target) : missingFittings(target).includes(ti);
+    if (turretThere && hull.length) {
+      UI.mode = 'fitChoice'; UI.sel = target;
+      UI.fitChoice = { coin: id, target, options: [{ label: id === 'boarding' ? 'Take the turret' : 'Put the turret back', idx: ti }, { label: id === 'boarding' ? 'Take a hull fitting' : 'Put a hull fitting back', idx: hull[0] }] };
+      refresh();
+      return;
+    }
+  }
   await perform({ t: 'coin', coin: id, target: target.id });
+}
+
+async function chooseFitting(idx) {
+  const c = UI.fitChoice;
+  if (!c) return;
+  cancelMode();
+  await perform({ t: 'coin', coin: c.coin, target: c.target.id, fitting: idx });
+  UI.sel = null; refresh();
 }
 
 async function chooseEvasive(side) {
@@ -1014,6 +1063,13 @@ function fillBar(p, prompt, acts) {
     const c = COIN_DEFS[UI.coin];
     const where = UI.coin === 'boarding' ? 'Tap an enemy ship touching yours.' : UI.coin === 'repair' ? 'Tap one of your ships (or a dead enemy to capture it).' : UI.coin === 'signal' ? 'First tap the ship that gives up its action.' : 'Tap one of your ships.';
     say(`${c.name}: ${c.text} ${where}`);
+    acts.appendChild(btn('Cancel', () => { cancelMode(); refresh(); }, { act: 'cancel' }));
+    return;
+  }
+  if (UI.mode === 'fitChoice') {
+    const c = UI.fitChoice;
+    say(c.coin === 'boarding' ? `Boarding ${c.target.name}: which fitting do you take?` : `Repair ${c.target.name}: which fitting goes back?`);
+    for (const o of c.options) acts.appendChild(btn(o.label, () => chooseFitting(o.idx), { act: 'fit' + o.idx, cls: o === c.options[0] ? 'go' : '' }));
     acts.appendChild(btn('Cancel', () => { cancelMode(); refresh(); }, { act: 'cancel' }));
     return;
   }

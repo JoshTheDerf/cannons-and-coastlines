@@ -42,6 +42,7 @@ const ROLL_K = 0.12;        // roll after landing, fraction of flight distance
 const SHOT_ANGLE_SD = 1.2 * Math.PI / 180;   // cannon wobble
 const SHOT_RANGE_SD = 0.05;                   // spring force wobble
 const BOUNCE_SD = 14 * Math.PI / 180;         // the ball kicks sideways when it lands
+const SLOT_SPLAY = 15 * Math.PI / 180;   // end slots angle toward their nearest end or side
 const POWER_PERIOD = 2.4;   // seconds for the power marker to go out and back
 
 // Scoring
@@ -104,7 +105,7 @@ const FACTION_DEFS = {
     guns: 'industry', len: 12.5, wid: 3.8, hull: 'steam',
     names: ['Ironclad', 'Dreadnought', 'Juggernaut'],
     passive: 'turret', passiveName: 'Rotating Turret',
-    passiveText: 'Bow gun fires forward. The turret fires any direction until it is shot off.',
+    passiveText: 'Bow gun fires forward. The turret is a fitting that turns to fire any way. Shot off, it stays silent until repaired.',
     blurb: 'Iron steamers with a bow gun and a turret.',
     hullColor: [84, 84, 92],
   },

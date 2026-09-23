@@ -56,7 +56,7 @@ function islandById(id) {
   return t;
 }
 const pose = s => ({ x: s.x, y: s.y, h: s.h });
-const snapShip = s => ({ id: s.id, owner: s.owner, build: s.build, name: s.name, len: s.len, wid: s.wid, guns: s.guns, hullStyle: s.hullStyle, maxFit: s.maxFit, fit: s.fit, x: s.x, y: s.y, h: s.h });
+const snapShip = s => ({ id: s.id, owner: s.owner, build: s.build, name: s.name, len: s.len, wid: s.wid, guns: s.guns, hullStyle: s.hullStyle, maxFit: s.maxFit, fit: s.fit, fitMask: fitMaskOf(s).slice(), turretRel: s.turretRel || 0, x: s.x, y: s.y, h: s.h });
 const hitWords = res => ({ stone: 'stone hull shrugs it off', brace: 'brace absorbs it', fitting: 'a fitting is lost', dead: 'dead in the water', sunk: 'sunk' }[res] || res);
 
 /** Has this ship not started its current turn yet? */
@@ -139,6 +139,9 @@ ACTIONS.fire = (p, a) => {
   } else {
     F.slot = shipSlots(s)[a.slot | 0];
     need(F.slot, 'No such cannon slot.');
+    // Turning the turret is part of firing it, not Set Heading, so any
+    // angle is fine. The hull itself does not turn.
+    if (F.slot.free) s.turretRel = normAngle(F.h - s.h);
   }
   const D = clamp(+a.D || RANGE_MIN, RANGE_MIN, RANGE_MAX);
   G.coinPhase = false;
@@ -155,8 +158,9 @@ ACTIONS.fire = (p, a) => {
       shot.friendly = true;
       shot.msg = `The shot hits ${t.name} first. No damage.`;
     } else {
-      const res = applyHit(t);
-      shot.res = res; shot.fitAfter = t.fit;
+      const res = applyHit(t, { x: tr.x, y: tr.y });
+      shot.res = res; shot.fitAfter = t.fit; shot.mask = fitMaskOf(t).slice();
+      if (res === 'fitting' || res === 'dead') shot.lost = t.lastLost;
       if (res === 'sunk') { shot.wreck = snapShip(t); G.stats[p].sunk++; }
       if (res !== 'stone' && res !== 'brace') G.stats[p].hits++;
       shot.msg = `${s.name} hits ${t.name}: ${hitWords(res)}.`;
@@ -287,7 +291,7 @@ function capture(p, target) {
   if (target.braced) { target.braced = false; G.bag.push('brace'); }
   const was = target.owner;
   target.owner = p;
-  target.fit = 1;
+  oneFitting(target);
   // It joins the fleet and may act on the following turn.
   target.acted = true; target.turnsLeft = 0; target.stage = null;
   target.pending = null; target.noAction = false; target.gunner = false;
@@ -328,16 +332,23 @@ ACTIONS.coin = (p, a) => {
       break;
     case 'repair':
       if (target.owner !== p) { capture(p, target); break; }
-      payCoin(p, id);
-      target.fit = Math.min(target.maxFit, target.fit + 1);
-      ev(Object.assign(at, { fit: target.fit, msg: `${target.name} repaired (${target.fit}/${target.maxFit}).` }));
+      {
+        // The owner picks which fitting goes back; the turret by default.
+        const miss = missingFittings(target);
+        const idx = a.fitting != null && miss.includes(+a.fitting) ? +a.fitting : defaultRestore(target);
+        payCoin(p, id);
+        gainFitting(target, idx);
+        const what = fittingLayout(target)[idx].kind === 'turret' ? 'turret back on' : `${target.fit}/${target.maxFit}`;
+        ev(Object.assign(at, { fit: target.fit, mask: fitMaskOf(target).slice(), idx, msg: `${target.name} repaired (${what}).` }));
+      }
       break;
     case 'boarding': {
       if (isDead(target)) { capture(p, target); break; }
       payCoin(p, id);
       const from = boarder(p, target);
-      const res = applyHit(target);
-      const e = ev({ e: 'board', p, from: from.id, ship: target.id, res, fitAfter: target.fit, msg: `Boarding party on ${target.name}: ${hitWords(res)}.` });
+      // The boarding party takes the fitting the attacker picks.
+      const res = applyHit(target, null, a.fitting != null ? +a.fitting : (hasTurret(target) ? turretIdx(target) : null));
+      const e = ev({ e: 'board', p, from: from.id, ship: target.id, res, fitAfter: target.fit, mask: fitMaskOf(target).slice(), lost: target.lastLost, msg: `Boarding party on ${target.name}: ${hitWords(res)}.` });
       if (res === 'sunk') e.wreck = snapShip(target);
       if (res === 'fitting' || res === 'dead' || res === 'sunk') { G.stats[p].hits++; plunder(p, from); }
       checkLastFleet();
@@ -392,9 +403,10 @@ ACTIONS.revive = (p, a) => {
   // The card does not say when it may act; like a captured ship, it acts
   // on your next turn.
   Object.assign(ship, ps, {
-    owner: p, fit: 1, placed: true, acted: true, turnsLeft: 0, stage: null, pending: null, braced: false,
+    owner: p, placed: true, acted: true, turnsLeft: 0, stage: null, pending: null, braced: false,
     noAction: false, gunner: false, stoneUsed: false, touchPrev: [t.id],
   });
+  oneFitting(ship);
   G.players[p].ships.push(ship);
   ev({ e: 'revive', p, ship: ship.id, x: ship.x, y: ship.y, msg: `${ship.name} returns from the deep.` });
 };
@@ -428,6 +440,31 @@ ACTIONS.endTurn = p => {
   beginTurn();
   if (G.phase === 'play') ev({ e: 'turn', p: G.active, turn: G.turn });
 };
+
+/**
+ * Nothing left that matters this turn: every ship has finished (so the
+ * coin window is shut too) and there is no victory to declare. Scuttling a
+ * dead ship is still allowed but never needs the turn held open.
+ */
+function turnIsOver(p) {
+  if (!G || G.phase !== 'play' || G.active !== p) return false;
+  const ships = G.players[p].ships;
+  return ships.length > 0 && ships.every(s => s.acted && !s.pending) && !canDeclareVictory(p);
+}
+
+/** Rough time for a client to play these events (ms), for pacing the server. */
+function eventsDuration(events) {
+  let t = 0;
+  for (const e of events || []) {
+    if (e.e === 'move') t += 450 + (e.plan.moved / CLICK_LEN) * 280 + (e.plan.stoppedBy ? 200 : 0);
+    else if (e.e === 'shot') t += 500 + e.stopS * 16;
+    else if (e.e === 'board' || e.e === 'capture') t += 600;
+    else if (e.e === 'flag' || e.e === 'sink') t += 500;
+    else if (e.e === 'slide' || e.e === 'revive' || e.e === 'collect') t += 420;
+    else if (e.e === 'coin') t += 250;
+  }
+  return Math.min(8000, t);
+}
 
 /** Force the turn over (turn timer, or a seat that left). */
 function forceEndTurn() {

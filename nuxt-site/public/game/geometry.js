@@ -182,6 +182,24 @@ function planMove(ship, targetH, clicks, pivotDeg) {
   return { rot, start, end: slide.end, moved: slide.moved, planned: clicks * CLICK_LEN, stoppedBy: slide.stoppedBy, obj: slide.obj, clicks };
 }
 
+// ─── Fittings ─────────────────────────────────────────
+// Where each fitting sits on the deck, in ship coordinates (lx toward
+// starboard, ly toward the bow). Index 0 is nearest the bow. The Industry's
+// last fitting is its turret, amidships.
+function fittingLayout(ship) {
+  const L = ship.len, out = [];
+  const industry = ship.guns === 'industry';
+  const n = industry ? ship.maxFit - 1 : ship.maxFit;
+  for (let i = 0; i < n; i++) out.push({ kind: i % 2 ? 'cargo' : 'mast', lx: 0, ly: n === 1 ? 0 : L * 0.3 - i * (L * 0.6) / (n - 1) });
+  if (industry) out.push({ kind: 'turret', lx: 0, ly: L * 0.08 });
+  return out;
+}
+function fittingWorld(ship, idx, pose) {
+  const f = fittingLayout(ship)[idx], p = pose || ship;
+  const fw = fwdVec(p.h), sw = stbVec(p.h);
+  return { x: p.x + sw.x * f.lx + fw.x * f.ly, y: p.y + sw.y * f.lx + fw.y * f.ly, kind: f.kind };
+}
+
 // ─── Cannon slots ─────────────────────────────────────
 // Local coordinates: lx toward starboard, ly toward the bow. `dir` is the
 // firing direction relative to the bow (0 forward, +PI/2 starboard).
@@ -191,15 +209,21 @@ function shipSlots(ship) {
   const L = ship.len, W = ship.wid, off = BALL_R + 0.1;
   if (ship.guns === 'industry') {
     out.push({ lx: 0, ly: L / 2 + off, dir: 0, label: 'Bow' });
-    // The turret is the last fitting to go (see applyHit), so it works while
-    // the ship still has any fitting.
-    if (ship.fit > 0) out.push({ lx: 0, ly: L * 0.08, dir: 0, free: true, label: 'Turret' });
+    // The turret is a fitting: shot off, it cannot fire until repaired.
+    if (hasTurret(ship)) out.push({ lx: 0, ly: L * 0.08, dir: 0, free: true, label: 'Turret' });
   } else if (ship.guns === 'stern') {
-    for (const lx of [-0.3 * W, 0, 0.3 * W]) out.push({ lx, ly: -(L / 2 + off), dir: Math.PI, label: 'Stern' });
+    // Islanders: three slots across the stern. The outer two splay 15
+    // degrees toward their own side (port-most to port, starboard-most to
+    // starboard); the centre one points straight astern.
+    for (const k of [-1, 0, 1]) out.push({ lx: k * 0.3 * W, ly: -(L / 2 + off), dir: Math.PI - k * SLOT_SPLAY, label: k < 0 ? 'Stern port' : k > 0 ? 'Stern starboard' : 'Stern' });
   } else {
+    // Three slots per side. The forward slot splays 15 degrees toward the
+    // bow and the aft slot 15 degrees toward the stern; the middle one fires
+    // square to the hull. Shots still go straight out along the slot.
     for (const side of [-1, 1]) {
-      for (const ly of [0.27 * L, 0, -0.27 * L]) {
-        out.push({ lx: side * (W / 2 + off), ly, dir: side * Math.PI / 2, label: side < 0 ? 'Port' : 'Starboard' });
+      for (const [k, ly] of [[1, 0.27 * L], [0, 0], [-1, -0.27 * L]]) {
+        const pos = k > 0 ? ' fore' : k < 0 ? ' aft' : '';
+        out.push({ lx: side * (W / 2 + off), ly, dir: side * (Math.PI / 2 - k * SLOT_SPLAY), label: (side < 0 ? 'Port' : 'Starboard') + pos });
       }
     }
   }

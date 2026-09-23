@@ -76,6 +76,14 @@
     <div id="panel1" class="panel"></div>
   </div>
 
+  <div id="passScreen" class="overlay">
+    <div class="box passBox">
+      <h1 id="passWho">Your turn</h1>
+      <p>Pass the device over, then tap Ready.</p>
+      <button id="passBtn" onclick="hidePassScreen()">Ready</button>
+    </div>
+  </div>
+
   <div id="menu" class="overlay" onclick="if (event.target === this) hideMenu()">
     <div class="box"><h2>Menu</h2><div id="menuBody"></div></div>
   </div>
@@ -106,11 +114,11 @@
         <li><b>Fire.</b> Pick a cannon slot. The shot goes straight out from it, and a ship that fires can't turn this turn, so line up on an earlier turn. Tap when the ring is where you want the ball to land. The first ship it touches takes the hit.</li>
         <li><b>Island.</b> While touching an island: raise your flag (you must have been touching it at the end of your last turn, with no enemy ships touching it), collect a coin from an island you hold, or fire the island's gun in any direction.</li>
       </ul>
-      <p>Then click forward 1 to your Move Count (Queen's Fleet 3, Corsairs 4, and so on). You can't turn between clicks, and hitting a ship, island, rock or reef stops you there. An island action skips the click, so islands are the only place to hold still. A ship with no room at all at the table edge is scuttled. Ships you don't move sail on one click when you end the turn.</p>
+      <p>Then click forward 1 to your Move Count (Queen's Fleet 3, Corsairs 4, and so on). You can't turn between clicks, and hitting a ship, island, rock or reef stops you there. An island action skips the click, so islands are the only place to hold still. A ship with no room at all at the table edge is scuttled. Ships you don't move sail on one click when you end the turn. Once every ship has gone, the turn ends by itself.</p>
       <p class="callout"><b>Cannons need a crew.</b> Only a ship can fire, and a held island only fires when one of your ships is touching it and spends its action.</p>
 
       <h3>Damage</h3>
-      <p>Each hit removes one fitting. A ship with no fittings is dead in the water: it can't move (it skips its click) but can still fire, and the next hit sinks it. You can scuttle your own dead ship so the enemy can't take it. No friendly fire.</p>
+      <p>Each hit removes one fitting. A cannonball knocks off the fitting nearest where it hits, and a boarding party takes the one you pick. The Industry's turret is one of its fittings: with it gone, only the bow gun fires until a Repair puts it back. A ship with no fittings is dead in the water: it can't move (it skips its click) but can still fire, and the next hit sinks it. You can scuttle your own dead ship so the enemy can't take it. No friendly fire.</p>
 
       <h3>Coins</h3>
       <p>You only get coins by collecting from islands you hold. Spend them at the start of your turn, before any ship acts. Coins you keep are worth a point each.</p>

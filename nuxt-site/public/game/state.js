@@ -12,6 +12,8 @@ function makeShip(p, fid, i) {
     name: f.names[i] || `Ship ${i + 1}`,
     len: f.len, wid: f.wid, guns: f.guns, moveCount: f.moveCount, hullStyle: f.hull,
     maxFit: f.fittings, fit: f.fittings,
+    fitMask: Array(f.fittings).fill(true),  // which fittings are aboard (see fittingLayout)
+    turretRel: 0,        // Industry: turret facing relative to the bow, kept between turns
     x: 0, y: 0, h: 0, placed: false,
     // A ship's turn (rulebook v0.5): one action (Set Heading, Fire, or an
     // Island action), then click forward 1 to Move Count. Island actions and
@@ -368,20 +370,57 @@ function checkLastFleet() {
 
 // ─── Damage ───────────────────────────────────────────
 
+// ─── Fittings aboard ──────────────────────────────────
+// ship.fit is the count; ship.fitMask says which ones. The mask follows the
+// count if something set the count directly.
+function fitMaskOf(ship) {
+  if (!Array.isArray(ship.fitMask) || ship.fitMask.length !== ship.maxFit) ship.fitMask = Array.from({ length: ship.maxFit }, (_, i) => i < ship.fit);
+  const m = ship.fitMask;
+  let n = m.filter(Boolean).length;
+  while (n > ship.fit) { m[m.lastIndexOf(true)] = false; n--; }
+  while (n < ship.fit) { m[m.indexOf(false)] = true; n++; }
+  return m;
+}
+const turretIdx = ship => (ship.guns === 'industry' ? ship.maxFit - 1 : -1);
+function hasTurret(ship) { const i = turretIdx(ship); return i >= 0 && fitMaskOf(ship)[i]; }
+function presentFittings(ship) { return fitMaskOf(ship).map((v, i) => (v ? i : -1)).filter(i => i >= 0); }
+function missingFittings(ship) { return fitMaskOf(ship).map((v, i) => (v ? -1 : i)).filter(i => i >= 0); }
+/** The fitting nearest a point on the table (the impact of a shot). */
+function nearestFitting(ship, at) {
+  const idx = presentFittings(ship);
+  if (!at) return idx[0];
+  let best = idx[0], bd = Infinity;
+  for (const i of idx) { const w = fittingWorld(ship, i); const d = dist(w.x, w.y, at.x, at.y); if (d < bd) { bd = d; best = i; } }
+  return best;
+}
+/** Which fitting a Repair puts back by default: the turret if it is missing. */
+function defaultRestore(ship) {
+  const miss = missingFittings(ship), t = turretIdx(ship);
+  return miss.includes(t) ? t : miss[0];
+}
+function loseFitting(ship, idx) { fitMaskOf(ship)[idx] = false; ship.fit--; ship.lastLost = idx; }
+function gainFitting(ship, idx) { const m = fitMaskOf(ship); if (!m[idx]) { m[idx] = true; ship.fit++; } }
+/** Leave the ship with exactly one fitting (captured or raised ships). */
+function oneFitting(ship) {
+  ship.fitMask = Array(ship.maxFit).fill(false); ship.fit = 0;
+  gainFitting(ship, turretIdx(ship) >= 0 ? turretIdx(ship) : 0);
+}
+
 /**
  * One hit on `ship` (cannonball or boarding party). Returns what happened:
  * 'stone' | 'brace' | 'fitting' | 'dead' | 'sunk'.
  * Order when both could apply: Stone Hulls first (free), then Brace, so the
  * brace coin is kept for a later hit.
+ * A cannonball knocks off the fitting nearest where it hit (`at`); a
+ * boarding party takes the fitting the attacker picks (`choice`).
  */
-function applyHit(ship) {
+function applyHit(ship, at, choice) {
   if (passiveOf(ship.owner) === 'stone' && !ship.stoneUsed) { ship.stoneUsed = true; return 'stone'; }
   if (ship.braced) { ship.braced = false; G.bag.push('brace'); return 'brace'; }
   if (ship.fit > 0) {
-    // Which fitting comes off is the owner's pick at the table. The digital
-    // owner always pulls hull fittings first, so an Industry turret is the
-    // last fitting to go.
-    ship.fit--;
+    const m = fitMaskOf(ship);
+    const idx = choice != null && m[choice] ? choice : nearestFitting(ship, at);
+    loseFitting(ship, idx);
     return ship.fit === 0 ? 'dead' : 'fitting';
   }
   sinkShip(ship);

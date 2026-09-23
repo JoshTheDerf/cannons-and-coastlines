@@ -392,44 +392,50 @@ function drawShipBody(ship, pose, alpha, ghost) {
     ctx.closePath(); ctx.fill();
   }
 
-  // Cannon slots
+  // Cannon slots, each with a short barrel showing which way it fires.
   if (!ghost) {
-    ctx.fillStyle = '#111';
+    ctx.fillStyle = '#111'; ctx.strokeStyle = '#111'; ctx.lineWidth = Math.max(1, W * 0.08);
     for (const sl of shipSlots(ship)) {
       if (sl.free) continue;
-      ctx.beginPath(); ctx.arc(sl.lx * worldScale * 0.92, -sl.ly * worldScale * 0.97, Math.max(1, W * 0.1), 0, TAU); ctx.fill();
+      const cx = sl.lx * worldScale * 0.92, cy = -sl.ly * worldScale * 0.97;
+      const dx = Math.sin(sl.dir), dy = -Math.cos(sl.dir), bl = Math.max(2.5, W * 0.28);
+      ctx.beginPath(); ctx.arc(cx, cy, Math.max(1, W * 0.1), 0, TAU); ctx.fill();
+      ctx.beginPath(); ctx.moveTo(cx, cy); ctx.lineTo(cx + dx * bl, cy + dy * bl); ctx.stroke();
     }
   }
 
-  // Fittings along the keel: masts and cargo. Industry: the turret is the
-  // last fitting, drawn amidships with its barrel.
-  const industry = ship.guns === 'industry';
-  const hullN = industry ? ship.maxFit - 1 : ship.maxFit;
-  const hullFit = industry ? Math.max(0, ship.fit - 1) : ship.fit;
+  // Fittings from the ship's mask: masts round, cargo square, and the
+  // Industry turret amidships at its current facing.
+  const layout = fittingLayout(ship), mask = fitMaskOf(ship);
   const fr = Math.max(1.6, W * 0.2);
-  for (let i = 0; i < hullN; i++) {
-    const ly = hullN === 1 ? 0 : -L * 0.3 + i * (L * 0.6) / (hullN - 1);
-    if (i < hullFit) {
-      ctx.fillStyle = col.light;
-      ctx.beginPath(); ctx.arc(0, ly, fr, 0, TAU); ctx.fill();
-      ctx.strokeStyle = 'rgba(40,25,10,.8)'; ctx.lineWidth = 1;
-      ctx.stroke();
+  layout.forEach((f, i) => {
+    const cy = -f.ly * worldScale;
+    if (f.kind === 'turret') {
+      if (!mask[i]) {
+        if (!ghost) { ctx.strokeStyle = 'rgba(30,20,10,.6)'; ctx.lineWidth = 1.2; ctx.beginPath(); ctx.arc(0, cy, fr * 1.2, 0, TAU); ctx.stroke(); }
+        return;
+      }
+      ctx.fillStyle = '#3a3a44'; ctx.strokeStyle = col.light; ctx.lineWidth = 1.2;
+      ctx.beginPath(); ctx.arc(0, cy, fr * 1.4, 0, TAU); ctx.fill(); ctx.stroke();
+      const aiming = UI.fire && UI.fire.ship && UI.fire.ship.id === ship.id && UI.fire.slot && UI.fire.slot.free;
+      const th = aiming ? UI.fire.h - pose.h : (ship.turretRel || 0);
+      ctx.save(); ctx.translate(0, cy); ctx.rotate(th);
+      ctx.strokeStyle = '#111'; ctx.lineWidth = Math.max(1.5, fr * 0.6);
+      ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(0, -fr * 2.6); ctx.stroke();
+      ctx.restore();
+      return;
+    }
+    if (mask[i]) {
+      ctx.fillStyle = col.light; ctx.strokeStyle = 'rgba(40,25,10,.8)'; ctx.lineWidth = 1;
+      ctx.beginPath();
+      if (f.kind === 'cargo') ctx.rect(-fr * 0.85, cy - fr * 0.85, fr * 1.7, fr * 1.7); else ctx.arc(0, cy, fr, 0, TAU);
+      ctx.fill(); ctx.stroke();
     } else if (!ghost) {
       ctx.strokeStyle = 'rgba(30,20,10,.7)'; ctx.lineWidth = 1.2;
       const x = fr * 0.6;
-      ctx.beginPath(); ctx.moveTo(-x, ly - x); ctx.lineTo(x, ly + x); ctx.moveTo(x, ly - x); ctx.lineTo(-x, ly + x); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(-x, cy - x); ctx.lineTo(x, cy + x); ctx.moveTo(x, cy - x); ctx.lineTo(-x, cy + x); ctx.stroke();
     }
-  }
-  if (industry && ship.fit > 0) {
-    const ly = -L * 0.08;
-    ctx.fillStyle = '#3a3a44'; ctx.strokeStyle = col.light; ctx.lineWidth = 1.2;
-    ctx.beginPath(); ctx.arc(0, ly, fr * 1.4, 0, TAU); ctx.fill(); ctx.stroke();
-    const th = UI.fire && UI.fire.ship === ship && UI.fire.slot && UI.fire.slot.free ? UI.fire.h - pose.h : 0;
-    ctx.save(); ctx.translate(0, ly); ctx.rotate(th);
-    ctx.strokeStyle = '#111'; ctx.lineWidth = Math.max(1.5, fr * 0.6);
-    ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(0, -fr * 2.6); ctx.stroke();
-    ctx.restore();
-  }
+  });
   if (ship.guns === 'industry' && !ghost) {
     ctx.fillStyle = '#222';
     ctx.fillRect(-W * 0.12, L * 0.12, W * 0.24, W * 0.3);
@@ -555,6 +561,15 @@ function drawFirePreview() {
   const o = fireOrigin(F);
   if (F.stage === 'dir') {
     drawLane(o.x, o.y, o.h, RANGE_MAX, false);
+    // Aiming handle for the turret or island gun, like the heading handle.
+    const piv = F.source === 'island' ? F.island : slotWorld(F.ship, F.slot);
+    const c = w2s(piv.x, piv.y), f = fwdVec(F.h), R = Math.max(34, w2r(9));
+    const kx = c.x + f.x * R, ky = c.y + f.y * R;
+    ctx.strokeStyle = 'rgba(250,243,224,.85)'; ctx.lineWidth = 1.5; ctx.setLineDash([3, 3]);
+    ctx.beginPath(); ctx.arc(c.x, c.y, R, 0, TAU); ctx.stroke(); ctx.setLineDash([]);
+    ctx.fillStyle = '#faf3e0'; ctx.strokeStyle = '#8b1a1a'; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.arc(kx, ky, 9, 0, TAU); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = '#8b1a1a'; ctx.beginPath(); ctx.arc(kx, ky, 3, 0, TAU); ctx.fill();
     return;
   }
   if (F.stage === 'power') drawLane(o.x, o.y, o.h, powerToRange(currentPower()), true);

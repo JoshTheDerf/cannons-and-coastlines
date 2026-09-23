@@ -136,13 +136,12 @@ function animSmoke(x, y, h) {
  * The lost fitting (mast or cargo) topples off the hull into the water,
  * floats a moment and sinks. `idx` is the fitting's slot along the keel.
  */
-function animFittingFall(ship, idx, mast) {
-  const n = ship.guns === 'industry' ? ship.maxFit - 1 : ship.maxFit;
-  const f = fwdVec(ship.h), s = stbVec(ship.h);
-  const along = n <= 1 || idx >= n ? (ship.guns === 'industry' ? ship.len * 0.08 : 0) : ship.len * 0.3 - idx * (ship.len * 0.6) / (n - 1);
-  const x = ship.x + f.x * along, y = ship.y + f.y * along;
+function animFittingFall(ship, idx) {
+  if (idx == null || idx < 0 || idx >= ship.maxFit) return;
+  const w = fittingWorld(ship, idx);
+  const s = stbVec(ship.h);
   const side = Math.random() < 0.5 ? -1 : 1;
-  pushAnim({ type: 'fitting', x, y, dx: s.x * side, dy: s.y * side, mast, shipW: ship.wid, duration: 1200 });
+  pushAnim({ type: 'fitting', x: w.x, y: w.y, dx: s.x * side, dy: s.y * side, kind: w.kind, mast: w.kind === 'mast', shipW: ship.wid, duration: 1200 });
 }
 
 /** The hull settles, shrinks and goes under. */
@@ -307,6 +306,10 @@ function drawAnimations(ctx) {
           ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(L, 0); ctx.stroke();
           ctx.fillStyle = 'rgba(245,235,215,.95)';
           ctx.beginPath(); ctx.moveTo(L * 0.25, 0); ctx.lineTo(L * 0.8, 0); ctx.lineTo(L * 0.55, L * 0.35); ctx.closePath(); ctx.fill();
+        } else if (a.kind === 'turret') {
+          ctx.fillStyle = '#3a3a44'; ctx.strokeStyle = '#111'; ctx.lineWidth = Math.max(1.5, L * 0.2);
+          ctx.beginPath(); ctx.arc(L * 0.4, 0, L * 0.45, 0, TAU); ctx.fill();
+          ctx.beginPath(); ctx.moveTo(L * 0.4, 0); ctx.lineTo(L * 1.3, 0); ctx.stroke();
         } else {
           ctx.fillStyle = '#8b5e34'; ctx.strokeStyle = '#3c2415'; ctx.lineWidth = 1;
           ctx.fillRect(0, -L / 2, L, L); ctx.strokeRect(0, -L / 2, L, L);
