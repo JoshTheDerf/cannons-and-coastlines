@@ -252,7 +252,7 @@ function renderRoom() {
       <div class="seatRow" style="--pc:${PALETTE[s.color].main}">
         <span class="pDot"></span>
         <span class="seatName">${esc(s.name)}${s.seat === NET.seat ? ' (you)' : ''}${s.seat === R.host ? ' · host' : ''}${s.ai ? ' · computer' : ''}${!s.ai && s.connected === false ? ' · away' : ''}</span>
-        <span class="seatFac">${esc(FACTION_DEFS[s.faction].name)}</span>
+        <span class="seatFac">${esc((FACTION_DEFS[factionId(s.faction)] || { name: s.faction || '' }).name)}</span>
         <span class="seatReady">${s.ai || s.ready ? 'Ready' : 'Not ready'}</span>
         ${host && s.ai ? `<button class="actBtn" data-kick="${s.seat}">Remove</button>` : ''}
       </div>`).join('')}</div>

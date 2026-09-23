@@ -269,7 +269,7 @@ export class GameRoom extends DurableObject {
       }
       case 'seat': {
         if (!seat || !inLobby) return;
-        if (m.faction && engine.FACTION_DEFS[m.faction]) seat.faction = m.faction;
+        { const f = engine.factionId(m.faction); if (f && engine.FACTION_DEFS[f]) seat.faction = f; }
         if (m.color != null && engine.PALETTE[m.color] && !R.seats.some(x => x !== seat && x.color === m.color)) seat.color = m.color | 0;
         seat.ready = false;
         await this.save(); this.broadcastRoom();

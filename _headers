@@ -26,9 +26,11 @@
 /assets/stls/*
     Cache-Control: public, max-age=2592000
 
-# The standalone /game/ prototype — unhashed filenames, short cache.
+# The /game/ files keep fixed names. index.html is revalidated on every load
+# and its script/style URLs carry ?v=<hash> (build.sh), so a deploy never
+# serves a mix of old and new files.
 /game/*
-    Cache-Control: public, max-age=3600, must-revalidate
+    Cache-Control: public, no-cache
 
 # Rulebook PDFs — moderate cache, files rotate occasionally
 /rulebook/*

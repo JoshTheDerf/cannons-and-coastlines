@@ -57,4 +57,12 @@ fi
 
 npm run build
 
+# The /game/ files have fixed names, so a browser could mix a new net.js with
+# an old constants.js after a deploy. Stamp every script and stylesheet URL in
+# the built index.html with a hash of the game files, so each deploy loads one
+# matching set (index.html itself is served no-cache, see _headers).
+GAME_VER="$(cat public/game/*.js public/game/*.css | sha1sum | cut -c1-10)"
+sed -i -E "s#(src|href)=\"([A-Za-z0-9_-]+\.(js|css))\"#\1=\"\2?v=$GAME_VER\"#g" .output/public/game/index.html
+echo "Stamped /game/ assets with v=$GAME_VER"
+
 echo "Built nuxt-site/.output/ ($(du -sh .output | cut -f1))"
