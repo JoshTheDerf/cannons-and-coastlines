@@ -6,7 +6,8 @@
 # Recognized fields:
 #   material: "grey" | "gold" | "black" | "black-hull" | "blue-grey"
 #             | "brown" | "pine" | "rust" | "stone" | "blue" | "green"
-#             | "white" | "gold-hull" | "shadow-petg"   (default "grey")
+#             | "white" | "neon-green" | "gold-hull" | "shadow-petg"
+#             (default "grey")
 #             See cc_materials.make_material for what each one is.
 #   preview_material: str        Material for the ship-preview pass only
 #                                (--material-variant preview). The two passes
@@ -83,7 +84,7 @@ ITEM_OVERRIDES = {
     "industry-smokestack": {"material": "black"},
     "industry-turret":     {"material": "grey"},
     "cannon":            {"material": "black"},
-    "cannonball":        {"material": "black"},
+    "cannonball":        {"material": "neon-green"},
     "cargo":             {"material": "brown"},
     "barrel":            {"material": "brown"},
     "island-topper":     {"material": "green", "shade_smooth": True},

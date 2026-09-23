@@ -203,6 +203,12 @@ def make_green_pla():
     return make_matte_pla("PLA_Green", (0.20, 0.42, 0.18))
 
 
+def make_neon_green_pla():
+    # Bright neon green for cannonballs, the colour the rulebook recommends so
+    # they are easy to find under the couch. Linear RGB; deliberately candy.
+    return make_matte_pla("PLA_NeonGreen", (0.12, 0.85, 0.02))
+
+
 def make_white_pla():
     # Slightly off-white so it doesn't blow out under the overhead lights and
     # keeps a readable shading gradient (paper/sail material).
@@ -454,6 +460,8 @@ def make_material(preset: str, grey: float = 0.75, view: str = "iso"):
         return make_blue_pla()
     if preset == "green":
         return make_green_pla()
+    if preset == "neon-green":
+        return make_neon_green_pla()
     if preset == "white":
         return make_white_pla()
     return make_grey_pla(grey)

@@ -89,7 +89,7 @@ gallery:
       name: Cannon
       desc: The gun. It plugs into any cannon slot on a ship or island, and you press the arm down until it fires.
       color: Black or gunmetal.
-    - render: /assets/images/renders/cannonball.png
+    - render: /assets/images/renders/cannonball.png?v=2
       name: Cannonball
       desc: Goes in the muzzle. They're really easy to lose.
       color: Something bright, since neon green or orange is a lot easier to find under the couch. **TPU** bounces less.
