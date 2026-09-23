@@ -1,5 +1,7 @@
 # Home page (/).
-# Plain text. Keep the structure, change the words and image paths.
+# Plain text. **bold** and *italic* work where a field is rendered with RichText.
+# The "howToPlay" section follows the rulebook (rulebook/typst/rulebook.typ).
+# Keep it in step when the rules change.
 
 meta:
   title: Cannons & Coastlines | A Tabletop Game of Naval Conquest
@@ -9,148 +11,269 @@ meta:
     for treasure.
 
 hero:
-  tagline: A Tabletop Game of Naval Conquest
   wordmark: /assets/images/wordmark-sm.webp
-  subtitle: 2–20 players • 30–90 minutes • Ages 12+
+  tagline: A tabletop game of naval conquest
   description: >-
-    Dominate the seas through skillful maneuvering, careful aim, and clever
-    resource management. Capture islands, sink ships, and collect as much
-    treasure as you can.
+    You print a small fleet of ships, roll them across the table and sink
+    your friends with cannons that actually fire. There's no board and no
+    dice.
+  facts: 2–20 players · 30–90 minutes · Ages 10+ · Free to print
   actions:
-    - { label: Get the Files, to: '#signup', variant: solid, icon: i-lucide-mail }
-    - { label: How It Plays, to: '#how-it-plays', variant: outline }
+    - { label: Get the free files, to: '#files', variant: solid, icon: i-lucide-download }
+    - { label: How to play, to: '#how-to-play', variant: outline }
 
-seeIt:
-  title: See It
-  description: The Instagram reel that started all this, plus the printed pieces and some playtest footage.
+intro:
+  title: What it is
+  paragraphs:
+    - >-
+      Each player gets a fleet of two to five 3D-printed ships. There's a
+      wheel in the stern of every hull that clicks once per turn of the
+      wheel, and that's how you measure movement. There's no grid, so you
+      can push your ships anywhere on the table.
+    - >-
+      The cannons are little tension-loaded pieces that plug into slots on
+      the deck. You load a cannonball, press down on the arm, and it fires
+      across the table. Whether it hits is pretty much up to your aim (and
+      a bit of luck).
+    - >-
+      Islands sit between the fleets. Plant your flag on one and it pays
+      out coins, which you spend on things like repairs and extra speed, or
+      save up as points.
+  photo:
+    src: /assets/photos/queens-fleet-ship-of-the-line-hero-sm.jpg
+    alt: A black Queen's Fleet ship with white paper sails and gold flags.
   reel:
     embed: https://www.instagram.com/p/DXEtgxttyCB/embed
     url: https://www.instagram.com/p/DXEtgxttyCB/
-    label: Watch on Instagram (3.3M views)
-  photos:
-    - src: /assets/photos/queens-fleet-ship-of-the-line-hero-sm.jpg
-      full: /assets/photos/queens-fleet-ship-of-the-line-hero.jpg
-      alt: Queen's Fleet ship with paper sails and gold-tipped flags.
-      caption: Queen's Fleet ship, rigged.
-    - src: /assets/photos/playtest-overhead-island-sm.jpg
-      full: /assets/photos/playtest-overhead-island.jpg
-      alt: Four ships arranged around a central sandstone island for playtesting.
-      caption: Four ships on an island.
-    - src: /assets/photos/queens-fleet-ship-of-the-line-sails-sm.jpg
-      full: /assets/photos/queens-fleet-ship-of-the-line-sails.jpg
-      alt: Queen's Fleet ship being used for movement testing on a glass surface.
-      caption: Wheel testing on glass.
-    - src: /assets/photos/playtest-terrain-variety-sm.jpg
-      full: /assets/photos/playtest-terrain-variety.jpg
-      alt: A spread of printed rocks, reefs, and islands used for terrain scale testing.
-      caption: Rocks, reefs, and islands.
-  playtests:
-    - https://www.youtube.com/embed/xrnoY0tmqjc?start=760
+    label: The reel that started it (3.3M views)
+
+howToPlay:
+  title: How to play
+  lead: >-
+    This is the short version of the rulebook, in the order things happen at
+    the table. It's pretty much enough to play your first game.
+  steps:
+    - title: Set up
+      body:
+        - >-
+          Everyone picks a fleet and takes its ships, flags, cannons and
+          cannonballs. Going around the table, each player places one island.
+          Keep islands at least **6"** apart and **12"** from the edges.
+        - >-
+          Add a few rocks or reefs if you like (household objects work fine).
+          Then everyone picks a table edge and lines up their ships touching
+          it, facing in.
+        - >-
+          Each player puts their 20 coins into a bag and gives it a shake.
+          The youngest player goes first.
+      table:
+        head: [Players, Islands]
+        rows:
+          - [2, 4]
+          - [3–4, 6]
+          - [5–6, 8]
+          - [Group mode (6–20), 10–12]
+    - title: Take your turn
+      body:
+        - >-
+          First, spend any coins you want to use. Then **each of your ships
+          takes one action**:
+      actions:
+        - name: Move
+          body: >-
+            Turn the ship up to 90°, then push it forward one click at a time.
+            Your fleet's Move Count says how many clicks. If it bumps into a
+            ship, island or rock, it stops there.
+        - name: Fire
+          body: >-
+            Plug a cannon into an open slot and press it until it fires. The
+            ship can't move or turn on a turn it fires, so you line up the
+            shot with a move on the turn before.
+        - name: Island
+          body: >-
+            If the ship is touching an island, it can raise your flag there
+            (if the ship was already touching it at the end of your last
+            turn), collect a coin from the bag (if it's your island), or fire
+            from one of the island's cannon slots.
+      photo:
+        src: /assets/photos/playtest-overhead-island-sm.jpg
+        alt: Four ships around an island on a carpet during a playtest.
+      note: >-
+        A cannon only fires if one of your ships is touching it and spends its
+        action on it. That goes for island cannons too, so a held island
+        can't shoot at anyone by itself.
+    - title: Take hits
+      body:
+        - >-
+          Every hit knocks one **fitting** (a mast or a crate of cargo) off
+          the ship. A ship with no fittings left is **dead in the water**. It
+          can't move, but it can still fire. The next hit sinks it.
+        - >-
+          The first ship a cannonball touches takes the hit. Ricochets onto a
+          second ship don't count, and if the first ship it touches is one of
+          yours, the shot is just wasted.
+      note: >-
+        Ships take their fittings + 1 hits to sink. A ship with 3 fittings
+        goes down on the 4th hit.
+      photo:
+        src: /assets/photos/queens-fleet-ship-of-the-line-sails-sm.jpg
+        alt: A ship with masts and sails, used for movement testing on a glass table.
+    - title: Spend coins
+      body:
+        - >-
+          Coins come from islands you hold. Spend them at the start of your
+          turn, as many as you want, then put them back in the bag. Anything
+          you don't spend counts as a point at the end.
+      coins:
+        - { image: /assets/images/coins/coin-full-sail.webp, name: Full Sail, body: One ship takes two moves this turn. }
+        - { image: /assets/images/coins/coin-skilled-gunner.webp, name: Skilled Gunner, body: One ship fires twice. }
+        - { image: /assets/images/coins/coin-repair-crew.webp, name: Repair Crew, body: Put a fitting back on one of your ships. }
+        - { image: /assets/images/coins/coin-boarding-party.webp, name: Boarding Party, body: Knock a fitting off an enemy ship you're touching. }
+        - { image: /assets/images/coins/coin-brace-for-impact.webp, name: Brace for Impact, body: The next hit on that ship does nothing. }
+        - { image: /assets/images/coins/coin-signal-flag.webp, name: Signal Flags, body: One ship (yours or an ally's) gets a free move. }
+        - { image: /assets/images/coins/coin-evasive-maneuver.webp, name: Evasive Maneuvers, body: One ship slides one ship-width sideways. }
+      note: >-
+        Boarding Party and Repair Crew together, while touching a dead enemy
+        ship, captures it. It joins your fleet with one fitting.
+    - title: Win
+      body:
+        - >-
+          If you're the last fleet with ships on the table, you win. Otherwise,
+          at the start of your turn you can **declare victory** if you think you
+          have 25 points. Everyone counts up. If you're still at 25 or more and
+          nobody is ahead of you, you win.
+      table:
+        head: [What you have, Points]
+        rows:
+          - [Each ship still afloat, 3]
+          - [Each island you hold, 2]
+          - [Each unspent coin, 1]
+          - [Most ships / islands / coins, +2 each]
+  outro: >-
+    The rulebook has the rest: boarding, scuttling, the faction abilities, and
+    the alternate modes (Group play for big parties, Fleets & Alliances,
+    Custom Armada and Always Underway).
+  rulebook:
+    - { label: Rulebook (PDF), href: /rulebook/pdf/rulebook.pdf, icon: i-lucide-book-open }
+    - { label: Print-and-fold booklet, href: /rulebook/pdf/rulebook-booklet.pdf, icon: i-lucide-printer }
+  version: v0.4, May 2026
+  changesHref: /live#changes
+
+fleets:
+  title: The fleets
+  lead: >-
+    The base game comes with two fleets. They're a good match for each other,
+    and either one works for your first game.
+  base:
+    - name: Queen's Fleet
+      image: /assets/ships/ship-preview-queen-fleet-large-sm.webp
+      summary: Well-armed frigates, and the easiest fleet to learn.
+      stats:
+        - [Ships, '3']
+        - [Fittings, 4 each]
+        - [Cannon slots, 3 per side]
+        - [Move Count, '3']
+      ability: Disciplined Crew
+      abilityBody: Ships can turn up to 180° instead of 90° at the start of a move.
+      card: /rulebook/pdf/faction-card-queens-fleet.pdf
+    - name: Corsairs
+      image: /assets/ships/ship-preview-corsairs-sm.webp
+      summary: Fast sloops with thin hulls. They do best when they pick their fights.
+      stats:
+        - [Ships, '3']
+        - [Fittings, 3 each]
+        - [Cannon slots, 3 per side]
+        - [Move Count, '4']
+      ability: Plunder
+      abilityBody: An extra coin for every successful boarding or island capture.
+      card: /rulebook/pdf/faction-card-corsairs.pdf
+  addonsTitle: Add-on fleets
+  addonsLead: >-
+    Five more fleets are in playtesting. They'll be paid add-ons, which is how
+    we fund the rest of the work. The faction cards are free to look at.
+  addons:
+    - name: Treasure Fleet
+      image: /assets/ships/ship-preview-treasure-fleet-sm.webp
+      stats: 2 junks · 3 fittings · Move 2
+      body: Only two ships, but every island they hold pays out double.
+      card: /rulebook/pdf/faction-card-treasure-fleet.pdf
+    - name: Sun Fleet
+      image: /assets/ships/ship-preview-sun-fleet-sm.webp
+      stats: 3 barges · 4 fittings · Move 2
+      body: Stone ships. They're slow, but each one ignores the first hit it takes every turn.
+      card: /rulebook/pdf/faction-card-sun-fleet.pdf
+    - name: Shadow Fleet
+      image: /assets/ships/ship-preview-shadow-fleet-sm.webp
+      stats: 3 galleons · 3 fittings · Move 3
+      body: Spend 2 coins to bring a sunken ship back at any island you hold.
+      card: /rulebook/pdf/faction-card-shadow-fleet.pdf
+    - name: The Industry
+      image: /assets/ships/ship-preview-industry-sm.webp
+      stats: 3 warships · 2 fittings + turret · Move 3
+      body: A forward bow gun plus a turret that fires any direction (until it gets shot off).
+      card: /rulebook/pdf/faction-card-the-industry.pdf
+    - name: The Islanders
+      image: /assets/ships/ship-preview-islanders-sm.webp
+      stats: 5 catamarans · 1 fitting · Move 4
+      body: Lots of fast, fragile boats with their guns at the back. They start the game already holding an island.
+      card: /rulebook/pdf/faction-card-the-islanders.pdf
+
+videos:
+  title: Watch a game
+  lead: >-
+    The first full playtest, streamed in May. Gameplay starts at 12:40 (the
+    video skips ahead for you). The others are shorter clips from testing.
+  main: https://www.youtube.com/embed/xrnoY0tmqjc?start=760
+  more:
     - https://www.youtube.com/embed/oexjEaUXXjA
     - https://www.youtube.com/embed/ViBGuyKuE84
     - https://www.youtube.com/embed/SVqNlvkFg-w
     - https://www.youtube.com/embed/PnyHL42OJ-o
 
-howItPlays:
-  title: How It Plays
-  description: There are no dice and no board. Your ships roll across the table and you aim the cannons yourself.
-  features:
-    - icon: i-lucide-move
-      title: One action per ship
-      body: Move it, fire from it, or collect from the island it's touching.
-    - icon: i-lucide-crosshair
-      title: Real cannons
-      body: Load a cannonball and press the arm down to fire. Where it lands is up to you.
-    - icon: i-lucide-map
-      title: Take islands
-      body: Plant a flag on an island to claim it. Islands you hold pay out coins and can mount cannons.
-    - icon: i-lucide-coins
-      title: Spend coins
-      body: Coins buy Full Sail for extra speed, Repair to patch a hull, or Boarding to steal an enemy ship.
-  rulebookHref: /rulebook/pdf/rulebook.pdf
+signup:
+  title: Get the free files
+  body: >-
+    The base game is free. Subscribe and we'll email you the STL pack and the
+    printable rulebook, and let you know when there's a new fleet or a rules
+    update. You'll need a 3D printer, a small cloth bag for the coins and a
+    few thin rubber bands for the wheels.
+  perks:
+    - 'STLs for both base fleets, cannons, cannonballs, islands, rocks and coins'
+    - Rulebook and faction cards (PDF)
+    - Emails when new fleets and rules come out
+  publicRulebook:
+    label: Just want the rules? Read the rulebook PDF.
+    href: /rulebook/pdf/rulebook.pdf
+  partsLink:
+    label: What's in the pack and how to print it
+    to: /parts
+  kitUid: a74f27ac96
+  kitSrc: https://cannons-and-coastlines.kit.com/a74f27ac96/index.js
+  discord:
+    title: Join the Discord
+    body: It's where the playtesters hang out, and new files and rules drafts get posted there first.
+    url: https://discord.gg/DMuFEWJtZq
+    qr: https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=https://discord.gg/DMuFEWJtZq
 
-factions:
-  title: Pick a Fleet
-  description: Each fleet plays a bit differently.
-  items:
-    - badge: Base Game
-      name: Queen's Fleet
-      set: base-set
-      image: /assets/ships/ship-preview-queen-fleet-large-sm.webp
-      tagline: Steady and well-armed
-      stats:
-        - 3 ships of the line
-        - 4 fittings each
-        - 3 broadside slots per side
-        - 3 clicks per move
-      desc: Disciplined crews can pivot a full 180°. A good pick if you're just learning the game.
-      price: Free with the base game
-      card: /rulebook/pdf/faction-card-queens-fleet.pdf
-    - badge: Base Game
-      name: Corsairs
-      set: base-set
-      image: /assets/ships/ship-preview-corsairs-sm.webp
-      tagline: Fast and thin-hulled
-      stats:
-        - 3 sloops
-        - 3 fittings each
-        - 3 broadside slots per side
-        - 4 clicks per move
-      desc: The fastest fleet on the table. Gets an extra coin for every successful boarding or capture.
-      price: Free with the base game
-      card: /rulebook/pdf/faction-card-corsairs.pdf
-    - badge: Coming Soon
-      name: Treasure Fleet
-      set: treasure-fleet-set
-      image: /assets/ships/ship-preview-treasure-fleet-sm.webp
-      stats:
-        - 2 junks
-        - 3 fittings each
-        - 2 clicks per move
-      desc: Fewer ships, but double coins from every island you hold.
-    - badge: Coming Soon
-      name: Sun Fleet
-      set: sun-fleet-set
-      image: /assets/ships/ship-preview-sun-fleet-sm.webp
-      stats:
-        - 3 barges
-        - 4 fittings each
-        - 2 clicks per move
-      desc: Carved stone ships. Slow, but each ship ignores the first hit it takes each turn.
-    - badge: Coming Soon
-      name: Shadow Fleet
-      set: shadow-fleet-set
-      image: /assets/ships/ship-preview-shadow-fleet-sm.webp
-      stats:
-        - 3 galleons
-        - 3 fittings each
-        - 3 clicks per move
-      desc: Thin hulls that sink easily and rise again from any island you hold.
-    - badge: Coming Soon
-      name: The Industry
-      set: industry-set
-      image: /assets/ships/ship-preview-industry-sm.webp
-      stats:
-        - 3 warships
-        - 2 hull fittings + 1 turret
-        - 1 bow gun, forward only
-        - 1 rotating turret
-        - 3 clicks per move
-      desc: Engine-driven warships with a forward bow gun and a rotating turret.
-    - badge: Coming Soon
-      name: The Islanders
-      set: islander-set
-      image: /assets/ships/ship-preview-islanders-sm.webp
-      stats:
-        - 5 catamarans
-        - 1 fitting each
-        - 3 rear-facing slots
-        - 4 clicks per move
-      desc: Fast catamarans with a gun astern. Start the game already holding an island.
+about:
+  title: Who's making this
+  video: https://www.youtube.com/embed/I8fr532RWB0
+  paragraphs:
+    - >-
+      I'm Joshua Bemenderfer, a software engineer by day. I wanted a
+      Battleship-style game where you actually move your ships around and aim
+      your own shots. It got a bit out of hand after the reel went viral, so
+      now a small crew of us (my wife and a few coworkers) are making it for
+      real.
+    - >-
+      We design, print and playtest every piece ourselves, and we rewrite the
+      rules whenever something doesn't work at the table. The base game stays
+      free for anyone with a printer.
 
+# The rulebook change notes. Shown on /live, linked from "How to play".
 changelog:
-  title: From the Playtest Table
-  description: What the first full-fleet game changed in rulebook v0.4.
+  title: What changed in v0.4
+  description: What we changed after the first game with full fleets.
   version: v0.4
   released: '2026-05-18'
   items:
@@ -159,56 +282,19 @@ changelog:
       body: Every faction except the Islanders gains a click of movement. Shadow Fleet now matches Queen's Fleet.
     - icon: i-lucide-anchor
       title: Corsairs down to three sloops
-      body: Four was too much to track each turn. Three sloops at Move Count 4 still flank fine.
+      body: Four was a lot to keep track of each turn. Three sloops at Move Count 4 can still flank just fine.
     - icon: i-lucide-skull
       title: Islanders down to one fitting
-      body: One hit leaves a catamaran dead in the water. Fast and fragile, as intended.
+      body: One hit leaves a catamaran dead in the water, which is pretty much the point.
     - icon: i-lucide-flag
       title: Deploy at the table edge
-      body: Ships start touching the edge. The old 3-inch buffer wasted space.
+      body: Ships now start touching the table edge. The old 3-inch gap just wasted space.
     - icon: i-lucide-crosshair
       title: Ricochets
-      body: The first ship a cannonball touches takes the hit. Bounces after that do nothing.
+      body: The first ship a cannonball touches takes the hit. Anything it bounces into after that is fine.
     - icon: i-lucide-users
       title: Cannons need a crew
       body: To fire any cannon, a ship of yours must be touching it and spend its action. Islands no longer fire on their own.
     - icon: i-lucide-wind
       title: Always Underway
       body: An optional mode where ships have to move forward every turn, and can steer or fire but not both.
-
-signup:
-  eyebrow: Free
-  title: Rulebook and STL files
-  body: >-
-    Subscribe and we'll send you the printable rulebook and the STL pack we
-    use at our own playtests. We'll also let you know when a new faction is
-    ready.
-  perks:
-    - Half-letter rulebook booklet
-    - 'STL pack: both fleets, terrain, cannons, coins'
-    - New factions and parts as they come
-  publicRulebook:
-    label: Or just read the rulebook (PDF)
-    href: /rulebook/pdf/rulebook.pdf
-  kitUid: a74f27ac96
-  kitSrc: https://cannons-and-coastlines.kit.com/a74f27ac96/index.js
-  discord:
-    title: Or join the Discord
-    body: Updates and discussion for playtesters and anyone curious. Early files get pinned in the channel.
-    url: https://discord.gg/DMuFEWJtZq
-    qr: https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=https://discord.gg/DMuFEWJtZq
-
-about:
-  title: Who's Behind This
-  video: https://www.youtube.com/embed/I8fr532RWB0
-  paragraphs:
-    - >-
-      I'm Joshua Bemenderfer, a software engineer by day. I wanted a
-      battleship game where you actually move your ships around and aim your
-      own shots. It got away from me and went viral, so now a small crew of
-      us (my wife and a few coworkers) are making it for real.
-    - >-
-      We design, print and playtest every piece ourselves, and rewrite the
-      rules whenever something doesn't work at the table. The base game is
-      free for anyone with a printer, and the paid add-on fleets fund the next
-      round of work.

@@ -14,6 +14,9 @@
         <stop offset="0%" stop-color="#7a9c9a" stop-opacity="0.5" />
         <stop offset="100%" stop-color="#7a9c9a" stop-opacity="0" />
       </linearGradient>
+      <filter id="hero-smoke-blur" x="-50%" y="-50%" width="200%" height="200%">
+        <feGaussianBlur stdDeviation="3" />
+      </filter>
     </defs>
 
     <rect width="1440" height="600" fill="url(#ocean)" />
@@ -54,8 +57,8 @@
       <path d="M920 385 L945 392 L920 400 Z" fill="#c44" opacity="0.8" />
     </g>
 
-    <g class="hero-island hero-island--near" opacity="0.6">
-      <path d="M280 490 Q330 440 390 460 Q430 425 490 450 Q530 435 570 460 Q590 475 600 495 Z" fill="url(#islandFill)" />
+    <g class="hero-island hero-island--near" opacity="0.6" transform="translate(330 0)">
+<path d="M280 490 Q330 440 390 460 Q430 425 490 450 Q530 435 570 460 Q590 475 600 495 Z" fill="url(#islandFill)" />
       <path d="M340 478 Q370 455 420 465" stroke="#3a5a3a" stroke-width="1.5" fill="none" opacity="0.5" />
       <line x1="400" y1="458" x2="395" y2="418" stroke="#5a4a3a" stroke-width="3.5" />
       <path d="M395 418 Q375 410 365 420" stroke="#3a6a3a" stroke-width="3" fill="none" />
@@ -68,101 +71,37 @@
       <path d="M497 415 Q488 400 482 408" stroke="#4a7a4a" stroke-width="2" fill="none" />
     </g>
 
-    <g class="hero-ship hero-ship--1">
-      <g transform="translate(250, 470)">
-        <ellipse cx="50" cy="24" rx="42" ry="4" fill="#3a5a5a" opacity="0.15" />
-        <path d="M-4 -5 L8 -5 L15 -2 L85 -2 Q100 0 105 6 L100 16 L88 22 L8 22 L-2 18 L-4 14 Z" fill="#5c4033" />
-        <path d="M15 -2 L15 2" stroke="#4a3425" stroke-width="1" opacity="0.5" fill="none" />
-        <path d="M8 10 L92 8" stroke="#4a3425" stroke-width="0.8" opacity="0.6" />
-        <path d="M5 14 L95 12" stroke="#4a3425" stroke-width="0.8" opacity="0.5" />
-        <path d="M15 8 L88 6" stroke="#d4a94a" stroke-width="1.5" opacity="0.5" />
-        <rect x="22" y="6" width="3" height="3" rx="0.5" fill="#2a1d15" opacity="0.7" />
-        <rect x="34" y="5.5" width="3" height="3" rx="0.5" fill="#2a1d15" opacity="0.7" />
-        <rect x="46" y="5" width="3" height="3" rx="0.5" fill="#2a1d15" opacity="0.7" />
-        <rect x="58" y="4.8" width="3" height="3" rx="0.5" fill="#2a1d15" opacity="0.7" />
-        <rect x="70" y="5" width="3" height="3" rx="0.5" fill="#2a1d15" opacity="0.7" />
-        <circle cx="0" cy="4" r="1.2" fill="#d4a94a" opacity="0.5" />
-        <circle cx="5" cy="4" r="1.2" fill="#d4a94a" opacity="0.5" />
-        <line x1="95" y1="2" x2="118" y2="-8" stroke="#5c4033" stroke-width="1.5" />
-        <line x1="75" y1="-2" x2="75" y2="-42" stroke="#5c4033" stroke-width="2.5" />
-        <path d="M77 -40 Q98 -28 96 -6 L77 -4 Z" fill="#d4c4a8" opacity="0.85" />
-        <line x1="45" y1="0" x2="45" y2="-52" stroke="#5c4033" stroke-width="3" />
-        <path d="M47 -50 Q72 -35 70 -5 L47 -3 Z" fill="#d4c4a8" opacity="0.9" />
-        <rect x="42" y="-52" width="6" height="2" rx="1" fill="#5c4033" />
-        <line x1="20" y1="2" x2="20" y2="-32" stroke="#5c4033" stroke-width="2" />
-        <path d="M22 -30 Q36 -20 34 0 L22 2 Z" fill="#d4c4a8" opacity="0.8" />
-        <path d="M45 -52 L45 -58" stroke="#5c4033" stroke-width="1" />
-        <path d="M45 -58 L55 -55 L45 -52 Z" fill="#c44" opacity="0.9" />
-      </g>
-      <g class="hero-cannon-fire hero-cannon-fire--1" transform="translate(300, 476)">
-        <circle cx="0" cy="0" r="5" fill="#ffcc44" />
-        <circle cx="0" cy="0" r="8" fill="#ff9922" opacity="0.6" />
-        <circle class="cannon-smoke cannon-smoke--1a" cx="4" cy="-2" r="6" fill="#c8c0b0" />
-        <circle class="cannon-smoke cannon-smoke--1b" cx="8" cy="-4" r="8" fill="#b8b0a0" />
-        <circle class="cannon-smoke cannon-smoke--1c" cx="14" cy="-6" r="10" fill="#a8a090" />
-        <circle class="cannonball cannonball--1" cx="3" cy="0" r="2.5" fill="#2a1d15" />
+    <!-- A brig in the distance -->
+    <g class="hero-drift hero-drift--brig" opacity="0.5">
+      <g transform="translate(600 486) scale(0.26)">
+        <g class="hero-rock hero-rock--slow"><HeroShip id="brig" :masts="2" hull="#5c4033" flag="#3f6b3f" /></g>
       </g>
     </g>
 
-    <g class="hero-ship hero-ship--2">
-      <g transform="translate(1050, 478) scale(-1,1)">
-        <ellipse cx="45" cy="22" rx="38" ry="3.5" fill="#3a5a5a" opacity="0.12" />
-        <path d="M-6 -8 L6 -8 L14 -2 L75 -2 Q88 0 92 5 L88 14 L78 20 L6 20 L-2 16 L-6 12 Z" fill="#5c4033" />
-        <path d="M14 -2 L14 2" stroke="#4a3425" stroke-width="1" opacity="0.5" fill="none" />
-        <path d="M8 8 L82 6" stroke="#4a3425" stroke-width="0.7" opacity="0.55" />
-        <path d="M5 12 L85 10" stroke="#4a3425" stroke-width="0.7" opacity="0.45" />
-        <path d="M14 6 L78 4" stroke="#d4a94a" stroke-width="1.2" opacity="0.45" />
-        <rect x="20" y="4.5" width="2.5" height="2.5" rx="0.5" fill="#2a1d15" opacity="0.65" />
-        <rect x="32" y="4" width="2.5" height="2.5" rx="0.5" fill="#2a1d15" opacity="0.65" />
-        <rect x="44" y="3.5" width="2.5" height="2.5" rx="0.5" fill="#2a1d15" opacity="0.65" />
-        <rect x="56" y="3.5" width="2.5" height="2.5" rx="0.5" fill="#2a1d15" opacity="0.65" />
-        <circle cx="-2" cy="2" r="1" fill="#d4a94a" opacity="0.45" />
-        <circle cx="3" cy="2" r="1" fill="#d4a94a" opacity="0.45" />
-        <line x1="82" y1="0" x2="102" y2="-7" stroke="#5c4033" stroke-width="1.5" />
-        <line x1="65" y1="-1" x2="65" y2="-38" stroke="#5c4033" stroke-width="2.5" />
-        <path d="M67 -36 Q84 -25 82 -5 L67 -3 Z" fill="#d4c4a8" opacity="0.82" />
-        <line x1="40" y1="0" x2="40" y2="-46" stroke="#5c4033" stroke-width="2.5" />
-        <path d="M42 -44 Q62 -32 60 -4 L42 -2 Z" fill="#d4c4a8" opacity="0.85" />
-        <rect x="37" y="-46" width="6" height="2" rx="1" fill="#5c4033" />
-        <line x1="18" y1="2" x2="18" y2="-28" stroke="#5c4033" stroke-width="2" />
-        <path d="M20 -26 Q32 -18 30 0 L20 2 Z" fill="#d4c4a8" opacity="0.75" />
-        <path d="M40 -46 L40 -52" stroke="#5c4033" stroke-width="1" />
-        <path d="M40 -52 L50 -49 L40 -46 Z" fill="#2255aa" opacity="0.85" />
+    <!-- Queen's Fleet ship, further off, trading broadsides with the near ship -->
+    <g class="hero-drift hero-drift--far" style="--fire-delay: 6s">
+      <g transform="translate(1010 508) scale(0.5)">
+        <g class="hero-rock hero-rock--b"><HeroShip id="queen" hull="#56606e" flag="#1f3a5f" fire /></g>
       </g>
-      <g class="hero-cannon-fire hero-cannon-fire--2" transform="translate(1005, 482)">
-        <circle cx="0" cy="0" r="4.5" fill="#ffcc44" />
-        <circle cx="0" cy="0" r="7" fill="#ff9922" opacity="0.6" />
-        <circle class="cannon-smoke cannon-smoke--2a" cx="-4" cy="-2" r="5.5" fill="#c8c0b0" />
-        <circle class="cannon-smoke cannon-smoke--2b" cx="-8" cy="-4" r="7" fill="#b8b0a0" />
-        <circle class="cannon-smoke cannon-smoke--2c" cx="-14" cy="-5" r="9" fill="#a8a090" />
-        <circle class="cannonball cannonball--2" cx="-3" cy="0" r="2.5" fill="#2a1d15" />
+    </g>
+    <g class="hero-splashes" style="--splash-delay: 2.3s" transform="translate(1000 512)">
+      <g v-for="(x, i) in [10, 62, 118, 150, 196]" :key="x" class="splash" :style="{ '--i': i }" :transform="`translate(${x} ${i % 2 ? 4 : -2})`">
+        <path d="M0 0 Q-3 -12 -1 -20 M0 0 Q2 -14 5 -17 M0 0 Q-5 -8 -7 -12" stroke="#e4f1f4" stroke-width="1.6" fill="none" />
+        <ellipse cy="2" rx="9" ry="2.5" fill="#cfe6ec" opacity="0.5" />
       </g>
     </g>
 
-    <g class="hero-ship hero-ship--3" opacity="0.55">
-      <g transform="translate(680, 450)">
-        <path d="M-2 7 Q1 1 10 -1 L32 -1 Q38 1 39 5 L37 8 L34 10 L2 10 Z" fill="#5c4033" />
-        <path d="M5 4 L34 3" stroke="#d4a94a" stroke-width="0.6" opacity="0.7" />
-        <line x1="34" y1="0" x2="44" y2="-4" stroke="#5c4033" stroke-width="1" />
-        <line x1="20" y1="0" x2="20" y2="-22" stroke="#5c4033" stroke-width="1.8" />
-        <path d="M22 -20 Q34 -13 33 -1 L22 0 Z" fill="#d4c4a8" opacity="0.9" />
-        <path d="M22 -18 L38 -2 L22 -1 Z" fill="#d4c4a8" opacity="0.75" />
-        <path d="M20 -22 L20 -26" stroke="#5c4033" stroke-width="0.8" />
-        <path d="M20 -26 L26 -24 L20 -22 Z" fill="#c44" opacity="0.8" />
+    <!-- Corsair ship in the foreground -->
+    <g class="hero-drift hero-drift--near" style="--fire-delay: 1.5s">
+      <g transform="translate(190 540) scale(0.72)">
+        <g class="hero-rock hero-rock--a"><HeroShip id="corsair" hull="#2e2925" flag="#8b1a1a" fire /></g>
       </g>
     </g>
-
-    <g class="hero-splash hero-splash--1" transform="translate(980, 485)">
-      <path d="M0 0 Q-3 -12 -1 -18" stroke="#d0e8f0" stroke-width="2" fill="none" />
-      <path d="M0 0 Q2 -14 5 -16" stroke="#d0e8f0" stroke-width="1.5" fill="none" />
-      <path d="M0 0 Q-5 -8 -7 -12" stroke="#d0e8f0" stroke-width="1.2" fill="none" />
-      <ellipse cx="0" cy="2" rx="10" ry="3" fill="#b8dce8" opacity="0.4" />
-    </g>
-    <g class="hero-splash hero-splash--2" transform="translate(420, 478)">
-      <path d="M0 0 Q3 -10 1 -15" stroke="#d0e8f0" stroke-width="1.5" fill="none" />
-      <path d="M0 0 Q-2 -12 -4 -14" stroke="#d0e8f0" stroke-width="1.2" fill="none" />
-      <path d="M0 0 Q5 -7 6 -10" stroke="#d0e8f0" stroke-width="1" fill="none" />
-      <ellipse cx="0" cy="2" rx="8" ry="2.5" fill="#b8dce8" opacity="0.35" />
+    <g class="hero-splashes" style="--splash-delay: 6.8s" transform="translate(200 546)">
+      <g v-for="(x, i) in [-10, 70, 150, 250, 300]" :key="x" class="splash" :style="{ '--i': i }" :transform="`translate(${x} ${i % 2 ? 6 : 0}) scale(1.5)`">
+        <path d="M0 0 Q-3 -12 -1 -20 M0 0 Q2 -14 5 -17 M0 0 Q-5 -8 -7 -12" stroke="#e4f1f4" stroke-width="1.6" fill="none" />
+        <ellipse cy="2" rx="9" ry="2.5" fill="#cfe6ec" opacity="0.5" />
+      </g>
     </g>
 
     <g class="hero-waves">
@@ -185,130 +124,79 @@
   pointer-events: none;
 }
 
-.hero-clouds { animation: cloud-drift 80s linear infinite; }
+.hero-clouds { animation: cloud-drift 80s linear infinite alternate; }
 @keyframes cloud-drift { 0% { transform: translateX(0); } 100% { transform: translateX(60px); } }
 
-.hero-island--far  { animation: island-sway-far 20s ease-in-out infinite; }
-.hero-island--mid  { animation: island-sway-mid 16s ease-in-out infinite; }
-.hero-island--near { animation: island-sway-near 14s ease-in-out infinite; }
-@keyframes island-sway-far  { 0%,100% { transform: translateY(0); } 50% { transform: translateY(2px); } }
-@keyframes island-sway-mid  { 0%,100% { transform: translateY(0); } 50% { transform: translateY(3px); } }
-@keyframes island-sway-near { 0%,100% { transform: translateY(0); } 50% { transform: translateY(4px); } }
-
-.hero-ship--1 { animation: ship-sail-1 18s ease-in-out infinite; }
-.hero-ship--2 { animation: ship-sail-2 22s ease-in-out infinite; }
-.hero-ship--3 { animation: ship-sail-3 28s ease-in-out infinite; }
-@keyframes ship-sail-1 {
-  0%,100% { transform: translate(0,0) rotate(-1deg); }
-  25%     { transform: translate(35px,-5px) rotate(1.5deg); }
-  50%     { transform: translate(60px,0) rotate(-0.5deg); }
-  75%     { transform: translate(35px,-6px) rotate(1deg); }
-}
-@keyframes ship-sail-2 {
-  0%,100% { transform: translate(0,0) rotate(0.5deg); }
-  25%     { transform: translate(-30px,-4px) rotate(-1.5deg); }
-  50%     { transform: translate(-50px,0) rotate(1deg); }
-  75%     { transform: translate(-30px,-5px) rotate(-0.5deg); }
-}
-@keyframes ship-sail-3 {
-  0%,100% { transform: translate(0,0) rotate(-0.3deg); }
-  25%     { transform: translate(18px,-2px) rotate(0.5deg); }
-  50%     { transform: translate(30px,0) rotate(-0.3deg); }
-  75%     { transform: translate(18px,-3px) rotate(0.6deg); }
-}
-
-.hero-cannon-fire--1, .hero-cannon-fire--2 { opacity: 0; }
-.hero-cannon-fire--1 { animation: cannon-blast 6s ease-out infinite 1s; }
-.hero-cannon-fire--2 { animation: cannon-blast 6s ease-out infinite 3.5s; }
-@keyframes cannon-blast {
-  0%   { opacity: 0; }
-  2%   { opacity: 1; }
-  6%   { opacity: 0.85; }
-  15%  { opacity: 0.3; }
-  28%  { opacity: 0; }
-  100% { opacity: 0; }
-}
-
-.cannon-smoke--1a, .cannon-smoke--2a { opacity: 0; animation: smoke-a 6s ease-out infinite; }
-.cannon-smoke--1b, .cannon-smoke--2b { opacity: 0; animation: smoke-b 6s ease-out infinite; }
-.cannon-smoke--1c, .cannon-smoke--2c { opacity: 0; animation: smoke-c 6s ease-out infinite; }
-
-.hero-cannon-fire--1 .cannon-smoke--1a,
-.hero-cannon-fire--1 .cannon-smoke--1b,
-.hero-cannon-fire--1 .cannon-smoke--1c,
-.hero-cannon-fire--1 .cannonball--1 { animation-delay: 1s; }
-.hero-cannon-fire--2 .cannon-smoke--2a,
-.hero-cannon-fire--2 .cannon-smoke--2b,
-.hero-cannon-fire--2 .cannon-smoke--2c,
-.hero-cannon-fire--2 .cannonball--2 { animation-delay: 3.5s; }
-
-@keyframes smoke-a {
-  0% { opacity: 0; transform: translate(0,0); }
-  3% { opacity: 0.55; transform: translate(0,0); }
-  20% { opacity: 0.25; transform: translate(8px,-14px); }
-  40% { opacity: 0; transform: translate(16px,-24px); }
-  100% { opacity: 0; }
-}
-@keyframes smoke-b {
-  0% { opacity: 0; transform: translate(0,0); }
-  5% { opacity: 0.4; transform: translate(0,0); }
-  25% { opacity: 0.18; transform: translate(12px,-18px); }
-  45% { opacity: 0; transform: translate(22px,-30px); }
-  100% { opacity: 0; }
-}
-@keyframes smoke-c {
-  0% { opacity: 0; transform: translate(0,0); }
-  8% { opacity: 0.25; transform: translate(0,0); }
-  30% { opacity: 0.1; transform: translate(16px,-22px); }
-  50% { opacity: 0; transform: translate(28px,-36px); }
-  100% { opacity: 0; }
-}
-
-.cannonball--1 { opacity: 0; animation: cannonball-right 6s ease-in infinite; }
-.cannonball--2 { opacity: 0; animation: cannonball-left 6s ease-in infinite; }
-@keyframes cannonball-right {
-  0% { opacity: 0; transform: translate(0,0); }
-  2% { opacity: 0.8; transform: translate(0,0); }
-  12% { opacity: 0.6; transform: translate(510px,-40px); }
-  15% { opacity: 0; transform: translate(680px,9px); }
-  100% { opacity: 0; }
-}
-@keyframes cannonball-left {
-  0% { opacity: 0; transform: translate(0,0); }
-  2% { opacity: 0.8; transform: translate(0,0); }
-  12% { opacity: 0.6; transform: translate(-440px,-35px); }
-  15% { opacity: 0; transform: translate(-585px,-4px); }
-  100% { opacity: 0; }
-}
-
-.hero-splash--1, .hero-splash--2 { opacity: 0; }
-.hero-splash--1 { animation: splash 6s ease-out infinite 1.7s; }
-.hero-splash--2 { animation: splash 6s ease-out infinite 4.2s; }
-@keyframes splash {
-  0% { opacity: 0; }
-  2% { opacity: 0.8; }
-  8% { opacity: 0.5; }
-  18% { opacity: 0; }
-  100% { opacity: 0; }
-}
+.hero-island--far  { animation: island-sway 20s ease-in-out infinite; }
+.hero-island--mid  { animation: island-sway 16s ease-in-out infinite; }
+@keyframes island-sway { 0%,100% { transform: translateY(0); } 50% { transform: translateY(2px); } }
 
 .hero-wave--1 { animation: wave-shift-1 7s ease-in-out infinite; }
 .hero-wave--2 { animation: wave-shift-2 9s ease-in-out infinite; }
-.hero-wave--3 { animation: wave-shift-3 11s ease-in-out infinite; }
-.hero-wave--4 { animation: wave-shift-4 13s ease-in-out infinite; }
-@keyframes wave-shift-1 { 0%,100% { transform: translateX(0); } 50% { transform: translateX(30px); } }
-@keyframes wave-shift-2 { 0%,100% { transform: translateX(0); } 50% { transform: translateX(-25px); } }
-@keyframes wave-shift-3 { 0%,100% { transform: translateX(0); } 50% { transform: translateX(20px); } }
-@keyframes wave-shift-4 { 0%,100% { transform: translateX(0); } 50% { transform: translateX(-18px); } }
+.hero-wave--3 { animation: wave-shift-1 11s ease-in-out infinite; }
+.hero-wave--4 { animation: wave-shift-2 13s ease-in-out infinite; }
+@keyframes wave-shift-1 { 0%,100% { transform: translateX(0); } 50% { transform: translateX(28px); } }
+@keyframes wave-shift-2 { 0%,100% { transform: translateX(0); } 50% { transform: translateX(-22px); } }
+</style>
+
+<!-- Ship motion lives in an unscoped block because it styles HeroShip's
+     insides. Everything is prefixed with .hero-scene. -->
+<style>
+/* Ships creep forward and back, and pitch/heave about the waterline. */
+.hero-scene .hero-drift--near { animation: hero-drift 34s ease-in-out infinite alternate; }
+.hero-scene .hero-drift--far  { animation: hero-drift 40s ease-in-out infinite alternate-reverse; }
+.hero-scene .hero-drift--brig { animation: hero-drift 60s ease-in-out infinite alternate; }
+@keyframes hero-drift { from { transform: translateX(-12px); } to { transform: translateX(36px); } }
+
+.hero-scene .hero-rock { transform-box: fill-box; transform-origin: 55% 96%; }
+.hero-scene .hero-rock--a { animation: hero-rock 6.5s ease-in-out infinite; }
+.hero-scene .hero-rock--b { animation: hero-rock 7.5s ease-in-out infinite -2s; }
+.hero-scene .hero-rock--slow { animation: hero-rock 9s ease-in-out infinite -4s; }
+@keyframes hero-rock {
+  0%, 100% { transform: translateY(0) rotate(-0.9deg); }
+  50%      { transform: translateY(3px) rotate(1.1deg); }
+}
+
+/* Sails fill a little with each gust. */
+.hero-scene .sail { transform-box: fill-box; transform-origin: 50% 0%; animation: hero-sail 5s ease-in-out infinite; }
+@keyframes hero-sail { 0%, 100% { transform: scale(1, 1); } 50% { transform: scale(1.015, 1.03); } }
+.hero-scene .ship-bow-wave { animation: hero-foam 3s ease-in-out infinite; }
+@keyframes hero-foam { 0%, 100% { opacity: 0.45; } 50% { opacity: 0.85; } }
+
+/* Broadside: a 10s cycle. Each gun goes off 0.12s after the one ahead of it. */
+.hero-scene .gun-flash,
+.hero-scene .gun-smoke { opacity: 0; transform-box: fill-box; transform-origin: center; }
+.hero-scene .gun-flash { animation: hero-flash 10s linear infinite; animation-delay: calc(var(--fire-delay) + var(--i) * 0.12s); }
+.hero-scene .gun-smoke--a { animation: hero-smoke 10s ease-out infinite; animation-delay: calc(var(--fire-delay) + var(--i) * 0.12s); }
+.hero-scene .gun-smoke--b { animation: hero-smoke 10s ease-out infinite; animation-delay: calc(var(--fire-delay) + var(--i) * 0.12s + 0.15s); }
+@keyframes hero-flash {
+  0%   { opacity: 0; transform: scale(0.4); }
+  0.8% { opacity: 1; transform: scale(1.3); }
+  3%   { opacity: 0; transform: scale(0.8); }
+  100% { opacity: 0; }
+}
+@keyframes hero-smoke {
+  0%   { opacity: 0; transform: translate(0, 0) scale(0.3); }
+  1.5% { opacity: 0.9; transform: translate(2px, 0) scale(1); }
+  22%  { opacity: 0.55; transform: translate(26px, -12px) scale(2.3); }
+  48%  { opacity: 0; transform: translate(60px, -28px) scale(3.4); }
+  100% { opacity: 0; }
+}
+
+/* Shot landing around the other ship. */
+.hero-scene .splash { opacity: 0; }
+.hero-scene .splash > * { transform-box: fill-box; transform-origin: 50% 100%; }
+.hero-scene .splash { animation: hero-splash 10s ease-out infinite; animation-delay: calc(var(--splash-delay) + var(--i) * 0.14s); }
+@keyframes hero-splash {
+  0%   { opacity: 0; }
+  1%   { opacity: 0.95; }
+  7%   { opacity: 0.5; }
+  14%  { opacity: 0; }
+  100% { opacity: 0; }
+}
 
 @media (prefers-reduced-motion: reduce) {
-  .hero-clouds, .hero-island--far, .hero-island--mid, .hero-island--near,
-  .hero-ship--1, .hero-ship--2, .hero-ship--3,
-  .hero-wave--1, .hero-wave--2, .hero-wave--3, .hero-wave--4,
-  .hero-cannon-fire--1, .hero-cannon-fire--2,
-  .cannon-smoke--1a, .cannon-smoke--1b, .cannon-smoke--1c,
-  .cannon-smoke--2a, .cannon-smoke--2b, .cannon-smoke--2c,
-  .cannonball--1, .cannonball--2,
-  .hero-splash--1, .hero-splash--2 { animation: none; }
+  .hero-scene *, .hero-scene { animation: none !important; }
+  .hero-scene animate { display: none; }
 }
 </style>

@@ -61,7 +61,7 @@ useSeoMeta({
       <p class="mt-10 text-center text-sm text-ink-soft">
         Have a question first?
         <a href="https://discord.gg/DMuFEWJtZq" target="_blank" rel="noopener" class="underline text-[color:var(--gold)]">Ask on Discord</a>
-        or join the <NuxtLink to="/#signup" class="underline text-[color:var(--gold)]">mailing list</NuxtLink>.
+        or join the <NuxtLink to="/#files" class="underline text-[color:var(--gold)]">mailing list</NuxtLink>.
       </p>
     </section>
   </div>

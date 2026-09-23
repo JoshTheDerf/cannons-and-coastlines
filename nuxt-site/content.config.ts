@@ -38,8 +38,10 @@ export default defineContentConfig({
       schema: z.object({
         meta: z.object({ title: z.string(), description: z.string() }).optional(),
         hero: z.record(z.any()).optional(),
-        seeIt: z.record(z.any()).optional(),
-        howItPlays: z.record(z.any()).optional(),
+        intro: z.record(z.any()).optional(),
+        howToPlay: z.record(z.any()).optional(),
+        fleets: z.record(z.any()).optional(),
+        videos: z.record(z.any()).optional(),
         factions: z.record(z.any()).optional(),
         changelog: z.record(z.any()).optional(),
         signup: z.record(z.any()).optional(),

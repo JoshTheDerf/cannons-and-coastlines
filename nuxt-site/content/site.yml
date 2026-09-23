@@ -9,26 +9,22 @@ brand:
 
 # Top navigation links (left side of the nav bar).
 nav:
-  - label: See It
-    to: /#see-it
-  - label: How It Plays
-    to: /#how-it-plays
-  - label: Factions
-    to: /#factions
+  - label: How to play
+    to: /#how-to-play
+  - label: Fleets
+    to: /#fleets
   - label: Parts
     to: /parts
-  - label: Subscribe
-    to: /#signup
-  - label: Live
-    to: /live
+  - label: Videos
+    to: /#videos
   - label: About
     to: /#about
 
-# The big call-to-action button on the right of the nav bar.
+# The call-to-action button on the right of the nav bar.
 cta:
-  label: Starter pack (sold out)
-  to: /starter-pack
-  icon: i-lucide-anchor
+  label: Get the files
+  to: /#files
+  icon: i-lucide-download
 
 # To show an announcement strip on every page, add an `announce:` block here
 # with pill, headline, cta, and to (see content.config.ts).
@@ -38,21 +34,22 @@ footer:
   columns:
     - title: Game
       links:
-        - { label: See It, to: /#see-it }
-        - { label: How It Plays, to: /#how-it-plays }
-        - { label: Factions, to: /#factions }
+        - { label: How to play, to: /#how-to-play }
+        - { label: Fleets, to: /#fleets }
         - { label: Parts, to: /parts }
-        - { label: Starter Pack, to: /starter-pack }
+        - { label: Videos, to: /#videos }
     - title: Files
       links:
-        - { label: Rulebook & STLs, to: /#signup }
+        - { label: STLs and rulebook, to: /#files }
+        - { label: Rulebook (PDF), to: /rulebook/pdf/rulebook.pdf, external: true }
         - { label: GitHub, to: https://github.com/JoshTheDerf/cannons-and-coastlines/tree/main, external: true }
     - title: More
       links:
-        - { label: Mailing List, to: /#signup }
         - { label: About, to: /#about }
-        - { label: Privacy, to: /privacy }
+        - { label: First playtest, to: /live }
+        - { label: Starter pack (sold out), to: /starter-pack }
         - { label: Discord, to: https://discord.gg/DMuFEWJtZq, external: true }
+        - { label: Privacy, to: /privacy }
   social:
     - { label: Discord, to: https://discord.gg/DMuFEWJtZq, icon: i-lucide-message-circle }
     - { label: GitHub, to: https://github.com/JoshTheDerf/cannons-and-coastlines/tree/main, icon: i-lucide-github }

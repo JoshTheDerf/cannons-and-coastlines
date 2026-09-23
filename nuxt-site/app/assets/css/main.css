@@ -425,3 +425,25 @@ button.btn-ink[data-slot="base"]:hover {
 /* --- Minimum type size ---------------------------------------------------- */
 /* Nothing on the page drops below 0.85rem. */
 .text-xs { font-size: 0.85rem; line-height: 1.5; }
+
+/* --- Photo frame: a print pinned to the page ----------------------------- */
+.photo-frame {
+  background: var(--paper-card);
+  padding: 0.5rem;
+  border: 1px solid var(--box-border);
+  border-radius: 3px;
+  box-shadow: 3px 3px 0 rgba(60, 36, 21, 0.18);
+}
+.photo-frame img { display: block; border-radius: 1px; }
+
+/* --- Rule callout: the rulebook's crimson left bar ----------------------- */
+.callout {
+  font-family: var(--font-serif);
+  color: var(--ink);
+  background: rgba(139, 26, 26, 0.05);
+  border-left: 3px solid var(--crimson);
+  padding: 0.65rem 0.9rem;
+  border-radius: 0 2px 2px 0;
+}
+.callout strong { color: var(--crimson); }
+.card-deck .callout, .band-deck .callout { background: rgba(255, 255, 255, 0.05); border-left-color: var(--gold-bright); }

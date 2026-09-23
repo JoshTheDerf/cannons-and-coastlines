@@ -50,10 +50,10 @@ useSeoMeta({
     </section>
 
     <!-- Playtest takeaways -->
-    <section v-if="page?.changelog" class="px-4 pb-20 band-parchment">
+    <section v-if="page?.changelog" id="changes" class="px-4 pb-20 band-parchment">
       <div class="container mx-auto max-w-4xl py-16">
         <SectionHeader
-          :title="`What changed in ${page.changelog.version}`"
+          :title="page.changelog.title"
           :description="page.changelog.description"
         />
         <ChangelogList :items="page.changelog.items" />

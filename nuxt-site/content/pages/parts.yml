@@ -24,27 +24,27 @@ gallery:
     - render: /assets/ships/renders/ship-queens-fleet.png
       name: Queen's Fleet
       badge: Base set
-      desc: Ship of the line. Three broadside slots a side, four fittings.
+      desc: A frigate with three broadside slots on each side and four fittings.
       color: Blue-grey, or your fleet color.
     - render: /assets/ships/renders/ship-corsair.png
       name: Corsairs
       badge: Base set
-      desc: Sloop. Smaller, quicker, three fittings.
+      desc: A sloop. It's smaller and quicker than the frigate, with three fittings.
       color: Black, or your fleet color.
     - render: /assets/ships/renders/ship-treasure-fleet.png
       name: Treasure Fleet
       badge: Add-on
-      desc: Deep-holded galleon. Fewer ships, more coin.
+      desc: A junk with a deep hold. You get fewer ships, but more coin.
       color: Gold.
     - render: /assets/ships/renders/ship-sun-fleet.png
       name: Sun Fleet
       badge: Add-on
-      desc: Carved stone. Slow, hard to sink.
+      desc: A carved stone barge. Slow, but pretty hard to sink.
       color: Stone grey.
     - render: /assets/ships/renders/ship-shadow-fleet.png
       name: Shadow Fleet
       badge: Add-on
-      desc: Thin hull that comes back from the deep.
+      desc: A thin-hulled galleon that can come back after it sinks.
       color: Translucent teal-to-purple gradient **PETG**.
     - render: /assets/ships/renders/ship-industry.png
       name: The Industry
@@ -54,7 +54,7 @@ gallery:
     - render: /assets/ships/renders/ship-islander.png
       name: The Islanders
       badge: Add-on
-      desc: Catamaran with a gun astern. One fitting.
+      desc: A catamaran with its guns at the back and a single fitting.
       color: Pine.
   partsTitle: The Pieces
   partsLead: Everything else in the base set. The colors are just suggestions.
@@ -65,7 +65,7 @@ gallery:
       color: Brown or black.
     - render: /assets/images/renders/cargo.png
       name: Cargo
-      desc: A *fitting*. Crates in the hold. Comes off when the ship takes a hit.
+      desc: A *fitting*. Crates of supplies that come off when the ship takes a hit.
       color: Crate brown.
     - render: /assets/images/renders/sail.png
       name: Sail
@@ -73,15 +73,15 @@ gallery:
       color: White, black, or whatever suits your fleet.
     - render: /assets/images/renders/sail-damaged.png
       name: Damaged Sail
-      desc: A torn sail. Cosmetic. Good on pirates.
+      desc: A torn sail. It's just cosmetic, but it looks good on pirates.
       color: Same as your sails, or something scorched.
     - render: /assets/images/renders/cannon.png
       name: Cannon
-      desc: The gun. Plugs into any cannon slot on a ship or island. Press the arm down until it fires.
+      desc: The gun. It plugs into any cannon slot on a ship or island, and you press the arm down until it fires.
       color: Black or gunmetal.
     - render: /assets/images/renders/cannonball.png
       name: Cannonball
-      desc: Goes in the muzzle. Easy to lose.
+      desc: Goes in the muzzle. They're really easy to lose.
       color: Something bright, since neon green or orange is a lot easier to find under the couch. **TPU** bounces less.
     - render: /assets/images/renders/movement-wheel.png
       name: Movement Wheel
@@ -94,8 +94,9 @@ gallery:
     - render: /assets/images/renders/coin-full-sail.png
       name: Coins
       desc: >-
-        Seven kinds: Brace, Signal, Full Sail, Evasive, Gunner, Repair,
-        Boarding. Draw from the bag, spend at the start of your turn.
+        There are seven kinds (Brace, Signal, Full Sail, Evasive, Gunner,
+        Repair and Boarding). You draw them from the bag and spend them at the
+        start of your turn.
       color: Gold. Silk PLA if you have it.
 
 assembly:
@@ -128,13 +129,14 @@ assembly:
     - icon: i-lucide-coins
       title: Coins
       body: >-
-        Nothing to build. Print them and drop them in a cloth bag. Each
-        player adds 20 at setup.
+        There's nothing to build. Just print them and drop them in a cloth
+        bag. Each player adds 20 at setup.
     - icon: i-lucide-ruler
       title: Fit
       body: >-
-        Loose peg? Scale it up **0.5 to 1%** in your slicer. Tight? Sand it.
-        If masts won't seat at all, your nozzle is probably too close to the bed.
+        If a peg is loose, scale it up **0.5 to 1%** in your slicer. If it's
+        tight, sand it a bit. If masts won't seat at all, your nozzle is
+        probably too close to the bed.
 
 printing:
   title: Printing
@@ -181,11 +183,11 @@ quantities:
     - [Masts, 1 per ship + 1 per island, Plus a few spares.]
     - [Cargo, varies, Enough to fill your ships' fitting slots.]
     - [Sails, 1 per mast, Decorate them.]
-    - [Cannons, 3–4, One will do. Spares are nice when one wears out.]
-    - [Cannonballs, '10', You will lose some.]
+    - [Cannons, 3–4, You can get by with one, but spares are nice when one wears out.]
+    - [Cannonballs, '10', You will lose some. (Check under the couch.)]
     - [Movement wheel, 1 per ship, Fit once with its rubber band. Hard to get back out.]
     - [Islands, 2–3, Print them, or use **island toppers** on household objects.]
-    - [Rocks and reefs, 2–4, Optional. Rocks block ships and shots. Reefs block ships only.]
+    - [Rocks and reefs, 2–4, Optional. They block ships and cannonballs.]
     - [Coins, 1 set of 20, 2 Brace · 2 Signal · 4 Full Sail · 2 Evasive · 4 Gunner · 4 Repair · 2 Boarding]
   notPrinted: "**Not printed:** one cloth draw bag for the table, and a thin rubber band per wheel."
 
@@ -195,6 +197,6 @@ cta:
     The STL pack and rulebook go out to the mailing list and get pinned in
     the Discord. Expect them to change between playtests.
   buttons:
-    - { label: Mailing list, to: /#signup, icon: i-lucide-mail, variant: solid }
+    - { label: Mailing list, to: /#files, icon: i-lucide-mail, variant: solid }
     - { label: Discord, to: https://discord.gg/DMuFEWJtZq, icon: i-lucide-message-circle, variant: outline }
     - { label: Rulebook PDF, to: /rulebook/pdf/rulebook.pdf, icon: i-lucide-file-text, variant: outline }

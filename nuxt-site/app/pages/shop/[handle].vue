@@ -357,7 +357,7 @@ async function resend() {
             </span>
             <p class="mt-3 text-sm text-ink-soft">
               Still being modeled and playtested.
-              <NuxtLink to="/#signup" class="text-[color:var(--gold)] hover:underline">The mailing list</NuxtLink>
+              <NuxtLink to="/#files" class="text-[color:var(--gold)] hover:underline">The mailing list</NuxtLink>
               hears first when it's out.
             </p>
           </div>

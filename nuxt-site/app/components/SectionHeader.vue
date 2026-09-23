@@ -16,12 +16,6 @@ const ink = computed(() => props.tone === 'ink')
 
 <template>
   <div :class="['mb-8', centered ? 'text-center' : '']">
-    <!-- Ornament: a gold hairline broken by a diamond, in place of a bare heading. -->
-    <div :class="['flex items-center gap-3 mb-3', centered ? 'justify-center' : '']">
-      <span v-if="centered" class="rule-gold w-10 sm:w-16 shrink" />
-      <UIcon name="i-lucide-anchor" class="size-4 shrink-0 text-[color:var(--gold)]" />
-      <span class="rule-gold w-10 sm:w-16 shrink" />
-    </div>
     <p
       v-if="eyebrow"
       :class="['stamp mb-3', 'stamp-gold']"

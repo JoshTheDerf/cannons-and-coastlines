@@ -17,8 +17,12 @@ const html = computed(() => {
   s = s.replace(/(^|[\s(])\*([^*]+)\*/g, '$1<em>$2</em>')
   return s
 })
+
+// A render function rather than `<component :is v-html>`, which came out empty
+// (both in SSR and after hydration) on this Nuxt/Vue version.
+const render = () => h(props.tag ?? 'span', { innerHTML: html.value })
 </script>
 
 <template>
-  <component :is="tag ?? 'span'" v-html="html" />
+  <render />
 </template>

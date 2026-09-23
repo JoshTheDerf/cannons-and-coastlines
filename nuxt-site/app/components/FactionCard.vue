@@ -1,34 +1,33 @@
 <script setup lang="ts">
+// A base-game fleet on the home page: picture, stats, the passive ability
+// and a link to its printable faction card.
 defineProps<{
   faction: {
-    badge?: string
     name: string
     image: string
-    tagline?: string
-    stats?: string[]
-    desc: string
-    price?: string
+    summary: string
+    stats: Array<[string, string]>
+    ability: string
+    abilityBody: string
     card?: string
   }
 }>()
 </script>
 
 <template>
-  <div class="card-parchment p-5 flex flex-col">
-    <div v-if="faction.badge" class="flex items-center justify-between mb-3">
-      <span class="stamp text-[#7a5316]">{{ faction.badge }}</span>
-    </div>
-    <div class="aspect-[4/3] flex items-center justify-center mb-3 rounded-sm overflow-hidden border border-[#3a2f22]/25 bg-[#e3d4b6]">
+  <article class="card-parchment p-6 flex flex-col">
+    <div class="aspect-[2/1] flex items-center justify-center mb-5">
       <img :src="faction.image" :alt="faction.name" loading="lazy" class="max-h-full max-w-full object-contain">
     </div>
-    <h3 class="font-display text-xl">{{ faction.name }}</h3>
-    <p v-if="faction.tagline" class="font-serif text-sm font-semibold text-[#7a5316] mb-2">{{ faction.tagline }}</p>
-    <hr class="rule-gold mb-3">
-    <ul v-if="faction.stats?.length" class="list-diamond text-sm muted space-y-1 mb-3">
-      <li v-for="s in faction.stats" :key="s">{{ s }}</li>
-    </ul>
-    <p class="text-sm flex-1">{{ faction.desc }}</p>
-    <div v-if="faction.price" class="mt-3 stamp text-[#3f6b3f]">{{ faction.price }}</div>
+    <h3 class="font-display text-2xl">{{ faction.name }}</h3>
+    <p class="mt-1 font-serif text-ink-soft">{{ faction.summary }}</p>
+    <dl class="mt-4 grid grid-cols-2 gap-x-6 text-sm font-serif border-t border-[color:var(--rule)]">
+      <div v-for="[k, v] in faction.stats" :key="k" class="flex justify-between gap-3 py-1.5 border-b border-[color:var(--rule)]/60">
+        <dt class="text-ink-faint">{{ k }}</dt>
+        <dd class="text-ink font-semibold text-right">{{ v }}</dd>
+      </div>
+    </dl>
+    <p class="callout mt-4 text-sm flex-1"><strong>{{ faction.ability }}.</strong> {{ faction.abilityBody }}</p>
     <UButton
       v-if="faction.card"
       :to="faction.card"
@@ -36,10 +35,10 @@ defineProps<{
       variant="ghost"
       color="neutral"
       size="sm"
-      class="btn-ink mt-3 self-start"
+      class="btn-ink mt-5 self-start"
       target="_blank"
     >
-      Faction Card PDF
+      Faction card (PDF)
     </UButton>
-  </div>
+  </article>
 </template>
