@@ -56,7 +56,7 @@ useSeoMeta({
           :title="page.changelog.title"
           :description="page.changelog.description"
         />
-        <ChangelogList :items="page.changelog.items" />
+        <ChangelogList :releases="page.changelog.releases" />
         <p class="mt-8 text-center font-serif text-ink-soft text-sm">
           Full rules in the
           <NuxtLink to="/rulebook/pdf/rulebook.pdf" class="underline text-[color:var(--gold)] hover:text-[color:var(--heading)]">rulebook PDF</NuxtLink>.
