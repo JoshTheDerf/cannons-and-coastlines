@@ -59,21 +59,21 @@
       "factionCard": "/rulebook/pdf/faction-card-treasure-fleet.pdf"
     },
     {
-      "id": "sun-fleet-set",
-      "title": "Sun Fleet",
-      "faction": "Sun Fleet",
+      "id": "stone-fleet-set",
+      "title": "Stone Fleet",
+      "faction": "Stone Fleet",
       "paid": true,
       "status": "coming-soon",
       "version": "1",
-      "sourceDir": "paid-sets/sun-fleet-set",
+      "sourceDir": "paid-sets/stone-fleet-set",
       "freeDownloadUrl": null,
       "stripePriceId": null,
       "priceUsd": null,
       "images": {
-        "preview": "/assets/ships/ship-preview-sun-fleet-sm.webp",
-        "large": "/assets/ships/ship-preview-sun-fleet-large.png"
+        "preview": "/assets/ships/ship-preview-stone-fleet-sm.webp",
+        "large": "/assets/ships/ship-preview-stone-fleet-large.png"
       },
-      "factionCard": "/rulebook/pdf/faction-card-sun-fleet.pdf"
+      "factionCard": "/rulebook/pdf/faction-card-stone-fleet.pdf"
     },
     {
       "id": "shadow-fleet-set",

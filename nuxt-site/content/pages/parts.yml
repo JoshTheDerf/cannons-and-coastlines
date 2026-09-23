@@ -36,8 +36,8 @@ gallery:
       badge: Add-on
       desc: A junk with a deep hold. You get fewer ships, but more coin.
       color: Gold.
-    - render: /assets/ships/renders/ship-sun-fleet.png
-      name: Sun Fleet
+    - render: /assets/ships/renders/ship-stone-fleet.png
+      name: Stone Fleet
       badge: Add-on
       desc: A carved stone barge. Slow, but pretty hard to sink.
       color: Stone grey.

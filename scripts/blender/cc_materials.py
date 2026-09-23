@@ -223,7 +223,7 @@ def make_rust_pla():
 
 
 def make_stone_pla():
-    # Neutral, faintly warm quarried grey for the Sun Fleet's carved stone
+    # Neutral, faintly warm quarried grey for the Stone Fleet's carved stone
     # hulls. Darker than make_white_pla so the carving keeps its shadows.
     return make_matte_pla("PLA_Stone", (0.42, 0.41, 0.38))
 

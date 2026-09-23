@@ -199,11 +199,11 @@ fleets:
       stats: 2 junks · 3 fittings · Move 2
       body: Only two ships, but every island they hold pays out double.
       card: /rulebook/pdf/faction-card-treasure-fleet.pdf
-    - name: Sun Fleet
-      image: /assets/ships/ship-preview-sun-fleet-sm.webp
+    - name: Stone Fleet
+      image: /assets/ships/ship-preview-stone-fleet-sm.webp
       stats: 3 barges · 4 fittings · Move 2
       body: Stone ships. They're slow, but each one ignores the first hit it takes every turn.
-      card: /rulebook/pdf/faction-card-sun-fleet.pdf
+      card: /rulebook/pdf/faction-card-stone-fleet.pdf
     - name: Shadow Fleet
       image: /assets/ships/ship-preview-shadow-fleet-sm.webp
       stats: 3 galleons · 3 fittings · Move 3

@@ -73,11 +73,11 @@
     ),
     playstyle: [Trade ships freely. Press fights others would walk away from; keep a held island close for fast returns.],
   ),
-  "sun-fleet": (
-    title: "Sun Fleet",
+  "stone-fleet": (
+    title: "Stone Fleet",
     accent: rgb("#2e7472"),
-    banner-image: assets + "/faction-sun-fleet.png",
-    ship-render: ship-renders + "/ship-sun-fleet.png",
+    banner-image: assets + "/faction-stone-fleet.png",
+    ship-render: ship-renders + "/ship-stone-fleet.png",
     tagline: [Stone ships from a kingdom across the sea, far more ancient than the powers crowding the islands today.],
     stats: (
       ("Ships",        [3 barges]),

@@ -4,7 +4,7 @@
 Lays out the seven faction-card PDFs two-per-page on US-letter portrait
 with a gap between them. Pairings:
     Page 1: Corsairs + Queens Fleet
-    Page 2: The Islanders + Sun Fleet
+    Page 2: The Islanders + Stone Fleet
     Page 3: The Industry + Treasure Fleet
     Page 4: Shadow Fleet (vertically centered, alone)
 
@@ -39,7 +39,7 @@ GAP = 0.6 * 72
 # Pairings (top, bottom). None for the bottom slot means "centered solo".
 PAIRS = [
     ("corsairs", "queens-fleet"),
-    ("the-islanders", "sun-fleet"),
+    ("the-islanders", "stone-fleet"),
     ("the-industry", "treasure-fleet"),
     ("shadow-fleet", None),
 ]

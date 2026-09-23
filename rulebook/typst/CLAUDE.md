@@ -81,7 +81,7 @@ For the banner bottom-fade (transparent top → parchment bottom) use `90deg`. F
 ## Sanity check after any change
 
 ```bash
-for f in queens-fleet corsairs treasure-fleet shadow-fleet sun-fleet the-industry the-islanders; do
+for f in queens-fleet corsairs treasure-fleet shadow-fleet stone-fleet the-industry the-islanders; do
   pdfinfo rulebook/pdf/faction-card-$f.pdf | grep -H Pages || echo "MISSING: $f"
 done
 pdfinfo rulebook/pdf/rulebook.pdf | grep Pages   # expect 10

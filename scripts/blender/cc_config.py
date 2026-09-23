@@ -57,7 +57,7 @@ ITEM_OVERRIDES = {
     "ship-queens-fleet": {"material": "blue-grey", "rotation_z_deg": 90},
 
     # Paid-set hulls. Each is the filament that faction is meant to be
-    # printed in: Treasure hoards coin, the Sun Fleet is carved stone, the
+    # printed in: Treasure hoards coin, the Stone Fleet is carved stone, the
     # Industry is rusting machinery, the Islanders sail pine catamarans, and
     # the Shadow Fleet is a translucent teal-to-purple gradient PETG -- the
     # one hull that is not opaque, which is why it has a material of its own
@@ -69,7 +69,7 @@ ITEM_OVERRIDES = {
     # it for a new hull, since it is the one setting that depends on how the
     # model was authored rather than on taste.
     "ship-treasure-fleet": {"material": "gold-hull", "rotation_z_deg": 90},
-    "ship-sun-fleet":      {"material": "stone", "rotation_z_deg": 90},
+    "ship-stone-fleet":      {"material": "stone", "rotation_z_deg": 90},
     "ship-shadow-fleet":   {"material": "shadow-petg", "rotation_z_deg": 90},
     "ship-industry":       {"material": "rust", "rotation_z_deg": 90,
                             "fittings": ["industry-turret.stl",

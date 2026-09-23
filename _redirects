@@ -5,3 +5,9 @@
 /assets/stls/cannons-and-coastlines-base-set-0.1.zip  /assets/stls/cannons-and-coastlines-base-set-0.4.zip  301
 /assets/stls/cannons-and-coastlines-base-set-0.2.zip  /assets/stls/cannons-and-coastlines-base-set-0.4.zip  301
 /assets/stls/cannons-and-coastlines-base-set-0.3.zip  /assets/stls/cannons-and-coastlines-base-set-0.4.zip  301
+
+# Sun Fleet was renamed Stone Fleet.
+/rulebook/pdf/faction-card-sun-fleet.pdf  /rulebook/pdf/faction-card-stone-fleet.pdf  301
+/rulebook/png/faction-card-sun-fleet.png  /rulebook/png/faction-card-stone-fleet.png  301
+/assets/ships/ship-preview-sun-fleet-sm.webp  /assets/ships/ship-preview-stone-fleet-sm.webp  301
+/assets/ships/ship-preview-sun-fleet-large.png  /assets/ships/ship-preview-stone-fleet-large.png  301

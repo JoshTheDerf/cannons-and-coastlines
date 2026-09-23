@@ -642,7 +642,7 @@ A large-scale variant for advanced games. Each player fields a mixed armada of u
 
   *Bountiful Harvest:* *2 coins* per collect instead of 1, so even a small holding funds big plays.
 ]
-#faction-entry("Sun Fleet")[
+#faction-entry("Stone Fleet")[
   Slow to cross the table, but punishing to chip at.
 
   *Stone Hulls:* *ignores the first hit* each turn. One big salvo works; pecking at them doesn't.

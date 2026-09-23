@@ -9,7 +9,7 @@ source "$(cd "$(dirname "${BASH_SOURCE[0]}")/../lib" && pwd)/common.sh"
 
 mkdir -p "$PDF_DIR" "$PNG_DIR"
 
-FACTIONS=(queens-fleet corsairs treasure-fleet shadow-fleet sun-fleet the-industry the-islanders)
+FACTIONS=(queens-fleet corsairs treasure-fleet shadow-fleet stone-fleet the-industry the-islanders)
 
 for f in "${FACTIONS[@]}"; do
   echo "Building $f..."

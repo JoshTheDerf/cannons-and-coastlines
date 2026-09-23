@@ -28,7 +28,7 @@ Cannons & Coastlines is a 3D-printable tabletop game. Ships roll on built-in whe
 | **Queen's Fleet** | 3 Frigates | 4 each | 3 broadside / side | Well-rounded, 180° pivots |
 | **Corsairs** | 4 Sloops | 3 each | 3 broadside / side | Fast raiders, hit-and-run |
 
-Additional factions (Treasure Fleet, Sun Fleet, Shadow Fleet, The Industry, The Islanders) are available as add-ons.
+Additional factions (Treasure Fleet, Stone Fleet, Shadow Fleet, The Industry, The Islanders) are available as add-ons.
 
 ## Downloads
 
@@ -46,7 +46,7 @@ Additional factions (Treasure Fleet, Sun Fleet, Shadow Fleet, The Industry, The 
 | Queen's Fleet | [PDF](rulebook/pdf/faction-card-queens-fleet.pdf) |
 | Corsairs | [PDF](rulebook/pdf/faction-card-corsairs.pdf) |
 | Treasure Fleet | [PDF](rulebook/pdf/faction-card-treasure-fleet.pdf) |
-| Sun Fleet | [PDF](rulebook/pdf/faction-card-sun-fleet.pdf) |
+| Stone Fleet | [PDF](rulebook/pdf/faction-card-stone-fleet.pdf) |
 | Shadow Fleet | [PDF](rulebook/pdf/faction-card-shadow-fleet.pdf) |
 | The Industry | [PDF](rulebook/pdf/faction-card-the-industry.pdf) |
 | The Islanders | [PDF](rulebook/pdf/faction-card-the-islanders.pdf) |

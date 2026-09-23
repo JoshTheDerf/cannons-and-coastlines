@@ -2,7 +2,7 @@
 # Publish paid (non-base-game) STL sets to R2.
 #
 #   scripts/publish-paid-sets.sh                 # publish every paid set that has files
-#   scripts/publish-paid-sets.sh treasure-fleet-set sun-fleet-set
+#   scripts/publish-paid-sets.sh treasure-fleet-set stone-fleet-set
 #   DRY_RUN=1 scripts/publish-paid-sets.sh       # show what would upload
 #
 # R2 is the only place these files are served from. They are deliberately

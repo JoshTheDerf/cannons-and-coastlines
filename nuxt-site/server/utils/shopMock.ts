@@ -231,13 +231,13 @@ function addOnFactions(): Product[] {
       ships: ['Heavy treasure galleons', 'Faction-specific cargo fittings']
     },
     {
-      handle: 'sun-fleet-files', title: 'Sun Fleet', faction: 'Sun Fleet',
-      setId: 'sun-fleet-set',
+      handle: 'stone-fleet-files', title: 'Stone Fleet', faction: 'Stone Fleet',
+      setId: 'stone-fleet-set',
       tagline: 'Carved stone, slow to break.',
       description: 'Carved stone ships. Slow, but each ship ignores the first hit it takes each turn.',
-      image: '/assets/ships/ship-preview-sun-fleet-sm.webp',
-      card: '/rulebook/pdf/faction-card-sun-fleet.pdf',
-      ships: ['Carved stone hulls', 'Sun Fleet masts and fittings']
+      image: '/assets/ships/ship-preview-stone-fleet-sm.webp',
+      card: '/rulebook/pdf/faction-card-stone-fleet.pdf',
+      ships: ['Carved stone hulls', 'Stone Fleet masts and fittings']
     },
     {
       handle: 'shadow-fleet-files', title: 'Shadow Fleet', faction: 'Shadow Fleet',
