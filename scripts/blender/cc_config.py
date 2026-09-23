@@ -85,7 +85,9 @@ ITEM_OVERRIDES = {
     "cannon":            {"material": "black"},
     "cannonball":        {"material": "black"},
     "cargo":             {"material": "brown"},
+    "barrel":            {"material": "brown"},
     "island-topper":     {"material": "green", "shade_smooth": True},
+    "island":            {"material": "green", "shade_smooth": True},
     "sail":              {"material": "white"},
     "sail-damaged":      {"material": "black"},
 }

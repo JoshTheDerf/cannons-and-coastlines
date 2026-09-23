@@ -54,7 +54,7 @@ gallery:
     - render: /assets/ships/renders/ship-islander.png
       name: The Islanders
       badge: Add-on
-      desc: A catamaran with its guns at the back and a single fitting.
+      desc: A catamaran with its guns at the back and a single fitting. It takes the **short mast**.
       color: Pine.
   partsTitle: The Pieces
   partsLead: Everything else in the base set. The colors are just suggestions.
@@ -63,10 +63,18 @@ gallery:
       name: Mast
       desc: A *fitting*. Plugs into the deck and comes off when the ship takes a hit. The flag holder is built into the top.
       color: Brown or black.
+    - render: /assets/images/renders/mast-short.png
+      name: Short Mast
+      desc: The same mast, cut down. It goes on islands and on Islander catamarans.
+      color: Same as your masts.
     - render: /assets/images/renders/cargo.png
       name: Cargo
-      desc: A *fitting*. Crates of supplies that come off when the ship takes a hit.
-      color: Crate brown.
+      desc: A *fitting*. A chest of supplies that comes off when the ship takes a hit.
+      color: Wood brown.
+    - render: /assets/images/renders/barrel.png
+      name: Barrel
+      desc: A *fitting*, like cargo. It plugs into the deck and comes off when the ship takes a hit.
+      color: Wood brown.
     - render: /assets/images/renders/sail.png
       name: Sail
       desc: Slides over a mast. Cosmetic, but it's how you tell fleets apart across the table.
@@ -87,6 +95,10 @@ gallery:
       name: Movement Wheel
       desc: Lives in the stern. One full turn is one *click* of movement. The flat spot parks the ship.
       color: Any. Needs a thin **rubber band** around the rim or it won't click.
+    - render: /assets/images/renders/island.png
+      name: Island
+      desc: A whole island that sits right on the table, so you don't need anything under it. Cannon slots on top, and a short mast holds your flag.
+      color: Green, sand, or grey.
     - render: /assets/images/renders/island-topper.png
       name: Island Topper
       desc: A puck with cannon slots and flag holes. Set it on a box, a book, or an upside-down mug and you have an island.
@@ -98,6 +110,10 @@ gallery:
         Boarding). You draw them from the bag and spend them at the start of
         your turn.
       color: Gold. Silk PLA if you have it.
+    - render: /assets/images/renders/ship-tolerance-test.png
+      name: Fit Test
+      desc: A small block with the same slots as a hull. Print it first to check that your masts, cargo and cannons fit before you print a whole fleet.
+      color: Anything. You'll throw it away.
 
 assembly:
   title: Putting It Together
@@ -112,7 +128,7 @@ assembly:
     - icon: i-lucide-anchor
       title: Fittings (every game)
       items:
-        - "**Masts** and **cargo** plug into the deck."
+        - "**Masts**, **cargo** and **barrels** plug into the deck."
         - "**Sails** slide down over the masts."
         - Each hit knocks off one fitting. How many you have is on your faction card. A bare hull sinks on the next hit.
     - icon: i-lucide-crosshair
@@ -125,6 +141,7 @@ assembly:
       title: Flags and islands
       items:
         - Slide a paper flag into the slot at the top of a **mast**.
+        - "**Islands** sit straight on the table. Plug a **short mast** in to fly your flag."
         - "**Island toppers** go on top of anything the right height. Same cannon slots and flag holes as a ship."
     - icon: i-lucide-coins
       title: Coins
@@ -134,9 +151,9 @@ assembly:
     - icon: i-lucide-ruler
       title: Fit
       body: >-
-        If a peg is loose, scale it up **0.5 to 1%** in your slicer. If it's
-        tight, sand it a bit. If masts won't seat at all, your nozzle is
-        probably too close to the bed.
+        Print the **fit test** first. If a peg is loose, scale it up **0.5 to
+        1%** in your slicer. If it's tight, sand it a bit. If masts won't
+        seat at all, your nozzle is probably too close to the bed.
 
 printing:
   title: Printing
@@ -162,7 +179,7 @@ printing:
         Coarser layers shoot harder and less predictably.
     - icon: i-lucide-anchor
       title: Masts
-      body: Print them lying flat.
+      body: Print them lying flat, short masts too.
     - icon: i-lucide-coins
       title: Coins
       body: Silk gold gives the sheen in the renders. Matte gold is fine.
@@ -180,14 +197,15 @@ quantities:
   # rows: [piece, quantity, notes]. Notes accept **bold** and *italic*.
   rows:
     - [Ships, 2–5, Count is on your faction card.]
-    - [Masts, 1 per ship + 1 per island, Plus a few spares.]
-    - [Cargo, varies, Enough to fill your ships' fitting slots.]
+    - [Masts, 1 per ship + 1 per island, Plus a few spares. Use **short masts** on islands and Islander ships.]
+    - [Cargo and barrels, varies, Enough to fill your ships' fitting slots.]
     - [Sails, 1 per mast, Decorate them.]
     - [Cannons, 3–4, You can get by with one, but spares are nice when one wears out.]
     - [Cannonballs, '10', You will lose some. (Check under the couch.)]
     - [Movement wheel, 1 per ship, Fit once with its rubber band. Hard to get back out.]
-    - [Islands, 2–3, Print them, or use **island toppers** on household objects.]
+    - [Islands, 2–3, Print **islands**, or use **island toppers** on household objects.]
     - [Rocks and reefs, 2–4, Optional. They block ships and cannonballs.]
+    - [Fit test, 1, Print it before anything else.]
     - [Coins, 1 set of 20, 4 Brace · 2 Signal · 2 Evasive · 4 Gunner · 4 Repair · 4 Boarding]
   notPrinted: "**Not printed:** one cloth draw bag for the table, and a thin rubber band per wheel."
 
