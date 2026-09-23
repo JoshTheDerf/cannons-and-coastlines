@@ -43,7 +43,7 @@ gallery:
       badge: Add-on
       desc: A carved stone barge. Slow, but pretty hard to sink.
       color: Stone grey.
-    - render: /assets/ships/renders/ship-shadow-fleet.png
+    - render: /assets/ships/renders/ship-shadow-fleet.png?v=2
       name: Shadow Fleet
       badge: Add-on
       desc: A thin-hulled galleon that can come back after it sinks.

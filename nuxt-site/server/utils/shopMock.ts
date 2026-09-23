@@ -244,7 +244,7 @@ function addOnFactions(): Product[] {
       setId: 'shadow-fleet-set',
       tagline: 'Fragile ships that keep coming back.',
       description: 'Thin hulls that sink easily and rise again from any island you hold.',
-      image: '/assets/ships/ship-preview-shadow-fleet-sm.webp',
+      image: '/assets/ships/ship-preview-shadow-fleet-sm.webp?v=2',
       card: '/rulebook/pdf/faction-card-shadow-fleet.pdf',
       ships: ['Ghost hulls', 'Shadow Fleet fittings']
     },

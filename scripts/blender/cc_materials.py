@@ -231,6 +231,7 @@ def make_stone_pla():
 def make_gradient_petg(name: str = "PETG_Gradient",
                        color_low=(0.03, 0.30, 0.34, 1.0),
                        color_high=(0.24, 0.07, 0.40, 1.0),
+                       color_mid=None,
                        transmission: float = 0.35,
                        roughness: float = 0.52,
                        scatter_density: float = 7.0,
@@ -283,6 +284,8 @@ def make_gradient_petg(name: str = "PETG_Gradient",
     ramp.color_ramp.elements[0].color = color_low
     ramp.color_ramp.elements[1].position = 1.0
     ramp.color_ramp.elements[1].color = color_high
+    if color_mid is not None:
+        ramp.color_ramp.elements.new(0.5).color = color_mid
     nt.links.new(tex.outputs["Generated"], sep.inputs[0])
     nt.links.new(sep.outputs["Z"], ramp.inputs["Fac"])
     nt.links.new(ramp.outputs["Color"], bsdf.inputs["Base Color"])
@@ -430,7 +433,19 @@ def make_material(preset: str, grey: float = 0.75, view: str = "iso"):
     if preset == "stone":
         return make_stone_pla()
     if preset == "shadow-petg":
-        return make_gradient_petg("PETG_ShadowFleet")
+        # Light and ethereal rather than murky: sea green at the waterline,
+        # sky blue through the middle, lavender at the top. Colours are
+        # linear RGB. The low absorption and heavier scatter/subsurface are
+        # what keep it glowing; the old dark defaults soaked the light up and
+        # the hull read as near-black on the faction card.
+        return make_gradient_petg("PETG_ShadowFleet",
+                                  color_low=(0.12, 0.76, 0.56, 1.0),
+                                  color_mid=(0.21, 0.58, 0.94, 1.0),
+                                  color_high=(0.52, 0.34, 0.90, 1.0),
+                                  transmission=0.5,
+                                  scatter_density=5.0,
+                                  absorption_density=0.12,
+                                  subsurface=0.4)
     if preset == "blue-grey":
         return make_blue_grey_pla()
     if preset == "brown":

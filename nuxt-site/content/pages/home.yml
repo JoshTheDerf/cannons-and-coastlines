@@ -205,7 +205,7 @@ fleets:
       body: Stone ships. They're slow, but each one ignores the first hit it takes every turn.
       card: /rulebook/pdf/faction-card-stone-fleet.pdf
     - name: Shadow Fleet
-      image: /assets/ships/ship-preview-shadow-fleet-sm.webp
+      image: /assets/ships/ship-preview-shadow-fleet-sm.webp?v=2
       stats: 3 galleons · 3 fittings · Move 3
       body: Spend 2 coins to bring a sunken ship back at any island you hold.
       card: /rulebook/pdf/faction-card-shadow-fleet.pdf
