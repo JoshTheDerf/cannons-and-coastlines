@@ -77,7 +77,7 @@ function finishTurn(s) {
 
 // ─── Moving ───────────────────────────────────────────
 
-/** Click forward (after steering to h if allowed). Returns false if the ship was scuttled. */
+/** Click forward (after steering to h if allowed). Returns false if the ship is gone. */
 function doMove(ship, h, clicks, why) {
   G.coinPhase = false;
   const plan = planMove(ship, h, clicks, pivotFor(ship));
@@ -85,13 +85,9 @@ function doMove(ship, h, clicks, why) {
   ship.x = plan.end.x; ship.y = plan.end.y; ship.h = plan.rot.h;
   ev({ e: 'move', ship: ship.id, from, plan: { rot: { h: plan.rot.h }, start: plan.start, end: plan.end, moved: plan.moved, planned: plan.planned, stoppedBy: plan.stoppedBy, clicks } });
   if (why) note(why);
-  // Forced off the table with no room at all: scuttled.
-  if (plan.stoppedBy === 'edge' && plan.moved < 0.05) {
-    ev({ e: 'sink', ship: snapShip(ship), msg: `${ship.name} has no room at the edge and is scuttled.` });
-    sinkShip(ship);
-    checkLastFleet();
-    return false;
-  }
+  // The table edge just stops a ship; one already against it and facing
+  // off the table stays put this turn. No damage either way.
+  if (plan.stoppedBy === 'edge' && plan.moved < 0.05) { note(`${ship.name} is up against the edge and does not move.`); return true; }
   if (plan.stoppedBy && plan.moved < plan.planned - 0.05) {
     const what = { ship: 'a ship', island: 'an island', terrain: plan.obj ? (plan.obj.type === 'rock' ? 'a rock' : 'a reef') : 'terrain', edge: 'the table edge' }[plan.stoppedBy];
     note(`${ship.name} stops against ${what}.`);

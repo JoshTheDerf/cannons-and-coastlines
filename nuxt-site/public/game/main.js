@@ -401,6 +401,23 @@ function onPointerDown(e) {
   if (G.phase === 'deploy') { deployTap(w); return; }
   if (G.phase !== 'play') return;
   const sp = eventScreen(e);
+  // On-canvas controls first.
+  if (UI.ring) {
+    const it = chipAt(ringLayout(), sp);
+    if (it) { runRingItem(it); return; }
+  }
+  if (UI.mode === 'move') { const ch = chipAt(moveChipLayout(), sp); if (ch) { sailClicks(ch.k); return; } }
+  if (UI.mode === 'fire' && UI.fire.stage === 'slot') { const ch = chipAt(slotChipLayout(), sp); if (ch) { chooseSlot(ch.idx); return; } }
+  if (UI.mode === 'evasive') { const ch = chipAt(evasiveChipLayout(), sp); if (ch) { chooseEvasive(ch.side); return; } }
+  if (UI.ring) {
+    // Off the ring: another ship opens its own ring, water closes it.
+    const other = pickShip(w, G.active) || G.order.filter(q => q !== G.active).map(q => pickShip(w, q)).find(Boolean);
+    UI.ring = null;
+    if (other && ringItems(other).length && other.id !== (UI.sel && UI.sel.id)) { openRing(other); return; }
+    UI.sel = null; refresh();
+    pan = { x: e.clientX, y: e.clientY, moved: false, tap: null };
+    return;
+  }
   switch (UI.mode) {
     case 'move': {
       // A set heading only changes from its handle or the ship itself;
@@ -413,6 +430,8 @@ function onPointerDown(e) {
     case 'fire': {
       const F = UI.fire;
       if (F.stage === 'dir' && F.locked && !onAimHandle(sp)) { pan = { x: e.clientX, y: e.clientY, moved: false, tap: null }; return; }
+      // In the power step, the aim handle takes you back to aiming.
+      if (F.stage === 'power' && F.free && onAimHandle(sp, true)) { F.stage = 'dir'; F.locked = false; F.fixed = null; UI.dragging = true; firePointer(w, true); refresh(); return; }
       if (F.stage === 'dir') F.locked = false;
       firePointer(w, true);
       return;
@@ -421,13 +440,16 @@ function onPointerDown(e) {
     case 'signalTo': signalToTap(w); return;
     case 'evasive': {
       const side = evasiveSideAt(w);
-      if (side) { UI.evasive.pick = side; refresh(); }
+      if (side) chooseEvasive(side);
       return;
     }
     case 'revive': reviveTap(w); return;
   }
   const s = pickShip(w, G.active);
   if (s) { selectShip(s); return; }
+  // An enemy you can board opens a ring too.
+  const foe = G.order.filter(q => q !== G.active).map(q => pickShip(w, q)).find(Boolean);
+  if (foe && ringItems(foe).length) { openRing(foe); return; }
   // Empty water: drag to pan the view, tap to deselect.
   pan = { x: e.clientX, y: e.clientY, moved: false, tap: w };
 }
@@ -462,7 +484,18 @@ function onPointerMove(e) {
   if (UI.mode === 'move' && !UI.move.locked && (UI.dragging || mouse)) setMoveHeading(w);
   if (UI.mode === 'fire' && UI.fire && UI.fire.stage === 'dir' && !UI.fire.locked && (UI.dragging || mouse)) firePointer(w, false);
   if (UI.mode === 'fire' && UI.fire && UI.fire.stage === 'slot' && mouse) UI.fire.hover = slotAt(w);
-  if (UI.mode === 'evasive' && mouse) UI.evasive.hover = evasiveSideAt(w);
+  if (UI.mode === 'evasive' && mouse) { const ch = chipAt(evasiveChipLayout(), eventScreen(e)); UI.evasive.hover = ch ? ch.side : evasiveSideAt(w); }
+  if (mouse) {
+    const sp = eventScreen(e);
+    UI.hoverRing = UI.ring ? (chipAt(ringLayout(), sp) || {}).id || null : null;
+    if (UI.mode === 'fire' && UI.fire && UI.fire.stage === 'slot') { const ch = chipAt(slotChipLayout(), sp); if (ch) UI.fire.hover = ch.idx; }
+    if (UI.mode === 'move' && UI.move && (UI.move.locked || UI.move.lockHeading)) {
+      // Hovering a click chip previews that many clicks.
+      const ch = chipAt(moveChipLayout(), sp);
+      const k = ch ? ch.k : UI.move.ship.moveCount;
+      if (UI.move.hoverK !== (ch ? ch.k : null)) { UI.move.hoverK = ch ? ch.k : null; UI.move.clicks = k; replanMove(); refreshPrompt(); }
+    }
+  }
   if ((UI.mode === 'signalTo' || UI.mode === 'coin') && mouse) UI.hoverShip = nearestTarget(w);
 }
 
@@ -480,7 +513,8 @@ function commitDrag() {
   if (UI.mode === 'move' && UI.move && !UI.move.lockHeading) {
     const m = UI.move; m.hc = m.plan.rot.h; m.h = m.hc; m.locked = true; replanMove(); sfxSelect(); refresh();
   } else if (UI.mode === 'fire' && UI.fire && UI.fire.stage === 'dir') {
-    const F = UI.fire; F.hc = F.h; F.locked = true; sfxSelect(); refresh();
+    // Setting the aim leads straight into the power ring.
+    const F = UI.fire; F.hc = F.h; F.locked = true; sfxSelect(); startPower(); refresh();
   }
 }
 function unlockAim() {
@@ -494,8 +528,8 @@ function onMoveHandle(sp) {
   return Math.hypot(sp.x - (c.x + f.x * R), sp.y - (c.y + f.y * R)) < 24;
 }
 function aimPivot(F) { return F.source === 'island' ? F.island : slotWorld(F.ship, F.slot); }
-function onAimHandle(sp) {
-  const F = UI.fire; if (!F || F.stage !== 'dir') return false;
+function onAimHandle(sp, anyStage) {
+  const F = UI.fire; if (!F || (F.stage !== 'dir' && !anyStage) || !(F.free || F.source === 'island')) return false;
   const p = aimPivot(F), c = w2s(p.x, p.y), f = fwdVec(F.h), R = Math.max(34, w2r(9));
   return Math.hypot(sp.x - (c.x + f.x * R), sp.y - (c.y + f.y * R)) < 24 || Math.hypot(sp.x - c.x, sp.y - c.y) < 16;
 }
@@ -533,6 +567,8 @@ function onKey(e) {
   if (!canInteract()) return;
   const ok = e.key === 'Enter' || e.key === ' ';
   if (ok) e.preventDefault();
+  if (e.key === 'Escape' && UI.ring) { UI.ring = null; UI.sel = null; refresh(); return; }
+  if (UI.mode === 'move' && /^[1-9]$/.test(e.key) && +e.key <= UI.move.ship.moveCount) { sailClicks(+e.key); return; }
   if (e.key === 'Escape') {
     // Back one step: a set heading or aim unlocks first, then the mode closes.
     if (UI.mode === 'move' && UI.move.locked && !UI.move.lockHeading) { unlockAim(); return; }
@@ -547,7 +583,7 @@ function onKey(e) {
     return;
   }
   if (!ok) return;
-  if (UI.mode === 'move') { if (!UI.move.locked && !UI.move.lockHeading) commitDrag(); else commitMove(); return; }
+  if (UI.mode === 'move') { sailClicks(UI.move.ship.moveCount); return; }  // Enter sails the full Move Count
   if (UI.mode === 'fire' && UI.fire.stage === 'dir') { if (!UI.fire.locked) commitDrag(); else lockAim(); return; }
   if (UI.mode === 'fire' && UI.fire.stage === 'power') { releaseShot(); return; }
   if (UI.mode === 'evasive' && UI.evasive.pick) { chooseEvasive(UI.evasive.pick); return; }
@@ -566,6 +602,7 @@ function pickShip(w, p) {
 }
 
 function cancelMode() {
+  UI.ring = null; UI.hoverRing = null;
   UI.signalFrom = null; UI.signalPick = null; UI.hoverShip = null;
   UI.mode = null; UI.move = null; UI.fire = null; UI.coin = null; UI.evasive = null; UI.targets = null;
 }
@@ -576,7 +613,178 @@ function selectShip(s) {
   sfxSelect(); hapticTap();
   if (s.pending === 'shot2') { startFire(s, s.lastSource || 'ship', s.lastIsland != null ? G.terrain[s.lastIsland] : null); return; }
   if (s.stage === 'click' && !s.acted) { startMove(s, 'sail'); return; }
+  UI.ring = { id: s.id };
   refresh();
+}
+
+// ═══ On-canvas controls ════════════════════════════════
+// Everything a ship's turn needs is drawn on the board: a ring menu around
+// the selected ship, numbered click chips along the move, slot chips for
+// the guns, and side arrows for Evasive. Chips are 40 px on screen at any
+// zoom, and sit above the ship so a finger coming from below does not
+// cover them. The panel keeps the same actions as a second way in.
+const CHIP_R = 20;
+
+const RING_LABEL = { steer: 'Steer', sail: 'Sail on', collect: 'Collect', islandgun: 'Island gun', raise: 'Raise flag', pass: 'Done', scuttle: 'Scuttle' };
+
+function ringItems(ship) {
+  const items = [], p = G.active;
+  if (!isMyTurn() || G.phase !== 'play') return items;
+  if (ship.owner === p) {
+    for (const a of shipActions(ship)) {
+      const label = a.id === 'fire' ? (ship.gunner ? 'Fire x2' : 'Fire') : a.id === 'collect' ? a.label : RING_LABEL[a.id] || a.label;
+      items.push({ id: a.id, t: a.t, label, icon: a.id, disabled: a.disabled, why: a.why, act: a });
+    }
+    if (coinWindowOpen(p)) {
+      for (const c of ['brace', 'evasive', 'gunner', 'repair', 'signal']) {
+        if (coinTargets(p, c).includes(ship)) items.push({ id: 'coin-' + c, coin: c, label: COIN_DEFS[c].short, img: COIN_DEFS[c].img });
+      }
+    }
+  } else if (coinWindowOpen(p) && coinTargets(p, 'boarding').includes(ship)) {
+    items.push({ id: 'coin-boarding', coin: 'boarding', label: isDead(ship) ? 'Capture' : 'Board', img: COIN_DEFS.boarding.img });
+  }
+  return items;
+}
+
+/** Screen positions of the ring items, worked out fresh each frame so the ring follows pan and zoom. */
+function ringLayout() {
+  if (!UI.ring || !G || UI.busy) return [];
+  const ship = shipById(UI.ring.id);
+  if (!ship) return [];
+  const items = ringItems(ship);
+  if (!items.length) return [];
+  const c = w2s(ship.x, ship.y);
+  let R = Math.max(w2r(ship.len * 0.6) + 34, 62);
+  let dA = 50 / R;
+  while (dA * (items.length - 1) > Math.PI * 1.5) { R += 12; dA = 50 / R; }
+  const span = dA * (items.length - 1);
+  // Above the ship; below it when there is no room above.
+  const mid = c.y - R - CHIP_R - 16 < 0 ? Math.PI / 2 : -Math.PI / 2;
+  return spreadChips(items.map((it, i) => {
+    const a = mid - span / 2 + i * dA;
+    return Object.assign({ x: c.x + Math.cos(a) * R, y: c.y + Math.sin(a) * R, r: CHIP_R, cx: c.x, cy: c.y }, it);
+  }), 52);
+}
+
+/** Numbered chips for 1..Move Count clicks, once the heading is set. */
+function moveChipLayout() {
+  const m = UI.move;
+  if (UI.mode !== 'move' || !m || !m.plan || UI.busy || (!m.locked && !m.lockHeading)) return [];
+  const n = m.ship.moveCount, h = m.plan.rot.h, f = fwdVec(h), st = stbVec(h);
+  const start = m.plan.start, step = w2r(CLICK_LEN);
+  const place = sideSign => {
+    const out = [];
+    if (step >= 44) {
+      // Far enough apart: a chip beside each tick on the path.
+      const off = w2r(m.ship.wid / 2) + 28;
+      for (let k = 1; k <= n; k++) {
+        const p = w2s(start.x + f.x * k * CLICK_LEN, start.y + f.y * k * CLICK_LEN);
+        out.push({ k, x: p.x + st.x * off * sideSign, y: p.y + st.y * off * sideSign, r: CHIP_R });
+      }
+    } else {
+      // Zoomed out: a row across the course just past the bow at the far end.
+      const tip = w2s(start.x + f.x * (n * CLICK_LEN + m.ship.len / 2), start.y + f.y * (n * CLICK_LEN + m.ship.len / 2));
+      const bx = tip.x + f.x * 34, by = tip.y + f.y * 34;
+      for (let k = 1; k <= n; k++) {
+        const o = (k - (n + 1) / 2) * 46 * sideSign;
+        out.push({ k, x: bx + st.x * o, y: by + st.y * o, r: CHIP_R });
+      }
+    }
+    return out;
+  };
+  const inside = arr => arr.every(c => c.x > CHIP_R && c.x < canvasW - CHIP_R && c.y > CHIP_R && c.y < canvasH - CHIP_R);
+  let chips = place(1);
+  if (!inside(chips)) { const alt = place(-1); if (inside(alt)) chips = alt; }
+  if (!inside(chips) && step < 44) {
+    // Row off the board past the bow: put it beside the ship instead.
+    const c = w2s(m.ship.x, m.ship.y), R = w2r(m.ship.len * 0.6) + 40;
+    chips = []; const mid = c.y - R - 30 < 0 ? Math.PI / 2 : -Math.PI / 2;
+    for (let k = 1; k <= n; k++) { const a = mid + (k - (n + 1) / 2) * (48 / R); chips.push({ k, x: c.x + Math.cos(a) * R, y: c.y + Math.sin(a) * R, r: CHIP_R }); }
+  }
+  return spreadChips(chips, 46);
+}
+
+/** One chip per cannon slot, fanned out around the ship in its firing direction. */
+function slotChipLayout() {
+  const F = UI.fire;
+  if (UI.mode !== 'fire' || !F || F.stage !== 'slot' || UI.busy) return [];
+  const ship = F.ship, c = w2s(ship.x, ship.y);
+  const R = Math.max(w2r(ship.len * 0.6) + 40, 70);
+  const items = F.slots.map((sl, idx) => {
+    const w = slotWorld(ship, sl);
+    const hh = sl.free ? normAngle(ship.h + (ship.turretRel || 0)) : w.h;
+    const lbl = sl.free ? 'Turret' : sl.label === 'Bow' ? 'Bow' : sl.label.startsWith('Stern') ? (sl.label === 'Stern' ? 'Centre' : sl.label.endsWith('port') ? 'Port' : 'Stbd')
+      : sl.label.endsWith('fore') ? 'Fore' : sl.label.endsWith('aft') ? 'Aft' : 'Mid';
+    return { idx, a: Math.atan2(-Math.cos(hh), Math.sin(hh)), sw: w2s(w.x, w.y), label: lbl };
+  }).sort((p, q) => p.a - q.a);
+  // Keep neighbours at least 46 px apart around the ring.
+  const minA = 46 / R;
+  for (let pass = 0; pass < 4; pass++) {
+    for (let i = 1; i < items.length; i++) {
+      const gap = items[i].a - items[i - 1].a;
+      if (gap < minA) { const push = (minA - gap) / 2; items[i - 1].a -= push; items[i].a += push; }
+    }
+  }
+  return spreadChips(items.map(it => ({ idx: it.idx, label: it.label, slot: it.sw, r: CHIP_R,
+    x: c.x + Math.cos(it.a) * R, y: c.y + Math.sin(it.a) * R })), 54);
+}
+
+function evasiveChipLayout() {
+  const ev = UI.evasive;
+  if (UI.mode !== 'evasive' || !ev || UI.busy) return [];
+  return ['port', 'stbd'].map(side => {
+    const pl = ev[side], sgn = side === 'port' ? -1 : 1, st = stbVec(ev.ship.h);
+    const p = w2s(pl.end.x, pl.end.y), off = w2r(ev.ship.wid / 2) + 26;
+    return { side, label: side === 'port' ? 'Port' : 'Starboard', dir: { x: st.x * sgn, y: st.y * sgn }, r: CHIP_R,
+      x: clamp(p.x + st.x * sgn * off, CHIP_R + 2, canvasW - CHIP_R - 2), y: clamp(p.y + st.y * sgn * off, CHIP_R + 2, canvasH - CHIP_R - 2) };
+  });
+}
+
+/** Keep chips on the canvas and at least `gap` px apart (after clamping at an edge). */
+function spreadChips(arr, gap = 50) {
+  const cl = c => { c.x = clamp(c.x, CHIP_R + 3, canvasW - CHIP_R - 3); c.y = clamp(c.y, CHIP_R + 3, canvasH - CHIP_R - 18); };
+  arr.forEach(cl);
+  for (let pass = 0; pass < 12; pass++) {
+    let moved = false;
+    for (let i = 0; i < arr.length; i++) for (let j = i + 1; j < arr.length; j++) {
+      const a = arr[i], b = arr[j], dx = b.x - a.x, dy = b.y - a.y, d = Math.hypot(dx, dy);
+      if (d >= gap) continue;
+      const ux = d > 0.1 ? dx / d : 1, uy = d > 0.1 ? dy / d : 0, push = (gap - d) / 2;
+      a.x -= ux * push; a.y -= uy * push; b.x += ux * push; b.y += uy * push;
+      cl(a); cl(b); moved = true;
+    }
+    if (!moved) break;
+  }
+  return arr;
+}
+
+function chipAt(arr, sp) { return arr.find(it => Math.hypot(sp.x - it.x, sp.y - it.y) <= it.r + 4); }
+
+function openRing(ship) {
+  cancelMode();
+  UI.sel = ship.owner === G.active ? ship : null;
+  UI.ring = { id: ship.id };
+  refresh();
+}
+
+async function runRingItem(it) {
+  const ship = shipById(UI.ring && UI.ring.id);
+  UI.ring = null;
+  if (!ship) return;
+  if (it.disabled) { logMsg(it.why); sfxError(); UI.ring = { id: ship.id }; return; }
+  sfxSelect();
+  if (it.coin) { UI.sel = ship.owner === G.active ? ship : null; await playCoin(it.coin, ship); return; }
+  UI.sel = ship;
+  await doShipAction(it.act);
+}
+
+async function sailClicks(k) {
+  const m = UI.move;
+  if (!m) return;
+  if (!m.locked && !m.lockHeading) { m.hc = m.plan.rot.h; m.locked = true; }
+  m.clicks = clamp(k, 1, m.ship.moveCount);
+  replanMove();
+  await commitMove();
 }
 
 // ─── Setup phases (local games only) ──────────────────
@@ -887,8 +1095,9 @@ function nearestTarget(w) {
 
 function signalToTap(w) {
   const to = nearestTarget(w);
-  if (!to) return; // tapping water keeps the current pick
-  UI.signalPick = to; sfxSelect(); refresh();
+  if (!to) return; // tapping water keeps you choosing
+  UI.signalPick = to;
+  confirmSignal();
 }
 async function confirmSignal() {
   const to = UI.signalPick, from = UI.signalFrom;
@@ -1066,7 +1275,7 @@ function movePrompt() {
     : m.locked ? 'Heading set. Sail, or drag the handle to change it.'
     : `Drag the handle, or move the mouse and click, to set heading (up to ${pivotFor(m.ship)}\u00B0).`;
   const stop = pl && pl.stoppedBy && pl.moved < pl.planned - 0.05 ? ` Stops after ${n} of ${m.clicks}.` : '';
-  const off = pl && pl.stoppedBy === 'edge' && pl.moved < 0.05 ? ' No room: the ship would be scuttled!' : '';
+  const off = pl && pl.stoppedBy === 'edge' && pl.moved < 0.05 ? ' It is against the edge and will not move.' : pl && pl.stoppedBy === 'edge' ? ' Stops at the edge.' : '';
   return `${head} Sail ${m.clicks} click${m.clicks > 1 ? 's' : ''} forward.${stop}${off}`;
 }
 

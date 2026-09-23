@@ -79,6 +79,93 @@ function drawFrame() {
   drawShips();
   drawFirePreview();
   drawAnimations(ctx);
+  drawControls();
+}
+
+// ─── On-canvas controls (ring menu and chips) ─────────
+
+const ICON_IMG = {};
+function coinImage(src) {
+  if (!ICON_IMG[src]) { const im = new Image(); im.src = src; ICON_IMG[src] = im; }
+  return ICON_IMG[src];
+}
+
+/** Small line icons in the rulebook's ink, drawn at (x, y) in a 16 px box. */
+function drawIcon(kind, x, y, col) {
+  ctx.save(); ctx.translate(x, y);
+  ctx.strokeStyle = col; ctx.fillStyle = col; ctx.lineWidth = 2; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+  ctx.beginPath();
+  switch (kind) {
+    case 'steer': ctx.arc(0, 1, 7, Math.PI * 1.1, Math.PI * 1.9); ctx.stroke(); ctx.beginPath(); ctx.moveTo(5, -6); ctx.lineTo(6.5, -2.2); ctx.lineTo(2.5, -2.5); ctx.stroke(); break;
+    case 'sail': case 'click': ctx.moveTo(0, 7); ctx.lineTo(0, -7); ctx.moveTo(-5, -2); ctx.lineTo(0, -7); ctx.lineTo(5, -2); ctx.stroke(); break;
+    case 'fire': case 'islandgun':
+      ctx.arc(-2, 2, 4.5, 0, TAU); ctx.fill();
+      for (const a of [-0.9, -0.3, 0.3]) { ctx.beginPath(); ctx.moveTo(3 + Math.cos(a) * 3, -2 + Math.sin(a) * 3); ctx.lineTo(3 + Math.cos(a) * 7, -2 + Math.sin(a) * 7); ctx.stroke(); }
+      if (kind === 'islandgun') { ctx.beginPath(); ctx.moveTo(-8, 8); ctx.lineTo(8, 8); ctx.stroke(); }
+      break;
+    case 'raise': ctx.moveTo(-4, 8); ctx.lineTo(-4, -8); ctx.stroke(); ctx.beginPath(); ctx.moveTo(-4, -8); ctx.lineTo(7, -4.5); ctx.lineTo(-4, -1); ctx.closePath(); ctx.fill(); break;
+    case 'collect': ctx.arc(0, 0, 7, 0, TAU); ctx.stroke(); ctx.beginPath(); ctx.arc(0, 0, 3.2, 0, TAU); ctx.fill(); break;
+    case 'pass': ctx.moveTo(-6, 0); ctx.lineTo(-1.5, 5); ctx.lineTo(7, -5); ctx.stroke(); break;
+    case 'scuttle': ctx.moveTo(-6, -6); ctx.lineTo(6, 6); ctx.moveTo(6, -6); ctx.lineTo(-6, 6); ctx.stroke(); break;
+    case 'arrow': ctx.moveTo(-7, 0); ctx.lineTo(7, 0); ctx.moveTo(2, -5); ctx.lineTo(7, 0); ctx.lineTo(2, 5); ctx.stroke(); break;
+    default: ctx.arc(0, 0, 3, 0, TAU); ctx.fill();
+  }
+  ctx.restore();
+}
+
+function drawChip(it, opts) {
+  const hot = opts.hot, r = it.r * (hot ? 1.08 : 1);
+  ctx.save();
+  ctx.globalAlpha = it.disabled ? 0.5 : 1;
+  ctx.fillStyle = 'rgba(0,0,0,.35)';
+  ctx.beginPath(); ctx.arc(it.x + 1.5, it.y + 2.5, r, 0, TAU); ctx.fill();
+  ctx.fillStyle = opts.fill || '#fbf4e3';
+  ctx.strokeStyle = hot ? '#8b1a1a' : '#6b4c30'; ctx.lineWidth = hot ? 3 : 1.5;
+  ctx.beginPath(); ctx.arc(it.x, it.y, r, 0, TAU); ctx.fill(); ctx.stroke();
+  if (opts.img) {
+    const im = coinImage(opts.img);
+    if (im.complete && im.naturalWidth) ctx.drawImage(im, it.x - r * 0.8, it.y - r * 0.8, r * 1.6, r * 1.6);
+  } else if (opts.text) {
+    ctx.fillStyle = '#3c2415'; ctx.font = `bold ${Math.round(r * 0.95)}px "Crimson Text",serif`;
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(opts.text, it.x, it.y + 1);
+  } else {
+    if (opts.rot != null) { ctx.translate(it.x, it.y); ctx.rotate(opts.rot); drawIcon(opts.icon, 0, 0, opts.ink || '#3c2415'); }
+    else drawIcon(opts.icon, it.x, it.y, opts.ink || '#3c2415');
+  }
+  ctx.restore();
+  if (opts.label) {
+    ctx.font = 'bold 12px "Crimson Text",serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'top';
+    ctx.lineWidth = 3; ctx.strokeStyle = 'rgba(20,12,6,.85)'; ctx.strokeText(opts.label, it.x, it.y + r + 2);
+    ctx.fillStyle = '#faf3e0'; ctx.fillText(opts.label, it.x, it.y + r + 2);
+  }
+}
+
+function drawControls() {
+  if (!G || G.phase !== 'play') return;
+  const ring = ringLayout();
+  if (ring.length) {
+    const c = { x: ring[0].cx, y: ring[0].cy };
+    ctx.strokeStyle = 'rgba(250,243,224,.35)'; ctx.lineWidth = 1;
+    for (const it of ring) { ctx.beginPath(); ctx.moveTo(c.x, c.y); ctx.lineTo(it.x, it.y); ctx.stroke(); }
+    for (const it of ring) {
+      const fire = it.id === 'fire' || it.id === 'islandgun';
+      drawChip(it, { hot: UI.hoverRing === it.id, img: it.img, icon: it.icon, label: it.label, fill: fire ? '#f3d9cf' : null, ink: fire ? '#8b1a1a' : null });
+    }
+  }
+  const m = UI.move;
+  for (const ch of moveChipLayout()) {
+    const hot = m.hoverK === ch.k;
+    drawChip(ch, { hot, text: String(ch.k), label: ch.k === m.ship.moveCount && !hot ? 'Sail' : hot ? `Sail ${ch.k}` : '' });
+  }
+  const F = UI.fire;
+  for (const ch of slotChipLayout()) {
+    ctx.strokeStyle = 'rgba(250,243,224,.4)'; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(ch.slot.x, ch.slot.y); ctx.lineTo(ch.x, ch.y); ctx.stroke();
+    drawChip(ch, { hot: F.hover === ch.idx, icon: 'fire', ink: '#8b1a1a', label: ch.label });
+  }
+  for (const ch of evasiveChipLayout()) {
+    drawChip(ch, { hot: UI.evasive.hover === ch.side, icon: 'arrow', rot: Math.atan2(ch.dir.y, ch.dir.x), label: ch.label });
+  }
 }
 
 function drawRoundTable() {
@@ -558,7 +645,7 @@ function drawFirePreview() {
         ctx.strokeStyle = 'rgba(255,120,90,.35)'; ctx.lineWidth = 1.5; ctx.setLineDash([4, 6]);
         ctx.beginPath(); ctx.arc(o.x, o.y, w2r(RANGE_MAX * 0.5), 0, TAU); ctx.stroke(); ctx.setLineDash([]);
       }
-      const r = Math.max(9, w2r(1.4)) * (hot ? 1.3 : 1);
+      const r = Math.max(4, Math.min(w2r(0.9), 8)) * (hot ? 1.4 : 1);
       ctx.fillStyle = hot ? 'rgba(139,26,26,.95)' : 'rgba(230,185,90,.95)'; ctx.strokeStyle = 'rgba(20,10,5,.9)'; ctx.lineWidth = 1.5;
       ctx.beginPath(); ctx.arc(o.x, o.y, r, 0, TAU); ctx.fill(); ctx.stroke();
     });

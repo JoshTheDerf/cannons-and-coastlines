@@ -15,7 +15,7 @@ export const engine = {
   set G(v) { G = v; },
   setRand, seededRandom, setAiEffort,
   newGame, act, aiNextAction, scoreBreakdown, inGame, seatName, islands, turnIsOver, eventsDuration, shipSlots, slotWorld, traceShot, fittingWorld, applyHit, hasTurret, nextToRestore, fittingLayout, oneFitting,
-  FACTION_DEFS, FACTION_ORDER, PALETTE, MAX_SEATS, RULES_VERSION,
+  FACTION_DEFS, FACTION_ORDER, PALETTE, factionId, MAX_SEATS, RULES_VERSION,
 };
 `;
 const target = fileURLToPath(new URL('../src/engine.gen.js', import.meta.url));

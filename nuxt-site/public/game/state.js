@@ -62,6 +62,7 @@ function newGame(opts) {
   const usedNames = new Set();
   opts.seats.forEach((s, i) => {
     const p = i + 1;
+    s.faction = factionId(s.faction);
     G.factions[p] = s.faction;
     G.players[p] = { ships: [], coins: emptyCoins(), sunk: [], color: s.color != null ? s.color : i, name: s.name || `Player ${p}`, ai: !!s.ai };
     G.terrainPlaced[p] = 0;

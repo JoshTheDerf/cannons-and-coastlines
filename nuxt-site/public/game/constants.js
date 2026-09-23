@@ -52,7 +52,7 @@ const VICTORY_POINTS = 25;
 // Factions. Stats are from rulebook/typst/factions.typ.
 // guns: 'broadside' = 3 slots per side, 'industry' = bow + turret,
 // 'stern' = 3 rear-facing slots.
-// Treasure Fleet, Sun Fleet and Shadow Fleet cards list no cannon slots, so
+// Treasure Fleet, Stone Fleet and Shadow Fleet cards list no cannon slots, so
 // they use the standard broadside layout of the base-game hulls.
 const FACTION_DEFS = {
   queens_fleet: {
@@ -96,13 +96,13 @@ const FACTION_DEFS = {
     blurb: 'Two ships. Every island pays double.',
     hullColor: [150, 108, 40],
   },
-  sun_fleet: {
-    name: 'Sun Fleet', shipCount: 3, fittings: 4, moveCount: 2, pivot: 90,
+  stone_fleet: {
+    name: 'Stone Fleet', shipCount: 3, fittings: 4, moveCount: 2, pivot: 90,
     guns: 'broadside', len: 13.0, wid: 4.4, hull: 'barge',
     names: {
       forms: ['{a} {b}'],
-      a: ['Obsidian', 'Jade', 'Stone', 'Basalt', 'Granite', 'Golden', 'Serpent', 'Jaguar', 'Eagle', 'Onyx'],
-      b: ['Sun', 'Altar', 'Tide', 'Temple', 'Idol', 'Pyramid', 'Dawn', 'Colossus', 'Throne', 'Monolith'],
+      a: ['Obsidian', 'Jade', 'Basalt', 'Granite', 'Flint', 'Serpent', 'Jaguar', 'Onyx', 'Marble', 'Slate'],
+      b: ['Altar', 'Tide', 'Temple', 'Idol', 'Pyramid', 'Colossus', 'Throne', 'Monolith', 'Cairn', 'Menhir'],
     },
     passive: 'stone', passiveName: 'Stone Hulls',
     passiveText: 'Each ship ignores the first hit it takes each turn.',
@@ -151,7 +151,10 @@ const FACTION_DEFS = {
     hullColor: [70, 110, 70],
   },
 };
-const FACTION_ORDER = ['queens_fleet', 'corsairs', 'treasure_fleet', 'sun_fleet', 'shadow_fleet', 'industry', 'islanders'];
+// Old saved games and rooms may still name the Stone Fleet by its old id.
+const FACTION_ALIASES = { sun_fleet: 'stone_fleet' };
+const factionId = f => FACTION_ALIASES[f] || f;
+const FACTION_ORDER = ['queens_fleet', 'corsairs', 'treasure_fleet', 'stone_fleet', 'shadow_fleet', 'industry', 'islanders'];
 
 // Coins (rulebook v0.5). Each player adds 20 to the bag.
 const COIN_DEFS = {

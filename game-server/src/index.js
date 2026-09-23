@@ -114,7 +114,19 @@ export class GameRoom extends DurableObject {
       this.room = (await ctx.storage.get('room')) || null;
       this.game = (await ctx.storage.get('game')) || null;
       this.meta = (await ctx.storage.get('meta')) || { seq: 0, rng: 0, deadline: null, deadlineTurn: null };
+      this.migrate();
     });
+  }
+
+  /** Stored rooms from before the Stone Fleet rename name it 'sun_fleet'. */
+  migrate() {
+    const fix = f => engine.factionId(f);
+    if (this.room) for (const s of this.room.seats) s.faction = fix(s.faction);
+    const G = this.game;
+    if (G) {
+      for (const p of Object.keys(G.factions || {})) G.factions[p] = fix(G.factions[p]);
+      for (const p of Object.keys(G.players || {})) for (const s of G.players[p].ships.concat(G.players[p].sunk || [])) s.build = fix(s.build);
+    }
   }
 
   // ─── RPC from the Worker ──────────────────────────

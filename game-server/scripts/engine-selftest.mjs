@@ -96,3 +96,10 @@ for (const n of [2, 3, 5, 7]) {
   ok(Math.abs(ang - (Math.PI / 2 - D15)) < 0.02, `shot from the forward starboard slot flies 15 deg ahead of abeam (${(ang * 180 / Math.PI).toFixed(1)} deg)`);
   if (fails) process.exitCode = 1;
 }
+
+// ── Small self-play tournament (full one: npm run tournament) ──
+{
+  const { headToHead, stoneTables, reportStone } = await import('./tournament.mjs');
+  headToHead(1);
+  reportStone(3, stoneTables({ n: 3, seeds: 1, style: 'plain' }), stoneTables({ n: 3, seeds: 1, style: 'tactical' }));
+}

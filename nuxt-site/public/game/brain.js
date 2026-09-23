@@ -13,15 +13,61 @@ function setAiEffort(level) {
 }
 
 function aiMemo(p) {
-  if (!G.ai || G.ai.turn !== G.turn || G.ai.p !== p) G.ai = { turn: G.turn, p, used: {}, roles: null, order: null };
+  if (!G.ai || G.ai.turn !== G.turn || G.ai.p !== p) G.ai = { turn: G.turn, p, used: {}, roles: null, order: null, hit: {}, intel: null, sig: null };
   return G.ai;
+}
+
+// Two styles: 'plain' is the original captain; 'tactical' (the default)
+// plans islands for the whole fleet and reads the opposing fleets.
+const styleOf = p => (G.aiStyle && G.aiStyle[p]) || 'tactical';
+const tactical = p => { const st = styleOf(p); return st === 'tactical' || st === 'tactics'; };
+const off = k => G.aiOff && G.aiOff.includes(k); // for tuning runs only
+const planner = p => { const st = styleOf(p); return st === 'tactical' || st === 'islands'; };
+
+/**
+ * A per-turn read of the table: how much each enemy faction matters (by
+ * ship count and how close it is), and how hard to go after each seat.
+ * With three or more fleets a runaway leader draws fire, and a Stone Fleet
+ * draws a lot of it: the others hold off each other while it is healthy.
+ */
+function aiIntel(p) {
+  const memo = aiMemo(p);
+  if (memo.intel) return memo.intel;
+  const mine = G.players[p].ships, sc = scoreBreakdown();
+  const live = G.order.filter(inGame), multi = live.length >= 3;
+  const totals = live.map(q => sc[q].total).sort((a, b) => b - a);
+  const tw = {}, focus = {};
+  let sum = 0;
+  const stoneSeat = live.find(q => q !== p && G.factions[q] === 'stone_fleet');
+  const stoneHealthy = stoneSeat && G.players[stoneSeat].ships.filter(s => !isDead(s)).length >= 2;
+  for (const q of live) {
+    if (q === p) continue;
+    const ships = G.players[q].ships;
+    let prox = 0;
+    for (const e of ships) prox += 1 / (1 + mine.reduce((m, s) => Math.min(m, dist(s.x, s.y, e.x, e.y)), 999) / 50);
+    const f = G.factions[q];
+    tw[f] = (tw[f] || 0) + prox; sum += prox;
+    let m = 1;
+    if (multi) {
+      if (sc[q].total === totals[0] && totals[0] >= (totals[1] || 0) + 3) m *= 1.5;
+      if (f === 'stone_fleet') m *= 2 + (sc[q].total === totals[0] ? 0.6 : 0) + islandsHeld(q) * 0.15;
+      else if (stoneHealthy && p !== stoneSeat) m *= 0.35; // informal truce while the Stone Fleet is strong
+    }
+    focus[q] = m;
+  }
+  for (const f in tw) tw[f] = sum ? tw[f] / sum : 0;
+  return (memo.intel = { tw, focus, multi });
 }
 
 function aiNextAction(p) {
   const memo = aiMemo(p);
+  memo.step = (memo.step || 0) + 1;
   const ships = G.players[p].ships;
   if (canDeclareVictory(p)) return { t: 'declare' };
-  if (!memo.roles) memo.roles = aiAssignRoles(p);
+  // Re-plan whenever an island changes hands.
+  const sig = islands().map(t => t.owner || 0).join('');
+  if (memo.sig !== sig) { memo.roles = null; memo.sig = sig; }
+  if (!memo.roles) memo.roles = planner(p) ? aiPlanIslands(p) : aiAssignRoles(p);
   const roles = aiRoleObjects(memo.roles);
 
   // Finish a turn already under way: a second Gunner shot, or the click
@@ -83,6 +129,75 @@ function aiAssignRoles(p) {
   }
   return roles;
 }
+/**
+ * Fleet plan (tactical): send ships to different islands, unclaimed first,
+ * then weakly held enemy ones, scored by turns to get there under forced
+ * movement, value and risk. One ship stays on each held island to collect
+ * and defend. Two ships only go to the same island if it is contested.
+ */
+function aiPlanIslands(p) {
+  const roles = {};
+  const ships = G.players[p].ships;
+  const enemies = enemyShips(p).filter(e => !isDead(e));
+  const near = (t, r) => enemies.filter(e => dist(e.x, e.y, t.x, t.y) - t.r < r).length;
+  // Keepers: a ship on a held island stays and collects (a coin a turn is
+  // a point a turn, and islands are the only place to hold still), unless
+  // an unclaimed island is a short hop away and the island keeps another.
+  const kept = new Set();
+  for (const s of ships) {
+    const own = touchingIslands(s).map(i => G.terrain[i]).find(t => t.owner === p);
+    if (!own) continue;
+    const hop = kept.has(own.id) && islands().some(t => !t.owner && dist(s.x, s.y, t.x, t.y) - t.r < s.moveCount * CLICK_LEN * 1.5);
+    if (!hop) { roles[s.id] = 'collect'; kept.add(own.id); }
+  }
+  // Undefended held islands with enemies close: send a defender.
+  const defend = islands().filter(t => t.owner === p && !kept.has(t.id) && near(t, 35) > 0);
+  const targets = islands().filter(t => t.owner !== p).map(t => {
+    const owner = t.owner, defenders = owner ? defendersAt(t, owner).length : 0;
+    let value = owner ? 7 - 3 * defenders : 10;
+    if (owner && ['shadow_fleet', 'treasure_fleet'].includes(G.factions[owner])) value += 3; // deny their engines
+    return { t, value, risk: near(t, 30), slots: near(t, 30) > 0 ? 2 : 1 };
+  }).concat(defend.map(t => ({ t, value: 8, risk: near(t, 30), slots: 1 })));
+  const free = ships.filter(s => !roles[s.id] && !isDead(s));
+  const pairs = [];
+  for (const s of free) {
+    for (const g of targets) {
+      const t = g.t;
+      const run = Math.max(0, dist(s.x, s.y, t.x, t.y) - t.r - s.len / 2);
+      const turn = Math.abs(angleDiff(headingTo(t.x - s.x, t.y - s.y), s.h)) / (pivotFor(s) * Math.PI / 180);
+      const turns = run / (s.moveCount * CLICK_LEN) + turn + (aiPathBlocked(s, s, t) ? 1 : 0);
+      pairs.push({ s, g, score: g.value - turns * 2.2 - g.risk * 1.5 });
+    }
+  }
+  pairs.sort((a, b) => b.score - a.score);
+  const used = {};
+  for (const { s, g, score } of pairs) {
+    if (roles[s.id] || (used[g.t.id] || 0) >= g.slots || score < -12) continue;
+    roles[s.id] = 'isl:' + g.t.id; used[g.t.id] = (used[g.t.id] || 0) + 1;
+  }
+  // Ships left over head for the nearest held island to collect there too
+  // (several ships may collect at one island), or back up a target.
+  const held = islands().filter(t => t.owner === p);
+  for (const s of ships) {
+    if (roles[s.id]) continue;
+    if (isDead(s)) { roles[s.id] = touchingIslands(s).some(i => G.terrain[i].owner === p) ? 'collect' : 'hunt'; continue; }
+    const pool = held.length ? held : targets.map(g => g.t);
+    const t = pool.slice().sort((a, b) => dist(s.x, s.y, a.x, a.y) - dist(s.x, s.y, b.x, b.y))[0];
+    roles[s.id] = t ? 'isl:' + t.id : 'hunt';
+  }
+  return roles;
+}
+
+/** Does a straight run from pose ps to island t cross other terrain? */
+function aiPathBlocked(ship, ps, t) {
+  for (const o of G.terrain) {
+    if (o === t) continue;
+    const d = ptSegDist(o.x, o.y, ps.x, ps.y, t.x, t.y);
+    if (d < o.r + ship.wid / 2 + 1 && dist(ps.x, ps.y, o.x, o.y) < dist(ps.x, ps.y, t.x, t.y)) return true;
+  }
+  return false;
+}
+
 function aiRoleObjects(roles) {
   const out = {};
   for (const [id, r] of Object.entries(roles)) out[id] = typeof r === 'string' && r.startsWith('isl:') ? G.terrain[+r.slice(4)] : r;
@@ -114,6 +229,13 @@ function aiCoinChoice(p, roles, memo) {
   }
   if (has('brace')) {
     for (const s of me.ships) if (s.fit <= 1 && !s.braced && aiThreat(s, s) > 0) return coin('brace', s);
+    // Tactical: brace ships a Corsair could board next turn.
+    if (tactical(p) && !off('brace') && coinTotal(p) >= 2) {
+      for (const s of me.ships) {
+        if (s.braced || s.fit > 2) continue;
+        if (enemyShips(p).some(e => G.factions[e.owner] === 'corsairs' && !isDead(e) && dist(e.x, e.y, s.x, s.y) < 16)) return coin('brace', s);
+      }
+    }
   }
   if (has('evasive')) {
     for (const s of me.ships) {
@@ -122,10 +244,10 @@ function aiCoinChoice(p, roles, memo) {
       const plans = evasivePlans(s);
       // Slide a fragile ship out of a lane, or away from an edge it faces.
       const fragile = s.fit <= 1 && aiThreat(s, s) > 0;
-      const cornered = aiEdgeRisk(s, s) >= 30;
+      const cornered = aiEdgeRisk(s, s) >= 14;
       if (!fragile && !cornered) continue;
       const side = ['port', 'stbd'].find(k => plans[k].moved > s.wid * 0.8 &&
-        (fragile ? aiThreat(s, plans[k].end) === 0 : aiEdgeRisk(s, Object.assign({}, plans[k].end, { h: s.h })) < 30));
+        (fragile ? aiThreat(s, plans[k].end) === 0 : aiEdgeRisk(s, Object.assign({}, plans[k].end, { h: s.h })) < 14));
       if (side) return coin('evasive', s, { side });
     }
   }
@@ -138,7 +260,9 @@ function aiCoinChoice(p, roles, memo) {
     for (const s of me.ships) {
       if (s.acted || s.gunner || s.noAction || roles[s.id] === 'collect') continue;
       const sh = shotOf(s);
-      if (sh && sh.ev >= 4 && (!best || sh.ev > best.ev)) best = { s, ev: sh.ev };
+      // Against Stone Hulls one ship firing twice is the way through.
+      const need = tactical(p) && !off('gunner') && sh && sh.target && G.factions[sh.target.owner] === 'stone_fleet' ? 3 : 4;
+      if (sh && sh.ev >= need && (!best || sh.ev > best.ev)) best = { s, ev: sh.ev };
     }
     if (best) return coin('gunner', best.s);
   }
@@ -164,6 +288,7 @@ function aiCoinChoice(p, roles, memo) {
 const islandAct = (ship, t, kind) => ({ t: kind, ship: ship.id, island: t.id });
 
 function aiFireAction(ship, shot) {
+  if (shot.target) { const m = aiMemo(ship.owner); m.hit[shot.target.id] = (m.hit[shot.target.id] || 0) + 1; }
   const D = clamp(shot.D * (1 + gaussRandom() * AI_TIMING_SD), RANGE_MIN, RANGE_MAX);
   return { t: 'fire', ship: ship.id, source: shot.source, slot: shot.slotIdx, island: shot.island ? shot.island.id : null, h: shot.h, D, aimD: shot.D };
 }
@@ -188,15 +313,20 @@ function aiShipTurn(ship, roles) {
   // better shot than the ship's own guns (both skip the forward click).
   if (own) {
     const isleShot = shot && shot.source === 'island' ? shot : null;
-    const keep = goal === 'collect' || aiThreat(ship, ship) > 0 || islandsHeld(ship.owner) <= 1;
+    const keep = goal === 'collect' || aiThreat(ship, ship) > 0 || islandsHeld(ship.owner) <= 1 || (tactical(ship.owner) && !off('keep') && typeof goal !== 'object');
     if (isleShot && isleShot.ev >= 3) return aiFireAction(ship, isleShot);
-    if (keep && !(shot && shot.ev >= 5)) return islandAct(ship, own, 'collect');
+    // Firing the ship's own guns would mean sailing off the island after.
+    const leave = tactical(ship.owner) && !off('keep') ? 9 : 5;
+    if (keep && !(shot && shot.source === 'ship' && shot.ev >= leave)) return islandAct(ship, own, 'collect');
   }
   const steer = aiBestMove(ship, goal, 1, ship.moveCount);
   const shipShot = shot ? shot.shipBest : null;
   if (shipShot && shipShot.ev >= 2) {
     const straight = aiBestMove(ship, goal, 1, ship.moveCount, true);
-    const fireValue = shipShot.ev * 3 + (straight ? straight.score : -99);
+    // Tactical: shoot early against fleets that punish waiting.
+    const tw = tactical(ship.owner) && !off('aggr') ? aiIntel(ship.owner).tw : {};
+    const aggr = 1 + 0.3 * ((tw.corsairs || 0) + (tw.queens_fleet || 0) + (tw.islanders || 0));
+    const fireValue = shipShot.ev * 3 * aggr + (straight ? straight.score : -99);
     if (fireValue >= (steer ? steer.score : -Infinity) - 5) return aiFireAction(ship, shipShot);
   }
   if (own && (!steer || steer.score < aiEvalPose(ship, ship, goal) - 2)) return islandAct(ship, own, 'collect');
@@ -206,13 +336,22 @@ function aiShipTurn(ship, roles) {
 
 // ═══ Shot search ═══════════════════════════════════════
 
-function aiHitValue(t) {
+function aiHitValue(t, p) {
   let v = 6;
   if (isDead(t)) v += 12;                 // this hit sinks it
   else if (t.fit === 1) v += 4;           // this hit leaves it dead in the water
   v += (t.maxFit - t.fit) * 0.5;
   if (passiveOf(t.owner) === 'stone' && !t.stoneUsed) v *= 0.35;
   else if (t.braced) v *= 0.4;
+  if (p == null || !tactical(p) || off('hitv')) return v;
+  const intel = aiIntel(p), memo = aiMemo(p), f = G.factions[t.owner], hitAlready = memo.hit[t.id] || 0;
+  v *= intel.focus[t.owner] || 1;
+  if (f === 'stone_fleet') { if (t.stoneUsed) v *= 1.6; if (hitAlready) v *= 1.3; }   // stack hits on one Stone ship
+  else if (f === 'islanders') { if (!hitAlready) v *= 1.25; if (isDead(t)) v += 3; } // spread: one hit disables each
+  else if (f === 'industry') { if (hasTurret(t)) v += 3; }                          // silence the turret
+  else if (f === 'treasure_fleet') v *= 1.3;                                         // few hulls: punish them
+  else if (f === 'shadow_fleet') { if (isDead(t) && coinTotal(t.owner) >= 2 && islandsHeld(t.owner) > 0) v -= 7; } // it will just come back
+  else if (f === 'corsairs' || f === 'queens_fleet') v *= 1.1;
   return v;
 }
 
@@ -275,7 +414,7 @@ function aiBestShot(ship, opts) {
       for (let i = 0; i < N; i++) {
         const wob = wobbleShot(lane.h, D * (1 + gaussRandom() * AI_TIMING_SD));
         const tr = traceShot(src, lane.x, lane.y, wob.h, wob.D, wob.b);
-        if (tr.kind === 'ship' && tr.obj.owner !== p) ev += aiHitValue(tr.obj);
+        if (tr.kind === 'ship' && tr.obj.owner !== p) ev += aiHitValue(tr.obj, p);
       }
       ev /= N;
       const cand = { ev, D, h: lane.h, source: lane.source, slot: lane.slot, slotIdx: lane.slotIdx, island: lane.island, target: w.t };
@@ -289,22 +428,37 @@ function aiBestShot(ship, opts) {
 
 // ═══ Move search ═══════════════════════════════════════
 
-/** Rough count of enemy lanes pointing at `pose`. */
-function aiThreat(ship, ps) {
-  let n = 0;
-  const reach = RANGE_MAX * 1.05 + 8;
-  for (const e of enemyShips(ship.owner)) {
-    if (Math.abs(e.x - ps.x) > reach || Math.abs(e.y - ps.y) > reach) continue;
+/** Enemy gun lanes, worked out once per decision (enemies do not move during our turn). */
+// Kept outside G so it is never saved or sent to clients.
+let LANES = { g: null, key: null, lanes: null };
+function aiEnemyLanes(p) {
+  const memo = aiMemo(p), key = `${G.turn}:${p}:${memo.step}`;
+  if (LANES.g === G && LANES.key === key) return LANES.lanes;
+  const out = [];
+  for (const e of enemyShips(p)) {
     for (const sl of shipSlots(e)) {
       const w = slotWorld(e, sl);
-      const dx = ps.x - w.x, dy = ps.y - w.y;
-      const d = Math.hypot(dx, dy);
-      if (d > RANGE_MAX * 1.05) continue;
-      if (sl.free) { if (d < RANGE_MAX * 0.8) n += 0.6; continue; }
-      const fx = Math.sin(w.h), fy = -Math.cos(w.h);
-      const along = dx * fx + dy * fy, perp = Math.abs(dx * fy - dy * fx);
-      if (along > 4 && perp < ship.len / 2 + 0.5) { n += 1; break; }
+      out.push({ e, x: w.x, y: w.y, fx: Math.sin(w.h), fy: -Math.cos(w.h), free: !!sl.free });
     }
+  }
+  LANES = { g: G, key, lanes: out };
+  return out;
+}
+
+/** Rough count of enemy lanes pointing at `pose`. */
+function aiThreat(ship, ps) {
+  let n = 0, lastE = null, counted = false;
+  const reach = RANGE_MAX * 1.05;
+  for (const L of aiEnemyLanes(ship.owner)) {
+    if (L.e !== lastE) { lastE = L.e; counted = false; }
+    if (counted) continue;
+    const dx = ps.x - L.x, dy = ps.y - L.y;
+    if (Math.abs(dx) > reach || Math.abs(dy) > reach) continue;
+    const d = Math.hypot(dx, dy);
+    if (d > reach) continue;
+    if (L.free) { if (d < RANGE_MAX * 0.8) n += 0.6; continue; }
+    const along = dx * L.fx + dy * L.fy, perp = Math.abs(dx * L.fy - dy * L.fx);
+    if (along > 4 && perp < ship.len / 2 + 0.5) { n += 1; counted = true; }
   }
   return n;
 }
@@ -345,9 +499,11 @@ function aiEdgeRisk(ship, ps) {
     bestRoom = Math.max(bestRoom, rayExit(bx, by, f.x, f.y) - ship.wid / 2);
     if (bestRoom > CLICK_LEN * 2) break;
   }
-  if (bestRoom < CLICK_LEN * 0.5) return 60;   // likely scuttled next turn
-  if (bestRoom < CLICK_LEN * 1.2) return 30;
-  if (bestRoom < CLICK_LEN * 2) return 6;
+  // The edge only wastes a turn now (no scuttle), but a ship stuck facing
+  // it can't get anywhere.
+  if (bestRoom < CLICK_LEN * 0.5) return 14;
+  if (bestRoom < CLICK_LEN * 1.2) return 6;
+  if (bestRoom < CLICK_LEN * 2) return 2;
   return 0;
 }
 
@@ -376,9 +532,26 @@ function aiEvalPose(ship, ps, goal) {
     if (isDead(o) && coins.boarding && coins.repair) sc += 25;
     else if (!isDead(o) && coins.boarding) sc += 6;
   }
+  if (tactical(p) && !off('pose')) sc += aiTacticalPose(ship, ps, goal, enemies, coins);
   if (edgeGapOfSeg(shipSeg(ship, ps)) < 3) sc -= 6;
   sc -= aiEdgeRisk(ship, ps);
   return sc + rand() * 1.5;
+}
+
+/** Spacing and approach by enemy fleet (tactical style). */
+function aiTacticalPose(ship, ps, goal, enemies, coins) {
+  let sc = 0;
+  for (const e of enemies) {
+    const d = dist(ps.x, ps.y, e.x, e.y);
+    if (d > 60) continue;
+    const f = G.factions[e.owner];
+    const bearing = headingTo(ps.x - e.x, ps.y - e.y);
+    if (f === 'corsairs' && d < 12 && !isDead(e) && !off('pc')) sc -= 5 * (1 - d / 12);                               // stay out of boarding reach
+    else if (f === 'industry' && !isDead(e) && d < 45 && !off('pi') && Math.abs(angleDiff(bearing, e.h)) < 0.35) sc -= 3; // keep off the bow gun
+    else if (f === 'islanders' && d < 35 && !off('ps') && Math.abs(angleDiff(bearing, e.h + Math.PI)) < 0.4) sc -= 2;   // not right behind them: stern guns
+    else if (f === 'treasure_fleet' && coins.boarding && shipsTouching(Object.assign({}, ship, ps), e)) sc += 8;
+  }
+  return sc;
 }
 
 /**
@@ -400,7 +573,7 @@ function aiBestMove(ship, goal, lo, hi, straight) {
     const f = fwdVec(rot.h);
     for (const c of clickSet) {
       const d = Math.min(c * CLICK_LEN, slide.moved);
-      if (slide.stoppedBy === 'edge' && d < 0.05) continue; // would be scuttled
+
       const end = { x: start.x + f.x * d, y: start.y + f.y * d, h: rot.h };
       let score = aiEvalPose(ship, end, goal);
       if (d < 0.3) score -= 4;
