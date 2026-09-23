@@ -51,8 +51,9 @@ footer:
         - { label: Starter pack (sold out), to: /starter-pack }
         - { label: Discord, to: https://discord.gg/DMuFEWJtZq, external: true }
         - { label: Privacy, to: /privacy }
+        - { label: Terms and licenses, to: /terms }
   social:
     - { label: Discord, to: https://discord.gg/DMuFEWJtZq, icon: i-lucide-message-circle }
     - { label: GitHub, to: https://github.com/JoshTheDerf/cannons-and-coastlines/tree/main, icon: i-lucide-github }
-  license: © 2026 Joshua Bemenderfer. Licensed under CC BY-NC-SA 4.0.
+  license: © 2026 Joshua Bemenderfer. The free base game is licensed under CC BY-NC-SA 4.0.
   licenseUrl: https://creativecommons.org/licenses/by-nc-sa/4.0/

@@ -339,6 +339,10 @@ async function resend() {
               Buy the files
             </UButton>
             <p v-if="filesError" class="mt-2 text-sm text-error-400">{{ filesError }}</p>
+            <p class="mt-2 text-sm text-ink-soft">
+              For your own prints only. See the
+              <NuxtLink to="/terms#paid-models-add-on-fleets" class="underline">license</NuxtLink>.
+            </p>
 
             <div class="mt-6 pt-5 border-t border-ink/25">
               <p class="text-sm text-ink-soft">Already bought this?</p>
