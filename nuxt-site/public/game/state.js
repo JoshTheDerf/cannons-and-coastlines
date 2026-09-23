@@ -13,20 +13,22 @@ function makeShip(p, fid, i) {
     len: f.len, wid: f.wid, guns: f.guns, moveCount: f.moveCount, hullStyle: f.hull,
     maxFit: f.fittings, fit: f.fittings,
     x: 0, y: 0, h: 0, placed: false,
-    acted: false,        // used its one action this turn
-    pending: null,       // 'move2' (Full Sail) or 'shot2' (Skilled Gunner) mid-action
-    signalMoved: false,  // took the free Signal Flags move this turn
-    mustSail: false,     // Always Underway: fired, still owes its forward click
-    fullSail: false, gunner: false, braced: false, stoneUsed: false,
-    movesDone: 0, shotsDone: 0,
+    // A ship's turn (rulebook v0.5): one action (Set Heading, Fire, or an
+    // Island action), then click forward 1 to Move Count. Island actions and
+    // dead ships skip the click.
+    acted: false,        // finished all its turns this round
+    turnsLeft: 0,        // 1, plus one per Signal Flags transfer received
+    stage: null,         // 'action' (turn not started) | 'click' (fired, still owes its click)
+    noAction: false,     // gave its action away with Signal Flags: only clicks forward
+    pending: null,       // 'shot2': Skilled Gunner's second shot
+    gunner: false, braced: false, stoneUsed: false, shotsDone: 0,
     touchPrev: [],       // islands touched at the end of the owner's previous turn
-    anchored: false,     // Always Underway: touching an island at turn start
   };
 }
 
 /**
- * opts: { seats: [{ faction, color, name, ai }], mode: 'standard'|'underway',
- *         setup: 'quick'|'custom', stalemate, table: 'rect'|'round' }
+ * opts: { seats: [{ faction, color, name, ai }], setup: 'quick'|'custom',
+ *         stalemate, table: 'rect'|'round' }
  * Seats are numbered 1..N in turn order.
  */
 function newGame(opts) {
@@ -249,7 +251,6 @@ const passiveOf = p => FACTION_DEFS[G.factions[p]].passive;
 // "Coins and the faction passive belong to the fleet"). Hull stats such as
 // move count, fittings and gun layout stay with the ship itself.
 const pivotFor = ship => (passiveOf(ship.owner) === 'disciplined' ? 180 : 90);
-const underway = () => G.opts.mode === 'underway';
 const opponents = p => G.order.filter(q => q !== p);
 const enemyShips = p => opponents(p).flatMap(q => G.players[q].ships);
 const seatName = p => G.players[p].name;
@@ -308,10 +309,8 @@ function beginTurn() {
   const p = G.active;
   G.coinPhase = true;
   for (const s of G.players[p].ships) {
-    s.acted = false;
-    s.pending = null; s.signalMoved = false; s.fullSail = false; s.gunner = false; s.mustSail = false;
-    s.movesDone = 0; s.shotsDone = 0;
-    s.anchored = touchingIslands(s).length > 0;
+    s.acted = false; s.turnsLeft = 1; s.stage = 'action'; s.noAction = false;
+    s.pending = null; s.gunner = false; s.shotsDone = 0;
   }
   // Stone Hulls: "the first hit it takes each turn", so it resets every turn.
   for (const s of allShips()) s.stoneUsed = false;

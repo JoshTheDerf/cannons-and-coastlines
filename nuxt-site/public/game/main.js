@@ -7,7 +7,7 @@ let aiControlled = { 1: false, 2: true };
 const setupChoice = {
   solo: true,
   factions: { 1: 'queens_fleet', 2: 'corsairs' },
-  mode: 'standard', setup: 'quick', stalemate: false,
+  setup: 'quick', stalemate: false,
 };
 const UI = {
   mode: null,      // null | 'move' | 'fire' | 'coin' | 'evasive' | 'revive'
@@ -55,13 +55,10 @@ function showSetup() {
       <div class="setupLabel" style="--pc:${PALETTE[p - 1].main}"><span class="dot"></span>${p === 2 && setupChoice.solo ? 'Computer' : 'Player ' + p}</div>
       <div class="fRow">${FACTION_ORDER.map(fid => factionCard(fid, setupChoice.factions[p] === fid, `data-p="${p}" data-f="${fid}"`)).join('')}</div>`).join('') + `
     <div class="optGrid">
-      <span>Rules</span><div>${opt('mode', 'standard', 'Standard')}${opt('mode', 'underway', 'Always Underway')}</div>
       <span>Table</span><div>${opt('setup', 'quick', 'Quick start')}${opt('setup', 'custom', 'Set it up yourselves')}</div>
       <span>Stalemate rule</span><div>${opt('stalemate', true, 'On')}${opt('stalemate', false, 'Off')}</div>
     </div>
-    <p class="optNote callout">${setupChoice.mode === 'underway'
-      ? 'Always Underway: every ship steers or shoots, then must sail at least one click.'
-      : 'Standard: each ship takes one action per turn: move, fire, or an island action.'}</p>`;
+    <p class="optNote callout">Rulebook ${RULES_VERSION}: each ship steers, fires, or takes an island action, then sails forward. Only an island action holds a ship still.</p>`;
   el.querySelectorAll('.fCard').forEach(b => b.onclick = () => { setupChoice.factions[b.dataset.p] = b.dataset.f; showSetup(); });
   el.querySelectorAll('.optBtn').forEach(b => b.onclick = () => {
     const v = b.dataset.v;
@@ -76,7 +73,7 @@ function beginGame() {
   setRand(Math.random);
   newGame({
     seats: [1, 2].map(p => ({ faction: setupChoice.factions[p], color: p - 1, name: p === 2 && setupChoice.solo ? 'Computer' : `Player ${p}`, ai: p === 2 && setupChoice.solo })),
-    mode: setupChoice.mode, setup: setupChoice.setup, stalemate: setupChoice.stalemate, table: 'rect',
+    setup: setupChoice.setup, stalemate: setupChoice.stalemate, table: 'rect',
   });
   enterGameScreen();
   if (G.phase === 'play') announceTurn();
@@ -303,7 +300,8 @@ async function playEvents(events) {
       case 'coin':
         sfxCoinPlay(); logMsg(e.msg);
         if (s) {
-          const col = { brace: '241,196,15', fullsail: '120,220,255', gunner: '255,140,90', signal: '255,255,255' }[e.coin];
+          const col = { brace: '241,196,15', gunner: '255,140,90', signal: '120,220,255' }[e.coin];
+          if (e.coin === 'signal') { const g = shipById(e.from); if (g) animRing(g.x, g.y, '200,200,200'); }
           if (e.coin === 'repair') { s.fit = e.fit; animSparkle(s.x, s.y); animText(s.x, s.y, '+1 fitting', '120,240,160'); }
           else animRing(s.x, s.y, col);
           if (e.coin === 'brace') s.braced = true;
@@ -378,6 +376,7 @@ function onPointerDown(e) {
     case 'move': UI.dragging = true; setMoveHeading(w); return;
     case 'fire': firePointer(w, true); return;
     case 'coin': coinTap(w); return;
+    case 'signalTo': signalToTap(w); return;
     case 'evasive': {
       const ev = UI.evasive;
       const dp = dist(w.x, w.y, ev.port.end.x, ev.port.end.y), ds = dist(w.x, w.y, ev.stbd.end.x, ev.stbd.end.y);
@@ -442,8 +441,7 @@ function onKey(e) {
   if (e.key === '+' || e.key === '=') camZoomAt(canvasW / 2, canvasH / 2, 1.25);
   if (e.key === '-') camZoomAt(canvasW / 2, canvasH / 2, 0.8);
   if (!canInteract()) return;
-  const mandatory = UI.mode === 'move' && (UI.move.kind === 'au-sail' || UI.move.ship.pending === 'move2');
-  if (e.key === 'Escape' && !mandatory) { cancelMode(); refresh(); }
+  if (e.key === 'Escape') { cancelMode(); refresh(); }
   if (UI.mode === 'move' && !UI.move.lockHeading && (e.key === 'ArrowLeft' || e.key === 'ArrowRight')) {
     UI.move.h = normAngle(UI.move.h + (e.key === 'ArrowLeft' ? -1 : 1) * Math.PI / 36);
     replanMove(); refreshPrompt(); e.preventDefault();
@@ -464,6 +462,7 @@ function pickShip(w, p) {
 }
 
 function cancelMode() {
+  UI.signalFrom = null;
   UI.mode = null; UI.move = null; UI.fire = null; UI.coin = null; UI.evasive = null; UI.targets = null;
 }
 
@@ -471,9 +470,8 @@ function selectShip(s) {
   cancelMode();
   UI.sel = s;
   sfxSelect(); hapticTap();
-  if (s.pending === 'move2') { startMove(s, underway() ? 'au-steer' : 'action'); return; }
   if (s.pending === 'shot2') { startFire(s, s.lastSource || 'ship', s.lastIsland != null ? G.terrain[s.lastIsland] : null); return; }
-  if (s.mustSail) { startMove(s, 'au-sail'); return; }
+  if (s.stage === 'click' && !s.acted) { startMove(s, 'sail'); return; }
   refresh();
 }
 
@@ -572,11 +570,12 @@ function deployConfirm() {
 
 // ─── Move ─────────────────────────────────────────────
 
+/** kind 'steer' (Set Heading, then click) or 'sail' (heading held). */
 function startMove(ship, kind) {
   cancelMode();
   UI.sel = ship;
   UI.mode = 'move';
-  UI.move = { ship, kind, h: ship.h, clicks: ship.moveCount, lockHeading: kind === 'au-sail', plan: null };
+  UI.move = { ship, kind, h: ship.h, clicks: ship.moveCount, lockHeading: kind === 'sail', plan: null };
   replanMove();
   refresh();
 }
@@ -604,17 +603,14 @@ function changeClicks(d) {
 async function commitMove() {
   const m = UI.move;
   if (!m || UI.busy) return;
-  const { ship, kind, clicks } = m;
+  const { ship, clicks } = m;
   const id = ship.id;
   const hh = m.lockHeading ? ship.h : m.plan.rot.h;
   cancelMode();
-  const a = kind === 'signal'
-    ? { t: 'coin', coin: 'signal', target: id, h: hh, clicks }
-    : { t: 'move', ship: id, h: hh, clicks, kind };
-  const res = await perform(a);
+  const res = await perform({ t: 'move', ship: id, h: hh, clicks });
   if (!res.ok || !G || G.phase !== 'play') return;
   const s = shipById(id);
-  if (s && s.pending === 'move2') { logMsg('Full Sail: take the second move.'); startMove(s, underway() ? 'au-steer' : 'action'); return; }
+  if (s && !s.acted && s.turnsLeft > 0 && G.active === s.owner) { logMsg(`${s.name}: next turn.`); UI.sel = s; refresh(); return; }
   UI.sel = null; refresh();
 }
 
@@ -694,7 +690,8 @@ async function releaseShot() {
     startFire(s, a.source, a.island != null ? G.terrain[a.island] : null);
     return;
   }
-  if (s && s.mustSail) { startMove(s, 'au-sail'); return; }
+  if (s && s.stage === 'click' && !s.acted) { startMove(s, 'sail'); return; }
+  if (s && !s.acted && s.turnsLeft > 0) { logMsg(`${s.name}: next turn.`); UI.sel = s; refresh(); return; }
   UI.sel = null; refresh();
 }
 
@@ -705,7 +702,7 @@ async function skipSecond() {
   cancelMode();
   const res = await perform({ t: 'skipShot', ship: id });
   const again = res.ok && shipById(id);
-  if (again && again.mustSail) { startMove(again, 'au-sail'); return; }
+  if (again && again.stage === 'click' && !again.acted) { startMove(again, 'sail'); return; }
   UI.sel = null; refresh();
 }
 
@@ -715,32 +712,23 @@ function shipActions(ship) {
   const acts = [];
   if (ship.owner !== G.active || G.phase !== 'play') return acts;
   const dead = isDead(ship);
-  const isl = touchingIslands(ship).map(i => G.terrain[i]);
-  const islandActs = () => {
-    for (const t of isl) {
-      if (t.owner === ship.owner) {
-        acts.push({ id: 'collect', t, label: passiveOf(ship.owner) === 'harvest' ? 'Collect 2' : 'Collect' });
-        acts.push({ id: 'islandgun', t, label: 'Island gun' });
-      } else {
-        const why = raiseFlagProblem(ship, t);
-        acts.push({ id: 'raise', t, label: 'Raise flag', disabled: !!why, why });
+  if (!ship.acted && !ship.pending) {
+    if (ship.stage === 'click') acts.push({ id: 'sail', label: 'Sail on' });
+    else if (ship.noAction) acts.push({ id: 'sail', label: 'Sail on (no action)' });
+    else {
+      const x2 = ship.turnsLeft > 1 ? ` (turn 1 of ${ship.turnsLeft})` : '';
+      if (!dead) acts.push({ id: 'steer', label: 'Steer and sail' + x2 });
+      acts.push({ id: 'fire', label: (ship.gunner ? 'Fire twice' : 'Fire') + (dead ? '' : ', then sail') });
+      for (const t of touchingIslands(ship).map(i => G.terrain[i])) {
+        if (t.owner === ship.owner) {
+          acts.push({ id: 'collect', t, label: passiveOf(ship.owner) === 'harvest' ? 'Collect 2' : 'Collect' });
+          acts.push({ id: 'islandgun', t, label: 'Island gun' });
+        } else {
+          const why = raiseFlagProblem(ship, t);
+          acts.push({ id: 'raise', t, label: 'Raise flag', disabled: !!why, why });
+        }
       }
-    }
-  };
-  if (!ship.acted && !ship.pending && !ship.mustSail) {
-    if (!underway()) {
-      if (!dead && !ship.signalMoved) acts.push({ id: 'move', label: ship.fullSail ? 'Move x2' : 'Move' });
-      acts.push({ id: 'fire', label: ship.gunner ? 'Fire x2' : 'Fire' });
-      islandActs();
-    } else {
-      if (dead) acts.push({ id: 'fire', label: 'Fire' });
-      else if (ship.fullSail) acts.push({ id: 'au-steer', label: 'Move x2' });
-      else {
-        acts.push({ id: 'au-steer', label: 'Steer and sail' });
-        acts.push({ id: 'au-fire', label: ship.gunner ? 'Fire x2, then sail' : 'Fire, then sail' });
-      }
-      // Anchored: began the turn touching an island.
-      if (ship.anchored) islandActs();
+      if (dead) acts.push({ id: 'pass', label: 'Done' });
     }
   }
   if (dead) acts.push({ id: 'scuttle', label: 'Scuttle' });
@@ -751,16 +739,18 @@ async function doShipAction(act) {
   const ship = UI.sel;
   if (!ship || !canInteract()) return;
   switch (act.id) {
-    case 'move': startMove(ship, 'action'); return;
-    case 'au-steer': startMove(ship, 'au-steer'); return;
-    case 'fire': case 'au-fire': startFire(ship, 'ship'); return;
+    case 'steer': startMove(ship, 'steer'); return;
+    case 'sail': startMove(ship, 'sail'); return;
+    case 'fire': startFire(ship, 'ship'); return;
     case 'islandgun': startFire(ship, 'island', act.t); return;
   }
   if (act.disabled) { logMsg(act.why); sfxError(); return; }
   cancelMode();
   const a = { t: act.id, ship: ship.id };
   if (act.t) a.island = act.t.id;
-  await perform(a);
+  const res = await perform(a);
+  const s = res.ok && shipById(ship.id);
+  if (s && !s.acted && s.turnsLeft > 0 && G.active === s.owner) { UI.sel = s; refresh(); return; }
   UI.sel = null; refresh();
 }
 
@@ -780,6 +770,24 @@ function onCoinTap(p, id) {
   refresh();
 }
 
+function nearestTarget(w) {
+  let target = null, bd = Infinity;
+  for (const s of UI.targets || []) {
+    const sg = shipSeg(s);
+    const d = ptSegDist(w.x, w.y, sg.ax, sg.ay, sg.bx, sg.by) - sg.r;
+    if (d < bd) { bd = d; target = s; }
+  }
+  return target && bd <= Math.max(3, 18 / worldScale) ? target : null;
+}
+
+async function signalToTap(w) {
+  const to = nearestTarget(w), from = UI.signalFrom;
+  if (!to || !from) return;
+  cancelMode();
+  await perform({ t: 'coin', coin: 'signal', from: from.id, target: to.id });
+  UI.sel = null; refresh();
+}
+
 async function coinTap(w) {
   const id = UI.coin;
   let target = null, bd = Infinity;
@@ -795,10 +803,9 @@ async function coinTap(w) {
 async function playCoin(id, target) {
   cancelMode();
   if (id === 'signal') {
-    UI.sel = target;
-    UI.mode = 'move';
-    UI.move = { ship: target, kind: 'signal', h: target.h, clicks: target.moveCount, lockHeading: false };
-    replanMove();
+    // Two taps: the ship that gives up its action, then the one that gets two turns.
+    UI.mode = 'signalTo'; UI.coin = 'signal'; UI.signalFrom = target;
+    UI.targets = signalReceivers(G.active, target); UI.sel = target;
     refresh();
     return;
   }
@@ -944,10 +951,10 @@ function movePrompt() {
   const m = UI.move;
   const pl = m.plan;
   const n = pl ? Math.round(pl.moved / CLICK_LEN * 10) / 10 : 0;
-  const head = m.lockHeading ? 'Heading is fixed.' : `Drag the handle or tap the water to set heading (up to ${pivotFor(m.ship)}°).`;
+  const head = m.lockHeading ? 'Heading held.' : `Drag the handle or tap the water to set heading (up to ${pivotFor(m.ship)}\u00B0).`;
   const stop = pl && pl.stoppedBy && pl.moved < pl.planned - 0.05 ? ` Stops after ${n} of ${m.clicks}.` : '';
-  const label = m.kind === 'signal' ? 'Signal move. ' : m.ship.pending === 'move2' ? 'Second move. ' : '';
-  return `${label}${head} ${m.clicks} click${m.clicks > 1 ? 's' : ''}.${stop}`;
+  const off = pl && pl.stoppedBy === 'edge' && pl.moved < 0.05 ? ' No room: the ship would be scuttled!' : '';
+  return `${head} Sail ${m.clicks} click${m.clicks > 1 ? 's' : ''} forward.${stop}${off}`;
 }
 
 function fillBar(p, prompt, acts) {
@@ -981,13 +988,10 @@ function fillBar(p, prompt, acts) {
   if (UI.mode === 'move') {
     say(movePrompt());
     const m = UI.move;
-    if (underway() && m.kind !== 'action') {
-      acts.appendChild(btn('−', () => changeClicks(-1), { act: 'less', disabled: m.clicks <= 1 }));
-      acts.appendChild(btn('+', () => changeClicks(1), { act: 'more', disabled: m.clicks >= m.ship.moveCount }));
-    }
+    acts.appendChild(btn('\u2212', () => changeClicks(-1), { act: 'less', disabled: m.clicks <= 1 }));
+    acts.appendChild(btn('+', () => changeClicks(1), { act: 'more', disabled: m.clicks >= m.ship.moveCount }));
     acts.appendChild(btn('Sail', commitMove, { cls: 'go', act: 'sail' }));
-    const mandatory = m.kind === 'au-sail' || m.ship.pending === 'move2';
-    if (!mandatory) acts.appendChild(btn('Cancel', () => { cancelMode(); refresh(); }, { act: 'cancel' }));
+    if (m.ship.stage !== 'click') acts.appendChild(btn('Cancel', () => { cancelMode(); refresh(); }, { act: 'cancel' }));
     return;
   }
   if (UI.mode === 'fire') {
@@ -1008,8 +1012,13 @@ function fillBar(p, prompt, acts) {
   }
   if (UI.mode === 'coin') {
     const c = COIN_DEFS[UI.coin];
-    const where = UI.coin === 'boarding' ? 'Tap an enemy ship touching yours.' : UI.coin === 'repair' ? 'Tap one of your ships (or a dead enemy to capture it).' : 'Tap one of your ships.';
+    const where = UI.coin === 'boarding' ? 'Tap an enemy ship touching yours.' : UI.coin === 'repair' ? 'Tap one of your ships (or a dead enemy to capture it).' : UI.coin === 'signal' ? 'First tap the ship that gives up its action.' : 'Tap one of your ships.';
     say(`${c.name}: ${c.text} ${where}`);
+    acts.appendChild(btn('Cancel', () => { cancelMode(); refresh(); }, { act: 'cancel' }));
+    return;
+  }
+  if (UI.mode === 'signalTo') {
+    say(`Signal Flags: ${UI.signalFrom.name} gives up its action and only sails. Tap the ship that takes two turns.`);
     acts.appendChild(btn('Cancel', () => { cancelMode(); refresh(); }, { act: 'cancel' }));
     return;
   }
@@ -1037,9 +1046,8 @@ function fillBar(p, prompt, acts) {
   }
 
   const waiting = G.players[p].ships.filter(x => !x.acted).length;
-  say(G.coinPhase
-    ? `Spend coins now, or pick a ship. ${waiting} ship${waiting === 1 ? '' : 's'} to act.`
-    : `Pick a ship. ${waiting} ship${waiting === 1 ? '' : 's'} left to act.`);
+  const left = `${waiting} ship${waiting === 1 ? '' : 's'} to go. Ships you leave sail on one click.`;
+  say(!waiting ? 'Every ship has gone. End the turn.' : G.coinPhase ? `Spend coins now, or pick a ship. ${left}` : `Pick a ship. ${left}`);
   if (canDeclareVictory(p)) acts.appendChild(btn('Declare victory', declareVictory, { cls: 'gold', act: 'declare' }));
   if (reviveAllowed(p)) acts.appendChild(btn('Raise a sunk ship (2 coins)', startRevive, { act: 'revive' }));
   acts.appendChild(btn('End turn', endTurn, { cls: 'go', act: 'endturn' }));
@@ -1132,7 +1140,8 @@ async function aiMaybeAct() {
         if (!res.ok) {
           console.warn('Computer move refused:', JSON.stringify(a), res.err);
           if (a.t === 'endTurn') break;
-          if (a.ship) await perform({ t: 'pass', ship: a.ship });
+          await perform({ t: 'endTurn' });
+          break;
         }
         UI.sel = null;
         if (a.t === 'endTurn' || a.t === 'declare') break;

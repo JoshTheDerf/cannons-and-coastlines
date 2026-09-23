@@ -1,16 +1,21 @@
 // Cannons & Coastlines, digital edition: rules.js
-// The rules engine. act(p, action) checks that seat p may do `action` right
-// now, applies it to G and returns the events that happened, in order.
-// Clients animate the events; the online server runs this same file as the
-// authority, so a client can only ever ask, never decide.
+// The rules engine (rulebook v0.5). act(p, action) checks that seat p may do
+// `action` right now, applies it to G and returns the events that happened,
+// in order. Clients animate the events; the online server runs this same
+// file as the authority, so a client can only ever ask, never decide.
 //
-// Actions (all ids are strings or numbers from the state):
-//   { t: 'move', ship, h, clicks, kind }  kind: 'action' | 'au-steer' | 'au-sail'
+// A ship's turn: one action (Set Heading, Fire, or an Island action if it
+// touches an island), then it clicks forward 1 to Move Count. An Island
+// action skips the click. Dead ships skip the click but may still fire.
+// No ship both steers and fires on the same turn.
+//
+// Actions (ids are strings or numbers from the state):
+//   { t: 'move', ship, h, clicks }     steer (if the turn has not started) and click
 //   { t: 'fire', ship, source: 'ship'|'island', slot, island, h, D }
-//   { t: 'skipShot', ship }            { t: 'pass', ship }
+//   { t: 'skipShot', ship }            { t: 'pass', ship }      (dead ships only)
 //   { t: 'raise', ship, island }       { t: 'collect', ship, island }
 //   { t: 'scuttle', ship }
-//   { t: 'coin', coin, target, h, clicks, side }
+//   { t: 'coin', coin, target, from, side }   (Signal Flags: from = giving ship)
 //   { t: 'revive', island }            { t: 'declare' }       { t: 'endTurn' }
 
 let EV = null;
@@ -54,55 +59,56 @@ const pose = s => ({ x: s.x, y: s.y, h: s.h });
 const snapShip = s => ({ id: s.id, owner: s.owner, build: s.build, name: s.name, len: s.len, wid: s.wid, guns: s.guns, hullStyle: s.hullStyle, maxFit: s.maxFit, fit: s.fit, x: s.x, y: s.y, h: s.h });
 const hitWords = res => ({ stone: 'stone hull shrugs it off', brace: 'brace absorbs it', fitting: 'a fitting is lost', dead: 'dead in the water', sunk: 'sunk' }[res] || res);
 
-/** Can ship take a fresh action (not a continuation)? */
-function freshAction(s) { return !s.acted && !s.pending && !s.mustSail; }
+/** Has this ship not started its current turn yet? */
+function turnFresh(s) { return !s.acted && s.stage === 'action' && !s.pending; }
+/** May it take an action (steer, fire, island) on this turn? */
+function canAct(s) { return turnFresh(s) && !s.noAction; }
+/** May it steer on this turn? Only before acting, and not a ship that gave its action away. */
+function canSteer(s) { return canAct(s) && !isDead(s); }
+
+/** End the ship's current turn; a Signal Flags receiver may have another. */
+function finishTurn(s) {
+  s.pending = null; s.shotsDone = 0;
+  s.turnsLeft = Math.max(0, (s.turnsLeft || 1) - 1);
+  s.noAction = false; // a giver only gives up one action
+  if (s.turnsLeft > 0) s.stage = 'action';
+  else { s.stage = null; s.acted = true; }
+}
 
 // ─── Moving ───────────────────────────────────────────
 
-function doMove(ship, h, clicks, kind) {
-  if (kind !== 'signal') G.coinPhase = false;
-  const lockH = kind === 'au-sail' || kind === 'au-auto';
-  const plan = planMove(ship, lockH ? ship.h : h, clicks, pivotFor(ship));
+/** Click forward (after steering to h if allowed). Returns false if the ship was scuttled. */
+function doMove(ship, h, clicks, why) {
+  G.coinPhase = false;
+  const plan = planMove(ship, h, clicks, pivotFor(ship));
   const from = pose(ship);
   ship.x = plan.end.x; ship.y = plan.end.y; ship.h = plan.rot.h;
   ev({ e: 'move', ship: ship.id, from, plan: { rot: { h: plan.rot.h }, start: plan.start, end: plan.end, moved: plan.moved, planned: plan.planned, stoppedBy: plan.stoppedBy, clicks } });
+  if (why) note(why);
+  // Forced off the table with no room at all: scuttled.
+  if (plan.stoppedBy === 'edge' && plan.moved < 0.05) {
+    ev({ e: 'sink', ship: snapShip(ship), msg: `${ship.name} has no room at the edge and is scuttled.` });
+    sinkShip(ship);
+    checkLastFleet();
+    return false;
+  }
   if (plan.stoppedBy && plan.moved < plan.planned - 0.05) {
     const what = { ship: 'a ship', island: 'an island', terrain: plan.obj ? (plan.obj.type === 'rock' ? 'a rock' : 'a reef') : 'terrain', edge: 'the table edge' }[plan.stoppedBy];
     note(`${ship.name} stops against ${what}.`);
   }
-  // Always Underway: a ship with no room at all at the edge is scuttled.
-  if (underway() && kind !== 'signal' && plan.stoppedBy === 'edge' && plan.moved < 0.05) {
-    ev({ e: 'sink', ship: snapShip(ship), msg: `${ship.name} is forced off the table and scuttled.` });
-    sinkShip(ship);
-    checkLastFleet();
-    return;
-  }
-  if (kind === 'signal') { ship.signalMoved = true; return; }
-  ship.mustSail = false;
-  if (ship.fullSail && !ship.movesDone && kind !== 'au-auto') { ship.movesDone = 1; ship.pending = 'move2'; }
-  else { ship.acted = true; ship.pending = null; }
+  return true;
 }
 
 const ACTIONS = {};
 
 ACTIONS.move = (p, a) => {
   const s = ownShip(p, a.ship);
-  need(!isDead(s), 'A dead ship cannot move.');
-  const kind = a.kind || (underway() ? 'au-steer' : 'action');
-  let clicks = s.moveCount;
-  if (!underway()) {
-    need(kind === 'action', 'Unknown move.');
-    need(s.pending === 'move2' || (freshAction(s) && !s.signalMoved), s.signalMoved ? 'This ship already took its free move. It can still fire.' : 'This ship has already acted.');
-  } else {
-    clicks = clamp(Math.round(+a.clicks || 1), 1, s.moveCount);
-    if (kind === 'au-sail') need(s.mustSail, 'Nothing to sail for.');
-    else {
-      need(kind === 'au-steer', 'Unknown move.');
-      need(s.pending === 'move2' || freshAction(s), 'This ship has already acted.');
-    }
-  }
-  const h = normAngle(+a.h || 0);
-  doMove(s, h, clicks, kind);
+  need(!isDead(s), 'A dead ship cannot move. It may still fire.');
+  need(!s.acted && (s.stage === 'action' || s.stage === 'click') && !s.pending, 'This ship has finished its turn.');
+  const clicks = clamp(Math.round(+a.clicks || 1), 1, s.moveCount);
+  // Steering is the action, so only a ship that has not fired may turn.
+  const h = canSteer(s) ? normAngle(+a.h || 0) : s.h;
+  if (doMove(s, h, clicks)) finishTurn(s);
 };
 
 // ─── Firing ───────────────────────────────────────────
@@ -113,23 +119,23 @@ function fireOriginFor(ship, F) {
   return { x: w.x, y: w.y, h: F.slot.free ? F.h : w.h };
 }
 
+/** Firing is done: island guns and dead ships end the turn, a ship at sea still clicks. */
 function finishFiring(ship, source) {
-  ship.pending = null; ship.acted = true;
-  // Always Underway: a ship that fires from its own slots still has to sail.
-  if (underway() && source === 'ship' && !isDead(ship)) ship.mustSail = true;
+  ship.pending = null;
+  ship.gunner = false; // Skilled Gunner covers a single turn
+  if (source === 'island' || isDead(ship)) finishTurn(ship);
+  else ship.stage = 'click';
 }
 
 ACTIONS.fire = (p, a) => {
   const s = ownShip(p, a.ship);
   const again = s.pending === 'shot2';
-  need(again || freshAction(s), 'This ship has already acted.');
-  need(!(underway() && s.fullSail), 'A Full Sail ship does not fire this turn.');
+  need(again || canAct(s), s.noAction ? 'This ship gave its action away. It only sails forward.' : 'This ship has already acted this turn.');
   const F = { source: a.source === 'island' ? 'island' : 'ship', h: normAngle(+a.h || 0) };
   if (F.source === 'island') {
     F.island = islandById(a.island);
     need(F.island.owner === p, 'Only an island you hold has a gun for you.');
     need(shipTouchesTerrain(s, F.island), 'Cannons need a crew: a ship must be touching the island.');
-    if (underway() && !again) need(s.anchored, 'Only a ship that started its turn at the island can use its gun.');
   } else {
     F.slot = shipSlots(s)[a.slot | 0];
     need(F.slot, 'No such cannon slot.');
@@ -161,8 +167,8 @@ ACTIONS.fire = (p, a) => {
   checkLastFleet();
   s.shotsDone = (s.shotsDone || 0) + 1;
   s.lastSource = F.source; s.lastIsland = F.island ? F.island.id : null;
-  if (s.gunner && s.shotsDone < 2 && G.phase === 'play' && G.players[p].ships.includes(s)) s.pending = 'shot2';
-  else finishFiring(s, F.source);
+  if (s.gunner && s.shotsDone < 2 && G.phase === 'play' && G.players[p].ships.includes(s)) { s.pending = 'shot2'; s.stage = 'action'; }
+  else if (G.players[p].ships.includes(s)) finishFiring(s, F.source);
 };
 
 ACTIONS.skipShot = (p, a) => {
@@ -173,17 +179,16 @@ ACTIONS.skipShot = (p, a) => {
 
 ACTIONS.pass = (p, a) => {
   const s = ownShip(p, a.ship);
-  need(freshAction(s), 'This ship has already acted.');
-  need(!(underway() && !isDead(s) && !s.anchored), 'Every ship must sail in Always Underway.');
-  s.acted = true;
+  need(isDead(s), 'Every ship sails forward. Only a dead ship can sit out its turn.');
+  need(!s.acted && !s.pending, 'This ship has finished its turn.');
+  finishTurn(s);
 };
 
 // ─── Islands ──────────────────────────────────────────
 
 function islandActionCheck(s, t) {
-  need(freshAction(s), 'This ship has already acted.');
+  need(canAct(s), s.noAction ? 'This ship gave its action away. It only sails forward.' : 'This ship has already acted this turn.');
   need(shipTouchesTerrain(s, t), 'The ship is not touching that island.');
-  if (underway()) need(s.anchored, 'Only a ship that started its turn at the island can do that.');
 }
 
 ACTIONS.raise = (p, a) => {
@@ -193,7 +198,7 @@ ACTIONS.raise = (p, a) => {
   need(!why, why);
   G.coinPhase = false;
   setFlag(t, p);
-  s.acted = true;
+  finishTurn(s);
   ev({ e: 'flag', island: t.id, p, ship: s.id, msg: `${s.name} raises the flag.` });
   plunder(p, s);
 };
@@ -206,7 +211,7 @@ ACTIONS.collect = (p, a) => {
   const n = passiveOf(p) === 'harvest' ? 2 : 1;
   const got = [];
   for (let i = 0; i < n; i++) { const id = drawCoin(p); if (id) got.push(id); }
-  s.acted = true;
+  finishTurn(s);
   ev({ e: 'collect', p, ship: s.id, island: t.id, got, msg: got.length ? `${s.name} collects: ${got.map(id => COIN_DEFS[id].short).join(', ')}.` : 'The bag is empty.' });
 };
 
@@ -228,17 +233,25 @@ function touchingOwnShip(p, target) {
   return G.players[p].ships.some(s => s !== target && shipsTouching(s, target));
 }
 
-/** Ships that `coinId` could be played on right now by seat p. */
+/** Ships that can take the second half of a Signal Flags transfer from `giver`. */
+function signalReceivers(p, giver) {
+  // No allies online or in local games, so the receiver is one of yours.
+  return G.players[p].ships.filter(s => s !== giver && !s.noAction && !s.acted);
+}
+
+/**
+ * Ships that `coinId` could be played on right now by seat p.
+ * For Signal Flags these are the ships that can give up their action.
+ */
 function coinTargets(p, coinId) {
   if (!coinWindowOpen(p) || !G.players[p].coins[coinId]) return [];
   const mine = G.players[p].ships, theirs = enemyShips(p);
   const coins = G.players[p].coins;
   switch (coinId) {
     case 'brace': return mine.filter(s => !s.braced);
-    case 'signal': return mine.filter(s => !isDead(s) && !s.acted && !s.signalMoved && !s.fullSail);
-    case 'fullsail': return mine.filter(s => !isDead(s) && !s.acted && !s.fullSail && !s.signalMoved);
+    case 'signal': return mine.filter(s => !isDead(s) && canAct(s) && (s.turnsLeft || 1) === 1 && signalReceivers(p, s).length > 0);
     case 'evasive': return mine.filter(s => !isDead(s));
-    case 'gunner': return mine.filter(s => !s.acted && !s.gunner && !s.fullSail);
+    case 'gunner': return mine.filter(s => !s.acted && !s.gunner && !s.noAction);
     case 'repair': {
       const own = mine.filter(s => s.fit < s.maxFit && (s.fit > 0 || touchingOwnShip(p, s)));
       const caps = coins.boarding > 0 ? theirs.filter(s => isDead(s) && touchingOwnShip(p, s)) : [];
@@ -275,8 +288,9 @@ function capture(p, target) {
   const was = target.owner;
   target.owner = p;
   target.fit = 1;
-  target.acted = true; // may act on the following turn
-  target.pending = null; target.signalMoved = false; target.fullSail = false; target.gunner = false; target.mustSail = false;
+  // It joins the fleet and may act on the following turn.
+  target.acted = true; target.turnsLeft = 0; target.stage = null;
+  target.pending = null; target.noAction = false; target.gunner = false;
   target.touchPrev = [];
   G.players[p].ships.push(target);
   ev({ e: 'capture', p, was, ship: target.id, from: from.id, msg: `${target.name} captured! It joins the fleet next turn.` });
@@ -289,6 +303,16 @@ ACTIONS.coin = (p, a) => {
   const id = a.coin;
   need(COIN_DEFS[id], 'Unknown coin.');
   need(G.players[p].coins[id] > 0, `You have no ${COIN_DEFS[id].name}.`);
+  if (id === 'signal') {
+    const giver = shipById(a.from), target = shipById(a.target);
+    need(giver && coinTargets(p, 'signal').includes(giver), 'That ship cannot give up its action.');
+    need(target && signalReceivers(p, giver).includes(target), 'That ship cannot take the extra turn.');
+    payCoin(p, id);
+    giver.noAction = true;
+    target.turnsLeft = (target.turnsLeft || 1) + 1;
+    ev({ e: 'coin', p, coin: id, ship: target.id, from: giver.id, msg: `Signal flags: ${giver.name} only sails, ${target.name} takes ${target.turnsLeft} turns.` });
+    return;
+  }
   const target = shipById(a.target);
   need(target && coinTargets(p, id).includes(target), `${COIN_DEFS[id].name} cannot go on that ship.`);
   const at = { e: 'coin', p, coin: id, ship: target.id };
@@ -297,10 +321,6 @@ ACTIONS.coin = (p, a) => {
       payCoin(p, 'brace', true); // stays on the ship until it stops a hit
       target.braced = true;
       ev(Object.assign(at, { msg: `${target.name} braces for impact.` }));
-      break;
-    case 'fullsail':
-      payCoin(p, id); target.fullSail = true;
-      ev(Object.assign(at, { msg: `${target.name} will take two moves.` }));
       break;
     case 'gunner':
       payCoin(p, id); target.gunner = true;
@@ -321,13 +341,6 @@ ACTIONS.coin = (p, a) => {
       if (res === 'sunk') e.wreck = snapShip(target);
       if (res === 'fitting' || res === 'dead' || res === 'sunk') { G.stats[p].hits++; plunder(p, from); }
       checkLastFleet();
-      break;
-    }
-    case 'signal': {
-      const clicks = underway() ? clamp(Math.round(+a.clicks || 1), 1, target.moveCount) : target.moveCount;
-      payCoin(p, id);
-      ev(Object.assign(at, { msg: `Signal flags: ${target.name} takes a free move.` }));
-      doMove(target, normAngle(+a.h || 0), clicks, 'signal');
       break;
     }
     case 'evasive': {
@@ -379,8 +392,8 @@ ACTIONS.revive = (p, a) => {
   // The card does not say when it may act; like a captured ship, it acts
   // on your next turn.
   Object.assign(ship, ps, {
-    owner: p, fit: 1, placed: true, acted: true, pending: null, braced: false, mustSail: false,
-    signalMoved: false, fullSail: false, gunner: false, stoneUsed: false, touchPrev: [t.id],
+    owner: p, fit: 1, placed: true, acted: true, turnsLeft: 0, stage: null, pending: null, braced: false,
+    noAction: false, gunner: false, stoneUsed: false, touchPrev: [t.id],
   });
   G.players[p].ships.push(ship);
   ev({ e: 'revive', p, ship: ship.id, x: ship.x, y: ship.y, msg: `${ship.name} returns from the deep.` });
@@ -395,20 +408,21 @@ ACTIONS.declare = p => {
   G.endReason = `${seatName(p)} declared victory with ${s[p].total} points.`;
 };
 
-/** Always Underway: ships that did nothing still sail one click. */
-function underwayAutoSail(p) {
+/** Every ship that did not finish its turns still sails one click per turn left. */
+function autoSail(p) {
   for (const s of G.players[p].ships.slice()) {
-    if (G.phase !== 'play') return;
-    const idle = (!s.acted && !isDead(s) && !s.anchored) || s.pending === 'move2' || s.mustSail;
-    if (!idle) continue;
-    s.pending = null;
-    note(`${s.name} sails on.`);
-    doMove(s, s.h, 1, 'au-auto');
+    let guard = 0;
+    while (G.phase === 'play' && !s.acted && G.players[p].ships.includes(s) && guard++ < 8) {
+      if (s.pending === 'shot2') { finishFiring(s, s.lastSource || 'ship'); continue; }
+      if (isDead(s)) { finishTurn(s); continue; }
+      if (!doMove(s, s.h, 1, `${s.name} sails on.`)) break;
+      finishTurn(s);
+    }
   }
 }
 
 ACTIONS.endTurn = p => {
-  if (underway()) underwayAutoSail(p);
+  autoSail(p);
   if (G.phase !== 'play') return;
   endTurnBookkeeping();
   beginTurn();

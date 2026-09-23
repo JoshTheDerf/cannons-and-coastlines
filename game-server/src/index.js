@@ -41,7 +41,6 @@ export default {
       const settings = {
         name: String(body.name || 'Open waters').slice(0, 32),
         maxPlayers: Math.max(2, Math.min(engine.MAX_SEATS, body.maxPlayers | 0 || 4)),
-        underway: !!body.underway,
         timer: [0, 60, 90, 120, 180].includes(body.timer | 0) ? body.timer | 0 : 90,
       };
       for (let i = 0; i < 6; i++) {
@@ -65,21 +64,21 @@ export class Lobby extends DurableObject {
     this.sql = ctx.storage.sql;
     this.sql.exec(`CREATE TABLE IF NOT EXISTS games (
       code TEXT PRIMARY KEY, name TEXT, max INTEGER, players INTEGER, humans INTEGER,
-      status TEXT, underway INTEGER, updated INTEGER)`);
+      status TEXT, updated INTEGER)`);
   }
 
   list() {
     const since = Date.now() - 6 * 3600 * 1000;
-    return this.sql.exec(`SELECT code, name, max, players, humans, status, underway FROM games
+    return this.sql.exec(`SELECT code, name, max, players, humans, status FROM games
       WHERE updated > ? AND status != 'over' AND humans > 0 ORDER BY (status = 'lobby') DESC, updated DESC LIMIT 60`, since)
-      .toArray().map(r => ({ ...r, underway: !!r.underway }));
+      .toArray();
   }
 
   async update(e) {
-    this.sql.exec(`INSERT INTO games (code, name, max, players, humans, status, underway, updated) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+    this.sql.exec(`INSERT INTO games (code, name, max, players, humans, status, updated) VALUES (?, ?, ?, ?, ?, ?, ?)
       ON CONFLICT(code) DO UPDATE SET name = excluded.name, max = excluded.max, players = excluded.players, humans = excluded.humans,
-      status = excluded.status, underway = excluded.underway, updated = excluded.updated`,
-      e.code, e.name, e.max, e.players, e.humans, e.status, e.underway ? 1 : 0, Date.now());
+      status = excluded.status, updated = excluded.updated`,
+      e.code, e.name, e.max, e.players, e.humans, e.status, Date.now());
     // Forget long-finished games.
     this.sql.exec(`DELETE FROM games WHERE updated < ?`, Date.now() - 48 * 3600 * 1000);
     this.broadcast();
@@ -122,7 +121,7 @@ export class GameRoom extends DurableObject {
   async init(code, settings) {
     if (this.room) return false;
     this.room = {
-      code, name: settings.name, max: settings.maxPlayers, underway: settings.underway, timer: settings.timer,
+      code, name: settings.name, max: settings.maxPlayers, timer: settings.timer,
       status: 'lobby', host: null, seats: [], nextSeat: 1, created: Date.now(),
     };
     this.meta = { seq: 0, rng: crypto.getRandomValues(new Uint32Array(1))[0], deadline: null, deadlineTurn: null };
@@ -147,7 +146,7 @@ export class GameRoom extends DurableObject {
     try {
       await lobbyStub(this.env).update({
         code: r.code, name: r.name, max: r.max, players: r.seats.length,
-        humans: r.seats.filter(s => !s.ai).length, status: r.status, underway: r.underway,
+        humans: r.seats.filter(s => !s.ai).length, status: r.status,
       });
     } catch (e) { console.error('lobby update failed', e); }
   }
@@ -156,7 +155,7 @@ export class GameRoom extends DurableObject {
     const r = this.room;
     const away = this.away();
     return {
-      code: r.code, name: r.name, max: r.max, underway: r.underway, timer: r.timer, status: r.status, host: r.host,
+      code: r.code, name: r.name, max: r.max, timer: r.timer, status: r.status, host: r.host, rules: engine.RULES_VERSION,
       spectators: this.sockets().filter(ws => !this.seatOf(ws)).length,
       seats: r.seats.map(s => ({ seat: s.seat, name: s.name, faction: s.faction, color: s.color, ready: s.ready, ai: s.ai, connected: s.ai || !away.includes(s.seat) })),
     };
@@ -319,7 +318,7 @@ export class GameRoom extends DurableObject {
         for (const w of this.sockets()) { const st = this.seatOf(w); if (st) this.send(w, { type: 'welcome', seat: st.seat, token: st.token, spectator: false }); }
         this.withEngine(() => engine.newGame({
           seats: R.seats.map(x => ({ faction: x.faction, color: x.color, name: x.name, ai: !!x.ai })),
-          mode: R.underway ? 'underway' : 'standard', setup: 'quick', stalemate: false, table: 'round',
+          setup: 'quick', stalemate: false, table: 'round',
         }));
         R.status = 'play';
         this.meta.seq = 0;

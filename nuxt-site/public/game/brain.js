@@ -24,21 +24,14 @@ function aiNextAction(p) {
   if (!memo.roles) memo.roles = aiAssignRoles(p);
   const roles = aiRoleObjects(memo.roles);
 
-  // Finish anything half done first.
+  // Finish a turn already under way: a second Gunner shot, or the click
+  // forward after firing.
   for (const s of ships) {
-    if (s.pending === 'move2') {
-      const lo = underway() ? 1 : s.moveCount;
-      const mv = aiBestMove(s, roles[s.id], lo, s.moveCount);
-      return { t: 'move', ship: s.id, h: mv ? mv.h : s.h, clicks: mv ? mv.clicks : lo, kind: underway() ? 'au-steer' : 'action' };
-    }
     if (s.pending === 'shot2') {
       const again = aiBestShot(s);
       return again && again.ev > 0.5 ? aiFireAction(s, again) : { t: 'skipShot', ship: s.id };
     }
-    if (s.mustSail) {
-      const run = aiBestMove(s, roles[s.id], 1, s.moveCount, true);
-      return { t: 'move', ship: s.id, h: s.h, clicks: run ? run.clicks : 1, kind: 'au-sail' };
-    }
+    if (s.stage === 'click' && !s.acted) return aiSailOn(s, roles);
   }
 
   if (G.coinPhase) {
@@ -49,15 +42,18 @@ function aiNextAction(p) {
   if (!memo.order) {
     memo.order = ships.slice().sort((a, b) => (isDead(b) - isDead(a)) || ((roles[b.id] === 'collect') - (roles[a.id] === 'collect'))).map(s => s.id);
   }
-  for (const id of memo.order) {
+  for (const id of memo.order.concat(ships.map(s => s.id))) {
     const s = shipById(id);
-    if (!s || s.owner !== p || s.acted || s.pending || s.mustSail) continue;
-    return underway() ? aiShipUnderway(s, roles) : aiShipStandard(s, roles);
-  }
-  for (const s of ships) {
-    if (!s.acted && !s.pending && !s.mustSail) return underway() ? aiShipUnderway(s, roles) : aiShipStandard(s, roles);
+    if (!s || s.owner !== p || s.acted) continue;
+    return aiShipTurn(s, roles);
   }
   return { t: 'endTurn' };
+}
+
+/** Clicks forward on the current heading (after firing, or a ship with no action). */
+function aiSailOn(s, roles) {
+  const run = aiBestMove(s, roles[s.id], 1, s.moveCount, true);
+  return { t: 'move', ship: s.id, h: s.h, clicks: run ? run.clicks : 1 };
 }
 
 /**
@@ -121,92 +117,91 @@ function aiCoinChoice(p, roles, memo) {
   }
   if (has('evasive')) {
     for (const s of me.ships) {
-      if (isDead(s) || s.fit > 1 || memo.used['ev' + s.id] || aiThreat(s, s) === 0) continue;
+      if (isDead(s) || memo.used['ev' + s.id]) continue;
       memo.used['ev' + s.id] = 1;
       const plans = evasivePlans(s);
-      const side = ['port', 'stbd'].find(k => plans[k].moved > s.wid * 0.8 && aiThreat(s, plans[k].end) === 0);
+      // Slide a fragile ship out of a lane, or away from an edge it faces.
+      const fragile = s.fit <= 1 && aiThreat(s, s) > 0;
+      const cornered = aiEdgeRisk(s, s) >= 30;
+      if (!fragile && !cornered) continue;
+      const side = ['port', 'stbd'].find(k => plans[k].moved > s.wid * 0.8 &&
+        (fragile ? aiThreat(s, plans[k].end) === 0 : aiEdgeRisk(s, Object.assign({}, plans[k].end, { h: s.h })) < 30));
       if (side) return coin('evasive', s, { side });
     }
   }
+  // Skilled Gunner and Signal Flags both want to know the best shots now.
+  const shots = {};
+  const shotOf = s => (s.id in shots ? shots[s.id] : (shots[s.id] = aiBestShot(s)));
   if (has('gunner') && coinTotal(p) >= 3 && !memo.used.gunner) {
     memo.used.gunner = 1;
     let best = null;
     for (const s of me.ships) {
-      if (s.acted || s.gunner || roles[s.id] === 'collect' || (underway() && s.fullSail)) continue;
-      const sh = aiBestShot(s);
+      if (s.acted || s.gunner || s.noAction || roles[s.id] === 'collect') continue;
+      const sh = shotOf(s);
       if (sh && sh.ev >= 4 && (!best || sh.ev > best.ev)) best = { s, ev: sh.ev };
     }
     if (best) return coin('gunner', best.s);
   }
-  if (has('fullsail') && coinTotal(p) >= 4 && !memo.used.fullsail) {
-    memo.used.fullsail = 1;
-    for (const s of me.ships) {
-      const goal = roles[s.id];
-      if (isDead(s) || !goal || typeof goal !== 'object' || s.fullSail || s.gunner) continue;
-      const d = dist(s.x, s.y, goal.x, goal.y) - goal.r - s.len / 2;
-      const sh = aiBestShot(s);
-      if (d > s.moveCount * CLICK_LEN * 1.3 && !(sh && sh.ev >= 3)) return coin('fullsail', s);
+  // Signal Flags: a ship with nothing useful to do hands its action to one
+  // with a good shot, which then gets a second turn to fire or line up again.
+  if (has('signal') && coinTotal(p) >= 3 && !memo.used.signal) {
+    memo.used.signal = 1;
+    const givers = coinTargets(p, 'signal').filter(s => roles[s.id] !== 'collect' && !touchingIslands(s).length && !(shotOf(s) && shotOf(s).ev >= 1.5));
+    let best = null;
+    for (const r of me.ships) {
+      if (r.acted || r.noAction || isDead(r)) continue;
+      const sh = shotOf(r);
+      if (sh && sh.ev >= 4 && (!best || sh.ev > best.ev)) best = { r, ev: sh.ev };
     }
+    const giver = best && givers.find(g => g !== best.r);
+    if (giver) return { t: 'coin', coin: 'signal', from: giver.id, target: best.r.id };
   }
   return null;
 }
 
 // ═══ Ship turns ════════════════════════════════════════
 
-function aiIslandChoice(ship, roles) {
-  const isl = touchingIslands(ship).map(i => G.terrain[i]);
-  for (const t of isl) if (!raiseFlagProblem(ship, t)) return { kind: 'raise', t };
-  const own = isl.find(t => t.owner === ship.owner);
-  if (own && (roles[ship.id] === 'collect' || isDead(ship))) return { kind: 'collect', t: own };
-  return null;
-}
-const islandAct = (ship, c) => ({ t: c.kind, ship: ship.id, island: c.t.id });
+const islandAct = (ship, t, kind) => ({ t: kind, ship: ship.id, island: t.id });
 
 function aiFireAction(ship, shot) {
   const D = clamp(shot.D * (1 + gaussRandom() * AI_TIMING_SD), RANGE_MIN, RANGE_MAX);
   return { t: 'fire', ship: ship.id, source: shot.source, slot: shot.slotIdx, island: shot.island ? shot.island.id : null, h: shot.h, D, aimD: shot.D };
 }
 
-function aiShipStandard(ship, roles) {
-  const isl = aiIslandChoice(ship, roles);
-  if (isl && isl.kind === 'raise') return islandAct(ship, isl);
+/**
+ * One turn for one ship. The choices: an island action (the only way to
+ * hold still), fire and then sail straight on, or steer and sail.
+ */
+function aiShipTurn(ship, roles) {
+  const goal = roles[ship.id];
+  if (ship.noAction) return aiSailOn(ship, roles);
+  const touch = touchingIslands(ship).map(i => G.terrain[i]);
+  for (const t of touch) if (!raiseFlagProblem(ship, t)) return islandAct(ship, t, 'raise');
+  const own = touch.find(t => t.owner === ship.owner);
   const shot = aiBestShot(ship);
-  if (shot && shot.ev >= 3.2) return aiFireAction(ship, shot);
-  if (isl && isl.kind === 'collect') return islandAct(ship, isl);
-  if (isDead(ship)) return shot && shot.ev > 0.8 ? aiFireAction(ship, shot) : { t: 'pass', ship: ship.id };
-  if (ship.signalMoved) return shot ? aiFireAction(ship, shot) : { t: 'pass', ship: ship.id };
-  const mv = aiBestMove(ship, roles[ship.id], ship.moveCount, ship.moveCount);
-  const stay = aiEvalPose(ship, ship, roles[ship.id]);
-  if (shot && shot.ev >= 1.5 && (!mv || mv.score < stay + 8)) return aiFireAction(ship, shot);
-  if (mv && (mv.score > stay || !shot)) return { t: 'move', ship: ship.id, h: mv.h, clicks: mv.clicks, kind: 'action' };
-  if (shot) return aiFireAction(ship, shot);
-  return { t: 'pass', ship: ship.id };
-}
-
-function aiShipUnderway(ship, roles) {
-  const isl = ship.anchored ? aiIslandChoice(ship, roles) : null;
-  if (isl && isl.kind === 'raise') return islandAct(ship, isl);
-  if (isl && isl.kind === 'collect' && !isDead(ship)) {
-    const here = aiBestShot(ship);
-    if (!(here && here.ev >= 4)) return islandAct(ship, isl);
-  }
-  const shot = aiBestShot(ship, { noIsland: !ship.anchored });
   if (isDead(ship)) {
     if (shot && shot.ev > 0.8) return aiFireAction(ship, shot);
-    if (isl) return islandAct(ship, isl);
+    if (own) return islandAct(ship, own, 'collect');
     return { t: 'pass', ship: ship.id };
   }
-  if (ship.fullSail) {
-    const mv = aiBestMove(ship, roles[ship.id], 1, ship.moveCount);
-    return { t: 'move', ship: ship.id, h: mv ? mv.h : ship.h, clicks: mv ? mv.clicks : 1, kind: 'au-steer' };
+  // Staying put at an island: collect, or use the island gun if it has a
+  // better shot than the ship's own guns (both skip the forward click).
+  if (own) {
+    const isleShot = shot && shot.source === 'island' ? shot : null;
+    const keep = goal === 'collect' || aiThreat(ship, ship) > 0 || islandsHeld(ship.owner) <= 1;
+    if (isleShot && isleShot.ev >= 3) return aiFireAction(ship, isleShot);
+    if (keep && !(shot && shot.ev >= 5)) return islandAct(ship, own, 'collect');
   }
-  const steer = aiBestMove(ship, roles[ship.id], 1, ship.moveCount);
-  const straight = aiBestMove(ship, roles[ship.id], 1, ship.moveCount, true);
-  const fireValue = shot ? shot.ev * 3 + (straight ? straight.score : -99) : -Infinity;
-  const steerValue = steer ? steer.score : -Infinity;
-  if (shot && shot.ev >= 2 && fireValue >= steerValue - 5) return aiFireAction(ship, shot);
-  if (steer) return { t: 'move', ship: ship.id, h: steer.h, clicks: steer.clicks, kind: 'au-steer' };
-  return { t: 'move', ship: ship.id, h: ship.h, clicks: 1, kind: 'au-steer' };
+  const steer = aiBestMove(ship, goal, 1, ship.moveCount);
+  const shipShot = shot ? shot.shipBest : null;
+  if (shipShot && shipShot.ev >= 2) {
+    const straight = aiBestMove(ship, goal, 1, ship.moveCount, true);
+    const fireValue = shipShot.ev * 3 + (straight ? straight.score : -99);
+    if (fireValue >= (steer ? steer.score : -Infinity) - 5) return aiFireAction(ship, shipShot);
+  }
+  if (own && (!steer || steer.score < aiEvalPose(ship, ship, goal) - 2)) return islandAct(ship, own, 'collect');
+  if (steer) return { t: 'move', ship: ship.id, h: steer.h, clicks: steer.clicks };
+  return { t: 'move', ship: ship.id, h: ship.h, clicks: 1 };
 }
 
 // ═══ Shot search ═══════════════════════════════════════
@@ -259,7 +254,7 @@ function aiBestShot(ship, opts) {
   const p = ship.owner;
   const enemies = enemyShips(p);
   if (!enemies.length) return null;
-  let best = null;
+  let best = null, bestShip = null;
   for (const lane of aiLanes(ship, opts)) {
     if (!aiLaneNearEnemy(lane, enemies)) continue;
     const src = lane.source === 'island' ? { island: lane.island } : { ship };
@@ -283,9 +278,12 @@ function aiBestShot(ship, opts) {
         if (tr.kind === 'ship' && tr.obj.owner !== p) ev += aiHitValue(tr.obj);
       }
       ev /= N;
-      if (!best || ev > best.ev) best = { ev, D, h: lane.h, source: lane.source, slot: lane.slot, slotIdx: lane.slotIdx, island: lane.island, target: w.t };
+      const cand = { ev, D, h: lane.h, source: lane.source, slot: lane.slot, slotIdx: lane.slotIdx, island: lane.island, target: w.t };
+      if (!best || ev > best.ev) best = cand;
+      if (lane.source === 'ship' && (!bestShip || ev > bestShip.ev)) bestShip = cand;
     }
   }
+  if (best) best.shipBest = bestShip;
   return best;
 }
 
@@ -331,6 +329,28 @@ function aiAttackPotential(ship, ps) {
   return sc;
 }
 
+/**
+ * How badly a pose sets up the next turn's forced click. Next turn the
+ * ship can steer up to its pivot and must then sail at least one click,
+ * so it needs room ahead on some heading it can reach.
+ */
+function aiEdgeRisk(ship, ps) {
+  const piv = pivotFor(ship) * Math.PI / 180;
+  let bestRoom = 0;
+  for (const k of [0, -0.5, 0.5, -1, 1]) {
+    const h = ps.h + k * piv;
+    const f = fwdVec(h);
+    const bx = ps.x + f.x * ship.len / 2, by = ps.y + f.y * ship.len / 2;
+    if (!onTable(bx, by)) continue;
+    bestRoom = Math.max(bestRoom, rayExit(bx, by, f.x, f.y) - ship.wid / 2);
+    if (bestRoom > CLICK_LEN * 2) break;
+  }
+  if (bestRoom < CLICK_LEN * 0.5) return 60;   // likely scuttled next turn
+  if (bestRoom < CLICK_LEN * 1.2) return 30;
+  if (bestRoom < CLICK_LEN * 2) return 6;
+  return 0;
+}
+
 function aiEvalPose(ship, ps, goal) {
   const p = ship.owner;
   const enemies = enemyShips(p);
@@ -356,13 +376,14 @@ function aiEvalPose(ship, ps, goal) {
     if (isDead(o) && coins.boarding && coins.repair) sc += 25;
     else if (!isDead(o) && coins.boarding) sc += 6;
   }
-  if (edgeGapOfSeg(shipSeg(ship, ps)) < 3) sc -= 8;
+  if (edgeGapOfSeg(shipSeg(ship, ps)) < 3) sc -= 6;
+  sc -= aiEdgeRisk(ship, ps);
   return sc + rand() * 1.5;
 }
 
 /**
  * Try headings across the pivot arc and click counts from lo to hi.
- * straight = keep the current heading (Always Underway after firing).
+ * straight = keep the current heading (after firing, or no action).
  */
 function aiBestMove(ship, goal, lo, hi, straight) {
   const piv = pivotFor(ship);
@@ -371,13 +392,19 @@ function aiBestMove(ship, goal, lo, hi, straight) {
   const clickSet = [...new Set([lo, Math.round((lo + hi) / 2), hi])].filter(c => c >= lo && c <= hi);
   let best = null;
   for (let k = -n; k <= n; k++) {
-    const h = normAngle(ship.h + k * stepA);
+    // One rotation and one sweep to the longest run per heading; shorter
+    // runs are the same track cut short.
+    const rot = planRotate(ship, normAngle(ship.h + k * stepA), piv);
+    const start = { x: ship.x, y: ship.y, h: rot.h };
+    const slide = planSlide(ship, start, rot.h, hi * CLICK_LEN);
+    const f = fwdVec(rot.h);
     for (const c of clickSet) {
-      const plan = planMove(ship, h, c, piv);
-      if (underway() && plan.stoppedBy === 'edge' && plan.moved < 0.05) continue;
-      let score = aiEvalPose(ship, plan.end, goal);
-      if (plan.moved < 0.3 && c > 0) score -= 4;
-      if (!best || score > best.score) best = { h, clicks: c, score };
+      const d = Math.min(c * CLICK_LEN, slide.moved);
+      if (slide.stoppedBy === 'edge' && d < 0.05) continue; // would be scuttled
+      const end = { x: start.x + f.x * d, y: start.y + f.y * d, h: rot.h };
+      let score = aiEvalPose(ship, end, goal);
+      if (d < 0.3) score -= 4;
+      if (!best || score > best.score) best = { h: rot.h, clicks: c, score };
     }
   }
   return best;

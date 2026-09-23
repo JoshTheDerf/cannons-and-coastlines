@@ -212,7 +212,7 @@ async function createOnline() {
   onlineName();
   const settings = {
     name: $('olGameName').value.trim().slice(0, 32) || `${onlineName()}'s game`,
-    maxPlayers: +$('olMax').value, underway: $('olMode').value === 'underway', timer: +$('olTimer').value,
+    maxPlayers: +$('olMax').value, timer: +$('olTimer').value,
   };
   try { await NET.create(settings); } catch (e) { alertOnline('Could not create the game. Is the game server running?'); }
 }
@@ -228,9 +228,9 @@ function renderGameList(games, note) {
   if (!el) return;
   if (!games) { el.innerHTML = `<p class="olEmpty">${esc(note || '')}</p>`; return; }
   if (!games.length) { el.innerHTML = '<p class="olEmpty">No open games right now. Start one.</p>'; return; }
-  el.innerHTML = `<table class="bookTable"><tr><th>Game</th><th>Players</th><th>Rules</th><th></th></tr>${games.map(g => `
+  el.innerHTML = `<table class="bookTable"><tr><th>Game</th><th>Crews</th><th>Status</th><th></th></tr>${games.map(g => `
     <tr><td><b>${esc(g.name)}</b><br><small>${esc(g.code)}</small></td><td>${g.players}/${g.max}</td>
-    <td>${g.underway ? 'Underway' : 'Standard'}<br><small>${g.status === 'lobby' ? 'In the lobby' : 'Playing'}</small></td>
+    <td>${g.status === 'lobby' ? 'In the lobby' : 'Playing'}</td>
     <td><button class="actBtn go" data-join="${esc(g.code)}">${g.status === 'lobby' && g.players < g.max ? 'Join' : 'Watch'}</button></td></tr>`).join('')}</table>`;
   el.querySelectorAll('[data-join]').forEach(b => b.onclick = () => { onlineName(); NET.join(b.dataset.join); });
 }
@@ -246,7 +246,7 @@ function renderRoom() {
   const humansReady = R.seats.filter(s => !s.ai).every(s => s.ready);
   const canStart = host && R.seats.length >= 2 && humansReady;
   $('roomBody').innerHTML = `
-    <p class="roomCode">Code <b>${esc(R.code)}</b> · ${R.underway ? 'Always Underway' : 'Standard rules'} · ${R.timer ? R.timer + 's turns' : 'no turn timer'}</p>
+    <p class="roomCode">Code <b>${esc(R.code)}</b> · Rulebook ${RULES_VERSION} · ${R.timer ? R.timer + 's turns' : 'no turn timer'}</p>
     <div class="setupLabel">Crews (${R.seats.length}/${R.max})</div>
     <div class="seatList">${R.seats.map(s => `
       <div class="seatRow" style="--pc:${PALETTE[s.color].main}">

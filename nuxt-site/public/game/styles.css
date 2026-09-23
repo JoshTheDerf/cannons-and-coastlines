@@ -227,3 +227,4 @@ b, strong { color: var(--heading); }
 .sbPts { font-weight: 700; color: var(--crimson); }
 .sbMeta { color: var(--ink-faint); font-size: .78rem; }
 #game:not(.landscape) .sbFac, #game:not(.landscape) .sbMeta { display: none; }
+.rulesVer { font-size: .85rem; letter-spacing: .12em; text-transform: uppercase; color: var(--ink-faint); margin: -1em 0 1.4em; }

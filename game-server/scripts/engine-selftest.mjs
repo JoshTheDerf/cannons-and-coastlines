@@ -9,7 +9,7 @@ for (const n of [2, 3, 5, 7]) {
   engine.setRand(rng);
   engine.setAiEffort('lite');
   const seats = Array.from({ length: n }, (_, i) => ({ faction: engine.FACTION_ORDER[i % 7], color: i, name: 'AI ' + (i + 1), ai: true }));
-  engine.newGame({ seats, mode: n % 2 ? 'underway' : 'standard', setup: 'quick', stalemate: false, table: 'round' });
+  engine.newGame({ seats, setup: 'quick', stalemate: false, table: 'round' });
   let steps = 0, refused = 0, slow = 0;
   while (engine.G.phase === 'play' && steps < 60000) {
     const G = JSON.parse(JSON.stringify(engine.G)); // what the Durable Object does between steps

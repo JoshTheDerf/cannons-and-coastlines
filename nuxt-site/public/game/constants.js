@@ -59,7 +59,7 @@ const FACTION_DEFS = {
     guns: 'broadside', len: 13.4, wid: 3.6, hull: 'frigate',
     names: ['Vanguard', 'Resolute', 'Defiance'],
     passive: 'disciplined', passiveName: 'Disciplined Crew',
-    passiveText: 'Turn up to 180° at the start of a move.',
+    passiveText: 'Set Heading up to 180\u00B0 instead of 90\u00B0.',
     blurb: 'Balanced and forgiving. A good first pick.',
     hullColor: [96, 110, 128], base: true,
   },
@@ -120,24 +120,24 @@ const FACTION_DEFS = {
 };
 const FACTION_ORDER = ['queens_fleet', 'corsairs', 'treasure_fleet', 'sun_fleet', 'shadow_fleet', 'industry', 'islanders'];
 
-// Coins. Each player adds 20 to the bag.
+// Coins (rulebook v0.5). Each player adds 20 to the bag.
 const COIN_DEFS = {
-  brace:    { name: 'Brace for Impact',  short: 'Brace',    icon: '🛡️', text: 'Put it on one of your ships. The next hit that ship takes is ignored.' },
-  signal:   { name: 'Signal Flags',      short: 'Signal',   icon: '🚩', text: 'One of your ships takes a free Move now. It can still fire this turn.' },
-  fullsail: { name: 'Full Sail',         short: 'Full Sail', icon: '⛵', text: 'One of your ships takes two Moves this turn.' },
-  evasive:  { name: 'Evasive Maneuvers', short: 'Evasive',  icon: '↔️', text: 'One of your ships slides one ship-width to port or starboard. It keeps its action.' },
-  gunner:   { name: 'Skilled Gunner',    short: 'Gunner',   icon: '🎯', text: 'One of your ships fires twice this turn.' },
-  repair:   { name: 'Repair Crew',       short: 'Repair',   icon: '🔧', text: 'Restore 1 fitting. A dead ship needs another of your ships touching it.' },
-  boarding: { name: 'Boarding Party',    short: 'Boarding', icon: '⚔️', text: 'Remove 1 fitting from an enemy ship touching yours. With Repair, capture a dead one.' },
+  brace:    { name: 'Brace for Impact',  short: 'Brace',    icon: '\uD83D\uDEE1\uFE0F', text: 'Put it on one of your ships. The next hit that ship takes is ignored.' },
+  signal:   { name: 'Signal Flags',      short: 'Signal',   icon: '\uD83D\uDEA9', text: 'One of your ships gives up its action and only sails forward. Another of your ships takes two full turns.' },
+  evasive:  { name: 'Evasive Maneuvers', short: 'Evasive',  icon: '\u2194\uFE0F', text: 'One of your ships slides one ship-width to port or starboard, on top of its turn.' },
+  gunner:   { name: 'Skilled Gunner',    short: 'Gunner',   icon: '\uD83C\uDFAF', text: 'One of your ships fires twice this turn, both before it sails on.' },
+  repair:   { name: 'Repair Crew',       short: 'Repair',   icon: '\uD83D\uDD27', text: 'Restore 1 fitting. A dead ship needs another of your ships touching it.' },
+  boarding: { name: 'Boarding Party',    short: 'Boarding', icon: '\u2694\uFE0F', text: 'Remove 1 fitting from an enemy ship touching yours. With Repair, capture a dead one.' },
 };
-const COIN_ORDER = ['brace', 'signal', 'fullsail', 'evasive', 'gunner', 'repair', 'boarding'];
+const COIN_ORDER = ['brace', 'signal', 'evasive', 'gunner', 'repair', 'boarding'];
 // Coin renders shared with the site (same origin).
 const COIN_IMG = {
-  brace: 'coin-brace-for-impact', signal: 'coin-signal-flag', fullsail: 'coin-full-sail', evasive: 'coin-evasive-maneuver',
+  brace: 'coin-brace-for-impact', signal: 'coin-signal-flag', evasive: 'coin-evasive-maneuver',
   gunner: 'coin-skilled-gunner', repair: 'coin-repair-crew', boarding: 'coin-boarding-party',
 };
 for (const id of COIN_ORDER) COIN_DEFS[id].img = `../assets/images/coins/${COIN_IMG[id]}.webp`;
-const COIN_SET = { brace: 2, signal: 2, fullsail: 4, evasive: 2, gunner: 4, repair: 4, boarding: 2 };
+const COIN_SET = { brace: 4, signal: 2, evasive: 2, gunner: 4, repair: 4, boarding: 4 };
+const RULES_VERSION = 'v0.5';
 
 // Fleet colours. Seats pick one each in an online lobby; local games use
 // red for player 1 and blue for player 2.
