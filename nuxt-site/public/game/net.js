@@ -25,8 +25,10 @@ const NET = {
   saveToken(code, t) { try { localStorage.setItem('cc-token-' + code, t); } catch (e) {} },
 
   boot() {
-    const code = new URLSearchParams(location.search).get('game');
+    const q = new URLSearchParams(location.search);
+    const code = q.get('game');
     if (code) { showOnline(true); this.join(code.toUpperCase()); }
+    else if (q.has('online')) showOnline(); // /game/?online opens the game list
   },
 
   // ─── Game list ────────────────────────────────────

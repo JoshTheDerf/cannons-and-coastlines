@@ -38,6 +38,7 @@ footer:
         - { label: Fleets, to: /#fleets }
         - { label: Parts, to: /parts }
         - { label: Videos, to: /#videos }
+        - { label: Play online, to: /game/?online, external: true }
     - title: Files
       links:
         - { label: STLs and rulebook, to: /#files }

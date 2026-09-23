@@ -8,6 +8,9 @@
 // Both Durable Objects use the WebSocket Hibernation API, so an idle game
 // costs nothing while players think.
 import { DurableObject } from 'cloudflare:workers';
+
+/** How long a lobby with nobody in it stays listed. */
+const LOBBY_IDLE_MS = 3 * 60 * 1000
 import { engine } from './engine.gen.js';
 
 const CODE_CHARS = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
@@ -107,6 +110,7 @@ export class GameRoom extends DurableObject {
   constructor(ctx, env) {
     super(ctx, env);
     this.aiStep = Math.max(50, +(env.AI_STEP_MS || 1100));
+    this.lobbyIdle = Math.max(1000, +(env.LOBBY_IDLE_MS || LOBBY_IDLE_MS));
     ctx.blockConcurrencyWhile(async () => {
       this.room = (await ctx.storage.get('room')) || null;
       this.game = (await ctx.storage.get('game')) || null;
@@ -124,6 +128,7 @@ export class GameRoom extends DurableObject {
     this.meta = { seq: 0, rng: crypto.getRandomValues(new Uint32Array(1))[0], deadline: null, deadlineTurn: null };
     await this.save();
     await this.publish();
+    await this.schedule(); // closes it if the creator never shows up
     return true;
   }
 
@@ -218,12 +223,6 @@ export class GameRoom extends DurableObject {
     try { ws.close(1000); } catch (e) { /* already closed */ }
     if (!this.room) return;
     this.broadcast({ type: 'presence', away: this.away() });
-    // Nobody at the table: give up a lobby that never started.
-    if (this.room.status === 'lobby' && this.sockets().length === 0 && Date.now() - this.room.created > 10 * 60 * 1000) {
-      this.room.status = 'over';
-      await this.save(); await this.publish();
-      return;
-    }
     await this.schedule();
   }
 
@@ -381,6 +380,15 @@ export class GameRoom extends DurableObject {
   /** One alarm drives both computer moves and the turn timer. */
   async schedule() {
     const G = this.game;
+    // A lobby with nobody seated at it closes after a few minutes, so
+    // abandoned games drop off the list. (The closing socket's attachment is
+    // already cleared, so it doesn't count.)
+    if (this.room.status === 'lobby') {
+      const seated = this.sockets().filter(ws => this.seatOf(ws)).length;
+      if (seated === 0) await this.ctx.storage.setAlarm(Date.now() + this.lobbyIdle);
+      else await this.ctx.storage.deleteAlarm();
+      return;
+    }
     if (!G || this.room.status !== 'play' || G.phase !== 'play') { await this.ctx.storage.deleteAlarm(); return; }
     const pl = G.players[G.active];
     if (pl.ai) { await this.ctx.storage.setAlarm(Date.now() + this.aiStep); return; }
@@ -395,6 +403,12 @@ export class GameRoom extends DurableObject {
 
   async alarm() {
     const G = this.game;
+    if (this.room && this.room.status === 'lobby') {
+      if (this.sockets().some(ws => this.seatOf(ws))) return;
+      this.room.status = 'over';
+      await this.save(); await this.publish();
+      return;
+    }
     if (!G || this.room.status !== 'play' || G.phase !== 'play') return;
     const p = G.active;
     if (G.players[p].ai) {
