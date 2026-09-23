@@ -1,0 +1,15 @@
+{
+  "name": "cannons-and-coastlines-game-server",
+  "private": true,
+  "type": "module",
+  "description": "Online multiplayer for the Cannons & Coastlines web game: a Worker with a Lobby and one GameRoom Durable Object per game.",
+  "scripts": {
+    "build:engine": "node scripts/build-engine.mjs",
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "check": "node scripts/build-engine.mjs && node scripts/engine-selftest.mjs"
+  },
+  "devDependencies": {
+    "wrangler": "^4.40.0"
+  }
+}

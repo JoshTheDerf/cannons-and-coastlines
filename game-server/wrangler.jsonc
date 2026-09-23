@@ -1,0 +1,33 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "cannons-and-coastlines-game",
+  "main": "src/index.js",
+  "compatibility_date": "2026-04-28",
+  // The rules engine is shared with the browser game: this bundles
+  // nuxt-site/public/game/{constants,geometry,state,rules,brain}.js into
+  // src/engine.gen.js before every dev run and deploy.
+  "build": {
+    "command": "node scripts/build-engine.mjs",
+    "watch_dir": "../nuxt-site/public/game"
+  },
+  "durable_objects": {
+    "bindings": [
+      { "name": "LOBBY", "class_name": "Lobby" },
+      { "name": "GAME", "class_name": "GameRoom" }
+    ]
+  },
+  // SQLite-backed classes (the only kind the Workers Free plan allows).
+  "migrations": [
+    { "tag": "v1", "new_sqlite_classes": ["Lobby", "GameRoom"] }
+  ],
+  "vars": {
+    // Pause between computer moves so every client can watch them play.
+    "AI_STEP_MS": "1100"
+  },
+  // Same origin as the site: the game at /game/ talks to /game/api/*.
+  // A route is more specific than the site's own domain, so it wins.
+  "routes": [
+    { "pattern": "cannonsandcoastlines.com/game/api/*", "zone_name": "cannonsandcoastlines.com" }
+  ],
+  "observability": { "enabled": true }
+}

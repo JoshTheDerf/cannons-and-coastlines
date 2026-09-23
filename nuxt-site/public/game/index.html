@@ -2,106 +2,145 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="mobile-web-app-capable" content="yes">
-<meta name="theme-color" content="#0a1628">
-<title>Cannons & Coastlines — Digital Edition</title>
-<link rel="icon" type="image/png" href="../assets/images/icon.png">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=IM+Fell+English:ital@0;1&display=swap" rel="stylesheet">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#2b2018">
+<title>Cannons &amp; Coastlines</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22%3E%3Ctext y=%22.9em%22 font-size=%2290%22%3E%E2%9A%93%3C/text%3E%3C/svg%3E">
+<link rel="preload" href="fonts/PirataOne-Regular.ttf" as="font" type="font/ttf" crossorigin>
 <link rel="stylesheet" href="styles.css">
 </head>
 <body>
 <div id="app">
 
-  <!-- Title Screen -->
-  <div id="titleScreen">
-    <h1>CANNONS &<br>COASTLINES</h1>
-    <div class="decorLine"></div>
-    <div class="subtitle">Digital Edition</div>
-    <div class="titleBtnRow">
-      <button onclick="startSolo()">Solo Play</button>
-      <button onclick="startTwoPlayer()">Two Player</button>
+  <div id="titleScreen" class="screen">
+    <h1>Cannons &amp;<br>Coastlines</h1>
+    <div class="decorLine">&#9875;</div>
+    <div class="subtitle">The tabletop naval game, on a screen</div>
+    <div class="titleBtns">
+      <button id="btnSolo" onclick="startSolo()">Play the computer</button>
+      <button id="btnHotseat" onclick="startHotSeat()">Two players, one screen</button>
+      <button id="btnOnline" onclick="showOnline()">Play online</button>
+      <button class="minor" onclick="showHelp()">How to play</button>
+      <button class="minor" onclick="toggleFullscreen()">Fullscreen</button>
     </div>
-    <div class="titleBtnRow" style="margin-top:.4em">
-      <button onclick="showTutorial()" style="font-size:clamp(.7rem,2vw,.9rem);padding:.4em 1.2em;opacity:.7">How to Play</button>
-      <button onclick="toggleFullscreen()" style="font-size:clamp(.7rem,2vw,.9rem);padding:.4em 1.2em;opacity:.7">Fullscreen</button>
-    </div>
-    <div class="backLink">
-      <a href="/">Back to cannonsandcoastlines.com</a>
+    <a class="backLink" href="/">Back to cannonsandcoastlines.com</a>
+  </div>
+
+  <div id="setupScreen" class="screen">
+    <h2>Choose your fleets</h2>
+    <div id="setupBody"></div>
+    <div class="setupBtns">
+      <button onclick="showScreen('titleScreen')">Back</button>
+      <button id="btnStart" class="primary" onclick="beginGame()">Set sail</button>
     </div>
   </div>
 
-  <!-- Faction Selection Screen -->
-  <div id="factionScreen"></div>
-
-  <!-- Game Container -->
-  <div id="gameContainer">
-    <div id="p2Area" class="playerArea"></div>
-    <canvas id="boardCanvas"></canvas>
-    <div id="p1Area" class="playerArea"></div>
+  <div id="onlineScreen" class="screen">
+    <h2>Play online</h2>
+    <div class="olBody">
+      <p id="onlineMsg" class="callout" style="display:none"></p>
+      <label class="olField"><span>Your name</span><input id="olName" maxlength="20" placeholder="Captain" autocomplete="nickname"></label>
+      <div class="setupLabel">Open games</div>
+      <div id="olList"></div>
+      <div class="setupLabel">Join with a code</div>
+      <div class="olRow"><input id="olCode" maxlength="8" placeholder="ABCDE" autocapitalize="characters"><button class="actBtn go" onclick="joinByCode()">Join</button></div>
+      <div class="setupLabel">Start a game</div>
+      <div class="olGrid">
+        <label class="olField"><span>Name</span><input id="olGameName" maxlength="32" placeholder="Harbour brawl"></label>
+        <label class="olField"><span>Crews</span><select id="olMax"><option>2</option><option>3</option><option selected>4</option><option>5</option><option>6</option><option>7</option></select></label>
+        <label class="olField"><span>Rules</span><select id="olMode"><option value="standard">Standard</option><option value="underway">Always Underway</option></select></label>
+        <label class="olField"><span>Turn timer</span><select id="olTimer"><option value="60">60 s</option><option value="90" selected>90 s</option><option value="120">2 min</option><option value="180">3 min</option><option value="0">None</option></select></label>
+      </div>
+      <p class="olEmpty">A round table sized for the crew count, with islands per the rulebook. Empty seats can go to the computer.</p>
+    </div>
+    <div class="setupBtns">
+      <button onclick="NET.closeLobby(); showScreen('titleScreen')">Back</button>
+      <button id="btnCreate" class="primary" onclick="createOnline()">Create game</button>
+    </div>
   </div>
 
-  <!-- Turn Banner -->
-  <div id="turnBanner"></div>
-
-  <!-- Radial Menu (dynamically populated) -->
-  <div id="radialMenu"></div>
-
-  <!-- Fire-mode hint banner -->
-  <div id="fireHint">Tap a cannon slot to fire <button id="dismissAim" onclick="dismissAiming()">&#10005;</button></div>
-
-  <!-- Game Over -->
-  <div id="gameOverScreen">
-    <h1 id="winnerText"></h1>
-    <div class="decorLine" style="margin:.5em auto"></div>
-    <div class="stats" id="statsText"></div>
-    <button onclick="location.reload()">New Game</button>
+  <div id="roomScreen" class="screen">
+    <h2 id="roomTitle">Game room</h2>
+    <div id="roomBody" class="olBody"></div>
   </div>
 
-  <!-- Tutorial -->
-  <div id="tutorialOverlay">
-    <div class="tutContent">
-      <h2>How to Play</h2>
-      <p>Two players share one device. Player 1 sits at the <b style="color:#e74c3c">bottom</b>, Player 2 at the <b style="color:#3498db">top</b>. In Solo Play, you're P1 and the AI controls P2.</p>
+  <div id="game">
+    <div id="panel2" class="panel"></div>
+    <div id="boardWrap">
+      <canvas id="boardCanvas"></canvas>
+      <div id="turnBanner"></div>
+      <div id="toast"></div>
+      <div id="netStatus"></div>
+      <div id="camBtns"><button onclick="camZoomAt(canvasW/2, canvasH/2, 1.3)" title="Zoom in" aria-label="Zoom in">+</button><button onclick="camZoomAt(canvasW/2, canvasH/2, 0.77)" title="Zoom out" aria-label="Zoom out">&minus;</button><button onclick="camReset()" title="Fit table" aria-label="Fit table">&#9711;</button></div>
+    </div>
+    <div id="panel1" class="panel"></div>
+  </div>
 
-      <h3>Factions</h3>
-      <p>Each player picks a faction with unique ships, stats, and a passive ability. Factions range from the balanced Queen's Fleet to the lightning-fast Islanders.</p>
+  <div id="menu" class="overlay" onclick="if (event.target === this) hideMenu()">
+    <div class="box"><h2>Menu</h2><div id="menuBody"></div></div>
+  </div>
 
-      <h3>On Your Turn</h3>
-      <p>Tap a ship. A menu appears:</p>
-      <p>&#9875; <b>Move</b> — Set Heading (rotate up to 90°) then commit a Click. Each ring = one Click. Faster factions get more rings (Move Count).</p>
-      <p>&#128165; <b>Fire</b> — Tap one of your ship's cannon slots. The shot fires straight out from that slot.</p>
-      <p>&#128681;/&#129689; <b>Island</b> — When touching an island: raise your flag to capture it, or collect a coin from one you own.</p>
+  <div id="gameOver" class="overlay">
+    <div class="box">
+      <h1 id="winnerText"></h1>
+      <div id="statsText"></div>
+      <div class="setupBtns">
+        <button id="againBtn" onclick="playAgain()">Play again</button>
+        <button onclick="document.getElementById('gameOver').style.display='none'; quitToTitle()">Title</button>
+      </div>
+    </div>
+  </div>
 
-      <h3>Islands</h3>
-      <p>Islands are the economic engine. <b>Capture</b> an uncaptured island by touching it and raising your flag. <b>Collect</b> a coin each turn from islands you own. Islands score victory points!</p>
+  <div id="help" class="overlay" onclick="if (event.target === this) hideHelp()">
+    <div class="box helpBox">
+      <h2>How to play</h2>
+      <p>Each player commands a small fleet on a 4 ft table. You score for ships still afloat, islands you hold and coins you keep.</p>
+
+      <h3>Setup</h3>
+      <p>Players take turns placing islands (12" from every edge, 6" apart), then rocks and reefs if you like. Each fleet lines up touching its own table edge, facing in. Player 1 goes first.</p>
+
+      <h3>Your turn</h3>
+      <p>First spend any coins you want. Then each of your ships takes one action:</p>
+      <ul>
+        <li><b>Move.</b> Turn up to 90&deg; (Queen's Fleet: 180&deg;), then sail forward your faction's Move Count in clicks. You can't turn between clicks. Hit a ship, island, rock or reef and you stop there.</li>
+        <li><b>Fire.</b> Pick a cannon slot. The shot goes straight out from it, so line up with a move the turn before. Tap when the ring is where you want the ball to land. The first ship it touches takes the hit.</li>
+        <li><b>Island.</b> While touching an island: raise your flag (you must have been touching it at the end of your last turn, with no enemy ships touching it), collect a coin from an island you hold, or fire the island's gun in any direction.</li>
+      </ul>
+
+      <p class="callout"><b>Cannons need a crew.</b> Only a ship can fire, and a held island only fires when one of your ships is touching it and spends its action.</p>
+
+      <h3>Damage</h3>
+      <p>Each hit removes one fitting. A ship with no fittings is dead in the water: it can't move but can still fire, and the next hit sinks it. You can scuttle your own dead ship so the enemy can't take it. No friendly fire.</p>
 
       <h3>Coins</h3>
-      <p>You hold 3 coins drawn from a shared bag. Tap a coin, then tap a target ship to spend it. Spent coins return to the bag.</p>
-      <p>&#128737;&#65039; <b>Brace</b> — Next hit ignored. &#128681; <b>Signal Flags</b> — Bonus action (free). &#9973; <b>Full Sail</b> — Extended move. &#8596;&#65039; <b>Evasive</b> — Sideslip. &#127919; <b>Skilled Gunner</b> — Fire twice. &#128295; <b>Repair</b> — +1 fitting. &#9876;&#65039; <b>Boarding</b> — Remove 1 fitting from a touching enemy (or pair with Repair to capture a dead-in-the-water enemy).</p>
+      <p>You only get coins by collecting from islands you hold. Spend them at the start of your turn, before any ship acts. Coins you keep are worth a point each.</p>
+      <table class="bookTable" id="helpCoins"><tr><th></th><th>Coin</th><th>What it does</th></tr></table>
 
-      <h3>Combat</h3>
-      <p>Each hit removes one fitting (mast, cargo). 0 fittings = "dead in the water" (can fire, can't move). The bare hull takes one more hit before it scuttles permanently.</p>
+      <h3>Winning</h3>
+      <p>Last fleet afloat wins. Or, at the start of your turn, declare victory with 25 or more points and at least as many as your opponent. Points: 3 per ship, 2 per island, 1 per coin, and +2 for most ships, most islands and most coins (ties both get it). With the stalemate rule on, the game ends on points when every island is flagged and none has changed hands for two rounds.</p>
 
-      <h3>Victory</h3>
-      <p>Sink all enemies for instant victory. Or after turn 10, declare victory if you lead in VP: Ships &#215;3, Islands &#215;2, Coins &#215;1, plus &#215;2 bonuses for leading each category.</p>
+      <h3>Always Underway</h3>
+      <p>Optional mode. Each ship either steers or fires, then must sail forward at least one click. A ship that starts its turn touching an island may take an island action and rest instead.</p>
 
-      <button onclick="hideTutorial()">Got it!</button>
+      <h3>Online</h3>
+      <p>Up to seven crews on a round table, one turn each in seat order. The server checks every move and rolls every shot. If you drop out, reopen the link and you get your seat back.</p>
+
+      <h3>Controls</h3>
+      <p>Tap a ship, then an action. To move, drag the handle or tap the water to set the heading, then Sail. Pinch or use the wheel to zoom, drag empty water to pan. Arrow keys turn, Enter sails, Space fires, Esc cancels.</p>
+      <button onclick="hideHelp()">Got it</button>
     </div>
   </div>
-
 </div>
 
 <script src="constants.js"></script>
+<script src="geometry.js"></script>
 <script src="state.js"></script>
+<script src="rules.js"></script>
+<script src="brain.js"></script>
 <script src="audio.js"></script>
 <script src="animations.js"></script>
 <script src="renderer.js"></script>
-<script src="coins.js"></script>
-<script src="ai.js"></script>
+<script src="net.js"></script>
 <script src="main.js"></script>
 </body>
 </html>

@@ -1,22 +1,30 @@
-// ═══════════════════════════════════════════════════════════════
-// CANNONS & COASTLINES — audio.js
+// Cannons & Coastlines, digital edition: audio.js
 // Synthesized sound effects (Web Audio API) and haptic feedback.
-// ═══════════════════════════════════════════════════════════════
 
 let audioCtx  = null;
 let audioMuted = false;
+try { audioMuted = localStorage.getItem('cc-muted') === '1'; } catch (e) {}
 
 function initAudio() {
   try { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); }
   catch (e) { /* Web Audio not supported */ }
 }
 
+// Browsers only allow sound after the player touches the page.
+let audioUnlocked = false;
+['pointerdown', 'keydown', 'touchstart'].forEach(t => window.addEventListener(t, () => { audioUnlocked = true; }, { capture: true, passive: true }));
+
 function ensureAudio() {
+  if (!audioUnlocked) return;
   if (!audioCtx) initAudio();
   if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
 }
 
-function toggleMute() { audioMuted = !audioMuted; return audioMuted; }
+function toggleMute() {
+  audioMuted = !audioMuted;
+  try { localStorage.setItem('cc-muted', audioMuted ? '1' : '0'); } catch (e) {}
+  return audioMuted;
+}
 
 // ─── Synthesis Primitives ──────────────────────────────
 
@@ -83,6 +91,11 @@ function sfxSplash()    { ensureAudio(); playNoise(0.3, 0.2, 2000, 1); playTone(
 function sfxCoinPlay()  { ensureAudio(); playNoise(0.2, 0.1, 1500, 2); playTone(500, 0.08, 'triangle', 0.04); }
 function sfxMastFall()  { ensureAudio(); playNoise(0.25, 0.3, 600, 4); playTone(100, 0.2, 'sawtooth', 0.1); }
 
+function sfxRudder()  { ensureAudio(); playNoise(0.25, 0.08, 500, 2); }
+function sfxFlag()    { ensureAudio(); playTone(660, 0.12, 'triangle', 0.08); setTimeout(() => playTone(880, 0.2, 'triangle', 0.08), 120); }
+function sfxBoard()   { ensureAudio(); playNoise(0.15, 0.2, 2500, 3); setTimeout(() => playNoise(0.15, 0.2, 2200, 3), 150); }
+function sfxError()   { ensureAudio(); playTone(160, 0.12, 'square', 0.05); }
+
 function sfxSunk() {
   ensureAudio();
   playTone(80, 0.8, 'sawtooth', 0.15); playTone(60, 1.0, 'sine', 0.1);
@@ -102,7 +115,7 @@ function sfxVictory() {
   });
 }
 
-// ─── Haptic Feedback ───────────────────────────────────
+// Haptic feedback
 function haptic(pattern) { try { navigator.vibrate && navigator.vibrate(pattern); } catch (e) {} }
 function hapticTap()    { haptic(10); }
 function hapticThud()   { haptic(30); }

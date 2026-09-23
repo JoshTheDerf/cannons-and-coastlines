@@ -1,183 +1,343 @@
-// ═══════════════════════════════════════════════════════════════
-// CANNONS & COASTLINES — animations.js
-// Animation queue with factory functions and canvas rendering.
-// ═══════════════════════════════════════════════════════════════
+// Cannons & Coastlines, digital edition: animations.js
+// Animation queue. Positions are in table centimetres and converted at draw
+// time, so a resize mid-animation does not break anything.
 
 let animations = [];
-let wavePhase  = 0;
+let wavePhase = 0;
+let lastTs = null;
+let skipUntil = 0;
+const REDUCED_MOTION = !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
 
-function updateAnimations(timestamp) {
-  wavePhase = timestamp * 0.001;
-  animations.forEach(a => {
-    if (!a.startTime) a.startTime = timestamp;
-    a.progress = Math.min(1, (timestamp - a.startTime) / a.duration);
-    if (a.progress >= 1 && a.onComplete && !a.completed) {
-      a.completed = true;
-      a.onComplete();
-    }
-  });
-  animations = animations.filter(a => a.progress < 1);
+// Playback rate: faster on the computer's turns, much faster while the
+// player taps to skip, and quicker (with less shaking) for reduced motion.
+function animRate() {
+  let r = GAME_SPEED;
+  if (REDUCED_MOTION) r *= 2.5;
+  if (typeof G !== 'undefined' && G && G.phase === 'play' && !isMyTurn()) r *= 1.4;
+  if (performance.now() < skipUntil) r *= 8;
+  return r;
+}
+function skipAnimations() { skipUntil = performance.now() + 1500; }
+
+function updateAnimations(ts) {
+  wavePhase = ts * 0.001;
+  const dt = lastTs == null ? 0 : Math.min(100, ts - lastTs);
+  lastTs = ts;
+  const rate = animRate();
+  for (const a of animations) {
+    a.elapsed = (a.elapsed || 0) + dt * rate;
+    a.progress = Math.min(1, a.elapsed / a.duration);
+    if (a.update) a.update(a.progress);
+    if (a.progress >= 1 && !a.done) { a.done = true; if (a.onComplete) a.onComplete(); }
+  }
+  animations = animations.filter(a => !a.done);
 }
 
-function isAnimating() { return animations.length > 0; }
+function isAnimating() { return animations.some(a => a.blocking); }
 
-// ─── Factory Functions ─────────────────────────────────
+function pushAnim(a) { animations.push(Object.assign({ progress: 0, elapsed: 0 }, a)); }
 
-function animCannonball(sx, sy, ex, ey, ghostly, elevation) {
-  const elev = elevation || 2;
-  return new Promise(resolve => {
-    animations.push({
-      type: 'cannonball', sx, sy, ex, ey,
-      ghostly: !!ghostly, elevation: elev,
-      duration: 350 + elev * 60,
-      progress: 0, startTime: null, onComplete: resolve,
+function tween(duration, update, blocking = true) {
+  return new Promise(resolve => pushAnim({ type: 'tween', duration, update, blocking, onComplete: resolve }));
+}
+
+const ease = t => (t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2);
+
+/** Rotate then slide a ship along a planned move, one click at a time. */
+async function animShipMove(ship, plan) {
+  const h0 = ship.h;
+  const dh = angleDiff(plan.rot.h, h0);
+  if (Math.abs(dh) > 0.01) {
+    sfxRudder();
+    await tween(180 + Math.abs(dh) * 260, p => { ship.h = normAngle(h0 + dh * ease(p)); });
+  }
+  ship.h = plan.rot.h;
+  const bump = !!plan.stoppedBy && plan.moved < plan.planned - 0.05;
+  await animRoll(ship, plan.start, plan.end, bump);
+}
+
+/**
+ * Roll forward one wheel click at a time: a short ease per click with a
+ * click sound on each beat, then a small bump if the ship hit something.
+ */
+async function animRoll(ship, from, to, bump) {
+  const len = dist(from.x, from.y, to.x, to.y);
+  const ux = len > 1e-6 ? (to.x - from.x) / len : 0, uy = len > 1e-6 ? (to.y - from.y) / len : 0;
+  let done = 0;
+  while (done < len - 1e-4) {
+    const seg = Math.min(CLICK_LEN, len - done), a = done;
+    await tween(90 + 190 * seg / CLICK_LEN, p => {
+      const d = a + seg * ease(p);
+      ship.x = from.x + ux * d; ship.y = from.y + uy * d;
+      if (Math.random() < 0.35) addWake(ship);
     });
-    sfxWhistle();
-  });
+    done += seg;
+    if (seg > CLICK_LEN - 0.01) sfxDialClick();
+  }
+  ship.x = to.x; ship.y = to.y;
+  if (bump) {
+    sfxHitTerrain(); hapticTap();
+    const f = fwdVec(ship.h);
+    pushAnim({ type: 'bump', x: ship.x + f.x * ship.len / 2, y: ship.y + f.y * ship.len / 2, duration: 450 });
+    if (!REDUCED_MOTION) {
+      await tween(200, p => {
+        const k = Math.sin(p * Math.PI) * 0.5 * (1 - p);
+        ship.x = to.x - f.x * k; ship.y = to.y - f.y * k;
+      });
+    }
+    ship.x = to.x; ship.y = to.y;
+  }
 }
 
-function animSplash(x, y)      { animations.push({ type: 'splash',      x, y, duration: 600, progress: 0, startTime: null }); sfxSplash(); }
-function animHitFlash(x, y)    { animations.push({ type: 'hit_flash',   x, y, duration: 400, progress: 0, startTime: null }); sfxHitShip(); hapticDouble(); }
-function animTerrainHit(x, y)  { animations.push({ type: 'terrain_hit', x, y, duration: 400, progress: 0, startTime: null }); sfxHitTerrain(); }
-function animSparkle(x, y)     { animations.push({ type: 'sparkle',     x, y, duration: 700, progress: 0, startTime: null }); }
-function animSinking(x, y)     { animations.push({ type: 'sinking',     x, y, duration: 1500, progress: 0, startTime: null }); sfxSunk(); hapticRumble(); }
-function animGoldenRing(x, y)  { animations.push({ type: 'golden_ring', x, y, duration: 800, progress: 0, startTime: null }); }
-function animFlags(x, y)       { animations.push({ type: 'flags',       x, y, duration: 900, progress: 0, startTime: null }); }
-function animBoarding(x1, y1, x2, y2)         { animations.push({ type: 'boarding',     x1, y1, x2, y2, duration: 700, progress: 0, startTime: null }); }
-function animDamageNumber(x, y, text)          { animations.push({ type: 'damage_number', x, y, text, duration: 800, progress: 0, startTime: null }); }
+/** Evasive slide: one smooth sideways shove. */
+async function animSlide(ship, from, to) {
+  if (dist(from.x, from.y, to.x, to.y) < 0.01) return;
+  await tween(420, p => {
+    const e = ease(p);
+    ship.x = from.x + (to.x - from.x) * e; ship.y = from.y + (to.y - from.y) * e;
+    if (Math.random() < 0.3) addWake(ship);
+  });
+  ship.x = to.x; ship.y = to.y;
+}
 
-// ─── Rendering ─────────────────────────────────────────
+function addWake(ship) {
+  if (REDUCED_MOTION) return;
+  const f = fwdVec(ship.h);
+  pushAnim({ type: 'wake', x: ship.x - f.x * ship.len * 0.5, y: ship.y - f.y * ship.len * 0.5, duration: 900 });
+}
+
+/**
+ * Cannonball flight from (ox, oy) along h, landing at D and stopping at
+ * contact distance `stopS`. Resolves when the ball stops.
+ */
+function animCannonball(ox, oy, h, D, stopS, bounce) {
+  sfxWhistle();
+  return new Promise(resolve => pushAnim({
+    type: 'ball', ox, oy, h, D, stopS, b: bounce || 0, blocking: true,
+    duration: 250 + stopS * 16, onComplete: resolve,
+  }));
+}
+
+function animSplash(x, y)     { pushAnim({ type: 'splash', x, y, duration: 700 }); sfxSplash(); }
+function animHitFlash(x, y)   { pushAnim({ type: 'hit', x, y, duration: 450 }); sfxHitShip(); hapticDouble(); }
+function animThud(x, y)       { pushAnim({ type: 'thud', x, y, duration: 450 }); sfxHitTerrain(); }
+function animSparkle(x, y)    { pushAnim({ type: 'sparkle', x, y, duration: 800 }); }
+function animSinking(x, y)    { pushAnim({ type: 'sinking', x, y, duration: 1600 }); sfxSunk(); hapticRumble(); }
+function animRing(x, y, col)  { pushAnim({ type: 'ring', x, y, col: col || '241,196,15', duration: 900 }); }
+function animFlagRaise(x, y, col) { pushAnim({ type: 'flag', x, y, col, duration: 1000 }); sfxFlag(); }
+function animBoarding(x1, y1, x2, y2) { pushAnim({ type: 'boarding', x1, y1, x2, y2, duration: 800 }); sfxBoard(); }
+function animText(x, y, text, col) { pushAnim({ type: 'text', x, y, text, col: col || '255,120,90', duration: 1300 }); }
+/** Muzzle flash and a puff of smoke drifting out along the shot. */
+function animSmoke(x, y, h) {
+  pushAnim({ type: 'smoke', x, y, h, duration: 1000 });
+}
+
+/**
+ * The lost fitting (mast or cargo) topples off the hull into the water,
+ * floats a moment and sinks. `idx` is the fitting's slot along the keel.
+ */
+function animFittingFall(ship, idx, mast) {
+  const n = ship.guns === 'industry' ? ship.maxFit - 1 : ship.maxFit;
+  const f = fwdVec(ship.h), s = stbVec(ship.h);
+  const along = n <= 1 || idx >= n ? (ship.guns === 'industry' ? ship.len * 0.08 : 0) : ship.len * 0.3 - idx * (ship.len * 0.6) / (n - 1);
+  const x = ship.x + f.x * along, y = ship.y + f.y * along;
+  const side = Math.random() < 0.5 ? -1 : 1;
+  pushAnim({ type: 'fitting', x, y, dx: s.x * side, dy: s.y * side, mast, shipW: ship.wid, duration: 1200 });
+}
+
+/** The hull settles, shrinks and goes under. */
+function animWreck(ship) {
+  const snap = Object.assign({}, ship, { fit: 0, placed: true });
+  pushAnim({ type: 'wreck', ship: snap, pose: { x: ship.x, y: ship.y, h: ship.h }, tilt: (Math.random() - 0.5) * 0.6, duration: 1200 });
+  animSinking(ship.x, ship.y);
+}
+function animRicochet(x, y, h) {
+  const turn = (Math.random() < 0.5 ? -1 : 1) * (0.6 + Math.random() * 0.9);
+  pushAnim({ type: 'ricochet', x, y, h: normAngle(h + Math.PI + turn), duration: 500 });
+}
+
+// ─── Drawing ──────────────────────────────────────────
 
 function drawAnimations(ctx) {
-  animations.forEach(a => {
+  for (const a of animations) {
     const p = a.progress || 0;
-
     switch (a.type) {
-
-      case 'cannonball': {
-        const elev = a.elevation || 2;
-        const gx = a.sx + (a.ex - a.sx) * p;
-        const gy = a.sy + (a.ey - a.sy) * p;
-        const arcH = (elev + 1) * 18;
-        const h = 4 * arcH * p * (1 - p);
-        const bx = gx, by = gy - h;
-        const baseR = a.ghostly ? 3 : 3.5;
-        const scale = 1 + (1 + (elev + 1) * 0.45 - 1) * 4 * p * (1 - p);
-        const br = baseR * scale;
-
-        ctx.fillStyle = `rgba(0,0,0,${0.15 * (1 - 0.4 * (h / arcH || 0))})`;
-        ctx.beginPath(); ctx.ellipse(gx, gy + 2, br * 1.5, br * 0.6, 0, 0, Math.PI * 2); ctx.fill();
-
-        ctx.strokeStyle = `rgba(100,100,100,${a.ghostly ? 0.1 : 0.2})`;
-        ctx.lineWidth = 1.5; ctx.setLineDash([3, 4]); ctx.beginPath();
-        for (let i = 0; i <= Math.floor(p * 12); i++) {
-          const tp = i / 12;
-          const tx = a.sx + (a.ex - a.sx) * tp;
-          const ty = a.sy + (a.ey - a.sy) * tp - 4 * arcH * tp * (1 - tp) * 0.3;
-          i === 0 ? ctx.moveTo(tx, ty) : ctx.lineTo(tx, ty);
-        }
-        ctx.stroke(); ctx.setLineDash([]);
-
-        if (a.ghostly) {
-          ctx.fillStyle = 'rgba(180,180,220,0.3)';
-          ctx.beginPath(); ctx.arc(bx, by, br, 0, Math.PI * 2); ctx.fill();
-        } else {
-          const grad = ctx.createRadialGradient(bx - br * 0.3, by - br * 0.3, 0, bx, by, br);
-          grad.addColorStop(0, '#4a4a4a'); grad.addColorStop(0.5, '#1a1a1a'); grad.addColorStop(1, '#0a0a0a');
-          ctx.fillStyle = grad;
-          ctx.beginPath(); ctx.arc(bx, by, br, 0, Math.PI * 2); ctx.fill();
-          if (p < 0.15 || p > 0.85) {
-            ctx.fillStyle = `rgba(255,140,40,0.3)`;
-            ctx.beginPath(); ctx.arc(bx, by, br * 2, 0, Math.PI * 2); ctx.fill();
-          }
-          if (h > arcH * 0.3) {
-            ctx.strokeStyle = `rgba(255,180,80,${0.12 * h / arcH})`;
-            ctx.lineWidth = 1;
-            ctx.beginPath(); ctx.arc(bx, by, br + 2, 0, Math.PI * 2); ctx.stroke();
-          }
+      case 'ball': {
+        const s = a.stopS * p;
+        const f = fwdVec(a.h), fb = fwdVec(a.h + a.b);
+        const gx = s <= a.D ? a.ox + f.x * s : a.ox + f.x * a.D + fb.x * (s - a.D);
+        const gy = s <= a.D ? a.oy + f.y * s : a.oy + f.y * a.D + fb.y * (s - a.D);
+        const hgt = ballHeight(s, a.D);
+        const g = w2s(gx, gy);
+        const lift = w2r(hgt) * 0.8;
+        const br = Math.max(2.2, w2r(BALL_R) * (1 + hgt * 0.07));
+        ctx.fillStyle = `rgba(0,0,0,${0.28 - Math.min(0.18, hgt * 0.02)})`;
+        ctx.beginPath(); ctx.ellipse(g.x, g.y, br * 1.2, br * 0.7, 0, 0, TAU); ctx.fill();
+        const grad = ctx.createRadialGradient(g.x - br * 0.3, g.y - lift - br * 0.3, 0, g.x, g.y - lift, br);
+        grad.addColorStop(0, '#666'); grad.addColorStop(0.6, '#1a1a1a'); grad.addColorStop(1, '#000');
+        ctx.fillStyle = grad;
+        ctx.beginPath(); ctx.arc(g.x, g.y - lift, br, 0, TAU); ctx.fill();
+        if (p < 0.12) {
+          const o = w2s(a.ox, a.oy);
+          ctx.fillStyle = `rgba(255,150,50,${0.6 * (1 - p / 0.12)})`;
+          ctx.beginPath(); ctx.arc(o.x, o.y, br * 3, 0, TAU); ctx.fill();
+          ctx.fillStyle = `rgba(200,200,200,${0.35 * (1 - p / 0.12)})`;
+          ctx.beginPath(); ctx.arc(o.x, o.y, br * 5 * (0.5 + p * 4), 0, TAU); ctx.fill();
         }
         break;
       }
-
+      case 'ricochet': {
+        const f = fwdVec(a.h);
+        const s = 4 * p;
+        const g = w2s(a.x + f.x * s, a.y + f.y * s);
+        ctx.fillStyle = `rgba(20,20,20,${1 - p})`;
+        ctx.beginPath(); ctx.arc(g.x, g.y - Math.sin(p * Math.PI) * 6, Math.max(2, w2r(BALL_R)), 0, TAU); ctx.fill();
+        break;
+      }
+      case 'wake': {
+        const g = w2s(a.x, a.y);
+        ctx.strokeStyle = `rgba(200,230,255,${0.35 * (1 - p)})`;
+        ctx.lineWidth = 1;
+        ctx.beginPath(); ctx.arc(g.x, g.y, 2 + p * w2r(2.5), 0, TAU); ctx.stroke();
+        break;
+      }
       case 'splash': {
-        const r = 20 * p;
-        ctx.strokeStyle = `rgba(100,180,240,${1 - p})`; ctx.lineWidth = 2.5 - p * 2;
-        ctx.beginPath(); ctx.arc(a.x, a.y, r, 0, Math.PI * 2); ctx.stroke();
-        ctx.strokeStyle = `rgba(180,220,255,${0.6 - p * 0.6})`; ctx.lineWidth = 1;
-        ctx.beginPath(); ctx.arc(a.x, a.y, r * 0.5, 0, Math.PI * 2); ctx.stroke();
+        const g = w2s(a.x, a.y), r = w2r(3) * p + 3;
+        ctx.strokeStyle = `rgba(150,210,255,${1 - p})`; ctx.lineWidth = 2.5 - p * 2;
+        ctx.beginPath(); ctx.arc(g.x, g.y, r, 0, TAU); ctx.stroke();
+        ctx.strokeStyle = `rgba(220,240,255,${0.6 - p * 0.6})`; ctx.lineWidth = 1;
+        ctx.beginPath(); ctx.arc(g.x, g.y, r * 0.5, 0, TAU); ctx.stroke();
         break;
       }
-
-      case 'hit_flash': {
-        ctx.fillStyle = `rgba(255,140,0,${(1 - p) * 0.8})`;
-        ctx.beginPath(); ctx.arc(a.x, a.y, 14 * (1 + p * 0.5), 0, Math.PI * 2); ctx.fill();
-        ctx.fillStyle = `rgba(255,255,200,${(1 - p) * 0.5})`;
-        ctx.beginPath(); ctx.arc(a.x, a.y, 6, 0, Math.PI * 2); ctx.fill();
+      case 'hit': {
+        const g = w2s(a.x, a.y), r = Math.max(8, w2r(2.5));
+        ctx.fillStyle = `rgba(255,140,0,${(1 - p) * 0.85})`;
+        ctx.beginPath(); ctx.arc(g.x, g.y, r * (1 + p * 0.6), 0, TAU); ctx.fill();
+        ctx.fillStyle = `rgba(255,255,200,${(1 - p) * 0.6})`;
+        ctx.beginPath(); ctx.arc(g.x, g.y, r * 0.4, 0, TAU); ctx.fill();
         break;
       }
-
-      case 'terrain_hit': {
-        ctx.fillStyle = `rgba(160,140,100,${(1 - p) * 0.6})`;
-        ctx.beginPath(); ctx.arc(a.x, a.y, 10 * (1 + p), 0, Math.PI * 2); ctx.fill();
+      case 'thud': {
+        const g = w2s(a.x, a.y);
+        ctx.fillStyle = `rgba(170,150,110,${(1 - p) * 0.7})`;
+        ctx.beginPath(); ctx.arc(g.x, g.y, Math.max(6, w2r(1.5)) * (1 + p), 0, TAU); ctx.fill();
         break;
       }
-
       case 'sparkle': {
+        const g = w2s(a.x, a.y);
         for (let i = 0; i < 8; i++) {
-          const ang = i * Math.PI * 2 / 8 + p * 3;
-          const r = 6 + p * 16;
-          ctx.fillStyle = `rgba(100,255,180,${(1 - p) * 0.8})`;
-          ctx.beginPath(); ctx.arc(a.x + Math.cos(ang) * r, a.y + Math.sin(ang) * r, 2.5 - p * 1.5, 0, Math.PI * 2); ctx.fill();
+          const ang = i * TAU / 8 + p * 3, r = 6 + p * 18;
+          ctx.fillStyle = `rgba(255,220,120,${(1 - p) * 0.9})`;
+          ctx.beginPath(); ctx.arc(g.x + Math.cos(ang) * r, g.y + Math.sin(ang) * r, 2.5 - p * 1.5, 0, TAU); ctx.fill();
         }
         break;
       }
-
       case 'sinking': {
-        const r = 20 + p * 15;
-        ctx.fillStyle = `rgba(10,30,60,${(1 - p) * 0.4})`;
-        ctx.beginPath(); ctx.arc(a.x, a.y, r, 0, Math.PI * 2); ctx.fill();
-        if (p > 0.2) {
-          for (let i = 0; i < 5; i++) {
-            ctx.fillStyle = `rgba(150,200,240,${Math.max(0, 1 - p - 0.2) * 0.5})`;
-            ctx.beginPath();
-            ctx.arc(a.x + Math.sin(p * 10 + i * 2) * r * 0.6, a.y - p * 20 + Math.cos(p * 8 + i * 3) * 5, 2 + i * 0.5, 0, Math.PI * 2);
-            ctx.fill();
-          }
+        const g = w2s(a.x, a.y), r = w2r(4) + p * w2r(3);
+        ctx.fillStyle = `rgba(5,20,40,${(1 - p) * 0.5})`;
+        ctx.beginPath(); ctx.arc(g.x, g.y, r, 0, TAU); ctx.fill();
+        for (let i = 0; i < 6; i++) {
+          ctx.fillStyle = `rgba(170,210,240,${Math.max(0, 0.8 - p) * 0.6})`;
+          ctx.beginPath();
+          ctx.arc(g.x + Math.sin(p * 9 + i * 2) * r * 0.6, g.y - p * 18 + Math.cos(p * 7 + i * 3) * 4, 1.5 + i * 0.4, 0, TAU);
+          ctx.fill();
         }
         break;
       }
-
-      case 'golden_ring': {
-        const rp = 0.5 + Math.sin(p * Math.PI) * 0.5;
-        ctx.strokeStyle = `rgba(241,196,15,${rp * 0.8})`; ctx.lineWidth = 3;
-        ctx.beginPath(); ctx.arc(a.x, a.y, 18 + p * 6, 0, Math.PI * 2); ctx.stroke();
+      case 'ring': {
+        const g = w2s(a.x, a.y);
+        ctx.strokeStyle = `rgba(${a.col},${Math.sin(p * Math.PI) * 0.9})`; ctx.lineWidth = 3;
+        ctx.beginPath(); ctx.arc(g.x, g.y, w2r(5) + p * 8, 0, TAU); ctx.stroke();
         break;
       }
-
-      case 'flags': {
-        for (let i = 0; i < 3; i++) {
-          const fx = a.x + (i - 1) * 10, fy = a.y - 12 - p * 15;
-          ctx.fillStyle = `rgba(${i === 0 ? '255,80,80' : i === 1 ? '255,255,80' : '80,80,255'},${1 - p})`;
-          ctx.fillRect(fx - 3, fy - 2, 6, 4);
-        }
+      case 'flag': {
+        const g = w2s(a.x, a.y);
+        const rise = Math.min(1, p * 2);
+        ctx.strokeStyle = `rgba(${a.col},${1 - Math.max(0, p - 0.6) * 2.5})`;
+        ctx.lineWidth = 2;
+        ctx.beginPath(); ctx.arc(g.x, g.y, 10 + p * 30, 0, TAU); ctx.stroke();
+        ctx.fillStyle = `rgba(${a.col},${1 - p})`;
+        ctx.fillRect(g.x - 3, g.y - 20 - rise * 12, 12, 7);
         break;
       }
-
       case 'boarding': {
-        const mx = a.x1 + (a.x2 - a.x1) * Math.min(1, p * 2);
-        const my = a.y1 + (a.y2 - a.y1) * Math.min(1, p * 2);
-        ctx.fillStyle = `rgba(255,200,50,${p < 0.5 ? 1 : 2 * (1 - p)})`;
-        ctx.font = '16px serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-        ctx.fillText('\u2694', mx, my);
+        const q = Math.min(1, p * 1.6);
+        const a1 = w2s(a.x1, a.y1), a2 = w2s(a.x2, a.y2);
+        ctx.fillStyle = `rgba(255,210,80,${p < 0.6 ? 1 : (1 - p) * 2.5})`;
+        ctx.font = '18px serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+        ctx.fillText('⚔', a1.x + (a2.x - a1.x) * q, a1.y + (a2.y - a1.y) * q);
         break;
       }
-
-      case 'damage_number': {
-        ctx.fillStyle = `rgba(255,80,80,${1 - p})`;
-        ctx.font = 'bold 16px "Cinzel",serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-        ctx.fillText(a.text, a.x, a.y - p * 25);
+      case 'text': {
+        const g = w2s(a.x, a.y);
+        ctx.font = `bold ${Math.round(clamp(worldScale * 3.6, 14, 20))}px "Crimson Text",serif`;
+        ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+        ctx.lineWidth = 3; ctx.strokeStyle = `rgba(0,0,0,${0.6 * (1 - p)})`;
+        ctx.strokeText(a.text, g.x, g.y - 14 - p * 22);
+        ctx.fillStyle = `rgba(${a.col},${1 - p * p})`;
+        ctx.fillText(a.text, g.x, g.y - 14 - p * 22);
+        break;
+      }
+      case 'smoke': {
+        const f = fwdVec(a.h);
+        if (p < 0.2) {
+          const g = w2s(a.x, a.y), q = p / 0.2;
+          ctx.fillStyle = `rgba(255,190,80,${0.9 * (1 - q)})`;
+          ctx.beginPath(); ctx.arc(g.x + f.x * 4 * q, g.y + f.y * 4 * q, Math.max(4, w2r(1.4)) * (1 + q), 0, TAU); ctx.fill();
+        }
+        for (let i = 0; i < 4; i++) {
+          const d = (1 + i) * 0.9 * p * (REDUCED_MOTION ? 0.3 : 1);
+          const g = w2s(a.x + f.x * d * 2 + Math.sin(i * 2.1) * p, a.y + f.y * d * 2 + Math.cos(i * 1.7) * p - p * 1.5);
+          ctx.fillStyle = `rgba(215,210,200,${0.45 * (1 - p)})`;
+          ctx.beginPath(); ctx.arc(g.x, g.y, Math.max(3, w2r(0.9)) * (1 + p * 2.2) * (1 - i * 0.12), 0, TAU); ctx.fill();
+        }
+        break;
+      }
+      case 'fitting': {
+        // 0-0.35: topple outboard; 0.35-1: float, drift and sink.
+        const fall = Math.min(1, p / 0.35), off = a.shipW * 0.5 + 1.2 * fall + p * 1.2;
+        const g = w2s(a.x + a.dx * off, a.y + a.dy * off);
+        const alpha = p < 0.6 ? 1 : 1 - (p - 0.6) / 0.4;
+        const L = a.mast ? Math.max(8, w2r(3.2)) : Math.max(5, w2r(1.6));
+        ctx.save(); ctx.translate(g.x, g.y);
+        ctx.rotate(Math.atan2(a.dy, a.dx) - Math.PI / 2 * (1 - fall));
+        ctx.globalAlpha = alpha;
+        if (a.mast) {
+          ctx.strokeStyle = '#6b4c30'; ctx.lineWidth = Math.max(2, w2r(0.5));
+          ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(L, 0); ctx.stroke();
+          ctx.fillStyle = 'rgba(245,235,215,.95)';
+          ctx.beginPath(); ctx.moveTo(L * 0.25, 0); ctx.lineTo(L * 0.8, 0); ctx.lineTo(L * 0.55, L * 0.35); ctx.closePath(); ctx.fill();
+        } else {
+          ctx.fillStyle = '#8b5e34'; ctx.strokeStyle = '#3c2415'; ctx.lineWidth = 1;
+          ctx.fillRect(0, -L / 2, L, L); ctx.strokeRect(0, -L / 2, L, L);
+        }
+        ctx.restore();
+        if (fall >= 1) {
+          ctx.strokeStyle = `rgba(200,230,255,${0.6 * (1 - p)})`; ctx.lineWidth = 1.2;
+          ctx.beginPath(); ctx.arc(g.x, g.y, 3 + (p - 0.35) * 18, 0, TAU); ctx.stroke();
+        }
+        break;
+      }
+      case 'wreck': {
+        const g = w2s(a.pose.x, a.pose.y);
+        ctx.save();
+        ctx.translate(g.x, g.y); ctx.rotate(a.tilt * p); ctx.scale(1 - 0.55 * p, 1 - 0.55 * p); ctx.translate(-g.x, -g.y);
+        drawShipBody(a.ship, a.pose, Math.max(0, 1 - p * 1.1), false);
+        ctx.restore();
+        break;
+      }
+      case 'bump': {
+        const g = w2s(a.x, a.y);
+        ctx.strokeStyle = `rgba(255,235,190,${1 - p})`; ctx.lineWidth = 2;
+        for (let i = -1; i <= 1; i++) {
+          const ang = i * 0.6 - Math.PI / 2;
+          ctx.beginPath();
+          ctx.moveTo(g.x + Math.cos(ang) * (4 + p * 6), g.y + Math.sin(ang) * (4 + p * 6));
+          ctx.lineTo(g.x + Math.cos(ang) * (8 + p * 8), g.y + Math.sin(ang) * (8 + p * 8));
+          ctx.stroke();
+        }
         break;
       }
     }
-  });
+  }
 }
