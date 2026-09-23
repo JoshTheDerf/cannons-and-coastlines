@@ -46,9 +46,12 @@ function shapeProduct(p: Product, opts: { fullImages?: boolean } = {}) {
       { namespace: 'cnc', key: 'set_id', value: p.setId, type: 'single_line_text_field' },
       { namespace: 'cnc', key: 'tagline', value: p.tagline, type: 'single_line_text_field' },
       { namespace: 'cnc', key: 'includes', value: JSON.stringify(p.includes), type: 'json' },
-      { namespace: 'cnc', key: 'model_url', value: p.modelUrl, type: 'file_reference' },
       { namespace: 'cnc', key: 'pairings', value: JSON.stringify(p.pairings), type: 'json' },
-      { namespace: 'cnc', key: 'placements', value: JSON.stringify(p.placements), type: 'json' }
+      { namespace: 'cnc', key: 'kind', value: p.kind, type: 'single_line_text_field' },
+      { namespace: 'cnc', key: 'group', value: p.group, type: 'single_line_text_field' },
+      { namespace: 'cnc', key: 'kit_status', value: p.kitStatus, type: 'single_line_text_field' },
+      // Key into shared/data/ship-assemblies.json, which the 3D view builds from.
+      { namespace: 'cnc', key: 'assembly', value: p.assembly, type: 'single_line_text_field' }
     ]
   }
 }

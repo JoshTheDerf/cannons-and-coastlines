@@ -23,8 +23,15 @@
 /assets/icons/*
     Cache-Control: public, max-age=31536000, immutable
 
+# The base-set zip keeps one URL across releases (its filename carries no
+# version), so browsers and the CDN must check back for a new copy. The
+# ETag makes an unchanged file a cheap 304.
 /assets/stls/*
-    Cache-Control: public, max-age=2592000
+    Cache-Control: public, max-age=0, must-revalidate
+
+# 3D preview meshes are rebuilt in place when a model changes.
+/assets/previews/*
+    Cache-Control: public, max-age=3600, must-revalidate
 
 # The /game/ files keep fixed names. index.html is revalidated on every load
 # and its script/style URLs carry ?v=<hash> (build.sh), so a deploy never

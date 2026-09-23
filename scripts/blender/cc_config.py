@@ -6,7 +6,7 @@
 # Recognized fields:
 #   material: "grey" | "gold" | "black" | "black-hull" | "blue-grey"
 #             | "brown" | "pine" | "rust" | "stone" | "blue" | "green"
-#             | "white" | "neon-green" | "gold-hull" | "shadow-petg"
+#             | "white" | "neon-green" | "gold-hull" | "shadow-petg" | "reef-pink"
 #             (default "grey")
 #             See cc_materials.make_material for what each one is.
 #   preview_material: str        Material for the ship-preview pass only
@@ -81,15 +81,20 @@ ITEM_OVERRIDES = {
     # the parts gallery, and are ALSO imported into ship-industry's preview
     # (see its "fittings"), where they take the hull's rust unless a
     # fitting_material below says otherwise.
-    "industry-smokestack": {"material": "black"},
-    "industry-turret":     {"material": "grey"},
+    "industry-smokestack": {"material": "rust"},
+    "industry-turret":     {"material": "rust"},
     "cannon":            {"material": "black"},
     "cannonball":        {"material": "neon-green"},
     "cargo":             {"material": "brown"},
     "barrel":            {"material": "brown"},
     "island-topper":     {"material": "green", "shade_smooth": True},
+    "rock1":             {"material": "stone"},
+    "reef":              {"material": "reef-pink"},
     "island":            {"material": "green", "shade_smooth": True},
     "sail":              {"material": "white"},
+    "sail-treasure-fleet": {"material": "white"},
+    "sail-stone-fleet":    {"material": "white"},
+    "sail-islanders":      {"material": "white"},
     "sail-damaged":      {"material": "black"},
 }
 

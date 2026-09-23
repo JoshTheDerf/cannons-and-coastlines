@@ -204,9 +204,10 @@ def make_green_pla():
 
 
 def make_neon_green_pla():
-    # Bright neon green for cannonballs, the colour the rulebook recommends so
-    # they are easy to find under the couch. Linear RGB; deliberately candy.
-    return make_matte_pla("PLA_NeonGreen", (0.12, 0.85, 0.02))
+    # Bright green for cannonballs, the colour the rulebook recommends so they
+    # are easy to find under the couch. Linear RGB; bright, but a filament
+    # green rather than a highlighter.
+    return make_matte_pla("PLA_NeonGreen", (0.22, 0.58, 0.10))
 
 
 def make_white_pla():
@@ -452,6 +453,9 @@ def make_material(preset: str, grey: float = 0.75, view: str = "iso"):
                                   scatter_density=5.0,
                                   absorption_density=0.12,
                                   subsurface=0.4)
+    if preset == "reef-pink":
+        # Reefs print pale pink (#f4d3db).
+        return make_matte_pla("PLA_ReefPink", (0.90, 0.65, 0.70))
     if preset == "blue-grey":
         return make_blue_grey_pla()
     if preset == "brown":

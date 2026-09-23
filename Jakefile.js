@@ -44,6 +44,7 @@ const TASKS = {
     'renders':       ['Render the parts gallery: base-set pieces + every hull — needs Blender', 'scripts/blender/render_parts.sh'],
     'ship-previews': ['Render the ship 3/4 previews in Blender — needs Blender', 'scripts/blender/render_ship_previews.sh'],
     'set-previews':  ["Render one set's ship art and install it, e.g. set-previews[industry-set] — needs Blender", 'scripts/blender/render_set_previews.sh'],
+    'preview-meshes': ['Build the shop 3D preview meshes from ship-assemblies.json — needs Blender', 'scripts/blender/build_preview_meshes.sh'],
     'banner-fade':   ['Regenerate the faction-card banner overlays — needs ImageMagick', 'scripts/rulebook/build-banner-fade.sh'],
     'starter-pack-3mf': ['Slice starter-pack 3MFs, e.g. starter-pack-3mf[--queens,2] — needs OrcaSlicer', 'scripts/print/build-starter-pack-3mf.sh'],
     'bump-set':      ['Release a new version of a set, e.g. bump-set[base-set,0.4] — zip, manifest, redirects', 'scripts/bump-set.sh'],

@@ -111,14 +111,25 @@ Cutting a new version of a set is one command:
 npx jake "bump-set[base-set,0.4]"      # add --dry-run to see the plan first
 ```
 
-It writes the version into `set.json`, syncs the site manifest including the
-versioned `freeDownloadUrl`, rebuilds the public zip, adds the `_redirects`
-rule pointing the old download at the new one, and deletes the superseded zip
-— that last step matters, because a real file at the old path would take
-precedence over the redirect replacing it. Paid sets stop after the manifest
+It writes the version into `set.json`, syncs the site manifest and rebuilds
+the public zip. The zip's filename carries no version
+(`cannons-and-coastlines-base-set.zip`, with a versioned folder inside), so
+the download URL never changes and nothing needs redirecting. Paid sets stop after the manifest
 and go to R2 via `publish-sets`. Don't edit `version` by hand: the build
 scripts refuse to package anything while `set.json` and the site manifest
 disagree.
+
+## The 3D ship previews
+
+The shop's 3D view builds every ship from one file,
+`nuxt-site/shared/data/ship-assemblies.json`: which part goes in which socket,
+where (in the hull STL's own millimetres), facing which way, and in which
+filament. Fix a placement there and the site follows; the file's header
+explains the coordinate system and fields.
+
+The browser loads decimated meshes from `assets/previews/`, built from the
+source STLs with `npx jake preview-meshes` (needs Blender). Paid hulls have no
+public STL, so their preview mesh is the only form of them the site serves.
 
 ## Community
 

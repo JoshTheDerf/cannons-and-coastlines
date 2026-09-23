@@ -1,68 +1,138 @@
 <script setup lang="ts">
+import type { ShopProductCard } from '~/composables/useShop'
+
 const { listProducts, cart, loadCart } = useShop()
 const { data: products } = await useAsyncData('shop-products', () => listProducts())
+const { data: setsData } = await useFleetSets()
+const { data: fleetCopy } = await useFleetCopy()
 
 onMounted(() => { if (!cart.value) loadCart() })
 
 useSeoMeta({
   title: 'Shop',
-  description: 'Boxed Cannons & Coastlines starter sets, printed and packed by hand in Georgia.'
+  description: 'Printed Cannons & Coastlines fleet kits, made to order in Georgia, and STL files for every fleet.'
 })
+
+// One filter row instead of separate pages: most people arrive wanting one
+// format, and the same faction appears under both.
+type Filter = 'all' | 'kits' | 'files'
+const route = useRoute()
+const filter = ref<Filter>(['kits', 'files'].includes(String(route.query.show)) ? route.query.show as Filter : 'all')
+watch(filter, f => navigateTo({ query: f === 'all' ? {} : { show: f } }, { replace: true }))
+
+const setFor = (p: ShopProductCard) => setsData.value?.all.find(s => s.id === p.setId) ?? null
+
+function kitLabel(p: ShopProductCard) {
+  if (p.kitStatus === 'available') return `from $${Math.round(Number(p.priceRange.minVariantPrice.amount))}`
+  if (p.kitStatus === 'coming-soon') return 'Coming soon'
+  return null
+}
+
+function filesLabel(p: ShopProductCard) {
+  const set = setFor(p)
+  if (!set) return null
+  if (!set.paid) return 'Free'
+  if (set.purchasable) return formatPrice(set.priceUsd)
+  return 'Coming soon'
+}
+
+const visible = (p: ShopProductCard) =>
+  filter.value === 'all'
+  || (filter.value === 'kits' && p.kind === 'faction')
+  || (filter.value === 'files' && !!p.setId)
+
+const base = computed(() => (products.value ?? []).filter(p => p.group === 'base' && visible(p)))
+const addons = computed(() => (products.value ?? []).filter(p => p.group === 'addon' && visible(p)))
 </script>
 
 <template>
   <div>
-    <header class="py-16 px-4 text-center text-ink" style="background: linear-gradient(135deg, rgba(28,50,70,0.85), rgba(20,40,58,0.9)), url('/assets/photos/starter-pack/both-ships-and-background-sm.jpg') center/cover no-repeat;">
-      <div class="container mx-auto max-w-3xl">
-        <p class="font-display uppercase tracking-[0.25em] text-[color:var(--gold)] text-sm mb-3">Shop</p>
-        <h1 class="font-display text-4xl md:text-5xl">Starter sets</h1>
-        <p class="mt-4 text-ink-soft">
-          Each box is one fleet, so grab two for a full game. They're printed in your
-          color and packed by hand at our home in Georgia.
-        </p>
+    <header class="border-b border-[color:var(--rule)] bg-[color:var(--paper-tint)]/60">
+      <div class="container mx-auto px-4 py-10 md:py-14 grid md:grid-cols-[1.2fr_1fr] gap-8 items-center">
+        <div>
+          <p class="font-display uppercase tracking-[0.25em] text-[color:var(--gold)] text-sm mb-2">The Shop</p>
+          <h1 class="font-display text-4xl md:text-5xl text-[color:var(--heading)]">Printed fleets and STL files</h1>
+          <p class="mt-4 text-ink-soft max-w-xl">
+            Every fleet comes as a printed kit we make to order at our home in Georgia, or as STL
+            files you print yourself. The base game's files are free.
+          </p>
+        </div>
+        <ul class="hidden sm:grid grid-cols-2 gap-3 text-sm">
+          <li class="card-parchment p-3 flex gap-2 items-start">
+            <UIcon name="i-lucide-hammer" class="size-5 text-[color:var(--gold)] shrink-0" />
+            <span><b class="text-ink">Made to order</b><br><span class="text-ink-soft">About two weeks</span></span>
+          </li>
+          <li class="card-parchment p-3 flex gap-2 items-start">
+            <UIcon name="i-lucide-truck" class="size-5 text-[color:var(--gold)] shrink-0" />
+            <span><b class="text-ink">US shipping</b><br><span class="text-ink-soft">Packed by hand</span></span>
+          </li>
+          <li class="card-parchment p-3 flex gap-2 items-start">
+            <UIcon name="i-lucide-download" class="size-5 text-[color:var(--gold)] shrink-0" />
+            <span><b class="text-ink">Instant files</b><br><span class="text-ink-soft">Emailed download link</span></span>
+          </li>
+          <li class="card-parchment p-3 flex gap-2 items-start">
+            <UIcon name="i-lucide-refresh-cw" class="size-5 text-[color:var(--gold)] shrink-0" />
+            <span><b class="text-ink">Free updates</b><br><span class="text-ink-soft">When models change</span></span>
+          </li>
+        </ul>
       </div>
     </header>
 
-    <section class="py-16 px-4 container mx-auto">
-      <div class="grid md:grid-cols-2 gap-8">
-        <article v-for="p in products" :key="p.id" class="card-parchment overflow-hidden flex flex-col">
-          <NuxtLink :to="`/shop/${p.handle}`" class="block">
-            <img :src="p.featuredImage.url" :alt="p.featuredImage.altText" class="w-full aspect-[4/3] object-cover">
-          </NuxtLink>
-          <div class="p-6 flex flex-col gap-3 flex-1">
-            <p class="text-sm uppercase tracking-[0.2em] text-[color:var(--gold)] font-semibold">{{ p.faction }}</p>
-            <h2 class="font-display text-2xl text-ink">
-              <NuxtLink :to="`/shop/${p.handle}`" class="hover:text-[color:var(--heading)]">{{ p.title }}</NuxtLink>
-            </h2>
-            <p class="text-ink-soft text-sm">{{ p.tagline }}</p>
-            <div v-if="p.variants.length" class="flex items-center gap-2 mt-1" aria-label="Available colors">
-              <span
-                v-for="v in p.variants"
-                :key="v.id"
-                class="size-5 rounded-full border border-ink/25"
-                :class="!v.availableForSale && 'opacity-30'"
-                :style="{ background: v.swatch }"
-                :title="`${v.title}${v.availableForSale ? '' : ' (sold out)'}`"
-              />
-            </div>
-            <div class="mt-auto pt-4 flex items-center justify-between">
-              <p class="font-display text-xl text-ink">
-                <template v-if="p.variants.length">${{ p.priceRange.minVariantPrice.amount }}</template>
-                <template v-else>Files only</template>
-              </p>
-              <UButton :to="`/shop/${p.handle}`" color="primary" icon="i-lucide-arrow-right" trailing>
-                View set
-              </UButton>
-            </div>
-          </div>
-        </article>
+    <div class="container mx-auto px-4 py-10">
+      <div class="flex flex-wrap items-center gap-2" role="tablist" aria-label="Filter products">
+        <button
+          v-for="f in ([['all', 'Everything'], ['kits', 'Printed kits'], ['files', 'STL files']] as const)"
+          :key="f[0]"
+          type="button"
+          role="tab"
+          :aria-selected="filter === f[0]"
+          class="px-4 py-1.5 rounded-full border text-sm transition"
+          :class="filter === f[0] ? 'bg-[color:var(--heading)] text-[color:var(--paper)] border-[color:var(--heading)]' : 'border-[color:var(--rule)] text-ink-soft hover:text-ink hover:border-ink/50'"
+          @click="filter = f[0]"
+        >
+          {{ f[1] }}
+        </button>
       </div>
 
-      <p class="mt-10 text-center text-sm text-ink-soft">
+      <section v-if="base.length" class="mt-8">
+        <div class="flex items-baseline justify-between gap-4">
+          <h2 class="font-display text-2xl text-[color:var(--heading)]">The base game</h2>
+          <p class="text-sm text-ink-soft hidden sm:block">Two fleets that are a good match for each other.</p>
+        </div>
+        <div class="mt-5 grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          <ShopProductTile
+            v-for="p in base"
+            :key="p.id"
+            :product="p"
+            :kit-label="kitLabel(p)"
+            :files-label="filesLabel(p)"
+            :stats="fleetCopy?.[p.faction]?.stats"
+          />
+        </div>
+      </section>
+
+      <section v-if="addons.length" class="mt-14">
+        <div class="flex items-baseline justify-between gap-4">
+          <h2 class="font-display text-2xl text-[color:var(--heading)]">Add-on fleets</h2>
+          <p class="text-sm text-ink-soft hidden sm:block">In playtesting now. Each one plays with the free base set.</p>
+        </div>
+        <div class="mt-5 grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          <ShopProductTile
+            v-for="p in addons"
+            :key="p.id"
+            :product="p"
+            :kit-label="kitLabel(p)"
+            :files-label="filesLabel(p)"
+            :stats="fleetCopy?.[p.faction]?.stats"
+          />
+        </div>
+      </section>
+
+      <p class="mt-14 text-center text-sm text-ink-soft">
         Have a question first?
         <a href="https://discord.gg/DMuFEWJtZq" target="_blank" rel="noopener" class="underline text-[color:var(--gold)]">Ask on Discord</a>
         or join the <NuxtLink to="/#files" class="underline text-[color:var(--gold)]">mailing list</NuxtLink>.
       </p>
-    </section>
+    </div>
   </div>
 </template>

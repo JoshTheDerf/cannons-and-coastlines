@@ -17,6 +17,12 @@ export type Image = { url: string, altText: string }
 export type Product = {
   id: string
   handle: string
+  /** Old handles that should redirect here (links already shared). */
+  aliases: string[]
+  /** A faction's page sells its printed kit and its files; a download page only files. */
+  kind: 'faction' | 'download'
+  /** 'base' fleets come with the free game; 'addon' fleets are sold separately. */
+  group: 'base' | 'addon'
   title: string
   description: string
   faction: string
@@ -25,29 +31,23 @@ export type Product = {
   images: Image[]
   options: { id: string, name: string, values: string[] }[]
   variants: Variant[]
+  /**
+   * Printed-kit state. 'available' needs variants; 'coming-soon' is a kit we
+   * plan to box but have not priced, and 'none' is a page with no kit at all.
+   */
+  kitStatus: 'available' | 'coming-soon' | 'none'
   includes: { icon: string, title: string, items: string[] }[]
   /**
-   * The digital set this faction's files come from, matching an id in
-   * server/data/sets.json. The store page shows a Digital tab driven by that
-   * manifest: free for the base set, priced (or Coming Soon) for the rest.
+   * The digital set this page's files come from, matching an id in
+   * server/data/sets.json: free for the base set, priced (or Coming Soon)
+   * for the rest.
    */
   setId: string | null
   /**
-   * Null when there is no printed box for this faction yet — the Physical tab
-   * then says so instead of offering an empty variant picker.
+   * Key into shared/data/ship-assemblies.json: the ship the 3D view builds.
+   * Placements, parts and colors all live in that file.
    */
-  modelUrl: string | null
-  // Bounding-box-relative positions in object space (0..1 per axis) for
-  // accessory parts inserted into holes on the ship hull. Object-space
-  // axes assumed: X = length (bow→stern), Y = beam (port↔starboard),
-  // Z = vertical (keel→top); the viewer rotates the ship -90° on X so
-  // model Z becomes world Y.
-  placements: {
-    type: 'mast' | 'cannon' | 'movement-wheel'
-    position: [number, number, number]
-    rotation?: [number, number, number]
-    scale?: number
-  }[]
+  assembly: string | null
   pairings: { with: string, title: string, blurb: string }[]
 }
 
@@ -62,7 +62,7 @@ const queensColors: ColorOption[] = [
 ]
 
 const corsairsColors: ColorOption[] = [
-  { name: 'Pitch Black', swatch: '#1a1a1a' },
+  { name: 'Pitch Black', swatch: '#2c2c2c' },
   { name: 'Crimson Red', swatch: '#9a2a2a' },
   { name: 'Bone Grey',   swatch: '#c9c6bd' },
   { name: 'Wood Brown',  swatch: '#7a5230' }
@@ -83,219 +83,250 @@ const buildVariants = (
     selectedOptions: [{ name: 'Color', value: c.name }]
   }))
 
+const card = (slug: string) => `/rulebook/png/faction-card-${slug}.png`
+
+// Every printed kit ships the same terrain; the 3D view scatters the same
+// pieces (shared/data/ship-assemblies.json `scene.terrain`).
+const coastlineKit = (factionCard: string): Product['includes'][number] => ({
+  icon: 'i-lucide-mountain', title: 'Coastline kit', items: [
+    'Three island toppers with flagpoles',
+    'Two rocks and two reefs',
+    factionCard
+  ]
+})
+
+const filesIncludes = (hull: string): Product['includes'][number] => ({
+  icon: 'i-lucide-download', title: 'The STL files', items: [
+    `${hull} and every faction-specific part`,
+    'Print as many as you like, in any color',
+    'Free re-downloads when the models change'
+  ]
+})
+
 export const products: Product[] = [
   {
     id: 'gid://shopify/Product/queens-fleet',
-    handle: 'queens-fleet-starter-set',
-    title: "Queen's Fleet Starter Set",
+    handle: 'queens-fleet',
+    aliases: ['queens-fleet-starter-set'],
+    kind: 'faction',
+    group: 'base',
+    title: "Queen's Fleet",
     faction: "Queen's Fleet",
-    tagline: 'Three ships of the line, rigged and armed.',
+    tagline: "Three well-armed frigates from the Crown's navy. It's the easiest fleet to learn.",
     description:
-      "Heavy hulls and disciplined broadsides. Everything you need to field the Queen's Fleet, printed by hand at our home in Georgia.",
-    featuredImage: {
-      url: '/assets/photos/starter-pack/queens-fleet-ship-sm.jpg',
-      altText: "Queen's Fleet ships printed in cream and tan"
-    },
+      "Heavy hulls and disciplined broadsides. The Queen has sent ships to the islands before, and some of them never came back. The printed kit is everything you need to field the fleet, printed by hand at our home in Georgia. The files are free with the base game.",
+    featuredImage: { url: '/assets/ships/ship-preview-queen-fleet-large-sm.webp?v=0.5', altText: "A Queen's Fleet frigate" },
     images: [
       { url: '/assets/photos/starter-pack/queens-fleet-ship-sm.jpg', altText: "Queen's Fleet ships printed in cream and tan" },
-      { url: '/assets/photos/queens-fleet-ship-of-the-line-hero-sm.jpg', altText: "Queen's Fleet ship of the line hero shot" },
+      { url: '/assets/photos/queens-fleet-ship-of-the-line-hero-sm.jpg', altText: "Queen's Fleet ship of the line" },
       { url: '/assets/photos/queens-fleet-ship-of-the-line-sails-sm.jpg', altText: "Queen's Fleet ship with sails attached" },
-      { url: '/rulebook/png/faction-card-queens-fleet.png', altText: "Queen's Fleet faction card" }
+      { url: card('queens-fleet'), altText: "Queen's Fleet faction card" }
     ],
     options: [{ id: 'gid://shopify/ProductOption/queens-color', name: 'Color', values: queensColors.map(c => c.name) }],
     variants: buildVariants('queens', 65, queensColors),
+    kitStatus: 'available',
     includes: [
-      { icon: 'i-lucide-ship', title: 'Three ships of the line', items: [
-        'Three large hulls with masts, sails, and flag holders',
-        'Movement wheels and cargo bays for each ship',
-        'A pack of cannons, cannonballs, and coins'
-      ]},
-      { icon: 'i-lucide-mountain', title: 'Coastline kit', items: [
-        'Three island toppers and flagpoles',
-        'Rocks and reefs for hazardous waters',
-        "Faction card for the Queen's Fleet"
-      ]},
+      { icon: 'i-lucide-ship', title: 'Three frigates', items: [
+        'Three hulls with masts, sails and cargo fitted',
+        'A movement wheel and rubber band for each ship',
+        'Cannons, cannonballs and a set of coins'
+      ] },
+      coastlineKit("The Queen's Fleet faction card"),
       { icon: 'i-lucide-book-open', title: 'Printable manual', items: [
         'Latest edition of the rulebook (PDF)',
-        'Faction reference card',
         "We'll send updates as the rules evolve"
-      ]}
+      ] }
     ],
     setId: 'base-set',
-    modelUrl: '/assets/stls/base-set/ship-queens-fleet.stl',
-    placements: [
-      { type: 'mast', position: [0.30, 0.50, 0.70] },
-      { type: 'mast', position: [0.55, 0.50, 0.72] },
-      { type: 'mast', position: [0.78, 0.50, 0.68] },
-      { type: 'movement-wheel', position: [0.10, 0.50, 0.55] },
-      { type: 'cannon', position: [0.40, 0.20, 0.55] },
-      { type: 'cannon', position: [0.60, 0.20, 0.55] },
-      { type: 'cannon', position: [0.40, 0.80, 0.55] },
-      { type: 'cannon', position: [0.60, 0.80, 0.55] }
-    ],
+    assembly: 'queens-fleet',
     pairings: [
       {
-        with: 'corsair-fleet-starter-set',
+        with: 'corsairs',
         title: 'Pair with the Corsairs',
-        blurb:
-          'Grab one of each and you have a complete two-player game out of the box. Queens vs. Corsairs (heavy broadsides against quick raiders) is the matchup we tune the rules around.'
+        blurb: "One of each is a complete two-player game. The Crown's frigates want a straight fight and the raiders would rather avoid one, which is the matchup we tune the rules around."
+      },
+      {
+        with: 'shadow-fleet',
+        title: 'Or face the Shadow Fleet',
+        blurb: "The Queen's first ships to the islands disappeared without a trace. Something is sailing them again, and they're still flying her colors."
       }
     ]
   },
   {
     id: 'gid://shopify/Product/corsairs',
-    handle: 'corsair-fleet-starter-set',
-    title: 'Corsair Fleet Starter Set',
+    handle: 'corsairs',
+    aliases: ['corsair-fleet-starter-set'],
+    kind: 'faction',
+    group: 'base',
+    title: 'Corsairs',
     faction: 'Corsairs',
-    tagline: 'Four fast sloops for raiding and boarding.',
+    tagline: 'Three fast sloops for raiding and boarding.',
     description:
-      'The Corsairs win by being where the cannons are not. A four-ship raiding fleet with everything you need to play.',
-    featuredImage: {
-      url: '/assets/photos/starter-pack/corsair-ship-sm.jpg',
-      altText: 'Corsair ships printed in dark filament'
-    },
+      'The Corsairs do best when they pick their fights and stay out of the way of the big guns. The printed kit is a full raiding fleet with everything you need to play, and the files are free with the base game.',
+    featuredImage: { url: '/assets/ships/ship-preview-corsairs-sm.webp?v=0.5', altText: 'A Corsair sloop' },
     images: [
       { url: '/assets/photos/starter-pack/corsair-ship-sm.jpg', altText: 'Corsair ships printed in dark filament' },
-      { url: '/assets/photos/starter-pack/both-ships-and-background-sm.jpg', altText: 'Corsairs and Queen ships side by side' },
-      { url: '/assets/photos/starter-pack/all-parts-sm.jpg', altText: 'All parts that ship in a starter pack' },
-      { url: '/rulebook/png/faction-card-corsairs.png', altText: 'Corsairs faction card' }
+      { url: '/assets/photos/starter-pack/both-ships-and-background-sm.jpg', altText: "Corsairs and Queen's Fleet ships side by side" },
+      { url: card('corsairs'), altText: 'Corsairs faction card' }
     ],
     options: [{ id: 'gid://shopify/ProductOption/corsairs-color', name: 'Color', values: corsairsColors.map(c => c.name) }],
     variants: buildVariants('corsairs', 60, corsairsColors),
+    kitStatus: 'available',
     includes: [
-      { icon: 'i-lucide-ship', title: 'Four raiding ships', items: [
-        'Four small hulls with masts, sails, and flag holders',
-        'Movement wheels and cargo bays for each ship',
-        'A pack of cannons, cannonballs, and coins'
-      ]},
-      { icon: 'i-lucide-mountain', title: 'Coastline kit', items: [
-        'Three island toppers and flagpoles',
-        'Rocks and reefs for hazardous waters',
-        'Faction card for the Corsairs'
-      ]},
+      { icon: 'i-lucide-ship', title: 'Three sloops', items: [
+        'Three hulls with masts, sails and cargo fitted',
+        'A movement wheel and rubber band for each ship',
+        'Cannons, cannonballs and a set of coins'
+      ] },
+      coastlineKit('The Corsairs faction card'),
       { icon: 'i-lucide-book-open', title: 'Printable manual', items: [
         'Latest edition of the rulebook (PDF)',
-        'Faction reference card',
         "We'll send updates as the rules evolve"
-      ]}
+      ] }
     ],
     setId: 'base-set',
-    modelUrl: '/assets/stls/base-set/ship-corsair.stl',
-    placements: [
-      { type: 'mast', position: [0.50, 0.50, 0.70] },
-      { type: 'movement-wheel', position: [0.18, 0.50, 0.55] },
-      { type: 'cannon', position: [0.55, 0.20, 0.55] },
-      { type: 'cannon', position: [0.55, 0.80, 0.55] }
-    ],
+    assembly: 'corsairs',
     pairings: [
       {
-        with: 'queens-fleet-starter-set',
+        with: 'queens-fleet',
         title: "Pair with the Queen's Fleet",
-        blurb:
-          'The Corsairs play very differently from the Queens, so bringing both lets a new group jump straight into a head-to-head game.'
+        blurb: 'The Corsairs play very differently from the Queens, so bringing both lets a new group jump straight into a head-to-head game.'
       }
     ]
   },
-
-  // ── Add-on factions ────────────────────────────────────────────────
-  //
-  // Digital-first: the files are sold as a download, and no printed box
-  // exists for these yet. They still get a full store page — the Physical tab
-  // says a box is not available rather than hiding the faction — so adding
-  // one later means filling in `variants` and `options` here and nothing else.
-  //
-  // `variants: []` is what marks a product as having no physical offering.
-  // modelUrl is null on purpose: the 3D previewer streams the STL from
-  // /assets/stls/, and these hulls are deliberately not served there.
+  {
+    id: 'gid://shopify/Product/base-set-files',
+    handle: 'base-set-files',
+    aliases: [],
+    kind: 'download',
+    group: 'base',
+    title: 'Base Set STL Files',
+    faction: 'Free download',
+    tagline: 'Both base fleets, plus terrain and coins. They\'re free.',
+    description:
+      "Everything in the base game as printable STL files: the Queen's Fleet and Corsair hulls, masts, sails, cargo, cannons, cannonballs, movement wheels, islands, rocks, reefs, the coin set and a fit test. Licensed CC BY-NC-SA.",
+    featuredImage: { url: '/assets/photos/starter-pack/both-ships-and-background-sm.jpg', altText: 'Both base fleets on the table' },
+    images: [
+      { url: '/assets/photos/starter-pack/both-ships-and-background-sm.jpg', altText: 'Both base fleets on the table' },
+      { url: card('queens-fleet'), altText: "Queen's Fleet faction card" },
+      { url: card('corsairs'), altText: 'Corsairs faction card' }
+    ],
+    options: [],
+    variants: [],
+    kitStatus: 'none',
+    includes: [
+      { icon: 'i-lucide-ship', title: 'Two fleets', items: [
+        "Queen's Fleet frigate and Corsair sloop hulls",
+        'Masts, short masts, sails, cargo and barrels',
+        'Cannons, cannonballs and movement wheels'
+      ] },
+      { icon: 'i-lucide-mountain', title: 'Terrain and coins', items: [
+        'A freestanding island and an island topper',
+        'Rocks and reefs',
+        'All six coin types'
+      ] },
+      { icon: 'i-lucide-ruler', title: 'Print helpers', items: [
+        'A fit test with every socket, to dial in tolerances',
+        'Rulebook and faction cards (PDF)'
+      ] }
+    ],
+    setId: 'base-set',
+    assembly: 'queens-fleet',
+    pairings: []
+  },
   ...addOnFactions()
 ]
 
 /**
- * The five paid factions, which share a shape: no printed box, no color
- * variants, a digital set behind them. Written as a builder rather than five
- * near-identical literals so the differences stay visible.
+ * The five add-on factions share a shape: files sold per set, and a printed
+ * kit we mean to box but have not priced yet. Written as a builder rather
+ * than five near-identical literals so the differences stay visible.
  */
 function addOnFactions(): Product[] {
   const specs: {
-    handle: string, title: string, faction: string, setId: string
-    tagline: string, description: string, image: string, card: string
-    ships: string[]
+    handle: string, alias: string, title: string, setId: string, assembly: string, cardSlug: string
+    tagline: string, description: string, image: string, large: string
+    kit: string[]
+    pairings: Product['pairings']
   }[] = [
     {
-      handle: 'treasure-fleet-files', title: 'Treasure Fleet', faction: 'Treasure Fleet',
-      setId: 'treasure-fleet-set',
-      tagline: 'Fewer ships with deeper holds.',
-      description: 'Fewer ships, but double coins from every island you hold.',
+      handle: 'treasure-fleet', alias: 'treasure-fleet-files', title: 'Treasure Fleet',
+      setId: 'treasure-fleet-set', assembly: 'treasure-fleet', cardSlug: 'treasure-fleet',
+      tagline: 'Two gilded junks from an empire far to the north.',
+      description: "They're here to collect tribute and gold, and they'll leave you alone if you return the favor. They bring fewer ships than anyone else at the table, but every island they hold pays out double.",
       image: '/assets/ships/ship-preview-treasure-fleet-sm.webp',
-      card: '/rulebook/pdf/faction-card-treasure-fleet.pdf',
-      ships: ['Heavy treasure galleons', 'Faction-specific cargo fittings']
+      large: '/assets/ships/ship-preview-treasure-fleet-large.png',
+      kit: ['Two junk hulls in silk gold', 'Treasure Fleet sails', 'Masts, cargo, cannons and wheels'],
+      pairings: [{ with: 'industry', title: 'Pair with The Industry', blurb: "The Industry would rather not pay tribute to anyone, and the Treasure Fleet would rather not have to ask twice." }]
     },
     {
-      handle: 'stone-fleet-files', title: 'Stone Fleet', faction: 'Stone Fleet',
-      setId: 'stone-fleet-set',
-      tagline: 'Carved stone, slow to break.',
-      description: 'Carved stone ships. Slow, but each ship ignores the first hit it takes each turn.',
+      handle: 'stone-fleet', alias: 'stone-fleet-files', title: 'Stone Fleet',
+      setId: 'stone-fleet-set', assembly: 'stone-fleet', cardSlug: 'stone-fleet',
+      tagline: 'Carved stone barges. Slow, and very hard to sink.',
+      description: "They're descended from the losing side of an old uprising, who fled to a distant, rocky continent and built a harder people there. Stone was what they had, so they used it for pretty much everything, ships included. Each ship ignores the first hit it takes every turn.",
       image: '/assets/ships/ship-preview-stone-fleet-sm.webp',
-      card: '/rulebook/pdf/faction-card-stone-fleet.pdf',
-      ships: ['Carved stone hulls', 'Stone Fleet masts and fittings']
+      large: '/assets/ships/ship-preview-stone-fleet-large.png',
+      kit: ['Three barge hulls in stone grey', 'Stone Fleet sails', 'Masts, barrels, cannons and wheels'],
+      pairings: [{ with: 'islanders', title: 'Pair with The Islanders', blurb: "The Stone Fleet's ancestors left the islands a long time ago, and not on good terms. The Islanders still remember why." }]
     },
     {
-      handle: 'shadow-fleet-files', title: 'Shadow Fleet', faction: 'Shadow Fleet',
-      setId: 'shadow-fleet-set',
-      tagline: 'Fragile ships that keep coming back.',
-      description: 'Thin hulls that sink easily and rise again from any island you hold.',
+      handle: 'shadow-fleet', alias: 'shadow-fleet-files', title: 'Shadow Fleet',
+      setId: 'shadow-fleet-set', assembly: 'shadow-fleet', cardSlug: 'shadow-fleet',
+      tagline: 'Galleons that sank in the first rush for the islands, and came back.',
+      description: "Nobody knows what happened to them, or what's crewing them now. They're printed in translucent gradient PETG. The hulls are thin and sink easily, but they rise again at any island you hold.",
       image: '/assets/ships/ship-preview-shadow-fleet-sm.webp?v=2',
-      card: '/rulebook/pdf/faction-card-shadow-fleet.pdf',
-      ships: ['Ghost hulls', 'Shadow Fleet fittings']
+      large: '/assets/ships/ship-preview-shadow-fleet-large.png?v=2',
+      kit: ['Three galleon hulls in gradient PETG', 'Torn sails', 'Masts, cargo, cannons and wheels'],
+      pairings: [{ with: 'queens-fleet', title: "Pair with the Queen's Fleet", blurb: "They were the Queen's ships once, and she'd very much like them back." }]
     },
     {
-      handle: 'industry-files', title: 'The Industry', faction: 'The Industry',
-      setId: 'industry-set',
-      tagline: 'Engine-driven warships with forward guns.',
-      description: 'Engine-driven warships with a forward bow gun and a rotating turret.',
+      handle: 'industry', alias: 'industry-files', title: 'The Industry',
+      setId: 'industry-set', assembly: 'industry', cardSlug: 'the-industry',
+      tagline: 'Iron steamships from a colony that won its independence.',
+      description: "They broke away from the Queen's empire and kept their freedom by out-building it. They're on reasonably civil terms with the Crown now, mostly. Each ship has a bow gun and a turret that fires in any direction (until it gets shot off).",
       image: '/assets/ships/ship-preview-industry-sm.webp',
-      card: '/rulebook/pdf/faction-card-the-industry.pdf',
-      ships: ['Ironclad hulls', 'Smokestacks and forward turrets']
+      large: '/assets/ships/ship-preview-industry-large.png',
+      kit: ['Three ironclad hulls in rust', 'Turrets and smokestacks', 'Cargo, cannons and wheels'],
+      pairings: [{ with: 'treasure-fleet', title: 'Pair with the Treasure Fleet', blurb: "A young nation with a lot of new guns, and an old empire that just wants to be paid. Neither of them is looking for a war, which doesn't always stop one." }]
     },
     {
-      handle: 'islanders-files', title: 'The Islanders', faction: 'The Islanders',
-      setId: 'islander-set',
-      tagline: 'Fast catamarans with rear-firing guns.',
-      description: 'Fast catamarans with a gun astern. Start the game already holding an island.',
+      handle: 'islanders', alias: 'islanders-files', title: 'The Islanders',
+      setId: 'islander-set', assembly: 'islanders', cardSlug: 'the-islanders',
+      tagline: 'Fast catamarans, sailed by the people who live on the islands.',
+      description: "They know these waters better than anyone else, and they start the game already holding an island. The boats are quick and fragile, with their guns at the back.",
       image: '/assets/ships/ship-preview-islanders-sm.webp',
-      card: '/rulebook/pdf/faction-card-the-islanders.pdf',
-      ships: ['Catamaran hulls', 'Islander fittings']
+      large: '/assets/ships/ship-preview-islanders-large.png',
+      kit: ['Five catamaran hulls in pine', 'Islander sails on short masts', 'Cannons and wheels'],
+      pairings: [{ with: 'stone-fleet', title: 'Pair with the Stone Fleet', blurb: "The Islanders against the descendants of the people who once tried to rule them. Quick catamarans take on slow barges that won't break." }]
     }
   ]
 
   return specs.map(s => ({
     id: `gid://shopify/Product/${s.setId}`,
     handle: s.handle,
+    aliases: [s.alias],
+    kind: 'faction' as const,
+    group: 'addon' as const,
     title: s.title,
-    faction: s.faction,
+    faction: s.title,
     tagline: s.tagline,
     description: s.description,
-    featuredImage: { url: s.image, altText: `${s.title} ships` },
+    featuredImage: { url: s.image, altText: `A ${s.title} ship` },
     images: [
-      { url: s.image, altText: `${s.title} ships` },
-      { url: s.card.replace('/pdf/', '/png/').replace('.pdf', '.png'), altText: `${s.title} faction card` }
+      { url: s.large, altText: `A ${s.title} ship` },
+      { url: card(s.cardSlug), altText: `${s.title} faction card` }
     ],
     options: [],
     variants: [],
+    kitStatus: 'coming-soon' as const,
     includes: [
-      { icon: 'i-lucide-ship', title: 'The hulls', items: s.ships },
-      { icon: 'i-lucide-book-open', title: 'Faction card', items: [
-        'Printable reference for this faction\'s rules',
-        'Works with the free base set you already have'
-      ] },
-      { icon: 'i-lucide-refresh-cw', title: 'Free updates', items: [
-        'Re-download whenever the models are revised'
-      ] }
+      { icon: 'i-lucide-package', title: 'Printed kit', items: s.kit },
+      coastlineKit(`The ${s.title} faction card`),
+      filesIncludes(`${s.title} hulls`)
     ],
     setId: s.setId,
-    modelUrl: null,
-    placements: [],
-    pairings: []
+    assembly: s.assembly,
+    pairings: s.pairings
   }))
 }
 
@@ -306,7 +337,8 @@ const carts = new Map<string, Cart>()
 
 const id = () => Math.random().toString(36).slice(2, 12)
 
-export const findProduct = (handle: string) => products.find(p => p.handle === handle) ?? null
+export const findProduct = (handle: string) =>
+  products.find(p => p.handle === handle || p.aliases.includes(handle)) ?? null
 export const findVariant = (variantId: string) => {
   for (const p of products) {
     const v = p.variants.find(x => x.id === variantId)

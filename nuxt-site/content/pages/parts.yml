@@ -81,7 +81,7 @@ gallery:
       name: Sail
       desc: Slides over a mast. Cosmetic, but it's how you tell fleets apart across the table.
       color: White, black, or whatever suits your fleet.
-    - render: /assets/images/renders/sail-damaged.png
+    - render: /assets/images/renders/sail-damaged.png?v=2
       name: Damaged Sail
       desc: A torn sail. It's just cosmetic, but it looks good on pirates.
       color: Same as your sails, or something scorched.
@@ -89,7 +89,7 @@ gallery:
       name: Cannon
       desc: The gun. It plugs into any cannon slot on a ship or island, and you press the arm down until it fires.
       color: Black or gunmetal.
-    - render: /assets/images/renders/cannonball.png?v=2
+    - render: /assets/images/renders/cannonball.png?v=3
       name: Cannonball
       desc: Goes in the muzzle. They're really easy to lose.
       color: Something bright, since neon green or orange is a lot easier to find under the couch. **TPU** bounces less.

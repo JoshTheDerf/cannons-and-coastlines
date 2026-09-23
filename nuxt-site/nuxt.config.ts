@@ -1,3 +1,5 @@
+import { fileURLToPath } from 'node:url'
+
 export default defineNuxtConfig({
   modules: ['@nuxt/ui', '@nuxt/content'],
   css: ['~/assets/css/main.css'],
@@ -32,6 +34,18 @@ export default defineNuxtConfig({
     ]
   },
   compatibilityDate: '2026-05-04',
+  vite: {
+    plugins: [{
+      // shared/ sits outside the Vite root (app/), so edits to its data files
+      // are not reliably watched in dev and the old JSON keeps being served.
+      // Watch it explicitly; the file itself is ordinary source.
+      name: 'cnc-watch-shared-data',
+      apply: 'serve',
+      configureServer(server) {
+        server.watcher.add(fileURLToPath(new URL('./shared/data', import.meta.url)))
+      }
+    }]
+  },
   nitro: {
     // Cloudflare Workers with Static Assets. Emits .output/server/index.mjs
     // (the Worker) and .output/public/ (everything served as a static asset).

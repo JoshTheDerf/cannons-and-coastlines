@@ -58,9 +58,11 @@ const PRODUCT_FRAGMENT = /* GraphQL */ `
       { namespace: "cnc", key: "set_id" },
       { namespace: "cnc", key: "tagline" },
       { namespace: "cnc", key: "includes" },
-      { namespace: "cnc", key: "model_url" },
       { namespace: "cnc", key: "pairings" },
-      { namespace: "cnc", key: "placements" }
+      { namespace: "cnc", key: "kind" },
+      { namespace: "cnc", key: "group" },
+      { namespace: "cnc", key: "kit_status" },
+      { namespace: "cnc", key: "assembly" }
     ]) { namespace key value type }
   }
 `
@@ -157,16 +159,14 @@ export type ShopProductCard = {
   /** Digital set behind this faction, or null if it has none. */
   setId: string | null
   includes: { icon: string, title: string, items: string[] }[]
-  modelUrl: string | null
   pairings: { with: string, title: string, blurb: string }[]
-  placements: ShipPlacement[]
-}
-
-export type ShipPlacement = {
-  type: 'mast' | 'cannon' | 'movement-wheel'
-  position: [number, number, number]
-  rotation?: [number, number, number]
-  scale?: number
+  /** A faction page sells a printed kit and files; a download page only files. */
+  kind: 'faction' | 'download'
+  /** Base-game fleets vs. add-on fleets. */
+  group: 'base' | 'addon'
+  kitStatus: 'available' | 'coming-soon' | 'none'
+  /** Key into shared/data/ship-assemblies.json for the 3D view, or null. */
+  assembly: string | null
 }
 
 export type ShopProductDetail = ShopProductCard & {
@@ -207,10 +207,12 @@ const flattenMeta = (mfs: { key: string, value: string }[] = []) => {
     faction: get('faction') ?? '',
     tagline: get('tagline') ?? '',
     setId: get('set_id') || null,
-    modelUrl: get('model_url') ?? null,
     includes: (() => { try { return JSON.parse(get('includes') ?? '[]') } catch { return [] } })(),
     pairings: (() => { try { return JSON.parse(get('pairings') ?? '[]') } catch { return [] } })(),
-    placements: (() => { try { return JSON.parse(get('placements') ?? '[]') } catch { return [] } })()
+    kind: (get('kind') ?? 'faction') as ShopProductCard['kind'],
+    group: (get('group') ?? 'base') as ShopProductCard['group'],
+    kitStatus: (get('kit_status') ?? 'none') as ShopProductCard['kitStatus'],
+    assembly: get('assembly') || null
   }
 }
 
@@ -229,9 +231,11 @@ const flattenCard = (node: any): ShopProductCard => {
     tagline: meta.tagline,
     setId: meta.setId || null,
     includes: meta.includes,
-    modelUrl: meta.modelUrl,
     pairings: meta.pairings,
-    placements: meta.placements
+    kind: meta.kind,
+    group: meta.group,
+    kitStatus: meta.kitStatus,
+    assembly: meta.assembly
   }
 }
 

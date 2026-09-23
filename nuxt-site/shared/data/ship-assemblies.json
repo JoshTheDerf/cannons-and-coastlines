@@ -1,0 +1,761 @@
+{
+  "$comment": [
+    "How every ship goes together: which part plugs into which socket, where,",
+    "facing which way, in which filament. One file, read by everything that",
+    "shows an assembled ship:",
+    "  - the site's 3D preview   : app/components/ShipPreview.client.vue (#shared import)",
+    "  - the preview-mesh build  : scripts/blender/build_preview_meshes.py",
+    "",
+    "COORDINATES. Everything is in millimetres in the hull STL's own space,",
+    "exactly as the file comes out of the slicer: Z up with the keel at z=0,",
+    "bow toward -X, stern (and the wheel) toward +X, Y across the beam.",
+    "Fittings modelled in the hull's space (the Industry turret and smokestack)",
+    "are listed under `fittings` and need no transform at all.",
+    "",
+    "PLACING A PART. Each part has an `anchor`: the point in its own STL that",
+    "plugs into the socket (a mast's base centre, the underside of a cannon's",
+    "body directly over its peg, a coin's centre, ...). A placement puts that",
+    "anchor at `at`, tips the part `rotX` degrees about X (a coin standing on",
+    "edge), then turns it `rotZ` degrees about the vertical through the anchor:",
+    "    world = at + Rz(rotZ) * Rx(rotX) * (p - anchor)",
+    "A cannon's +X is its muzzle, so rotZ is the firing direction",
+    "(0 = aft, 180 = forward, 90 = +Y side, -90 = -Y side).",
+    "",
+    "ONE CANNON PER SHIP. A ship has more cannon sockets than it can hold guns",
+    "at once, so the model shows one gun in one socket (the Industry carries two:",
+    "its bow gun and the turret gun); every socket is listed",
+    "under `sockets` for reference. The narrow slot at the stern is for a",
+    "Brace for Impact coin, which stands in it on edge.",
+    "",
+    "THE WHEEL sits 0.5 mm below the keel (z = -0.5): it just protrudes from the",
+    "bottom of the hull, which is what lets it roll.",
+    "",
+    "SAILS hang on a mast rather than a socket: `onMast` is the index of a mast",
+    "placement. The sheet is threaded on through its mast holes (`holes`, in the",
+    "sail STL's own XY, listed bottom to top) and bows alternately forward and",
+    "back between them, so a four-hole sail weaves in an S and a two-hole sail",
+    "makes one belly. A sail hangs either by `holeFromTop` (how far below the mast",
+    "top its upper hole sits) or by `sailBottom` (the hull height of its lowest",
+    "edge, for sails that reach down to the deck). `chordRatio` how much of the sheet's length between two holes the",
+    "straight-line gap between them takes up (1 = flat, smaller = fuller). The",
+    "viewer bends the flat sheet at load time from these numbers.",
+    "",
+    "PRINT ORIENTATION. Layer lines are drawn across a part's `printUp`: the",
+    "axis, in the part's own STL, that pointed up on the print bed. It defaults",
+    "to +Z, right for hulls and parts printed standing as they sit on the ship.",
+    "Masts print lying on their flat side (layers run along the mast) and coins",
+    "face down (layers show on the rim). Sails are two layers thick and get none.",
+    "",
+    "HOW THE NUMBERS WERE FOUND. Sockets were located from a ray-cast height",
+    "map of each hull (mast holes, cargo recesses, cannon arcs and slots, the",
+    "wheel pocket underneath), with the deck height taken around each one. They",
+    "are a first pass: correct them here, by hand, and every consumer follows.",
+    "",
+    "`preview` URLs are the decimated meshes the browser loads (built from",
+    "`source` by build_preview_meshes.py). Paid hulls have no public STL, so",
+    "their preview mesh is the only form of them the site serves."
+  ],
+  "palette": {
+    "blue-grey": { "color": "#c4d0dd" },
+    "black": { "color": "#474747" },
+    "black-hull": { "color": "#5c5c5c" },
+    "wood": { "color": "#997650" },
+    "white": { "color": "#f6f3ef" },
+    "pine": { "color": "#bf9b73" },
+    "rust": { "color": "#955938" },
+    "stone": { "color": "#adaca6" },
+    "gold": { "color": "#ffd47c", "metalness": 0.85, "roughness": 0.32 },
+    "gunmetal": { "color": "#1f1f1f", "metalness": 0.35, "roughness": 0.5 },
+    "neon-green": { "color": "#80c75a" },
+    "grey": { "color": "#9a9a9a" },
+    "rock": { "color": "#adaca6" },
+    "reef": { "color": "#f4d3db" },
+    "green": { "color": "#7cad76" },
+    "shadow-petg": { "color": "#7ec8f8", "gradientZ": [ "#61e2c5", "#7ec8f8", "#bf9ef3" ], "transmission": 0.35, "roughness": 0.5 }
+  },
+  "parts": {
+    "mast": {
+      "source": "assets/stls/base-set/mast.stl",
+      "preview": "/assets/previews/parts/mast.glb",
+      "printUp": [0, -1, 0],
+      "anchor": [0.1, -0.3, 0.0],
+      "height": 93.0
+    },
+    "mast-short": {
+      "source": "assets/stls/base-set/mast-short.stl",
+      "preview": "/assets/previews/parts/mast-short.glb",
+      "printUp": [0, -1, 0],
+      "anchor": [10.1, -0.3, 0.0],
+      "height": 78.0
+    },
+    "cannon": {
+      "source": "assets/stls/base-set/cannon.stl",
+      "preview": "/assets/previews/parts/cannon.glb",
+      "anchor": [3.9, 0.0, 4.2],
+      "facing": "muzzle"
+    },
+    "cargo": {
+      "source": "assets/stls/base-set/cargo.stl",
+      "preview": "/assets/previews/parts/cargo.glb",
+      "anchor": [0.06, 0.0, 0.0]
+    },
+    "barrel": {
+      "source": "assets/stls/base-set/barrel.stl",
+      "preview": "/assets/previews/parts/barrel.glb",
+      "anchor": [0.0, 0.0, 0.0]
+    },
+    "movement-wheel": {
+      "source": "assets/stls/base-set/movement-wheel.stl",
+      "preview": "/assets/previews/parts/movement-wheel.glb",
+      "anchor": [0.0, 0.0, 0.0]
+    },
+    "sail": {
+      "source": "assets/stls/base-set/sail.stl",
+      "preview": "/assets/previews/parts/sail.glb",
+      "holes": [[171.4, 120.8], [171.4, 147.2], [171.4, 161.8], [171.4, 176.3]],
+      "sail": true
+    },
+    "sail-damaged": {
+      "source": "assets/stls/base-set/sail-damaged.stl",
+      "preview": "/assets/previews/parts/sail-damaged.glb",
+      "holes": [[121.7, 7.0], [121.7, 33.5], [121.7, 48.0], [121.7, 62.5]],
+      "sail": true
+    },
+    "sail-treasure-fleet": {
+      "source": "paid-sets/treasure-fleet-set/sail-treasure-fleet.stl",
+      "preview": "/assets/previews/parts/sail-treasure-fleet.glb",
+      "holes": [[-5.5, -64.0], [-5.5, -16.5]],
+      "sail": true
+    },
+    "sail-stone-fleet": {
+      "source": "paid-sets/stone-fleet-set/sail-stone-fleet.stl",
+      "preview": "/assets/previews/parts/sail-stone-fleet.glb",
+      "holes": [[-61.3, -63.0], [-61.3, -45.0], [-61.3, -33.5], [-61.3, -14.0]],
+      "sail": true
+    },
+    "sail-islanders": {
+      "source": "paid-sets/islander-set/sail-islanders.stl",
+      "preview": "/assets/previews/parts/sail-islanders.glb",
+      "holes": [[15.7, 12.0], [14.7, 56.5]],
+      "sail": true
+    },
+    "rock1": {
+      "source": "assets/stls/base-set/rock1.stl",
+      "preview": "/assets/previews/parts/rock1.glb",
+      "anchor": [178.46, 40.17, 0.0]
+    },
+    "reef": {
+      "source": "assets/stls/base-set/reef.stl",
+      "preview": "/assets/previews/parts/reef.glb",
+      "anchor": [133.59, 83.71, 0.0]
+    },
+    "island-topper": {
+      "source": "assets/stls/base-set/island-topper.stl",
+      "preview": "/assets/previews/parts/island-topper.glb",
+      "anchor": [354.1, -152.13, 38.71]
+    },
+    "coin-brace-for-impact": {
+      "source": "assets/stls/base-set/coin-brace-for-impact.stl",
+      "preview": "/assets/previews/parts/coin-brace-for-impact.glb",
+      "printUp": [0, 0, 1],
+      "anchor": [148.5, 118.5, 1.5],
+      "radius": 7.5
+    }
+  },
+  "scene": {
+    "$comment": [
+      "The table around every ship in the 3D view: the terrain that comes in",
+      "every printed kit (2 rocks, 2 reefs, 3 island toppers), scattered on",
+      "the water. Same coordinates as a ship (hull mm, the ship's keel at",
+      "z=0, bow toward -X); the camera frames the ship, and the terrain sits",
+      "mostly behind and beside it so the default view stays on the ship.",
+      "Rocks print grey, reefs pale pink.",
+      "`waterLevel` is where the sea surface cuts the hull.",
+      "`atmospheres` are the weather each ship is shown in (a ship picks one",
+      "with `atmosphere`): sky and cloud colours, the sun (`dir` is in the",
+      "viewer's Y-up world), fog distances in mm, the sea's colour, chop,",
+      "swell height (mm) and whitecaps, rain and lightning (0-1), and the",
+      "colour of the distant islands on the horizon."
+    ],
+    "waterLevel": 1.5,
+    "atmospheres": {
+      "fair": {
+        "sky": {
+          "zenith": "#5f97c4",
+          "horizon": "#dce8ee",
+          "glow": "#fff4e0"
+        },
+        "sun": {
+          "dir": [
+            -0.45,
+            0.6,
+            0.55
+          ],
+          "color": "#fff3df",
+          "intensity": 2.4
+        },
+        "hemi": {
+          "sky": "#eaf2f8",
+          "ground": "#2c4a55",
+          "intensity": 0.8
+        },
+        "env": 0.45,
+        "exposure": 1.0,
+        "fog": {
+          "color": "#d6e4ea",
+          "near": 900,
+          "far": 6000
+        },
+        "clouds": {
+          "cover": 0.35,
+          "color": "#ffffff",
+          "shadow": "#b7c4cf",
+          "speed": 0.004
+        },
+        "sea": {
+          "deep": "#1c6479",
+          "shallow": "#4aa3b3",
+          "roughness": 0.2,
+          "chop": 1.0,
+          "swell": 0.6,
+          "foam": 0.04,
+          "speed": 1.0
+        },
+        "rain": 0,
+        "lightning": 0,
+        "islands": {
+          "color": "#4f6f45",
+          "beach": "#d9c9a0",
+          "palms": false
+        }
+      },
+      "storm": {
+        "sky": {
+          "zenith": "#1b222c",
+          "horizon": "#46505c",
+          "glow": "#7d8a99"
+        },
+        "sun": {
+          "dir": [
+            -0.3,
+            0.35,
+            0.6
+          ],
+          "color": "#b8c6d6",
+          "intensity": 1.4
+        },
+        "hemi": {
+          "sky": "#8595a6",
+          "ground": "#1c262b",
+          "intensity": 1.0
+        },
+        "env": 0.45,
+        "exposure": 1.4,
+        "fog": {
+          "color": "#3a4450",
+          "near": 350,
+          "far": 3400
+        },
+        "clouds": {
+          "cover": 0.95,
+          "color": "#6d7784",
+          "shadow": "#1f252d",
+          "speed": 0.02
+        },
+        "sea": {
+          "deep": "#12303a",
+          "shallow": "#3a5f68",
+          "roughness": 0.3,
+          "chop": 2.4,
+          "swell": 3.5,
+          "foam": 0.55,
+          "speed": 1.8
+        },
+        "rain": 0.6,
+        "lightning": 1,
+        "islands": {
+          "color": "#252d2b",
+          "beach": null,
+          "palms": false
+        }
+      },
+      "golden": {
+        "sky": {
+          "zenith": "#3f5f93",
+          "horizon": "#f6b26b",
+          "glow": "#ffcf8a"
+        },
+        "sun": {
+          "dir": [
+            -0.75,
+            0.13,
+            0.45
+          ],
+          "color": "#ffc07a",
+          "intensity": 2.3
+        },
+        "hemi": {
+          "sky": "#b9c6dc",
+          "ground": "#3a2d2a",
+          "intensity": 0.75
+        },
+        "env": 1.1,
+        "exposure": 1.18,
+        "fog": {
+          "color": "#e9bf93",
+          "near": 900,
+          "far": 6500
+        },
+        "clouds": {
+          "cover": 0.4,
+          "color": "#ffd2a0",
+          "shadow": "#b0707a",
+          "speed": 0.004
+        },
+        "sea": {
+          "deep": "#2b4862",
+          "shallow": "#8a7f6c",
+          "roughness": 0.12,
+          "chop": 0.9,
+          "swell": 0.5,
+          "foam": 0.03,
+          "speed": 0.9
+        },
+        "rain": 0,
+        "lightning": 0,
+        "islands": {
+          "color": "#4a3b30",
+          "beach": "#d9a877",
+          "palms": false
+        }
+      },
+      "overcast": {
+        "sky": {
+          "zenith": "#7a8288",
+          "horizon": "#a9b0b4",
+          "glow": "#b9bfc2"
+        },
+        "sun": {
+          "dir": [
+            -0.2,
+            0.8,
+            0.3
+          ],
+          "color": "#d7dde0",
+          "intensity": 0.6
+        },
+        "hemi": {
+          "sky": "#b4bbc0",
+          "ground": "#3a4144",
+          "intensity": 1.3
+        },
+        "env": 0.8,
+        "exposure": 1.05,
+        "fog": {
+          "color": "#a3aaae",
+          "near": 300,
+          "far": 2800
+        },
+        "clouds": {
+          "cover": 1.0,
+          "color": "#9aa1a6",
+          "shadow": "#6b7277",
+          "speed": 0.01
+        },
+        "sea": {
+          "deep": "#4a585d",
+          "shallow": "#7c898c",
+          "roughness": 0.35,
+          "chop": 1.5,
+          "swell": 1.2,
+          "foam": 0.15,
+          "speed": 1.2
+        },
+        "rain": 1.0,
+        "lightning": 0,
+        "islands": {
+          "color": "#555c58",
+          "beach": null,
+          "palms": false
+        }
+      },
+      "tropical": {
+        "sky": {
+          "zenith": "#1f86d8",
+          "horizon": "#bfeaf6",
+          "glow": "#fffbe6"
+        },
+        "sun": {
+          "dir": [
+            -0.3,
+            0.85,
+            0.4
+          ],
+          "color": "#fffbe8",
+          "intensity": 2.8
+        },
+        "hemi": {
+          "sky": "#d9f3ff",
+          "ground": "#3a6b5a",
+          "intensity": 0.9
+        },
+        "env": 0.55,
+        "exposure": 1.0,
+        "fog": {
+          "color": "#cdeef6",
+          "near": 1200,
+          "far": 8000
+        },
+        "clouds": {
+          "cover": 0.22,
+          "color": "#ffffff",
+          "shadow": "#c8dbe6",
+          "speed": 0.003
+        },
+        "sea": {
+          "deep": "#06839f",
+          "shallow": "#3fd8cf",
+          "roughness": 0.14,
+          "chop": 0.8,
+          "swell": 0.4,
+          "foam": 0.02,
+          "speed": 0.9
+        },
+        "rain": 0,
+        "lightning": 0,
+        "islands": {
+          "color": "#2f8a45",
+          "beach": "#f3e4ba",
+          "palms": true
+        }
+      },
+      "sunrise": {
+        "sky": {
+          "zenith": "#6fa8dc",
+          "horizon": "#ffd9a8",
+          "glow": "#fff0cf"
+        },
+        "sun": {
+          "dir": [-0.25, 0.22, 0.95],
+          "color": "#ffd49a",
+          "intensity": 2.6
+        },
+        "hemi": {
+          "sky": "#cfe0f2",
+          "ground": "#3b3530",
+          "intensity": 1.3
+        },
+        "env": 1.15,
+        "exposure": 1.1,
+        "fog": {
+          "color": "#f3dcc0",
+          "near": 1000,
+          "far": 7000
+        },
+        "clouds": {
+          "cover": 0.3,
+          "color": "#fff1e0",
+          "shadow": "#d9a9a0",
+          "speed": 0.004
+        },
+        "sea": {
+          "deep": "#2a6a8a",
+          "shallow": "#86b8c4",
+          "roughness": 0.14,
+          "chop": 0.9,
+          "swell": 0.5,
+          "foam": 0.03,
+          "speed": 0.9
+        },
+        "rain": 0,
+        "lightning": 0,
+        "islands": {
+          "color": "#56704c",
+          "beach": "#e8d3a8",
+          "palms": false
+        }
+      }
+    },
+    "terrain": [
+      { "part": "island-topper", "at": [-175, 95, 0], "rotZ": 20, "color": "green" },
+      { "part": "island-topper", "at": [65, 150, 0], "rotZ": 75, "color": "green" },
+      { "part": "island-topper", "at": [185, -85, 0], "rotZ": -30, "color": "green" },
+      { "part": "rock1", "at": [-60, 115, 0], "rotZ": 15, "color": "rock" },
+      { "part": "rock1", "at": [160, 70, 0], "rotZ": 200, "color": "rock" },
+      { "part": "reef", "at": [-155, -40, 0], "rotZ": 40, "color": "reef" },
+      { "part": "reef", "at": [45, -85, 0], "rotZ": 130, "color": "reef" }
+    ]
+  },
+  "kit": {
+    "$comment": [
+      "What a printed kit contains, for the shop's Kit contents list. A kit is",
+      "`kitShips` of the ship (set on each ship) with everything its",
+      "`placements` put on one hull, plus the coastline in `scene.terrain`,",
+      "plus these. Cannons are per kit, not per socket: a ship holds one at a",
+      "time and players move them between slots.",
+      "Counts follow the rulebook's Print List (3-4 cannons, 10 cannonballs,",
+      "one 20-coin bag, a mast per island to fly its flag)."
+    ],
+    "extras": [
+      { "part": "cannon", "count": 4 },
+      { "part": "cannonball", "count": 10 },
+      { "part": "coins", "count": 20, "note": "A full bag: 4 Brace · 2 Signal · 2 Evasive · 4 Gunner · 4 Repair · 4 Boarding" },
+      { "part": "mast-short", "count": 3, "note": "Flagpoles for the island toppers" }
+    ]
+  },
+  "ships": {
+    "queens-fleet": {
+      "title": "Queen's Fleet",
+      "kitShips": 3,
+      "atmosphere": "fair",
+      "hull": {
+        "source": "assets/stls/base-set/ship-queens-fleet.stl",
+        "preview": "/assets/previews/hulls/ship-queens-fleet.glb",
+        "color": "blue-grey"
+      },
+      "placements": [
+        { "part": "mast", "at": [-26.02, 0.0, 6.5], "rotZ": -90, "color": "wood" },
+        { "part": "mast", "at": [16.98, 0.0, 6.5], "rotZ": -90, "color": "wood" },
+        { "part": "sail", "onMast": 0, "sailBottom": 22.9, "chordRatio": 0.88, "color": "white" },
+        { "part": "sail", "onMast": 1, "sailBottom": 22.9, "chordRatio": 0.88, "color": "white" },
+        { "part": "cargo", "at": [-37.46, 0.0, 15.73], "color": "wood" },
+        { "part": "cargo", "at": [32.54, 0.0, 18.73], "color": "wood" },
+        { "part": "cannon", "at": [-4.83, 7.81, 14.9], "rotZ": 90.0, "color": "gunmetal" },
+        { "part": "coin-brace-for-impact", "at": [50.29, 0.06, 25.75], "rotX": 90, "rotZ": 0, "color": "gold" },
+        { "part": "movement-wheel", "at": [35.43, 0.04, -0.5], "color": "grey" }
+      ],
+      "sockets": {
+        "cannon": [
+          { "at": [-12.62, -6.72, 14.9], "rotZ": -105.4 },
+          { "at": [-4.71, -7.82, 14.9], "rotZ": -90.0 },
+          { "at": [3.21, -6.74, 14.9], "rotZ": -75.0 },
+          { "at": [-12.66, 6.71, 14.9], "rotZ": 104.7 },
+          { "at": [-4.83, 7.81, 14.9], "rotZ": 90.0 },
+          { "at": [3.0, 6.81, 14.9], "rotZ": 74.6 }
+        ],
+        "coin": [
+          { "at": [50.29, 0.06, 18.25], "along": "x" }
+        ]
+      }
+    },
+    "corsairs": {
+      "title": "Corsairs",
+      "kitShips": 3,
+      "atmosphere": "storm",
+      "hull": {
+        "source": "assets/stls/base-set/ship-corsair.stl",
+        "preview": "/assets/previews/hulls/ship-corsair.glb",
+        "color": "black-hull"
+      },
+      "placements": [
+        { "part": "mast", "at": [-25.52, 0.0, 6.5], "rotZ": -90, "color": "black" },
+        { "part": "mast", "at": [20.25, 0.0, 6.5], "rotZ": -90, "color": "black" },
+        { "part": "sail-damaged", "onMast": 0, "sailBottom": 20.9, "chordRatio": 0.88, "color": "black" },
+        { "part": "sail-damaged", "onMast": 1, "sailBottom": 20.9, "chordRatio": 0.88, "color": "black" },
+        { "part": "cargo", "at": [39.51, 0.0, 21.48], "color": "wood" },
+        { "part": "cannon", "at": [-10.9, -6.71, 15.88], "rotZ": -104.7, "color": "gunmetal" },
+        { "part": "coin-brace-for-impact", "at": [48.51, -0.06, 26.0], "rotX": 90, "rotZ": 90, "color": "gold" },
+        { "part": "movement-wheel", "at": [33.66, -0.04, -0.5], "color": "grey" }
+      ],
+      "sockets": {
+        "cannon": [
+          { "at": [-10.9, -6.71, 15.88], "rotZ": -104.7 },
+          { "at": [-2.99, -7.81, 15.88], "rotZ": -90.0 },
+          { "at": [4.93, -6.73, 15.88], "rotZ": -74.9 },
+          { "at": [-10.9, 6.69, 15.88], "rotZ": 105.7 },
+          { "at": [-2.99, 7.82, 15.88], "rotZ": 90.0 },
+          { "at": [4.93, 6.77, 15.88], "rotZ": 74.6 }
+        ],
+        "coin": [
+          { "at": [48.51, -0.06, 18.5], "along": "y" }
+        ]
+      }
+    },
+    "treasure-fleet": {
+      "title": "Treasure Fleet",
+      "kitShips": 2,
+      "atmosphere": "sunrise",
+      "gleam": {
+        "$comment": "The gilding catches the light: a sheen sweeps along the hull every few seconds and small glints twinkle, on every part in the hull's filament.",
+        "color": "#fff1c4",
+        "strength": 1.0
+      },
+      "hull": {
+        "source": "paid-sets/treasure-fleet-set/ship-treasure-fleet.stl",
+        "preview": "/assets/previews/hulls/ship-treasure-fleet.glb",
+        "color": "gold"
+      },
+      "placements": [
+        { "part": "mast", "at": [-27.01, 0.0, 3.25], "rotZ": -90, "color": "wood" },
+        { "part": "mast", "at": [16.41, 0.0, 5.75], "rotZ": -90, "color": "wood" },
+        { "part": "sail-treasure-fleet", "onMast": 0, "sailBottom": 17.4, "chordRatio": 0.88, "color": "white" },
+        { "part": "sail-treasure-fleet", "onMast": 1, "sailBottom": 21.4, "chordRatio": 0.88, "color": "white" },
+        { "part": "cargo", "at": [-36.92, 0.0, 14.48], "color": "wood" },
+        { "part": "cannon", "at": [1.53, 6.81, 12.43], "rotZ": 75.3, "color": "gunmetal" },
+        { "part": "coin-brace-for-impact", "at": [61.58, -0.06, 28.0], "rotX": 90, "rotZ": 90, "color": "gold" },
+        { "part": "movement-wheel", "at": [34.95, -0.05, -0.5], "color": "grey" }
+      ],
+      "sockets": {
+        "cannon": [
+          { "at": [-14.13, -6.71, 12.43], "rotZ": -104.7 },
+          { "at": [-6.3, -7.81, 12.43], "rotZ": -90.0 },
+          { "at": [1.53, -6.79, 12.43], "rotZ": -74.6 },
+          { "at": [-14.13, 6.76, 12.43], "rotZ": 105.0 },
+          { "at": [-6.3, 7.81, 12.43], "rotZ": 90.0 },
+          { "at": [1.53, 6.81, 12.43], "rotZ": 75.3 }
+        ],
+        "coin": [
+          { "at": [61.58, -0.06, 20.5], "along": "y" }
+        ]
+      },
+      "notes": [
+        "Shallow 12 x 17 mm recess on the stern cabin roof at x=51.5, z=34.4 (2 mm deep); purpose unconfirmed, left empty."
+      ]
+    },
+    "stone-fleet": {
+      "title": "Stone Fleet",
+      "kitShips": 3,
+      "atmosphere": "golden",
+      "hull": {
+        "source": "paid-sets/stone-fleet-set/ship-stone-fleet.stl",
+        "preview": "/assets/previews/hulls/ship-stone-fleet.glb",
+        "color": "stone"
+      },
+      "placements": [
+        { "part": "mast", "at": [-33.01, 0.0, 3.0], "rotZ": -90, "color": "stone" },
+        { "part": "mast", "at": [41.24, 0.0, 6.0], "rotZ": -90, "color": "stone" },
+        { "part": "sail-stone-fleet", "onMast": 0, "sailBottom": 23.1, "chordRatio": 0.88, "color": "white" },
+        { "part": "sail-stone-fleet", "onMast": 1, "sailBottom": 25.3, "chordRatio": 0.88, "color": "white" },
+        { "part": "barrel", "at": [-45.15, -6.46, 14.5], "color": "wood" },
+        { "part": "barrel", "at": [-45.15, 5.54, 14.5], "color": "wood" },
+        { "part": "cannon", "at": [29.51, -7.46, 16.75], "rotZ": -90.0, "color": "gunmetal" },
+        { "part": "coin-brace-for-impact", "at": [62.57, -0.33, 24.51], "rotX": 90, "rotZ": 90, "color": "gold" },
+        { "part": "movement-wheel", "at": [54.2, -0.07, -0.5], "color": "grey" }
+      ],
+      "sockets": {
+        "cannon": [
+          { "at": [-21.37, -7.46, 16.75], "rotZ": -90.0 },
+          { "at": [-13.49, -6.51, 16.75], "rotZ": -75.0 },
+          { "at": [21.63, -6.51, 16.75], "rotZ": -105.1 },
+          { "at": [29.51, -7.46, 16.75], "rotZ": -90.0 },
+          { "at": [-21.37, 7.29, 16.75], "rotZ": 90.0 },
+          { "at": [-13.49, 6.34, 16.75], "rotZ": 74.9 },
+          { "at": [21.63, 6.34, 16.75], "rotZ": 105.0 },
+          { "at": [29.51, 7.29, 16.75], "rotZ": 90.0 }
+        ],
+        "coin": [
+          { "at": [62.57, -0.33, 17.01], "along": "y" }
+        ]
+      }
+    },
+    "shadow-fleet": {
+      "title": "Shadow Fleet",
+      "kitShips": 3,
+      "atmosphere": "storm",
+      "glow": {
+        "$comment": "Something is aboard. The PETG glows from inside (emissive, on every part in the hull's filament) and lights inside the hull (hull mm) throw it onto the deck, sails and sea. Both breathe slowly; they never flicker.",
+        "color": "#8ff5dc",
+        "emissive": 0.12,
+        "lights": [[-22, 0, 12], [18, 0, 16], [40, 0, 22]],
+        "intensity": 650
+      },
+      "hull": {
+        "source": "paid-sets/shadow-fleet-set/ship-shadow-fleet.stl",
+        "preview": "/assets/previews/hulls/ship-shadow-fleet.glb",
+        "color": "shadow-petg"
+      },
+      "placements": [
+        { "part": "mast", "at": [-19.48, 0.0, 4.0], "rotZ": -90, "color": "shadow-petg" },
+        { "part": "mast", "at": [23.76, 0.0, 4.0], "rotZ": -90, "color": "shadow-petg" },
+        { "part": "sail-damaged", "onMast": 0, "sailBottom": 21.7, "chordRatio": 0.88, "color": "shadow-petg" },
+        { "part": "sail-damaged", "onMast": 1, "sailBottom": 21.5, "chordRatio": 0.88, "color": "shadow-petg" },
+        { "part": "cargo", "at": [-31.28, 0.07, 14.18], "color": "shadow-petg" },
+        { "part": "cannon", "at": [-5.7, 6.69, 16.5], "rotZ": 105.0, "color": "gunmetal" },
+        { "part": "coin-brace-for-impact", "at": [49.22, 0.07, 27.0], "rotX": 90, "rotZ": 0, "color": "gold" },
+        { "part": "movement-wheel", "at": [36.33, 0.05, -0.5], "color": "grey" }
+      ],
+      "sockets": {
+        "cannon": [
+          { "at": [-5.7, -6.68, 16.5], "rotZ": -105.7 },
+          { "at": [2.22, -7.81, 16.5], "rotZ": -90.0 },
+          { "at": [10.14, -6.76, 16.5], "rotZ": -75.3 },
+          { "at": [-5.7, 6.69, 16.5], "rotZ": 105.0 },
+          { "at": [2.22, 7.82, 16.5], "rotZ": 90.0 },
+          { "at": [10.14, 6.74, 16.5], "rotZ": 74.6 }
+        ],
+        "coin": [
+          { "at": [49.22, 0.07, 19.5], "along": "x" }
+        ]
+      }
+    },
+    "industry": {
+      "title": "The Industry",
+      "kitShips": 3,
+      "atmosphere": "overcast",
+      "hull": {
+        "source": "paid-sets/industry-set/ship-industry.stl",
+        "preview": "/assets/previews/hulls/ship-industry.glb",
+        "color": "rust"
+      },
+      "fittings": [
+        {
+          "name": "industry-turret",
+          "source": "paid-sets/industry-set/industry-turret.stl",
+          "preview": "/assets/previews/hulls/industry-turret.glb",
+          "color": "rust"
+        },
+        {
+          "name": "industry-smokestack",
+          "source": "paid-sets/industry-set/industry-smokestack.stl",
+          "preview": "/assets/previews/hulls/industry-smokestack.glb",
+          "color": "rust"
+        }
+      ],
+      "placements": [
+        { "part": "cargo", "at": [52.79, 0.17, 14.93], "color": "wood" },
+        { "part": "cannon", "at": [-14.15, -0.05, 20.85], "rotZ": 180, "color": "gunmetal" },
+        { "part": "cannon", "at": [-48.83, 0.05, 14.87], "rotZ": 180, "color": "gunmetal" },
+        { "part": "coin-brace-for-impact", "at": [43.54, -0.08, 19.41], "rotX": 90, "rotZ": 90, "color": "gold" },
+        { "part": "movement-wheel", "at": [26.93, -0.06, -0.5], "color": "grey" }
+      ],
+      "sockets": {
+        "cannon": [
+          { "at": [-14.15, -0.05, 20.85], "rotZ": 180, "where": "turret (on top of the turret fitting)" },
+          { "at": [-48.83, 0.05, 14.87], "rotZ": 180, "where": "bow" }
+        ],
+        "coin": [
+          { "at": [43.54, -0.08, 11.91], "along": "y" }
+        ]
+      },
+      "notes": [
+        "The flag slot on the raised stern deck is for a paper flag; nothing is modelled there.",
+        "The turret and smokestack print in the hull's rust."
+      ]
+    },
+    "islanders": {
+      "title": "The Islanders",
+      "kitShips": 5,
+      "atmosphere": "tropical",
+      "hull": {
+        "source": "paid-sets/islander-set/ship-islander.stl",
+        "preview": "/assets/previews/hulls/ship-islander.glb",
+        "color": "pine"
+      },
+      "placements": [
+        { "part": "mast-short", "at": [21.99, 0.26, 1.5], "rotZ": -90, "color": "wood" },
+        { "part": "sail-islanders", "onMast": 0, "sailBottom": 15.5, "chordRatio": 0.88, "color": "white" },
+        { "part": "cannon", "at": [59.5, 0.26, 21.45], "rotZ": 0, "color": "gunmetal" },
+        { "part": "coin-brace-for-impact", "at": [-1.45, 0.26, 16.5], "rotX": 90, "rotZ": 90, "color": "gold" },
+        { "part": "movement-wheel", "at": [44.94, 0.16, -0.5], "color": "grey" }
+      ],
+      "sockets": {
+        "cannon": [
+          { "at": [59.5, 0.26, 21.45], "rotZ": 0, "where": "stern gun arc, convex side toward the bow" }
+        ],
+        "coin": [
+          { "at": [-1.45, 0.26, 9.0], "along": "y" }
+        ]
+      }
+    }
+  }
+}
