@@ -368,11 +368,13 @@ Islands sit between the fleets. Capture one by planting your flag on it and it w
 
 + *Build your fleet.* Claim a faction's ships, flags, cannons, and cannonballs. Place your faction card in front of you. (Bonus: Design your own paper flags!)
 
-+ *Place the islands.* Going clockwise, each player sets one island on the table. Keep islands at least *6" apart* and *12" from any table edge*.
++ *Choose a table.* A *6 ft round* or a *6 or 8 ft folding table* works well.
+
++ *Place the islands.* Going clockwise, each player sets one island on the table. Keep islands at least *6" apart* and *12" from any table edge*. On a narrow folding table, run them down the middle, as far from the long edges as it allows; if the count below does not fit, place as many as do.
 
 + *Add terrain (optional).* Together, place 2–6 rocks or reefs anywhere on the table. Terrain blocks ships and breaks up firing lanes. You can use household objects for this.
 
-+ *Deploy your fleet.* Claim an edge of the table and line your ships up *touching that edge*, facing inward. (Islanders: use _Home Waters_ now to place your starting ship at an island.)
++ *Deploy your fleet.* Claim a stretch of table edge and line your ships up *touching it*, facing inward, fleets spread evenly around the table. With *two players*, sit a *quarter of the way round* a round table from each other, or *diagonally* across a folding table (opposite long sides, opposite halves). With three or more, set a rock just past each end of every fleet's line, a few inches in from the edge. (Islanders: use _Home Waters_ now to place your starting ship at an island.)
 
 + *Fill the bag.* Put all coins into the draw bag and shake it to mix.
 

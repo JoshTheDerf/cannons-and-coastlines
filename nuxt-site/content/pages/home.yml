@@ -289,6 +289,7 @@ changelog:
         - '**Collect from a distance.** Each turn, your ship nearest each of your islands can collect a coin there, touching it or not. A ship out at sea still sails forward after collecting.'
         - '**Treasure Fleet keeps its gold.** Its unspent coins still score 1 point each.'
         - '**Stone Hulls only work at sea.** A Stone Fleet ship touching an island takes every hit.'
+        - '**Real tables, and where to sit.** A 6 ft round or a 6 or 8 ft folding table works well. Two players sit a quarter of the way round a round table, or diagonally across a folding one, so the fighting starts sooner. With three or more, put a rock just past each end of every fleet''s line. On a narrow table, islands run down the middle.'
         - '**Cannons in the web game now shoot like the printed ones.** Two elevations (straight out or tipped up), no power control, a few degrees of spread, and a tapered ball that skids and curls to a stop.'
     - version: v0.5
       released: '2026-09-19'
