@@ -305,7 +305,7 @@ function patterns(results, NAME) {
     if (won.length) console.log(`  ${''.padEnd(26)} wins by: islands ${(sum(won, s => s.score.islands * 2) / won.length).toFixed(1)}, fittings ${(sum(won, s => s.score.fittings) / won.length).toFixed(1)}, hulls ${(sum(won, s => s.score.hulls * 2) / won.length).toFixed(1)}, coins ${(sum(won, s => s.score.hoard) / won.length).toFixed(1)}, bonus ${(sum(won, s => s.score.bonus) / won.length).toFixed(1)}  (${won.length} wins)`);
   }
   console.log('\nCoins spent, per 100 rounds played:');
-  const ids = ['brace', 'signal', 'evasive', 'gunner', 'repair', 'boarding'];
+  const ids = ['brace', 'signal', 'fullsail', 'evasive', 'gunner', 'repair', 'boarding'];
   const rounds = sum(seats, s => s.rounds);
   console.log('  ' + ids.map(k => `${k} ${(100 * sum(seats, s => s.coins[k] || 0) / rounds).toFixed(1)}`).join(', '));
 }

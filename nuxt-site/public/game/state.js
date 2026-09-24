@@ -387,7 +387,7 @@ function shipById(id) {
   return null;
 }
 
-function coinTotal(p) { return COIN_ORDER.reduce((n, id) => n + G.players[p].coins[id], 0); }
+function coinTotal(p) { return COIN_ORDER.reduce((n, id) => n + (G.players[p].coins[id] || 0), 0); }
 function islandsHeld(p) { return G.terrain.filter(t => t.type === 'island' && t.owner === p).length; }
 function islands() { return G.terrain.filter(t => t.type === 'island'); }
 
@@ -486,7 +486,7 @@ function beginTurn() {
   G.coinPhase = true;
   for (const s of G.players[p].ships) {
     s.acted = false; s.turnsLeft = 1; s.stage = 'action'; s.noAction = false;
-    s.pending = null; s.gunner = false; s.shotsDone = 0;
+    s.pending = null; s.gunner = false; s.shotsDone = 0; s.fullSail = 0;
   }
   // Stone Hulls: "the first hit it takes each turn", so it resets every turn.
   for (const s of allShips()) s.stoneUsed = false;

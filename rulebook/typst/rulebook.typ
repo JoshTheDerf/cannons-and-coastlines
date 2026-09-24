@@ -17,6 +17,7 @@
 #let coin-files = (
   brace:    "coin-brace-for-impact-top",
   signal:   "coin-signal-flag-top",
+  fullsail: "coin-full-sail-top",
   evasive:  "coin-evasive-maneuver-top",
   gunner:   "coin-skilled-gunner-top",
   repair:   "coin-repair-crew-top",
@@ -394,16 +395,11 @@ Islands sit between the fleets. Capture one by planting your flag on it and it w
 
 = Your Turn
 
-A turn has two steps, in this order:
-
-+ *Spend coins* you want to use, before any ship moves or fires.
-+ *Each of your ships takes its turn.*
-
-Play then passes to the next player.
+Each of your ships takes its turn, one at a time. Before any ship starts its turn, you may *spend coins*. Play then passes to the next player.
 
 == Spending Coins
 
-Coins are not actions. They are spent *at the start of your turn,* before any ship moves or fires. You may spend any number of coins on a single turn. After a coin's effect resolves, return it to the bag.
+Coins are not actions. Spend them *before a ship starts its turn:* at the start of your turn, or between one ship's turn and the next, never partway through a ship's turn. You may spend any number of coins on a single turn. After a coin's effect resolves, return it to the bag.
 
 There is *no hand limit.* You may hold as many coins as you collect.
 
@@ -520,13 +516,14 @@ Spend #coin("repair") *Repair Crew* to restore 1 fitting to one of your ships.
   table.header[ ][Coin][What It Does],
   coin("brace"),    [*Brace for Impact*],  [Place it in a ship's coin slot. It negates that ship's next hit, then returns to the bag.],
   coin("signal"),   [*Signal Flags*],      [One of your ships gives up its action; another ship takes two full turns instead of one.],
+  coin("fullsail"), [*Full Sail*],         [One of your ships *steers and sails twice*: Set Heading and click forward, then again. It does not fire or take an island action this turn.],
   coin("evasive"),  [*Evasive Maneuvers*], [One of your ships slides *one ship-width sideways* without rotating, on top of its turn.],
   coin("gunner"),   [*Skilled Gunner*],    [One of your ships *fires twice* this turn, both before it clicks forward.],
   coin("repair"),   [*Repair Crew*],       [Restore 1 fitting to one of your ships. *Needed to capture.*],
   coin("boarding"), [*Boarding Party*],    [While touching an enemy ship, remove 1 fitting from it. *Needed to capture.*],
 ))
 
-Each player contributes 20 coins to the bag at setup: 4 Brace · 2 Signal · 2 Evasive · 4 Gunner · 4 Repair · 4 Boarding.
+Each player contributes 22 coins to the bag at setup: 4 Brace · 2 Signal · 2 Full Sail · 2 Evasive · 4 Gunner · 4 Repair · 4 Boarding.
 
 
 // ----- Winning -----
@@ -724,7 +721,7 @@ Every printed piece in the base set, with what it does and recommended print col
     [*Sand*, *grey*, or *green*; Terrain colors.]),
 
   ..part-row("coin-boarding-party", "Coins (×6 types)",
-    [Drawn from the bag and spent at the start of your turn for one-time effects.],
+    [Drawn from the bag and spent before a ship's turn for one-time effects.],
     [*Gold*]),
 ))
 
@@ -748,7 +745,7 @@ A *faction set* is one complete print run for one player: their fleet plus a fai
   [Movement wheel],       [1 per ship], [Rubber band over the rim. Hard to remove once in.],
   [Islands],              [2–3],     [Print *Islands*, or put *Island Toppers* on household objects.],
   [Rocks / Reefs],   [2-4],       [Optional terrain. Block movement and cannonballs.],
-  [Coins],                [1 set of 20], [Each set is 4 Brace, 2 Signal, 2 Evasive, 4 Gunner, 4 Repair, 4 Boarding.],
+  [Coins],                [1 set of 22], [Each set is 4 Brace, 2 Signal, 2 Full Sail, 2 Evasive, 4 Gunner, 4 Repair, 4 Boarding.],
 ))
 
 // ----- Designer Notes (8th-grade level — for whoever's building the game) -----
@@ -803,7 +800,7 @@ Every ship has a wheel built into the stern. Two details matter:
     - *C, Island:* Raise flag · Fire from island · Collect (nearest ship, 1 coin).
     - *Then click forward* 1 to Move Count, unless touching an island.
 
-    _Spend coins at the start of your turn, before ship actions._
+    _Spend coins before any ship's turn._
   ],
 
   contrast-box("Cannon Firing")[
@@ -831,7 +828,7 @@ Every ship has a wheel built into the stern. Two details matter:
                      else { none },
       table.header[What Happened][Result],
       [Hits enemy ship],     [Pull 1 fitting, keep it as a prize],
-      [No fittings left],    [*Dead in the water.* No move, no island actions, own guns only, 1 hit left],
+      [No fittings left],    [*Dead in the water.* Own guns only, 1 hit left],
       [Dead ship hit again], [*Sunk.* Shooter keeps the hull],
       [Friendly, terrain, or a ricochet], [Nothing. Only the first contact counts.],
     )
@@ -858,6 +855,7 @@ Every ship has a wheel built into the stern. Two details matter:
     #stack(dir: ttb, spacing: 0.5em,
       [#coin("brace", size: 1.6em) *Brace:* shield next hit.],
       [#coin("signal", size: 1.6em) *Signal:* one ship idles, another acts twice.],
+      [#coin("fullsail", size: 1.6em) *Full Sail:* steer and sail twice, no firing.],
       [#coin("evasive", size: 1.6em) *Evasive:* slide one ship-width.],
       [#coin("gunner", size: 1.6em) *Gunner:* fire twice.],
       [#coin("repair", size: 1.6em) *Repair:* restore 1 fitting.],

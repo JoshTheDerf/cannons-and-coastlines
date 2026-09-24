@@ -652,7 +652,7 @@ function ringItems(ship) {
       items.push({ id: a.id, t: a.t, label, icon: a.id, disabled: a.disabled, why: a.why, act: a });
     }
     if (coinWindowOpen(p)) {
-      for (const c of ['brace', 'evasive', 'gunner', 'repair', 'signal']) {
+      for (const c of ['brace', 'evasive', 'gunner', 'fullsail', 'repair', 'signal']) {
         if (coinTargets(p, c).includes(ship)) items.push({ id: 'coin-' + c, coin: c, label: COIN_DEFS[c].short, img: COIN_DEFS[c].img });
       }
     }
@@ -1050,6 +1050,7 @@ function shipActions(ship) {
   const dead = isDead(ship);
   if (!ship.acted && !ship.pending) {
     if (ship.stage === 'click') acts.push({ id: 'sail', label: 'Sail on' });
+    else if (ship.fullSail) acts.push({ id: 'steer', label: `Steer and sail (Full Sail, ${ship.fullSail === 2 ? 1 : 2} of 2)` });
     else if (ship.noAction) acts.push({ id: 'sail', label: 'Sail on (no action)' });
     else {
       const x2 = ship.turnsLeft > 1 ? ` (turn 1 of ${ship.turnsLeft})` : '';
@@ -1102,7 +1103,7 @@ async function doShipAction(act) {
 function onCoinTap(p, id) {
   ensureAudio();
   if (!canInteract() || p !== G.active) return;
-  if (!coinWindowOpen(p)) { logMsg('Coins are spent at the start of the turn, before any ship acts.'); sfxError(); return; }
+  if (!coinWindowOpen(p)) { logMsg('Coins are spent between ships, before a ship starts its action.'); sfxError(); return; }
   if (G.players[p].coins[id] <= 0) return;
   if (UI.mode === 'coin' && UI.coin === id) { cancelMode(); refresh(); return; }
   const targets = coinTargets(p, id);
@@ -1416,7 +1417,7 @@ function fillBar(p, prompt, acts) {
 
   const waiting = G.players[p].ships.filter(x => !x.acted).length;
   const left = `${waiting} ship${waiting === 1 ? '' : 's'} to go. Ships you leave sail on one click.`;
-  say(!waiting ? 'Every ship has gone. End the turn.' : G.coinPhase ? `Spend coins now, or pick a ship. ${left}` : `Pick a ship. ${left}`);
+  say(!waiting ? 'Every ship has gone. End the turn.' : coinWindowOpen(p) ? `Spend coins, or pick a ship. ${left}` : `Pick a ship. ${left}`);
   if (canDeclareVictory(p)) acts.appendChild(btn('Declare victory', declareVictory, { cls: 'gold', act: 'declare' }));
   if (reviveAllowed(p)) acts.appendChild(btn('Raise a sunk ship (2 coins)', startRevive, { act: 'revive' }));
   acts.appendChild(btn('End turn', endTurn, { cls: 'go', act: 'endturn' }));

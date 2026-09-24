@@ -157,6 +157,7 @@ for (const n of [2, 3, 5, 7]) {
   let sc = engine.scoreBreakdown();
   ok(sc[1].fittings === 1 && sc[1].total === 1 + 2 + 2, `a hit is a prize fitting (${sc[1].fittings}, total ${sc[1].total}: +2 most ships and +2 most islands, tied)`);
   G.active = 2; G.coinPhase = true; G.players[2].coins.repair = 1;
+  G.players[2].ships.forEach(s => { s.acted = false; s.stage = 'action'; s.turnsLeft = 1; s.pending = null; });
   const rep = engine.act(2, { t: 'coin', coin: 'repair', target: b.id });
   ok(rep.ok && engine.scoreBreakdown()[1].fittings === 0, 'Repair Crew takes the fitting back from the prize pile');
   // Sinking gives the hull, worth 2.
@@ -189,6 +190,18 @@ for (const n of [2, 3, 5, 7]) {
   const rt = engine.act(1, { t: 'fire', ship: ind.id, source: 'ship', slot: tSlot, h: 0.02, elev: 'flat' });
   const rel = Math.abs(Math.atan2(Math.sin(ind.turretRel), Math.cos(ind.turretRel))) * 180 / Math.PI;
   ok(rt.ok && Math.abs(rel - 10) < 0.01, `turret asked to fire dead ahead swings to the edge of its blind cone (${rel.toFixed(1)} deg)`);
+  // Full Sail: steer and sail twice, no firing; coins go between ship actions.
+  engine.newGame({ seats: [{ faction: 'queens_fleet', color: 0 }, { faction: 'corsairs', color: 1 }], setup: 'quick', table: 'round' });
+  const J = engine.G, [f1, f2] = J.players[1].ships;
+  J.terrain = []; J.players[1].coins.fullsail = 1; J.players[1].coins.brace = 1;
+  Object.assign(f1, { x: 60, y: 60, h: 0 }); Object.assign(f2, { x: 90, y: 90, h: 0 });
+  ok(engine.act(1, { t: 'coin', coin: 'fullsail', target: f1.id }).ok && f1.fullSail === 2, 'Full Sail goes on a ship yet to act');
+  ok(!engine.act(1, { t: 'fire', ship: f1.id, source: 'ship', slot: 0, elev: 'flat' }).ok, 'a ship under Full Sail cannot fire');
+  const y0 = f1.y;
+  ok(engine.act(1, { t: 'move', ship: f1.id, h: Math.PI / 2, clicks: 3 }).ok && !f1.acted, 'first steer-and-sail leaves the turn open');
+  ok(!engine.act(1, { t: 'coin', coin: 'brace', target: f2.id }).ok, 'no coins between the two Full Sail moves');
+  ok(engine.act(1, { t: 'move', ship: f1.id, h: 0, clicks: 3 }).ok && f1.acted && f1.y < y0 - 1, 'second steer-and-sail (it turned back north) ends its turn');
+  ok(engine.act(1, { t: 'coin', coin: 'brace', target: f2.id }).ok, 'a coin can be spent before the next ship acts');
   // Stone Hulls: first hit ignored at sea, not while touching an island.
   engine.newGame({ seats: [{ faction: 'stone_fleet', color: 0 }, { faction: 'corsairs', color: 1 }], setup: 'quick', table: 'round' });
   const H = engine.G;

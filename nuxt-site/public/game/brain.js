@@ -98,9 +98,10 @@ function aiNextAction(p) {
       return again && again.ev > 0.5 ? aiFireAction(s, again) : { t: 'skipShot', ship: s.id };
     }
     if (s.stage === 'click' && !s.acted) return aiSailOn(s, roles);
+    if (s.fullSail === 1 && !s.acted) return aiShipTurn(s, roles); // Full Sail's second steer-and-sail
   }
 
-  if (G.coinPhase) {
+  if (coinWindowOpen(p)) {
     const c = aiCoinChoice(p, roles, memo);
     if (c) return c;
   }
@@ -314,9 +315,25 @@ function aiCoinChoice(p, roles, memo) {
       if (side) return coin('evasive', s, { side });
     }
   }
-  // Skilled Gunner and Signal Flags both want to know the best shots now.
+  // Skilled Gunner, Signal Flags and Full Sail all want to know the best shots now.
   const shots = {};
   const shotOf = s => (s.id in shots ? shots[s.id] : (shots[s.id] = aiBestShot(s)));
+  // Full Sail: a ship still a long way from where it is going, with no shot
+  // to take, covers twice the water.
+  if (has('fullsail') && spend) {
+    const R = aiRoleObjects(roles);
+    for (const s of coinTargets(p, 'fullsail')) {
+      if (memo.used['fs' + s.id]) continue;
+      memo.used['fs' + s.id] = 1;
+      const goal = R[s.id];
+      if (goal === 'collect' || touchingIslands(s).some(i => G.terrain[i].owner === p)) continue;
+      const sh = shotOf(s);
+      if (sh && sh.ev >= 2) continue;
+      const far = goal && typeof goal === 'object' ? dist(s.x, s.y, goal.x, goal.y) - goal.r :
+        enemyShips(p).reduce((m, e) => Math.min(m, dist(s.x, s.y, e.x, e.y)), Infinity) - 30;
+      if (far > s.moveCount * CLICK_LEN * 1.5) return coin('fullsail', s);
+    }
+  }
   if (has('gunner') && coinTotal(p) >= reserve && !memo.used.gunner) {
     memo.used.gunner = 1;
     let best = null;
@@ -362,6 +379,7 @@ function aiFireAction(ship, shot) {
 function aiShipTurn(ship, roles) {
   const goal = roles[ship.id];
   if (ship.noAction) return aiSailOn(ship, roles);
+  if (ship.fullSail) { const m = aiBestMove(ship, goal, 1, ship.moveCount); return m ? { t: 'move', ship: ship.id, h: m.h, clicks: m.clicks } : { t: 'move', ship: ship.id, h: ship.h, clicks: ship.moveCount }; }
   const touch = touchingIslands(ship).map(i => G.terrain[i]);
   for (const t of touch) if (!raiseFlagProblem(ship, t)) return islandAct(ship, t, 'raise');
   const own = touch.find(t => t.owner === ship.owner);

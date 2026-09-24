@@ -69,7 +69,7 @@ function canSteer(s) { return canAct(s) && !isDead(s); }
 
 /** End the ship's current turn; a Signal Flags receiver may have another. */
 function finishTurn(s) {
-  s.pending = null; s.shotsDone = 0;
+  s.pending = null; s.shotsDone = 0; s.fullSail = 0;
   s.turnsLeft = Math.max(0, (s.turnsLeft || 1) - 1);
   s.noAction = false; // a giver only gives up one action
   if (s.turnsLeft > 0) s.stage = 'action';
@@ -105,8 +105,12 @@ ACTIONS.move = (p, a) => {
   const clicks = clamp(Math.round(+a.clicks || 1), 1, s.moveCount);
   // Steering is the action, so only a ship that has not fired may turn.
   const h = canSteer(s) ? normAngle(+a.h || 0) : s.h;
-  if (doMove(s, h, clicks)) finishTurn(s);
+  if (!doMove(s, h, clicks)) return;
+  // Full Sail: the first steer-and-sail leaves the turn open for a second.
+  if (s.fullSail === 2) { s.fullSail = 1; return; }
+  finishTurn(s);
 };
+const underFullSail = s => !!s.fullSail;
 
 // ─── Firing ───────────────────────────────────────────
 
@@ -127,6 +131,7 @@ function finishFiring(ship, source) {
 ACTIONS.fire = (p, a) => {
   const s = ownShip(p, a.ship);
   const again = s.pending === 'shot2';
+  need(!underFullSail(s), 'Under Full Sail this turn, the ship only steers and sails.');
   need(again || canAct(s), s.noAction ? 'This ship gave its action away. It only sails forward.' : 'This ship has already acted this turn.');
   const F = { source: a.source === 'island' ? 'island' : 'ship', h: normAngle(+a.h || 0) };
   if (F.source === 'island') {
@@ -197,6 +202,7 @@ ACTIONS.pass = (p, a) => {
 // ─── Islands ──────────────────────────────────────────
 
 function islandActionCheck(s, t) {
+  need(!underFullSail(s), 'Under Full Sail this turn, the ship only steers and sails.');
   need(canAct(s), s.noAction ? 'This ship gave its action away. It only sails forward.' : 'This ship has already acted this turn.');
   need(shipTouchesTerrain(s, t), 'The ship is not touching that island.');
 }
@@ -217,6 +223,7 @@ ACTIONS.raise = (p, a) => {
 // holds still like any island action; out at sea it still clicks forward.
 ACTIONS.collect = (p, a) => {
   const s = ownShip(p, a.ship), t = islandById(a.island);
+  need(!underFullSail(s), 'Under Full Sail this turn, the ship only steers and sails.');
   need(canAct(s), s.noAction ? 'This ship gave its action away. It only sails forward.' : 'This ship has already acted this turn.');
   const why = collectProblem(s, t);
   need(!why, why);
@@ -240,8 +247,14 @@ ACTIONS.scuttle = (p, a) => {
 
 // ─── Coins ────────────────────────────────────────────
 
+/**
+ * Coins are spent between ship actions (rulebook v0.6): before any of your
+ * ships starts its action, never partway through one (a ship owing its
+ * click after firing, a second Gunner shot, or between Full Sail's sails).
+ */
 function coinWindowOpen(p) {
-  return G && G.phase === 'play' && G.active === p && G.coinPhase;
+  return !!(G && G.phase === 'play' && G.active === p &&
+    G.players[p].ships.every(s => s.acted || (s.stage === 'action' && !s.pending && s.fullSail !== 1)));
 }
 
 function touchingOwnShip(p, target) {
@@ -265,8 +278,9 @@ function coinTargets(p, coinId) {
   switch (coinId) {
     case 'brace': return mine.filter(s => !s.braced);
     case 'signal': return mine.filter(s => !isDead(s) && canAct(s) && (s.turnsLeft || 1) === 1 && signalReceivers(p, s).length > 0);
-    case 'evasive': return mine.filter(s => !isDead(s));
-    case 'gunner': return mine.filter(s => !s.acted && !s.gunner && !s.noAction);
+    case 'evasive': return mine.filter(s => !isDead(s) && !s.acted);
+    case 'gunner': return mine.filter(s => !s.acted && !s.gunner && !s.noAction && !s.fullSail);
+    case 'fullsail': return mine.filter(s => !isDead(s) && canAct(s) && !s.fullSail && !s.gunner && (s.turnsLeft || 1) === 1);
     case 'repair': {
       const own = mine.filter(s => s.fit < s.maxFit && (s.fit > 0 || touchingOwnShip(p, s)));
       const caps = coins.boarding > 0 ? theirs.filter(s => isDead(s) && touchingOwnShip(p, s)) : [];
@@ -315,7 +329,7 @@ function capture(p, target) {
 }
 
 ACTIONS.coin = (p, a) => {
-  need(coinWindowOpen(p), 'Coins are spent at the start of the turn, before any ship acts.');
+  need(coinWindowOpen(p), 'Coins are spent between ships, before a ship starts its action.');
   const id = a.coin;
   need(COIN_DEFS[id], 'Unknown coin.');
   need(G.players[p].coins[id] > 0, `You have no ${COIN_DEFS[id].name}.`);
@@ -341,6 +355,10 @@ ACTIONS.coin = (p, a) => {
     case 'gunner':
       payCoin(p, id); target.gunner = true;
       ev(Object.assign(at, { msg: `${target.name} will fire twice.` }));
+      break;
+    case 'fullsail':
+      payCoin(p, id); target.fullSail = 2;
+      ev(Object.assign(at, { msg: `${target.name} crowds on sail: it will steer and sail twice.` }));
       break;
     case 'repair':
       if (target.owner !== p) { capture(p, target); break; }
@@ -441,6 +459,7 @@ function autoSail(p) {
       if (s.pending === 'shot2') { finishFiring(s, s.lastSource || 'ship'); continue; }
       if (isDead(s)) { finishTurn(s); continue; }
       if (!doMove(s, s.h, 1, `${s.name} sails on.`)) break;
+      if (s.fullSail === 2) { s.fullSail = 1; continue; }
       finishTurn(s);
     }
   }

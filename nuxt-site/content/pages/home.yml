@@ -58,13 +58,15 @@ howToPlay:
         - >-
           Everyone picks a fleet and takes its ships, flags, cannons and
           cannonballs. Going around the table, each player places one island.
-          Keep islands at least **6"** apart and **12"** from the edges.
+          Keep islands at least **6"** apart and **12"** from the edges (on a
+          narrow folding table, run them down the middle).
         - >-
           Add a few rocks or reefs if you like (household objects work fine).
-          Then everyone picks a table edge and lines up their ships touching
-          it, facing in.
+          Then everyone takes a stretch of table edge and lines up their ships
+          touching it, facing in. Two players sit diagonally across a folding
+          table, or a quarter of the way round a round one.
         - >-
-          Each player puts their 20 coins into a bag and gives it a shake.
+          Each player puts their 22 coins into a bag and gives it a shake.
           The youngest player goes first.
       table:
         head: [Players, Islands]
@@ -127,14 +129,15 @@ howToPlay:
         - >-
           Coins come from islands you hold: each turn, your ship nearest each
           of your islands can collect a coin there, even out at sea. Spend
-          them at the start of your turn, as many as you want, then put them
-          back in the bag. Coins aren't points, so spend them.
+          them before any of your ships takes its turn, as many as you want,
+          then put them back in the bag. Coins aren't points, so spend them.
       coins:
         - { image: /assets/images/coins/coin-skilled-gunner.webp, name: Skilled Gunner, body: One ship fires twice. }
         - { image: /assets/images/coins/coin-repair-crew.webp, name: Repair Crew, body: Put a fitting back on one of your ships. }
         - { image: /assets/images/coins/coin-boarding-party.webp, name: Boarding Party, body: Knock a fitting off an enemy ship you're touching. }
         - { image: /assets/images/coins/coin-brace-for-impact.webp, name: Brace for Impact, body: The next hit on that ship does nothing. }
         - { image: /assets/images/coins/coin-signal-flag.webp, name: Signal Flags, body: One of your ships skips its action so another (yours or an ally's) gets two turns. }
+        - { image: /assets/images/coins/coin-full-sail.webp, name: Full Sail, body: One ship steers and sails twice, but doesn't fire. }
         - { image: /assets/images/coins/coin-evasive-maneuver.webp, name: Evasive Maneuvers, body: One ship slides one ship-width sideways. }
       note: >-
         Boarding Party and Repair Crew together, while touching a dead enemy
@@ -290,6 +293,8 @@ changelog:
         - '**Treasure Fleet keeps its gold.** Its unspent coins still score 1 point each.'
         - '**Stone Hulls only work at sea.** A Stone Fleet ship touching an island takes every hit.'
         - '**Real tables, and where to sit.** A 6 ft round or a 6 or 8 ft folding table works well. Two players sit a quarter of the way round a round table, or diagonally across a folding one, so the fighting starts sooner. With three or more, put a rock just past each end of every fleet''s line. On a narrow table, islands run down the middle.'
+        - '**Full Sail is back.** One ship steers and sails twice in a turn, but does not fire. Each player now adds 22 coins to the bag.'
+        - '**Spend coins between ships.** Coins can be spent before any of your ships takes its turn, not only at the start of yours.'
         - '**Cannons in the web game now shoot like the printed ones.** Two elevations (straight out or tipped up), no power control, a few degrees of spread, and a tapered ball that skids and curls to a stop.'
     - version: v0.5
       released: '2026-09-19'
