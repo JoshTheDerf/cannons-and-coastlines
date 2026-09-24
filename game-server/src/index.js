@@ -285,9 +285,14 @@ export class GameRoom extends DurableObject {
         if (!isHost || !inLobby || R.seats.length >= R.max) return;
         const used = new Set(R.seats.map(x => x.color));
         const n = R.seats.filter(x => x.ai).length;
+        // A fleet nobody at the table has yet; if every fleet is taken, one
+        // of the least-used ones.
+        const count = f => R.seats.filter(x => x.faction === f).length;
+        const fewest = Math.min(...engine.FACTION_ORDER.map(count));
+        const free = engine.FACTION_ORDER.filter(f => count(f) === fewest);
         R.seats.push({
           seat: R.nextSeat++, token: 'ai-' + crypto.randomUUID(), name: AI_NAMES[n % AI_NAMES.length], ai: true, ready: true,
-          faction: engine.FACTION_ORDER[Math.floor(Math.random() * engine.FACTION_ORDER.length)], color: [0, 1, 2, 3, 4, 5, 6].find(c => !used.has(c)),
+          faction: free[Math.floor(Math.random() * free.length)], color: [0, 1, 2, 3, 4, 5, 6].find(c => !used.has(c)),
         });
         await this.save(); this.broadcastRoom(); await this.publish();
         return;
