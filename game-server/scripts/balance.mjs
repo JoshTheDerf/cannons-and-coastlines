@@ -26,13 +26,13 @@ const FLEET_LIMITS = [0.5, 1.8];
 const STYLE_LIMITS = [0.7, 1.4];
 const MAX_ROUND_CAP = 0.05;      // share of games allowed to run into the round cap
 const ROUNDS = [4, 20];          // average game length, in rounds
-// Known leans the rules have not fixed yet. They are reported, not failed.
-// Remove an entry once that fleet is back inside FLEET_LIMITS.
+// Known leans the rules have not fixed yet, with the side they lean to
+// ('low' or 'high'). They are reported, not failed, but a lean the other
+// way still fails. Remove an entry once that fleet is back inside limits.
 const KNOWN = {
-  'ffa4:treasure_fleet': 'Two slow hulls get swarmed at bigger tables.',
-  'ffa6:treasure_fleet': 'Two slow hulls get swarmed at bigger tables.',
-  'mixed4:treasure_fleet': 'Two slow hulls get swarmed at bigger tables.',
-  'ffa6:shadow_fleet': 'Return from the Deep snowballs in six-player games.',
+  'ffa4:treasure_fleet': ['low', 'Two slow hulls get swarmed at bigger tables.'],
+  'ffa6:treasure_fleet': ['low', 'Two slow hulls get swarmed at bigger tables.'],
+  'mixed4:treasure_fleet': ['low', 'Two slow hulls get swarmed at bigger tables.'],
 };
 
 // ─── Scenarios ────────────────────────────────────────
@@ -110,10 +110,15 @@ function makeJobs(scale) {
     } else if (sc.kind === 'ffa') {
       const games = Math.max(7, Math.round(sc.games * scale));
       for (let g = 0; g < games; g++) {
-        // A seeded shuffle picks distinct fleets and their seats.
-        let r = seed * 2654435761 >>> 0;
-        const next = () => (r = (Math.imul(r ^ (r >>> 15), 2246822519) + 1) >>> 0) / 4294967296;
-        const factions = F.slice().sort(() => next() - 0.5).slice(0, sc.n);
+        // A seeded Fisher-Yates shuffle picks distinct fleets; the seats then
+        // rotate with the game number, so every fleet sits in every seat
+        // equally often (seat 1 moves first, which matters).
+        let r = (seed * 2654435761) >>> 0;
+        const next = () => { r = (r + 0x6D2B79F5) >>> 0; let t = Math.imul(r ^ (r >>> 15), r | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
+        const pool = F.slice();
+        for (let i = pool.length - 1; i > 0; i--) { const k = Math.floor(next() * (i + 1)); [pool[i], pool[k]] = [pool[k], pool[i]]; }
+        const pick = pool.slice(0, sc.n), turn = g % sc.n;
+        const factions = pick.slice(turn).concat(pick.slice(0, turn));
         const styles = factions.map((_, i) => (sc.styles ? sc.styles[(g + i) % sc.styles.length] : 'tactical'));
         jobs.push({ scenario: sc.id, table: 'round', factions, styles, seed: seed++ });
       }
@@ -174,7 +179,8 @@ async function main() {
     const cells = F.map(f => {
       const s = share(games, (g, i) => g.factions[i] === f);
       let mark = ' ';
-      if (outside(s, FLEET_LIMITS)) { if (KNOWN[`${sc.id}:${f}`]) { mark = '~'; known.push(`${sc.label}: ${NAME[f]} ${s.x.toFixed(2)}x (known: ${KNOWN[`${sc.id}:${f}`]})`); } else { mark = '!'; fails.push(`${sc.label}: ${NAME[f]} wins ${s.x.toFixed(2)}x fair share (95% ${s.lo.toFixed(2)}-${s.hi.toFixed(2)}), limit ${FLEET_LIMITS.join('-')}`); } }
+      const kn = KNOWN[`${sc.id}:${f}`], side = s.hi < FLEET_LIMITS[0] ? 'low' : 'high';
+      if (outside(s, FLEET_LIMITS)) { if (kn && kn[0] === side) { mark = '~'; known.push(`${sc.label}: ${NAME[f]} ${s.x.toFixed(2)}x (known: ${kn[1]})`); } else { mark = '!'; fails.push(`${sc.label}: ${NAME[f]} wins ${s.x.toFixed(2)}x fair share (95% ${s.lo.toFixed(2)}-${s.hi.toFixed(2)}), limit ${FLEET_LIMITS.join('-')}`); } }
       return (fmt(s) + mark).padStart(10);
     }).join('');
     const rounds = games.reduce((a, g) => a + g.rounds, 0) / games.length, capped = games.filter(g => g.capped).length / games.length;

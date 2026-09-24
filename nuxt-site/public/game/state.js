@@ -76,6 +76,7 @@ function newGame(opts) {
     randomIslands();
     randomTerrain(round ? Math.min(6, 2 + Math.ceil(n / 2)) : 4);
     for (const p of G.order) autoDeploy(p);
+    if (round && n >= 3) flankRocks();
     applyHomeWaters();
     G.phase = 'play';
     beginTurn();
@@ -217,6 +218,33 @@ function autoDeploy(p) {
     }
     s.placed = true;
   });
+}
+
+/**
+ * Round tables with neighbours: a rock just past each end of every fleet's
+ * start line, a little in from the rim. Without them, the first turn is a
+ * free broadside down the rim into the next fleet. Those shots are mostly
+ * lobs that fly over anything halfway, so the rocks sit where the ball
+ * comes back down, beside the fleet it would hit.
+ */
+const FLANK_ROCK = { past: 11, inward: 12, r: 4 };
+function flankRocks() {
+  const c = tableCenter(), R = G.table.r;
+  for (const p of G.order) {
+    const home = seatHome(p).a;
+    const rel = G.players[p].ships.map(s => angleDiff(Math.atan2(s.y - c.y, s.x - c.x), home));
+    for (const [edge, side] of [[Math.min(...rel), -1], [Math.max(...rel), 1]]) {
+      const a = home + edge + side * FLANK_ROCK.past / R;
+      for (let k = 0; k < 4; k++) {
+        const rr = R - FLANK_ROCK.inward - k * 3;
+        const x = c.x + Math.cos(a) * rr, y = c.y + Math.sin(a) * rr, r = FLANK_ROCK.r;
+        const clear = allShips().every(s => !shipTouchesTerrain(s, { x, y, r })) &&
+          G.terrain.every(t => dist(x, y, t.x, t.y) - r - t.r >= 1);
+        if (clear) { addTerrain('rock', x, y, r); break; }
+      }
+    }
+  }
+  G.terrain.forEach((t, i) => { t.id = i; });
 }
 
 /** Islanders: claim the nearest island and park one catamaran touching it. */

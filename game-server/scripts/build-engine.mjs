@@ -14,7 +14,7 @@ export const engine = {
   get G() { return G; },
   set G(v) { G = v; },
   setRand, seededRandom, setAiEffort,
-  newGame, act, aiNextAction, scoreBreakdown, inGame, seatName, islands, touchingIslands, turnIsOver, eventsDuration, shipSlots, slotWorld, traceShot, wobbleShot, aimedShot, shotPath, pathAt, fittingWorld, applyHit, hasTurret, nextToRestore, fittingLayout, oneFitting, islandSlots, islandGunOrigin,
+  newGame, act, aiNextAction, enemyShipsOf: enemyShips, shipTouchesTerrain, scoreBreakdown, inGame, seatName, islands, touchingIslands, turnIsOver, eventsDuration, shipSlots, slotWorld, traceShot, wobbleShot, aimedShot, shotPath, pathAt, fittingWorld, applyHit, hasTurret, nextToRestore, fittingLayout, oneFitting, islandSlots, islandGunOrigin,
   FACTION_DEFS, FACTION_ORDER, PALETTE, factionId, MAX_SEATS, RULES_VERSION,
 };
 `;
