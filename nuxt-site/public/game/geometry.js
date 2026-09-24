@@ -212,6 +212,17 @@ function fittingWorld(ship, idx, pose) {
 // firing direction relative to the bow (0 forward, +PI/2 starboard).
 // `free: true` means the slot can point any way (the Industry turret).
 // Island slots are in islandSlots().
+/** A turret heading, moved out of its blind cones ahead and astern to the nearest edge. */
+function turretAim(ship, h) {
+  let rel = angleDiff(h, ship.h);
+  const sgn = rel < 0 ? -1 : 1, a = Math.abs(rel);
+  if (a < TURRET_BLIND) rel = sgn * TURRET_BLIND;
+  else if (a > Math.PI - TURRET_BLIND) rel = sgn * (Math.PI - TURRET_BLIND);
+  return normAngle(ship.h + rel);
+}
+/** Can the turret bear on heading h? */
+function turretBears(ship, h) { const a = Math.abs(angleDiff(h, ship.h)); return a >= TURRET_BLIND && a <= Math.PI - TURRET_BLIND; }
+
 function shipSlots(ship) {
   const out = [];
   const L = ship.len, W = ship.wid, off = BALL_R + 0.1;

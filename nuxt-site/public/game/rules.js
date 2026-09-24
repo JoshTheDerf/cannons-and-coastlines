@@ -144,8 +144,9 @@ ACTIONS.fire = (p, a) => {
     F.slot = shipSlots(s)[a.slot | 0];
     need(F.slot, 'No such cannon slot.');
     // Turning the turret is part of firing it, not Set Heading, so any
-    // angle is fine. The hull itself does not turn.
-    if (F.slot.free) s.turretRel = normAngle(F.h - s.h);
+    // angle outside its blind cones ahead and astern is fine. The hull
+    // itself does not turn.
+    if (F.slot.free) { F.h = turretAim(s, F.h); s.turretRel = normAngle(F.h - s.h); }
   }
   // Two elevations and no power control: the spring and the table decide the rest.
   const elev = a.elev === 'lob' ? 'lob' : 'flat';

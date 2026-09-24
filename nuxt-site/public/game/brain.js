@@ -54,6 +54,8 @@ function aiIntel(p) {
     if (multi) {
       if (sc[q].total === totals[0] && totals[0] >= (totals[1] || 0) + 3) m *= 1.5;
       if (f === 'stone_fleet') m *= 2 + (sc[q].total === totals[0] ? 0.6 : 0) + islandsHeld(q) * 0.15;
+      // The Industry's turrets reach any way; the more still aboard, the more fire it draws.
+      if (f === 'industry' && !off('ind')) m *= 1 + 0.35 * G.players[q].ships.filter(hasTurret).length;
       else if (stoneHealthy && p !== stoneSeat) m *= 0.35; // informal truce while the Stone Fleet is strong
     }
     focus[q] = m;
@@ -399,7 +401,7 @@ function aiHitValue(t, p) {
   v *= intel.focus[t.owner] || 1;
   if (f === 'stone_fleet') { if (t.stoneUsed) v *= 1.6; if (hitAlready) v *= 1.3; }   // stack hits on one Stone ship
   else if (f === 'islanders') { if (!hitAlready) v *= 1.25; if (isDead(t)) v += 3; } // spread: one hit disables each
-  else if (f === 'industry') { if (hasTurret(t)) v += 3; }                          // silence the turret
+  else if (f === 'industry') { if (hasTurret(t) && !off('ind')) v *= 1.8; }         // the first hit silences the turret: very worth it
   else if (f === 'treasure_fleet') v *= 1.3;                                         // few hulls: punish them
   else if (f === 'shadow_fleet') { if (isDead(t) && coinTotal(t.owner) >= 2 && islandsHeld(t.owner) > 0) v -= 7; } // it will just come back
   else if (f === 'corsairs' || f === 'queens_fleet') v *= 1.1;
@@ -413,7 +415,8 @@ function aiLanes(ship, opts) {
   shipSlots(ship).forEach((sl, idx) => {
     const w = slotWorld(ship, sl);
     if (sl.free) {
-      for (const e of enemies) lanes.push({ source: 'ship', slot: sl, slotIdx: idx, x: w.x, y: w.y, h: headingTo(e.x - w.x, e.y - w.y) });
+      // The turret swings to each enemy it can bear on (not through its blind cones).
+      for (const e of enemies) { const h = headingTo(e.x - w.x, e.y - w.y); if (turretBears(ship, h)) lanes.push({ source: 'ship', slot: sl, slotIdx: idx, x: w.x, y: w.y, h }); }
     } else lanes.push({ source: 'ship', slot: sl, slotIdx: idx, x: w.x, y: w.y, h: w.h });
   });
   if (!(opts && opts.noIsland) && !isDead(ship)) {
@@ -482,7 +485,7 @@ function aiEnemyLanes(p) {
   for (const e of enemyShips(p)) {
     for (const sl of shipSlots(e)) {
       const w = slotWorld(e, sl);
-      out.push({ e, x: w.x, y: w.y, fx: Math.sin(w.h), fy: -Math.cos(w.h), free: !!sl.free });
+      out.push({ e, x: w.x, y: w.y, fx: Math.sin(w.h), fy: -Math.cos(w.h), free: !!sl.free, eh: e.h });
     }
   }
   LANES = { g: G, key, lanes: out };
@@ -500,7 +503,8 @@ function aiThreat(ship, ps) {
     if (Math.abs(dx) > reach || Math.abs(dy) > reach) continue;
     const d = Math.hypot(dx, dy);
     if (d > reach) continue;
-    if (L.free) { if (d < RANGE_MAX * 0.8) n += 0.6; continue; }
+    // A live turret can swing onto us from any side: a full threat in range.
+    if (L.free) { if (d < RANGE_MAX * (off('ind') ? 0.8 : 1) && turretBears({ h: L.eh }, headingTo(dx, dy))) n += off('ind') ? 0.6 : 1; continue; }
     const along = dx * L.fx + dy * L.fy, perp = Math.abs(dx * L.fy - dy * L.fx);
     if (along > 4 && perp < ship.len / 2 + 0.5) { n += 1; counted = true; }
   }
@@ -517,7 +521,7 @@ function aiAttackPotential(ship, ps) {
     let bestE = 0;
     for (const w of slots) {
       const dx = e.x - w.x, dy = e.y - w.y;
-      if (w.free) { if (Math.hypot(dx, dy) < RANGE_MAX * 0.8) bestE = Math.max(bestE, 0.8); continue; }
+      if (w.free) { if (Math.hypot(dx, dy) < RANGE_MAX * 0.8 && turretBears(ghost, headingTo(dx, dy))) bestE = Math.max(bestE, 0.8); continue; }
       const fx = Math.sin(w.h), fy = -Math.cos(w.h);
       const along = dx * fx + dy * fy, perp = Math.abs(dx * fy - dy * fx);
       if (along > RANGE_MIN && along < RANGE_MAX && perp < e.len / 2 + 1) bestE = Math.max(bestE, 1 - perp / (e.len / 2 + 1));

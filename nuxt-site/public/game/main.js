@@ -998,7 +998,7 @@ function firePointer(w, isDown) {
   }
   if (F.stage === 'dir') {
     const o = F.source === 'island' ? F.island : slotWorld(F.ship, F.slot);
-    if (dist(w.x, w.y, o.x, o.y) > 0.8) F.h = headingTo(w.x - o.x, w.y - o.y);
+    if (dist(w.x, w.y, o.x, o.y) > 0.8) F.h = F.free ? turretAim(F.ship, headingTo(w.x - o.x, w.y - o.y)) : headingTo(w.x - o.x, w.y - o.y);
     if (isDown) UI.dragging = true;
     return;
   }

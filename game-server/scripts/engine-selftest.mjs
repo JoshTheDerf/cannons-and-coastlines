@@ -180,6 +180,15 @@ for (const n of [2, 3, 5, 7]) {
   ok(!engine.act(1, { t: 'collect', ship: s1.id, island: 0 }).ok, 'a dead ship cannot collect, even touching the island');
   ok(!engine.act(1, { t: 'fire', ship: s1.id, source: 'island', island: 0, slot: 0, elev: 'flat' }).ok, 'a dead ship cannot fire an island gun');
   ok(engine.act(1, { t: 'collect', ship: s2.id, island: 0 }).ok, 'a dead ship nearer the island does not stop a live one collecting');
+  // Industry turret: blind straight ahead and astern (10 degrees either side).
+  engine.newGame({ seats: [{ faction: 'industry', color: 0 }, { faction: 'corsairs', color: 1 }], setup: 'quick', table: 'round' });
+  const I = engine.G, ind = I.players[1].ships[0];
+  I.terrain = []; Object.assign(ind, { x: 40, y: 60, h: 0, acted: false, stage: 'action', turnsLeft: 1 });
+  const tSlot = engine.shipSlots(ind).findIndex(sl => sl.free);
+  I.active = 1; I.coinPhase = true;
+  const rt = engine.act(1, { t: 'fire', ship: ind.id, source: 'ship', slot: tSlot, h: 0.02, elev: 'flat' });
+  const rel = Math.abs(Math.atan2(Math.sin(ind.turretRel), Math.cos(ind.turretRel))) * 180 / Math.PI;
+  ok(rt.ok && Math.abs(rel - 10) < 0.01, `turret asked to fire dead ahead swings to the edge of its blind cone (${rel.toFixed(1)} deg)`);
   // Stone Hulls: first hit ignored at sea, not while touching an island.
   engine.newGame({ seats: [{ faction: 'stone_fleet', color: 0 }, { faction: 'corsairs', color: 1 }], setup: 'quick', table: 'round' });
   const H = engine.G;

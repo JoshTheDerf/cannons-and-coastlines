@@ -71,6 +71,10 @@ const SKID_CURL_V = 30;              // ...so the curl tightens as it slows
 const RANGE_MIN = 2;
 const RANGE_MAX = 55;
 const SLOT_SPLAY = 15 * Math.PI / 180;   // end slots angle toward their nearest end or side
+// The Industry turret turns any way but two: the smokestack and bow block
+// it straight ahead, the stern works block it straight back. Blind cones
+// this far either side of the bow and of the stern.
+const TURRET_BLIND = 10 * Math.PI / 180;
 
 // Scoring (rulebook v0.6). Surviving ships and coins do not score: points
 // come from islands held and prizes, the fittings and hulls you knock off
