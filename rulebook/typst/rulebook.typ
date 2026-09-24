@@ -523,7 +523,7 @@ Spend #coin("repair") *Repair Crew* to restore 1 fitting to one of your ships.
   coin("boarding"), [*Boarding Party*],    [While touching an enemy ship, remove 1 fitting from it. *Needed to capture.*],
 ))
 
-Each player contributes 22 coins to the bag at setup: 4 Brace · 2 Signal · 2 Full Sail · 2 Evasive · 4 Gunner · 4 Repair · 4 Boarding.
+Each player contributes 20 coins to the bag at setup: 4 Brace · 2 Signal · 2 Full Sail · 2 Evasive · 4 Gunner · 4 Repair · 2 Boarding.
 
 
 // ----- Winning -----
@@ -745,7 +745,7 @@ A *faction set* is one complete print run for one player: their fleet plus a fai
   [Movement wheel],       [1 per ship], [Rubber band over the rim. Hard to remove once in.],
   [Islands],              [2–3],     [Print *Islands*, or put *Island Toppers* on household objects.],
   [Rocks / Reefs],   [2-4],       [Optional terrain. Block movement and cannonballs.],
-  [Coins],                [1 set of 22], [Each set is 4 Brace, 2 Signal, 2 Full Sail, 2 Evasive, 4 Gunner, 4 Repair, 4 Boarding.],
+  [Coins],                [1 set of 20], [Each set is 4 Brace, 2 Signal, 2 Full Sail, 2 Evasive, 4 Gunner, 4 Repair, 2 Boarding.],
 ))
 
 // ----- Designer Notes (8th-grade level — for whoever's building the game) -----

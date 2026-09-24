@@ -202,7 +202,7 @@ const FACTION_ALIASES = { sun_fleet: 'stone_fleet' };
 const factionId = f => FACTION_ALIASES[f] || f;
 const FACTION_ORDER = ['queens_fleet', 'corsairs', 'treasure_fleet', 'stone_fleet', 'shadow_fleet', 'industry', 'islanders'];
 
-// Coins (rulebook v0.6). Each player adds 22 to the bag.
+// Coins (rulebook v0.6). Each player adds 20 to the bag.
 const COIN_DEFS = {
   brace:    { name: 'Brace for Impact',  short: 'Brace',    icon: '\uD83D\uDEE1\uFE0F', text: 'Put it on one of your ships. The next hit that ship takes is ignored.' },
   signal:   { name: 'Signal Flags',      short: 'Signal',   icon: '\uD83D\uDEA9', text: 'One of your ships gives up its action and only sails forward. Another of your ships takes two full turns.' },
@@ -219,7 +219,7 @@ const COIN_IMG = {
   gunner: 'coin-skilled-gunner', repair: 'coin-repair-crew', boarding: 'coin-boarding-party',
 };
 for (const id of COIN_ORDER) COIN_DEFS[id].img = `../assets/images/coins/${COIN_IMG[id]}.webp`;
-const COIN_SET = { brace: 4, signal: 2, fullsail: 2, evasive: 2, gunner: 4, repair: 4, boarding: 4 };
+const COIN_SET = { brace: 4, signal: 2, fullsail: 2, evasive: 2, gunner: 4, repair: 4, boarding: 2 };
 const RULES_VERSION = 'v0.6';
 
 // Fleet colours. Seats pick one each in an online lobby; local games use

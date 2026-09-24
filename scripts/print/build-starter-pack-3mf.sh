@@ -142,7 +142,7 @@ islands_per_pack=3
 rocks_per_pack=2
 reefs_per_pack=2
 
-# Coins per pack, as "<stem>:<count>", matching the rulebook's 22-coin set:
+# Coins per pack, as "<stem>:<count>", matching the rulebook's 20-coin set:
 # 4 Brace · 2 Signal · 2 Evasive · 4 Gunner · 4 Repair · 4 Boarding.
 # Listed in a fixed order so plate layout stays reproducible.
 COIN_COUNTS=(
@@ -152,7 +152,7 @@ COIN_COUNTS=(
     coin-evasive-maneuver:2
     coin-skilled-gunner:4
     coin-repair-crew:4
-    coin-boarding-party:4
+    coin-boarding-party:2
 )
 
 # --- Helpers --------------------------------------------------------------
