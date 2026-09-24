@@ -49,9 +49,10 @@
       <div class="olGrid">
         <label class="olField"><span>Name</span><input id="olGameName" maxlength="32" placeholder="Harbour brawl"></label>
         <label class="olField"><span>Crews</span><select id="olMax"><option>2</option><option>3</option><option selected>4</option><option>5</option><option>6</option><option>7</option></select></label>
+        <label class="olField"><span>Table</span><select id="olTable"><option value="round6" selected>6 ft round</option><option value="fold6">6 ft folding</option><option value="fold8">8 ft folding</option></select></label>
         <label class="olField"><span>Turn timer</span><select id="olTimer"><option value="60">60 s</option><option value="90" selected>90 s</option><option value="120">2 min</option><option value="180">3 min</option><option value="0">None</option></select></label>
       </div>
-      <p class="olEmpty">A round table sized for the crew count, with islands per the rulebook. Empty seats can go to the computer.</p>
+      <p class="olEmpty">Islands per the rulebook, as many as the table fits. Two crews sit a quarter of the way round a round table, or diagonally across a folding one. Empty seats can go to the computer.</p>
     </div>
     <div class="setupBtns">
       <button onclick="NET.closeLobby(); showScreen('titleScreen')">Back</button>

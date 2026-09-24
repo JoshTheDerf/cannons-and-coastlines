@@ -8,7 +8,12 @@ const setupChoice = {
   solo: true,
   factions: { 1: 'queens_fleet', 2: 'corsairs' },
   setup: 'quick', stalemate: false,
+  table: 'fold6', seating: 'diagonal',
 };
+// The tables people have to hand, and where two players sit at them.
+const LOCAL_TABLES = { fold6: '6 ft folding', fold8: '8 ft folding', round6: '6 ft round' };
+const RECT_SEATING = [['diagonal', 'Diagonal'], ['sides', 'Facing across'], ['ends', 'At the ends']];
+const ROUND_SEATING = [['quarter', 'A quarter apart'], ['opposite', 'Opposite']];
 const UI = {
   mode: null,      // null | 'move' | 'fire' | 'coin' | 'evasive' | 'revive'
   sel: null, move: null, fire: null, coin: null, evasive: null, targets: null,
@@ -55,7 +60,9 @@ function showSetup() {
       <div class="setupLabel" style="--pc:${PALETTE[p - 1].main}"><span class="dot"></span>${p === 2 && setupChoice.solo ? 'Computer' : 'Player ' + p}</div>
       <div class="fRow">${FACTION_ORDER.map(fid => factionCard(fid, setupChoice.factions[p] === fid, `data-p="${p}" data-f="${fid}"`)).join('')}</div>`).join('') + `
     <div class="optGrid">
-      <span>Table</span><div>${opt('setup', 'quick', 'Quick start')}${opt('setup', 'custom', 'Set it up yourselves')}</div>
+      <span>Table</span><div>${Object.entries(LOCAL_TABLES).map(([id, name]) => opt('table', id, name)).join('')}</div>
+      <span>Seating</span><div>${(TABLES[setupChoice.table].shape === 'circle' ? ROUND_SEATING : RECT_SEATING).map(([id, name]) => opt('seating', id, name)).join('')}</div>
+      <span>Map</span><div>${opt('setup', 'quick', 'Quick start')}${opt('setup', 'custom', 'Set it up yourselves')}</div>
       <span>Stalemate rule</span><div>${opt('stalemate', true, 'On')}${opt('stalemate', false, 'Off')}</div>
     </div>
     <p class="optNote callout">Rulebook ${RULES_VERSION}: each ship steers, fires, or takes an island action, then sails forward. Only an island action taken touching the island holds a ship still. Score by holding islands and knocking fittings off enemy ships; first to ${VICTORY_POINTS} can declare victory.</p>`;
@@ -63,6 +70,8 @@ function showSetup() {
   el.querySelectorAll('.optBtn').forEach(b => b.onclick = () => {
     const v = b.dataset.v;
     setupChoice[b.dataset.k] = v === 'true' ? true : v === 'false' ? false : v;
+    // A new table brings its own default seating.
+    if (b.dataset.k === 'table') setupChoice.seating = TABLES[v].shape === 'circle' ? 'quarter' : 'diagonal';
     showSetup();
   });
 }
@@ -73,7 +82,7 @@ function beginGame() {
   setRand(Math.random);
   newGame({
     seats: [1, 2].map(p => ({ faction: setupChoice.factions[p], color: p - 1, name: p === 2 && setupChoice.solo ? 'Computer' : `Player ${p}`, ai: p === 2 && setupChoice.solo })),
-    setup: setupChoice.setup, stalemate: setupChoice.stalemate, table: 'fold6', seating: 'diagonal',
+    setup: setupChoice.setup, stalemate: setupChoice.stalemate, table: setupChoice.table, seating: setupChoice.seating,
   });
   enterGameScreen();
   if (G.phase === 'play') announceTurn();
@@ -844,7 +853,7 @@ function randomSetupPiece() {
   const type = G.phase === 'islands' ? 'island' : UI.placeType;
   for (let a = 0; a < 400; a++) {
     const r = type === 'island' ? islandRadius() : terrainRadius(type);
-    const x = r + Math.random() * (G.table.w - 2 * r), y = r + Math.random() * (G.table.h - 2 * r);
+    const sz = tableSize(), x = r + Math.random() * (sz.w - 2 * r), y = r + Math.random() * (sz.h - 2 * r);
     const bad = type === 'island' ? islandSpotProblem(x, y, r) : (terrainSpotProblem(x, y, r) || islandSpotProblemForTerrain(x, y, r));
     if (!bad) { placeSetupPiece(type, x, y, r); return true; }
   }
@@ -868,7 +877,7 @@ function nextUnplaced(p) { return G.players[p].ships.find(s => !s.placed); }
 function deployGhost(w) {
   const ship = nextUnplaced(G.active);
   if (!ship) { UI.ghost = null; return null; }
-  const ps = deployPose(G.active, ship, seatAlong(G.active, w));
+  const ps = deployPoseAt(G.active, ship, w);
   UI.ghost = { ship, pose: ps, ok: canDeployAt(ship, ps) };
   return UI.ghost;
 }

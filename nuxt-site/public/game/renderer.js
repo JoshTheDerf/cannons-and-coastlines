@@ -269,29 +269,38 @@ function drawTable() {
   }
   // One-foot grid, faint.
   ctx.strokeStyle = 'rgba(200,225,245,.05)';
-  for (let f = 1; f < 4; f++) {
+  const TW = G ? G.table.w : RECT_TABLE, TH = G ? G.table.h : RECT_TABLE;
+  for (let f = 1; f * 12 * INCH < Math.max(TW, TH); f++) {
     const p = w2s(f * 12 * INCH, f * 12 * INCH);
-    ctx.beginPath(); ctx.moveTo(p.x, a.y); ctx.lineTo(p.x, b.y); ctx.stroke();
-    ctx.beginPath(); ctx.moveTo(a.x, p.y); ctx.lineTo(b.x, p.y); ctx.stroke();
+    if (f * 12 * INCH < TW) { ctx.beginPath(); ctx.moveTo(p.x, a.y); ctx.lineTo(p.x, b.y); ctx.stroke(); }
+    if (f * 12 * INCH < TH) { ctx.beginPath(); ctx.moveTo(a.x, p.y); ctx.lineTo(b.x, p.y); ctx.stroke(); }
   }
   ctx.restore();
 
-  if (G && G.phase === 'play') {
-    // Glow on the active player's home edge.
-    const p = G.active, c = colorOf(p).rgb;
-    const y = p === 1 ? b.y : a.y;
-    const g2 = ctx.createLinearGradient(0, y - 8, 0, y + 8);
-    g2.addColorStop(0, rgba(c, 0)); g2.addColorStop(0.5, rgba(c, 0.55)); g2.addColorStop(1, rgba(c, 0));
-    ctx.fillStyle = g2;
-    ctx.fillRect(a.x, y - 8, b.x - a.x, 16);
+  if (G && (G.phase === 'play' || G.phase === 'over')) {
+    // Each seat's stretch of edge in its colour; the active one glows.
+    for (const p of G.order) {
+      const sg = seatEdgeSegment(p), on = p === G.active && G.phase === 'play';
+      const p1 = w2s(sg.x1, sg.y1), p2 = w2s(sg.x2, sg.y2);
+      ctx.strokeStyle = rgba(colorOf(p).rgb, on ? 0.75 + Math.sin(wavePhase * 3) * 0.15 : 0.35);
+      ctx.lineWidth = on ? 6 : 3;
+      ctx.beginPath(); ctx.moveTo(p1.x, p1.y); ctx.lineTo(p2.x, p2.y); ctx.stroke();
+    }
   }
+}
+
+/** Table-coordinate polygon: the strip `depth` deep inside seat p's stretch of edge. */
+function seatStrip(p, depth) {
+  const sg = seatEdgeSegment(p), e = seatOf(p).edge;
+  const n = { bottom: [0, -1], top: [0, 1], left: [1, 0], right: [-1, 0] }[e];
+  return [[sg.x1, sg.y1], [sg.x2, sg.y2], [sg.x2 + n[0] * depth, sg.y2 + n[1] * depth], [sg.x1 + n[0] * depth, sg.y1 + n[1] * depth]];
 }
 
 function drawSetupOverlay() {
   if (G.table.shape === 'circle') return;
   const a = w2s(0, 0), b = w2s(G.table.w, G.table.h);
   if (G.phase === 'islands') {
-    const m = w2r(ISLAND_EDGE_MIN);
+    const m = w2r(islandEdgeMin());
     ctx.fillStyle = 'rgba(0,0,0,.25)';
     ctx.fillRect(a.x, a.y, b.x - a.x, m);
     ctx.fillRect(a.x, b.y - m, b.x - a.x, m);
@@ -301,16 +310,14 @@ function drawSetupOverlay() {
     ctx.strokeRect(a.x + m, a.y + m, b.x - a.x - 2 * m, b.y - a.y - 2 * m);
     ctx.setLineDash([]);
   }
+  const fillPoly = pts => { ctx.beginPath(); pts.forEach(([x, y], i) => { const q = w2s(x, y); i ? ctx.lineTo(q.x, q.y) : ctx.moveTo(q.x, q.y); }); ctx.closePath(); ctx.fill(); };
   if (G.phase === 'terrain') {
-    const m = w2r(DEPLOY_STRIP);
     ctx.fillStyle = 'rgba(0,0,0,.25)';
-    ctx.fillRect(a.x, a.y, b.x - a.x, m);
-    ctx.fillRect(a.x, b.y - m, b.x - a.x, m);
+    for (const p of G.order) fillPoly(seatStrip(p, DEPLOY_STRIP));
   }
   if (G.phase === 'deploy') {
-    const c = colorOf(G.active).rgb, m = w2r(15);
-    ctx.fillStyle = rgba(c, 0.12 + Math.sin(wavePhase * 3) * 0.04);
-    if (G.active === 1) ctx.fillRect(a.x, b.y - m, b.x - a.x, m); else ctx.fillRect(a.x, a.y, b.x - a.x, m);
+    ctx.fillStyle = rgba(colorOf(G.active).rgb, 0.12 + Math.sin(wavePhase * 3) * 0.04);
+    fillPoly(seatStrip(G.active, 15));
   }
   const gh = UI.ghost;
   if (gh && (G.phase === 'islands' || G.phase === 'terrain')) {

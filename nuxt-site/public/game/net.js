@@ -212,7 +212,7 @@ async function createOnline() {
   onlineName();
   const settings = {
     name: $('olGameName').value.trim().slice(0, 32) || `${onlineName()}'s game`,
-    maxPlayers: +$('olMax').value, timer: +$('olTimer').value,
+    maxPlayers: +$('olMax').value, timer: +$('olTimer').value, table: $('olTable').value,
   };
   try { await NET.create(settings); } catch (e) { alertOnline('Could not create the game. Is the game server running?'); }
 }
@@ -246,7 +246,7 @@ function renderRoom() {
   const humansReady = R.seats.filter(s => !s.ai).every(s => s.ready);
   const canStart = host && R.seats.length >= 2 && humansReady;
   $('roomBody').innerHTML = `
-    <p class="roomCode">Code <b>${esc(R.code)}</b> · Rulebook ${RULES_VERSION} · ${R.timer ? R.timer + 's turns' : 'no turn timer'}</p>
+    <p class="roomCode">Code <b>${esc(R.code)}</b> · Rulebook ${RULES_VERSION} · ${esc((TABLES[R.table || 'round6'] || TABLES.round6).name)} · ${R.timer ? R.timer + 's turns' : 'no turn timer'}</p>
     <div class="setupLabel">Crews (${R.seats.length}/${R.max})</div>
     <div class="seatList">${R.seats.map(s => `
       <div class="seatRow" style="--pc:${PALETTE[s.color].main}">

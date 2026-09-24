@@ -371,11 +371,14 @@
         ctx.lineWidth = on ? 5 : 3;
         ctx.beginPath(); gArc(c.x, c.y, R + 1.2, home.a - span, home.a + span); ctx.stroke();
       }
-    } else if (G.phase === 'play') {
-      const p = G.active, y = p === 1 ? G.table.h + 0.4 : -0.4;
-      ctx.strokeStyle = rgba(colorOf(p).rgb, 0.6 + Math.sin(wavePhase * 3) * 0.15);
-      ctx.lineWidth = 5;
-      ctx.beginPath(); gLine(0, y, G.table.w, y); ctx.stroke();
+    } else {
+      // Each seat's stretch of edge in its colour; the active one glows.
+      for (const p of G.order) {
+        const sg = seatEdgeSegment(p), on = p === G.active && G.phase === 'play';
+        ctx.strokeStyle = rgba(colorOf(p).rgb, on ? 0.6 + Math.sin(wavePhase * 3) * 0.15 : 0.35);
+        ctx.lineWidth = on ? 5 : 3;
+        ctx.beginPath(); gLine(sg.x1, sg.y1, sg.x2, sg.y2, 12); ctx.stroke();
+      }
     }
   };
 
@@ -385,18 +388,17 @@
       const W = G.table.w, H = G.table.h;
       ctx.fillStyle = 'rgba(0,0,0,.25)';
       if (G.phase === 'islands') {
-        const m = ISLAND_EDGE_MIN;
+        const m = islandEdgeMin();
         ctx.beginPath(); gPoly([[0, 0], [W, 0], [W, H], [0, H]]); gPoly([[m, m], [m, H - m], [W - m, H - m], [W - m, m]]); ctx.fill('evenodd');
         ctx.strokeStyle = 'rgba(212,168,83,.5)'; ctx.setLineDash([6, 6]); ctx.lineWidth = 1.5;
         ctx.beginPath(); gPoly([[m, m], [W - m, m], [W - m, H - m], [m, H - m]]); ctx.stroke(); ctx.setLineDash([]);
       }
       if (G.phase === 'terrain') {
-        const m = DEPLOY_STRIP;
-        ctx.beginPath(); gPoly([[0, 0], [W, 0], [W, m], [0, m]]); gPoly([[0, H - m], [W, H - m], [W, H], [0, H]]); ctx.fill();
+        ctx.beginPath(); for (const p of G.order) gPoly(seatStrip(p, DEPLOY_STRIP)); ctx.fill();
       }
       if (G.phase === 'deploy') {
         ctx.fillStyle = rgba(colorOf(G.active).rgb, 0.16 + Math.sin(wavePhase * 3) * 0.05);
-        ctx.beginPath(); gPoly(G.active === 1 ? [[0, H - 15], [W, H - 15], [W, H], [0, H]] : [[0, 0], [W, 0], [W, 15], [0, 15]]); ctx.fill();
+        ctx.beginPath(); gPoly(seatStrip(G.active, 15)); ctx.fill();
       }
     }
     if (gh && (G.phase === 'islands' || G.phase === 'terrain')) {

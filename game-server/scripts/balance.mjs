@@ -54,7 +54,7 @@ const SCENARIOS = [
 // Real tables (--tables): every two-player pairing on each table and
 // seating, and free-for-alls on the tables big enough for them.
 const TABLE_SCENARIOS = [
-  ...[['round6'], ['round6', 'quarter'], ['fold6', 'sides'], ['fold6', 'diagonal'], ['fold6', 'ends'], ['fold8', 'sides'], ['fold8', 'diagonal'], ['fold8', 'ends']]
+  ...[['round6', 'opposite'], ['round6', 'quarter'], ['fold6', 'sides'], ['fold6', 'diagonal'], ['fold6', 'ends'], ['fold8', 'sides'], ['fold8', 'diagonal'], ['fold8', 'ends']]
     .map(([table, seating]) => ({ id: `t2-${table}${seating ? '-' + seating : ''}`, label: `2p ${table}${seating ? ' ' + seating : ''}`, kind: 'duel', table, seating, seeds: 2 })),
   ...[3, 4, 6].flatMap(n => ['round6', 'fold6', 'fold8'].map(table => ({ id: `t${n}-${table}`, label: `${n}p ${table}`, kind: 'ffa', n, table, games: 70 }))),
 ];

@@ -40,7 +40,10 @@ function makeShip(p, fid, i, used = new Set()) {
  */
 function newGame(opts) {
   const n = opts.seats.length;
-  if (opts.table === 'round' && n === 2 && !opts.seating) opts.seating = 'quarter';
+  // Two players: a quarter of the way round a round table, diagonal across
+  // a rectangular one, unless the game says otherwise.
+  const shapeOf = TABLES[opts.table === 'round' ? 'round6' : opts.table];
+  if (n === 2 && !opts.seating && opts.table !== 'rect') opts.seating = opts.table === 'round' || (shapeOf && shapeOf.shape === 'circle') ? 'quarter' : 'diagonal';
   const bag = [];
   for (let k = 0; k < n; k++) for (const [id, c] of Object.entries(COIN_SET)) for (let i = 0; i < c; i++) bag.push(id);
   shuffle(bag);
@@ -248,6 +251,24 @@ function seatHome(p) {
   const x = s.edge === 'left' ? 0 : s.edge === 'right' ? w : s.along;
   const y = s.edge === 'top' ? 0 : s.edge === 'bottom' ? h : s.along;
   return { x, y, h: EDGE_HEADING[s.edge] };
+}
+
+/** A seat's stretch of rectangular table edge, as a segment in table coordinates. */
+function seatEdgeSegment(p) {
+  const s = seatOf(p), { w, h } = G.table, a = s.along - s.span / 2, b = s.along + s.span / 2;
+  if (s.edge === 'bottom') return { x1: a, y1: h, x2: b, y2: h };
+  if (s.edge === 'top') return { x1: a, y1: 0, x2: b, y2: 0 };
+  if (s.edge === 'left') return { x1: 0, y1: a, x2: 0, y2: b };
+  return { x1: w, y1: a, x2: w, y2: b };
+}
+
+/** Pose for a ship lined up at the owner's edge where it is nearest to table point pt. */
+function deployPoseAt(p, ship, pt) {
+  if (G.table.shape === 'circle') {
+    const c = tableCenter(), home = seatHome(p);
+    return rimPose(p, ship, angleDiff(Math.atan2(pt.y - c.y, pt.x - c.x), home.a) * G.table.r);
+  }
+  return deployPose(p, ship, seatAlong(p, pt));
 }
 
 /** How far along its own edge a table point is (x for top and bottom, y for the ends). */
