@@ -130,13 +130,13 @@
     "sail-stone-fleet": {
       "source": "paid-sets/stone-fleet-set/sail-stone-fleet.stl",
       "preview": "/assets/previews/parts/sail-stone-fleet.glb",
-      "holes": [[-61.3, -63.0], [-61.3, -45.0], [-61.3, -33.5], [-61.3, -14.0]],
+      "holes": [[-62.26, -63.0], [-62.26, -45.0], [-62.26, -33.5], [-62.26, -14.0]],
       "sail": true
     },
     "sail-islanders": {
       "source": "paid-sets/islander-set/sail-islanders.stl",
       "preview": "/assets/previews/parts/sail-islanders.glb",
-      "holes": [[15.7, 12.0], [14.7, 56.5]],
+      "holes": [[14.74, 12.0], [13.74, 56.5]],
       "sail": true
     },
     "rock1": {

@@ -148,7 +148,8 @@ const PART_NAMES: Record<string, string> = {
 const RENDER_VERSION: Record<string, string> = {
   'mast': '?v=0.5', 'cannon': '?v=0.5', 'cargo': '?v=0.5', 'movement-wheel': '?v=0.5',
   'ship-queens-fleet': '?v=0.5', 'ship-corsair': '?v=0.5', 'ship-shadow-fleet': '?v=2',
-  'cannonball': '?v=3', 'rock1': '?v=2', 'reef': '?v=2', 'sail-damaged': '?v=2'
+  'cannonball': '?v=3', 'rock1': '?v=2', 'reef': '?v=2', 'sail-damaged': '?v=2',
+  'sail-stone-fleet': '?v=2', 'sail-islanders': '?v=2'
 }
 // "coins" is the whole bag, pictured by one of its coins.
 const render = (stem: string) => stem === 'coins'

@@ -136,7 +136,7 @@ def build(src_rel: str, url: str, budget: int, holes=None):
         subdivide_sail(ob, holes)
         extra = ", sliced for bending"
     export_glb(ob, out)
-    print(f"built {url}  {before} -> {after} tris{extra}  ({os.path.getsize(out) // 1024} KB)")
+    print(f"built /{os.path.relpath(out, REPO)}  {before} -> {after} tris{extra}  ({os.path.getsize(out) // 1024} KB)")
 
 
 def main():
