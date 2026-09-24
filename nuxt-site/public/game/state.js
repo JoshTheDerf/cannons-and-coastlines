@@ -293,10 +293,12 @@ function raiseFlagProblem(ship, t) {
  * never block it.
  */
 function collectProblem(s, t) {
+  // Dead ships take no island actions, and do not count as nearest either.
+  if (isDead(s)) return 'A dead ship cannot collect.';
   if (t.owner !== s.owner) return 'You can only collect from an island you hold.';
   if ((G.collected || []).includes(t.id)) return 'That island has already paid out this turn.';
   const gap = shoreGap(s, t);
-  if (G.players[s.owner].ships.some(o => o !== s && shoreGap(o, t) < gap - TOUCH_TOL)) return 'Another of your ships is nearer that island.';
+  if (G.players[s.owner].ships.some(o => o !== s && !isDead(o) && shoreGap(o, t) < gap - TOUCH_TOL)) return 'Another of your ships is nearer that island.';
   return null;
 }
 

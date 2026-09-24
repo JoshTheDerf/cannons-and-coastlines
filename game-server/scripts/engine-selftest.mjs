@@ -172,6 +172,14 @@ for (const n of [2, 3, 5, 7]) {
   const c = engine.act(1, { t: 'collect', ship: s1.id, island: 0 });
   ok(c.ok && s1.stage === 'click', 'the nearest ship collects out at sea, then still owes its click');
   ok(!engine.act(1, { t: 'collect', ship: s2.id, island: 0 }).ok, 'an island pays out once a turn');
+  // Dead ships: no Collect, no island gun, and they do not block a live ship from collecting.
+  G.collected = [];
+  s1.fit = 0; s1.fitMask = null; s1.acted = false; s1.stage = 'action'; s1.turnsLeft = 1;
+  Object.assign(s1, { x: 66, y: 30 + 6 + s1.wid / 2 + 0.1, h: Math.PI / 2 });
+  s2.acted = false; s2.stage = 'action'; s2.turnsLeft = 1;
+  ok(!engine.act(1, { t: 'collect', ship: s1.id, island: 0 }).ok, 'a dead ship cannot collect, even touching the island');
+  ok(!engine.act(1, { t: 'fire', ship: s1.id, source: 'island', island: 0, slot: 0, elev: 'flat' }).ok, 'a dead ship cannot fire an island gun');
+  ok(engine.act(1, { t: 'collect', ship: s2.id, island: 0 }).ok, 'a dead ship nearer the island does not stop a live one collecting');
   // Stone Hulls: first hit ignored at sea, not while touching an island.
   engine.newGame({ seats: [{ faction: 'stone_fleet', color: 0 }, { faction: 'corsairs', color: 1 }], setup: 'quick', table: 'round' });
   const H = engine.G;

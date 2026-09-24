@@ -375,7 +375,7 @@ function aiLanes(ship, opts) {
       for (const e of enemies) lanes.push({ source: 'ship', slot: sl, slotIdx: idx, x: w.x, y: w.y, h: headingTo(e.x - w.x, e.y - w.y) });
     } else lanes.push({ source: 'ship', slot: sl, slotIdx: idx, x: w.x, y: w.y, h: w.h });
   });
-  if (!(opts && opts.noIsland)) {
+  if (!(opts && opts.noIsland) && !isDead(ship)) {
     for (const i of touchingIslands(ship)) {
       const t = G.terrain[i];
       if (t.owner !== ship.owner) continue;

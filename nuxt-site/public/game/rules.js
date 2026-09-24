@@ -130,6 +130,7 @@ ACTIONS.fire = (p, a) => {
   need(again || canAct(s), s.noAction ? 'This ship gave its action away. It only sails forward.' : 'This ship has already acted this turn.');
   const F = { source: a.source === 'island' ? 'island' : 'ship', h: normAngle(+a.h || 0) };
   if (F.source === 'island') {
+    need(!isDead(s), 'A dead ship can fire its own guns, but not an island\'s.');
     F.island = islandById(a.island);
     need(F.island.owner === p, 'Only an island you hold has a gun for you.');
     need(shipTouchesTerrain(s, F.island), 'Cannons need a crew: a ship must be touching the island.');
@@ -223,7 +224,7 @@ ACTIONS.collect = (p, a) => {
   const got = [];
   for (let i = 0; i < n; i++) { const id = drawCoin(p); if (id) got.push(id); }
   (G.collected ||= []).push(t.id);
-  if (shipTouchesTerrain(s, t) || isDead(s)) finishTurn(s);
+  if (shipTouchesTerrain(s, t)) finishTurn(s);
   else s.stage = 'click';
   ev({ e: 'collect', p, ship: s.id, island: t.id, got, msg: got.length ? `${s.name} collects: ${got.map(id => COIN_DEFS[id].short).join(', ')}.` : 'The bag is empty.' });
 };

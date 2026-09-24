@@ -480,7 +480,7 @@ Each island flies *one flag at a time*.
 
 When a cannonball hits an enemy ship, remove one *fitting* (masts or cargo). The player who fired *keeps it* as a *prize*, and a player who sinks or captures a ship keeps its hull. Prizes score (see *Scoring*). Whenever a fitting or hull goes back onto a ship, take it from whoever holds it. No friendly fire.
 
-- *Ship has no fittings left.* It is *Dead in the Water.* It cannot move, so it skips its forward click, but it can still fire. The bare hull can still take *one more hit* before sinking.
+- *Ship has no fittings left.* It is *Dead in the Water.* It cannot move or take island actions, but it can still fire its own guns. The bare hull can still take *one more hit* before sinking.
 - *Hit on a dead-in-the-water ship.* The ship sinks.
 - *Ricochets.* Only the first ship the cannonball touches takes the hit. If it is friendly, the shot is spent. Retrieve missed cannonballs at the end of your turn.
 
@@ -829,7 +829,7 @@ Every ship has a wheel built into the stern. Two details matter:
                      else { none },
       table.header[What Happened][Result],
       [Hits enemy ship],     [Pull 1 fitting, keep it as a prize],
-      [No fittings left],    [*Dead in the water.* No move, can fire, 1 hit left],
+      [No fittings left],    [*Dead in the water.* No move, no island actions, own guns only, 1 hit left],
       [Dead ship hit again], [*Sunk.* Shooter keeps the hull],
       [Friendly, terrain, or a ricochet], [Nothing. Only the first contact counts.],
     )

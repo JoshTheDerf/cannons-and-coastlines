@@ -184,15 +184,15 @@ async function perform(a) {
   resyncUI();
   refresh();
   const done = res.ok && a.ship != null && isMyTurn() && (() => { const s = shipById(a.ship); return !s || s.owner !== G.active || s.acted; })();
-  if (done && isOnline()) setTimeout(() => autoSelectNext(a.ship), 0);
+  if (done) setTimeout(() => autoSelectNext(a.ship), 0);
   else if (res.ok && isMyTurn() && a.t !== 'endTurn') camNextShip();
   if (res.ok && !isOnline()) afterEvents(res.events);
   return res;
 }
 
 /**
- * Online: once a ship's turn has played out, pick up the next of your ships
- * still to go, nearest the one that just went, as if you had tapped it.
+ * Once a ship's turn has played out, pick up the next of your ships still
+ * to go, nearest the one that just went, as if you had tapped it.
  * Runs after the caller has tidied up, and only if nothing else is open.
  */
 function autoSelectNext(prevId) {
@@ -1058,6 +1058,7 @@ function shipActions(ship) {
       const coll = passiveOf(ship.owner) === 'harvest' ? 'Collect 2' : 'Collect';
       const touching = touchingIslands(ship).map(i => G.terrain[i]);
       for (const t of touching) {
+        if (dead) continue; // a dead ship fires its own guns, and that is all
         if (t.owner === ship.owner) {
           const why = collectProblem(ship, t);
           acts.push({ id: 'collect', t, label: coll, disabled: !!why, why });
