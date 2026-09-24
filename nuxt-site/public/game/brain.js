@@ -52,16 +52,31 @@ function aiIntel(p) {
     tw[f] = (tw[f] || 0) + prox; sum += prox;
     let m = 1;
     if (multi) {
-      if (sc[q].total === totals[0] && totals[0] >= (totals[1] || 0) + 3) m *= 1.5;
-      if (f === 'stone_fleet') m *= 2 + (sc[q].total === totals[0] ? 0.6 : 0) + islandsHeld(q) * 0.15;
+      const leader = sc[q].total === totals[0];
+      if (off('lead')) { if (leader && totals[0] >= (totals[1] || 0) + 3) m *= 1.5; }
+      else {
+        // Go after whoever is winning: more fire the further they are ahead
+        // of the rest, and a lot more once they are close to declaring.
+        const rest = live.filter(o => o !== q), avg = rest.reduce((a, o) => a + sc[o].total, 0) / rest.length;
+        m *= 1 + Math.max(0, sc[q].total - avg) / 4;
+        if (sc[q].total >= VICTORY_POINTS - 3) m *= sc[q].total >= VICTORY_POINTS - 1 ? 2 : 1.5;
+      }
+      if (f === 'stone_fleet') m *= 2 + (leader ? 0.6 : 0) + islandsHeld(q) * 0.15;
+      else if (stoneHealthy && p !== stoneSeat && !leader) m *= 0.35; // informal truce while the Stone Fleet is strong, never with the leader
       // The Industry's turrets reach any way; the more still aboard, the more fire it draws.
       if (f === 'industry' && !off('ind')) m *= 1 + 0.35 * G.players[q].ships.filter(hasTurret).length;
-      else if (stoneHealthy && p !== stoneSeat) m *= 0.35; // informal truce while the Stone Fleet is strong
     }
     focus[q] = m;
   }
   for (const f in tw) tw[f] = sum ? tw[f] / sum : 0;
-  return (memo.intel = { tw, focus, multi });
+  // The runaway: another fleet well ahead of the rest, or close to declaring.
+  let leader = null;
+  if (multi) for (const q of live) {
+    if (q === p) continue;
+    const rest = live.filter(o => o !== q), avg = rest.reduce((a, o) => a + sc[o].total, 0) / rest.length;
+    if ((sc[q].total - avg >= 3 || sc[q].total >= VICTORY_POINTS - 4) && (!leader || sc[q].total > sc[leader].total)) leader = q;
+  }
+  return (memo.intel = { tw, focus, multi, leader });
 }
 
 function aiNextAction(p) {
@@ -166,9 +181,20 @@ function aiPlanIslands(p) {
     const owner = t.owner, defenders = owner ? defendersAt(t, owner).length : 0;
     let value = owner ? 7 - 3 * defenders : 10;
     if (owner && ['shadow_fleet', 'treasure_fleet'].includes(G.factions[owner])) value += 3; // deny their engines
+    if (owner && tactical(p) && !off('lead')) value += Math.min(6, 3 * ((aiIntel(p).focus[owner] || 1) - 1)); // and the leader's
     return { t, value, risk: near(t, 30), slots: near(t, 30) > 0 ? 2 : 1 };
   }).concat(defend.map(t => ({ t, value: 8, risk: near(t, 30), slots: 1 })));
-  const free = ships.filter(s => !roles[s.id] && !isDead(s));
+  let free = ships.filter(s => !roles[s.id] && !isDead(s));
+  // A runaway leader: half the free ships (at least one), the ones nearest
+  // its fleet, go after it instead of islands.
+  const lead = tactical(p) && !off('lead') ? aiIntel(p).leader : null;
+  if (lead && free.length) {
+    const theirs = G.players[lead].ships;
+    const gap = s => theirs.reduce((m, e) => Math.min(m, dist(s.x, s.y, e.x, e.y)), Infinity);
+    const chase = free.slice().sort((a, b) => gap(a) - gap(b)).slice(0, Math.max(1, Math.floor(free.length / 2)));
+    for (const s of chase) roles[s.id] = 'hunt';
+    free = free.filter(s => !chase.includes(s));
+  }
   const pairs = [];
   for (const s of free) {
     for (const g of targets) {
@@ -567,8 +593,13 @@ function aiEvalPose(ship, ps, goal) {
   } else if (goal === 'collect') {
     if (!touching.some(t => t.owner === p)) sc -= 30;
   } else if (enemies.length) {
-    const near = enemies.reduce((m, o) => Math.min(m, dist(ps.x, ps.y, o.x, o.y)), Infinity);
-    sc -= Math.abs(near - 24) * 0.5;
+    // Hunt: close to gun range of the nearest enemy, or (tactical, three or
+    // more fleets) of the one most worth going after, so the fleet sails
+    // at whoever is winning rather than whoever happens to be close.
+    const focus = tactical(p) && !off('lead') ? aiIntel(p).focus : null;
+    let tgt = null, best = Infinity;
+    for (const o of enemies) { const d = dist(ps.x, ps.y, o.x, o.y), k = d / Math.pow((focus && focus[o.owner]) || 1, 0.7); if (k < best) { best = k; tgt = o; } }
+    sc -= Math.abs(dist(ps.x, ps.y, tgt.x, tgt.y) - 24) * 0.5;
   }
   if (touching.some(t => t.owner !== p)) sc += 6;
   sc += aiAttackPotential(ship, ps) * 10;

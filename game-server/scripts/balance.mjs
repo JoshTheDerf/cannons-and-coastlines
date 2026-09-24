@@ -6,6 +6,8 @@
 //   node scripts/balance.mjs --quick    fewer games, for a fast look
 //   node scripts/balance.mjs --games 3  scale every scenario's game count
 //   node scripts/balance.mjs --report   print the tables, never fail
+//   node scripts/balance.mjs --tables   real table sizes instead: how soon the
+//                                       fighting starts on each, and balance
 //   node scripts/balance.mjs --logs [file.jsonl]
 //                                       also print patterns from the action
 //                                       logs, and save every game's log
@@ -40,13 +42,21 @@ const KNOWN = {
 // ffa: distinct fleets per game, rotated so each sits in every seat.
 // styles: turtle (parks and collects) against raider (hunts ships).
 const SCENARIOS = [
-  { id: 'duel-round', label: '2 players, online round table', kind: 'duel', table: 'round', seeds: 6 },
-  { id: 'duel-rect', label: '2 players, local 4 ft table', kind: 'duel', table: 'rect', seeds: 6 },
-  { id: 'ffa3', label: '3 players', kind: 'ffa', n: 3, games: 210 },
-  { id: 'ffa4', label: '4 players', kind: 'ffa', n: 4, games: 210 },
-  { id: 'ffa6', label: '6 players', kind: 'ffa', n: 6, games: 140 },
+  { id: 'duel-round', label: '2 players, online (6 ft round)', kind: 'duel', table: 'round', seeds: 6 },
+  { id: 'duel-local', label: '2 players, local (6 ft folding)', kind: 'duel', table: 'fold6', seating: 'diagonal', seeds: 6 },
+  { id: 'ffa3', label: '3 players (6 ft round)', kind: 'ffa', n: 3, games: 210 },
+  { id: 'ffa4', label: '4 players (6 ft round)', kind: 'ffa', n: 4, games: 210 },
+  { id: 'ffa6', label: '6 players (6 ft round)', kind: 'ffa', n: 6, games: 140 },
   { id: 'mixed4', label: '4 players, mixed computer styles', kind: 'ffa', n: 4, games: 140, styles: ['tactical', 'turtle', 'raider', 'plain'] },
   { id: 'styles', label: 'Parking (turtle) vs fighting (raider)', kind: 'styles', sizes: [2, 3, 4, 6], games: 60 },
+];
+
+// Real tables (--tables): every two-player pairing on each table and
+// seating, and free-for-alls on the tables big enough for them.
+const TABLE_SCENARIOS = [
+  ...[['round6'], ['round6', 'quarter'], ['fold6', 'sides'], ['fold6', 'diagonal'], ['fold6', 'ends'], ['fold8', 'sides'], ['fold8', 'diagonal'], ['fold8', 'ends']]
+    .map(([table, seating]) => ({ id: `t2-${table}${seating ? '-' + seating : ''}`, label: `2p ${table}${seating ? ' ' + seating : ''}`, kind: 'duel', table, seating, seeds: 2 })),
+  ...[3, 4, 6].flatMap(n => ['round6', 'fold6', 'fold8'].map(table => ({ id: `t${n}-${table}`, label: `${n}p ${table}`, kind: 'ffa', n, table, games: 70 }))),
 ];
 
 // ─── One game ─────────────────────────────────────────
@@ -56,10 +66,11 @@ async function playGames(jobs) {
   for (const j of jobs) {
     engine.setRand(engine.seededRandom(j.seed));
     engine.setAiEffort('lite');
-    engine.newGame({ seats: j.factions.map((f, i) => ({ faction: f, color: i, ai: true })), setup: 'quick', table: j.table, stalemate: false });
+    engine.newGame({ seats: j.factions.map((f, i) => ({ faction: f, color: i, ai: true })), setup: 'quick', table: j.table, seating: j.seating, stalemate: false });
     const G = engine.G;
     G.aiStyle = Object.fromEntries(G.order.map((p, i) => [p, j.styles[i]]));
-    let steps = 0, hits = 0;
+    let steps = 0, hits = 0, firstShot = 0;
+    const hitTurns = [], leaderHits = { n: 0, lead: 0, share: 0 };
     const cap = 40 * j.factions.length; // 40 rounds: far past any real game
     // Action log: per-seat tallies of what every seat did, and (with --logs)
     // the move-by-move record [turn, seat, what, detail].
@@ -81,6 +92,12 @@ async function playGames(jobs) {
       else if (a.t === 'coin') T.coins[a.coin] = (T.coins[a.coin] || 0) + 1;
       for (const e of r.events) {
         if (e.e === 'shot') {
+          if (!firstShot) firstShot = G.turn;
+          if (['fitting', 'dead', 'sunk'].includes(e.res)) {
+            hitTurns.push(G.turn);
+            // Was the ship hit the current leader's? (Scores as they stood before this hit.)
+            if (G.order.length >= 3) { const sc = engine.scoreBreakdown(), top = Math.max(...G.order.map(q => sc[q].total)); if (e.target != null) { const owner = +String(e.target).match(/^p(\d+)/)[1]; leaderHits.n++; if (sc[owner] && sc[owner].total === top) leaderHits.lead++; leaderHits.share += G.order.filter(q => sc[q].total === top).length / G.order.filter(q => engine.inGame(q)).length; } }
+          }
           const k = `${a.source === 'island' ? 'island' : 'ship'}-${e.shot.elev}`;
           T.shots[k]++;
           if (['fitting', 'dead', 'sunk'].includes(e.res)) { T.hits[k]++; hits++; T.hitDist += e.stopS; }
@@ -94,19 +111,21 @@ async function playGames(jobs) {
     const capped = G.phase === 'play';
     const sc = engine.scoreBreakdown();
     const seats = G.order.map(p => Object.assign(tally[p], { faction: G.factions[p], style: G.aiStyle[p], won: !capped && G.winner === p, score: sc[p], shipsLeft: G.players[p].ships.length }));
-    out.push({ scenario: j.scenario, factions: j.factions, styles: j.styles, winner: capped ? 0 : G.winner || 0, rounds: G.turn / j.factions.length, capped, hits, seats, log, seed: j.seed });
+    const n = j.factions.length, rd = t => (t - 1) / n + 1;
+    out.push({ scenario: j.scenario, factions: j.factions, styles: j.styles, winner: capped ? 0 : G.winner || 0, rounds: G.turn / n, capped, hits, seats, log, seed: j.seed,
+      firstShot: firstShot ? rd(firstShot) : null, firstHit: hitTurns.length ? rd(hitTurns[0]) : null, earlyHits: hitTurns.filter(t => rd(t) <= G.turn / n / 2).length, allHits: hitTurns.length, islands: engine.islands().length, leaderHits });
   }
   return out;
 }
 
-function makeJobs(scale) {
+function makeJobs(scale, list = SCENARIOS) {
   const F = ['queens_fleet', 'corsairs', 'treasure_fleet', 'stone_fleet', 'shadow_fleet', 'industry', 'islanders'];
   const jobs = [];
   let seed = 1000;
-  for (const sc of SCENARIOS) {
+  for (const sc of list) {
     if (sc.kind === 'duel') {
       const seeds = Math.max(1, Math.round(sc.seeds * scale));
-      for (const a of F) for (const b of F) if (a !== b) for (let k = 0; k < seeds; k++) jobs.push({ scenario: sc.id, table: sc.table, factions: [a, b], styles: ['tactical', 'tactical'], seed: seed++ });
+      for (const a of F) for (const b of F) if (a !== b) for (let k = 0; k < seeds; k++) jobs.push({ scenario: sc.id, table: sc.table, seating: sc.seating, factions: [a, b], styles: ['tactical', 'tactical'], seed: seed++ });
     } else if (sc.kind === 'ffa') {
       const games = Math.max(7, Math.round(sc.games * scale));
       for (let g = 0; g < games; g++) {
@@ -120,7 +139,7 @@ function makeJobs(scale) {
         const pick = pool.slice(0, sc.n), turn = g % sc.n;
         const factions = pick.slice(turn).concat(pick.slice(0, turn));
         const styles = factions.map((_, i) => (sc.styles ? sc.styles[(g + i) % sc.styles.length] : 'tactical'));
-        jobs.push({ scenario: sc.id, table: 'round', factions, styles, seed: seed++ });
+        jobs.push({ scenario: sc.id, table: sc.table || 'round', factions, styles, seed: seed++ });
       }
     } else {
       for (const n of sc.sizes) {
@@ -160,7 +179,8 @@ async function main() {
   const scale = args.includes('--quick') ? 0.35 : +(args[args.indexOf('--games') + 1] || 1) || 1;
   const report = args.includes('--report');
   const li = args.indexOf('--logs'), logFile = li >= 0 && args[li + 1] && !args[li + 1].startsWith('--') ? args[li + 1] : null;
-  const jobs = makeJobs(scale).map(j => Object.assign(j, { log: !!logFile }));
+  const tablesMode = args.includes('--tables');
+  const jobs = makeJobs(scale, tablesMode ? TABLE_SCENARIOS : SCENARIOS).map(j => Object.assign(j, { log: !!logFile }));
   const nw = Math.max(1, Math.min(cpus().length, 8));
   const t0 = Date.now();
   // Deal the jobs out round-robin so every worker gets a mix of long and short games.
@@ -169,6 +189,7 @@ async function main() {
     wk.on('message', res); wk.on('error', rej);
   })))).flat();
   const by = id => results.filter(g => g.scenario === id);
+  if (tablesMode) { tableReport(results, by); return; }
   const F = ['queens_fleet', 'corsairs', 'treasure_fleet', 'stone_fleet', 'shadow_fleet', 'industry', 'islanders'];
   const NAME = { queens_fleet: "Queen's", corsairs: 'Corsairs', treasure_fleet: 'Treasure', stone_fleet: 'Stone', shadow_fleet: 'Shadow', industry: 'Industry', islanders: 'Islanders' };
   const fails = [], known = [];
@@ -210,6 +231,9 @@ async function main() {
     console.log(`  ${n} players: turtle ${t.x.toFixed(2)}, raider ${r.x.toFixed(2)} (${games.length} games)`);
     if (outside(t, STYLE_LIMITS)) fails.push(`${sty.label}, ${n} players: turtle wins ${t.x.toFixed(2)}x fair share (95% ${t.lo.toFixed(2)}-${t.hi.toFixed(2)}), limit ${STYLE_LIMITS.join('-')}`);
   }
+  // Do the fleets go after whoever is winning? Hits on the leader against the leader's share of the fleets.
+  const lh = results.reduce((a, g) => { a.n += g.leaderHits.n; a.lead += g.leaderHits.lead; a.share += g.leaderHits.share; return a; }, { n: 0, lead: 0, share: 0 });
+  if (lh.n) console.log(`\nThree or more fleets: ${Math.round(100 * lh.lead / lh.n)}% of hits land on the current leader (fair share by numbers ${Math.round(100 * lh.share / lh.n)}%).`);
   if (li >= 0) patterns(results, NAME);
   if (logFile) { writeFileSync(logFile, results.map(g => JSON.stringify(g)).join('\n') + '\n'); console.log(`\nAction logs for ${results.length} games written to ${logFile}`); }
   if (known.length) console.log('\nKnown leans (reported, not failed):\n  ' + known.join('\n  '));
@@ -221,6 +245,22 @@ async function main() {
   if (fails.length) console.log('\nFAIL\n  ' + fails.join('\n  '));
   else console.log('\nPASS: every fleet and style is inside its limits.');
   if (fails.length && !report) process.exitCode = 1;
+}
+
+// ─── Real tables ──────────────────────────────────────
+function tableReport(results, by) {
+  const med = a => { const s = a.filter(x => x != null).sort((x, y) => x - y); return s.length ? s[s.length >> 1] : NaN; };
+  const F = ['queens_fleet', 'corsairs', 'treasure_fleet', 'stone_fleet', 'shadow_fleet', 'industry', 'islanders'];
+  console.log(`${results.length} games on real tables. Rounds are whole turns of the table; "first hit" is how far into the game (by rounds) the first hit lands.\n`);
+  console.log('Table'.padEnd(20) + 'islands  rounds  1st shot  1st hit  (of game)  hits in 1st half  capped  fleets (min-max x fair)');
+  for (const sc of TABLE_SCENARIOS) {
+    const g = by(sc.id);
+    const frac = med(g.map(x => (x.firstHit != null ? x.firstHit / x.rounds : null)));
+    const early = g.reduce((a, x) => a + x.earlyHits, 0) / Math.max(1, g.reduce((a, x) => a + x.allHits, 0));
+    const fx = F.map(f => [f, share(g, (x, i) => x.factions[i] === f)]).filter(([, s]) => s.games).sort((a, b) => a[1].x - b[1].x);
+    const xs = fx.map(([, s]) => s.x), SHORT = { queens_fleet: 'Queen', corsairs: 'Cors', treasure_fleet: 'Treas', stone_fleet: 'Stone', shadow_fleet: 'Shadow', industry: 'Indus', islanders: 'Isl' };
+    console.log(`${sc.label.padEnd(20)}${(g.reduce((a, x) => a + x.islands, 0) / g.length).toFixed(1).padStart(7)}${(g.reduce((a, x) => a + x.rounds, 0) / g.length).toFixed(1).padStart(8)}${med(g.map(x => x.firstShot)).toFixed(1).padStart(10)}${med(g.map(x => x.firstHit)).toFixed(1).padStart(9)}${(Math.round(100 * frac) + '%').padStart(11)}${(Math.round(100 * early) + '%').padStart(18)}${(Math.round(100 * g.filter(x => x.capped).length / g.length) + '%').padStart(8)}   ${xs[0].toFixed(2)} ${SHORT[fx[0][0]]} .. ${xs.at(-1).toFixed(2)} ${SHORT[fx.at(-1)[0]]}`);
+  }
 }
 
 // ─── Patterns from the action logs ────────────────────

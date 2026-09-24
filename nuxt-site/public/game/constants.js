@@ -5,15 +5,28 @@
 // parts in assets/stls/base-set (ship hulls ~12-13 cm long, ~3.6 cm wide,
 // movement wheel ~14 mm across, so one click is ~4.5 cm).
 
-// Tables. Local games use a 4 x 4 ft table: the rulebook asks for islands
-// 12" from every edge and 6" apart, which does not fit four islands on a
-// 3 ft table. Online games use a round table sized so every fleet fits
-// along the rim and the rulebook's island count fits inside.
+// Tables are real furniture (TABLES below), the common ones being a 6 ft
+// round and 6 ft and 8 ft folding tables. Online games use the 6 ft round,
+// two players a quarter of the way round from each other rather than
+// opposite (6 ft apart, it took most of the game to meet). Local games use
+// the 6 ft folding table, two players diagonal across it. 'rect', a 4 ft
+// square, is kept for older saved games.
 const RECT_TABLE = 122;
 const INCH = 2.54;
-const ROUND_R = { 2: 66, 3: 76, 4: 78, 5: 84, 6: 90, 7: 100 };
+const ROUND_FOR = { 2: 'round6', 3: 'round6', 4: 'round6', 5: 'round6', 6: 'round6', 7: 'round6' };
 const ISLANDS_FOR = { 2: 4, 3: 6, 4: 6, 5: 8, 6: 8, 7: 10 };  // rulebook setup table (7 = group-size table)
 const MAX_SEATS = 7;
+// Real tables, the sizes people have to hand (a church hall's folding
+// tables are 30 in wide). Used by the balance tests; a local game could
+// offer them too. Rectangular tables seat fleets around their edges.
+const TABLES = {
+  round4: { name: '48 in round', shape: 'circle', r: 48 * INCH / 2 },
+  round5: { name: '60 in round', shape: 'circle', r: 60 * INCH / 2 },
+  round6: { name: '6 ft round', shape: 'circle', r: 72 * INCH / 2 },
+  fold6: { name: '6 ft folding', shape: 'rect', w: 72 * INCH, h: 30 * INCH },
+  fold8: { name: '8 ft folding', shape: 'rect', w: 96 * INCH, h: 30 * INCH },
+  dining: { name: 'Dining table', shape: 'rect', w: 72 * INCH, h: 38 * INCH },
+};
 
 // Movement
 const CLICK_LEN = 4.5;          // one wheel revolution

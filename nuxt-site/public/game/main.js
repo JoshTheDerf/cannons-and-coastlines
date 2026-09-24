@@ -73,7 +73,7 @@ function beginGame() {
   setRand(Math.random);
   newGame({
     seats: [1, 2].map(p => ({ faction: setupChoice.factions[p], color: p - 1, name: p === 2 && setupChoice.solo ? 'Computer' : `Player ${p}`, ai: p === 2 && setupChoice.solo })),
-    setup: setupChoice.setup, stalemate: setupChoice.stalemate, table: 'rect',
+    setup: setupChoice.setup, stalemate: setupChoice.stalemate, table: 'fold6', seating: 'diagonal',
   });
   enterGameScreen();
   if (G.phase === 'play') announceTurn();
@@ -868,7 +868,7 @@ function nextUnplaced(p) { return G.players[p].ships.find(s => !s.placed); }
 function deployGhost(w) {
   const ship = nextUnplaced(G.active);
   if (!ship) { UI.ghost = null; return null; }
-  const ps = deployPose(G.active, ship, w.x);
+  const ps = deployPose(G.active, ship, seatAlong(G.active, w));
   UI.ghost = { ship, pose: ps, ok: canDeployAt(ship, ps) };
   return UI.ghost;
 }

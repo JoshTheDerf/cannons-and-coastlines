@@ -30,23 +30,31 @@ function makeShip(p, fid, i, used = new Set()) {
 
 /**
  * opts: { seats: [{ faction, color, name, ai }], setup: 'quick'|'custom',
- *         stalemate, table: 'rect'|'round' }
+ *         stalemate, table: 'rect'|'round'|a TABLES id, seating: 'sides'|'ends' }
+ * 'rect' is the 4 ft square, 'round' a round table sized to the seats.
+ * seating, for two players: on a long table they face across it
+ * ('sides', the default), start at its two ends ('ends'), or face across
+ * it from opposite halves ('diagonal'); on a round table they sit
+ * opposite (the default) or a quarter of the way round ('quarter').
  * Seats are numbered 1..N in turn order.
  */
 function newGame(opts) {
   const n = opts.seats.length;
+  if (opts.table === 'round' && n === 2 && !opts.seating) opts.seating = 'quarter';
   const bag = [];
   for (let k = 0; k < n; k++) for (const [id, c] of Object.entries(COIN_SET)) for (let i = 0; i < c; i++) bag.push(id);
   shuffle(bag);
   const emptyCoins = () => Object.fromEntries(COIN_ORDER.map(id => [id, 0]));
-  const round = opts.table === 'round';
+  const preset = TABLES[opts.table === 'round' ? ROUND_FOR[n] || 'round6' : opts.table];
+  const round = preset ? preset.shape === 'circle' : opts.table === 'round';
   G = {
     opts,
     phase: 'islands',
     order: opts.seats.map((_, i) => i + 1),
     active: 1,
     turn: 1,
-    table: round ? { shape: 'circle', r: ROUND_R[n] || ROUND_R[7] } : { shape: 'rect', w: RECT_TABLE, h: RECT_TABLE },
+    table: preset ? (round ? { shape: 'circle', r: preset.r } : { shape: 'rect', w: preset.w, h: preset.h })
+      : { shape: 'rect', w: RECT_TABLE, h: RECT_TABLE },
     islandCount: ISLANDS_FOR[n] || 10,
     factions: {},
     terrain: [],
@@ -61,6 +69,7 @@ function newGame(opts) {
     stats: {},
     ai: null,
   };
+  if (!round) G.table.seats = rectSeats(n, opts.seating);
   const usedNames = new Set();
   opts.seats.forEach((s, i) => {
     const p = i + 1;
@@ -76,7 +85,7 @@ function newGame(opts) {
     randomIslands();
     randomTerrain(round ? Math.min(6, 2 + Math.ceil(n / 2)) : 4);
     for (const p of G.order) autoDeploy(p);
-    if (round && n >= 3) flankRocks();
+    if (n >= 3) flankRocks();
     applyHomeWaters();
     G.phase = 'play';
     beginTurn();
@@ -86,8 +95,11 @@ function newGame(opts) {
 
 // ─── Setup ────────────────────────────────────────────
 
+/** The rulebook keeps islands 12" from every edge; a 30" folding table cannot, so there they sit as far in as it allows. */
+function islandEdgeMin() { const sz = tableSize(); return Math.min(ISLAND_EDGE_MIN, Math.min(sz.w, sz.h) / 2 - 9); }
+
 function islandSpotProblem(x, y, r) {
-  if (edgeDist(x, y) - r < ISLAND_EDGE_MIN) return 'Islands stay 12" from every edge.';
+  if (edgeDist(x, y) - r < islandEdgeMin()) return 'Islands stay 12" from every edge.';
   for (const t of G.terrain) {
     const gap = dist(x, y, t.x, t.y) - r - t.r;
     if (t.type === 'island' && gap < ISLAND_GAP_MIN) return 'Islands stay 6" apart.';
@@ -102,7 +114,10 @@ const DEPLOY_STRIP = 16;
 function terrainSpotProblem(x, y, r) {
   if (edgeDist(x, y) - r < 1) return 'Keep it on the table.';
   if (G.table.shape === 'circle') { if (edgeDist(x, y) - r < DEPLOY_STRIP) return 'Keep the deployment edge clear.'; }
-  else if (y - r < DEPLOY_STRIP || y + r > G.table.h - DEPLOY_STRIP) return 'Keep the deployment edges clear.';
+  else {
+    const ends = (G.table.seats || []).some(s => s.edge === 'left' || s.edge === 'right');
+    if (y - r < DEPLOY_STRIP || y + r > G.table.h - DEPLOY_STRIP || (ends && (x - r < DEPLOY_STRIP || x + r > G.table.w - DEPLOY_STRIP))) return 'Keep the deployment edges clear.';
+  }
   for (const t of G.terrain) if (dist(x, y, t.x, t.y) - r - t.r < 2) return 'Too close to other terrain.';
   return null;
 }
@@ -124,7 +139,12 @@ function randomPointOnTable(margin) {
 }
 
 function randomIslands() {
-  const want = G.islandCount;
+  // Small tables may not fit the rulebook's count: place as many as fit.
+  for (let want = G.islandCount; want >= 2; want--) if (placeIslands(want)) { G.islandCount = want; break; }
+  G.terrain.forEach((t, i) => { t.id = i; });
+}
+
+function placeIslands(want) {
   const keep = () => G.terrain.filter(t => t.type !== 'island');
   for (let tries = 0; tries < 150; tries++) {
     G.terrain = keep();
@@ -132,17 +152,17 @@ function randomIslands() {
     for (let i = 0; i < want; i++) {
       for (let a = 0; a < 150; a++) {
         const r = islandRadius();
-        const pt = randomPointOnTable(ISLAND_EDGE_MIN + r);
+        const pt = randomPointOnTable(islandEdgeMin() + r);
         if (!islandSpotProblem(pt.x, pt.y, r)) { addTerrain('island', pt.x, pt.y, r); placed++; break; }
       }
       if (placed <= i) break;
     }
-    if (placed === want) break;
+    if (placed === want) return true;
     // Crowded tables: fall back to a jittered ring layout.
     if (tries > 40) {
       G.terrain = keep();
       const c = tableCenter(), ring = want - 1;
-      const span = (G.table.shape === 'circle' ? G.table.r : Math.min(G.table.w, G.table.h) / 2) - ISLAND_EDGE_MIN - 7;
+      const span = (G.table.shape === 'circle' ? G.table.r : Math.min(G.table.w, G.table.h) / 2) - islandEdgeMin() - 7;
       const off = rand() * TAU;
       addTerrain('island', c.x + (rand() - 0.5) * 3, c.y + (rand() - 0.5) * 3, 6);
       for (let k = 0; k < ring; k++) {
@@ -150,11 +170,11 @@ function randomIslands() {
         addTerrain('island', c.x + Math.cos(a) * span * 0.97, c.y + Math.sin(a) * span * 0.97, 5.5 + rand() * 1.5);
       }
       const ok = G.terrain.filter(t => t.type === 'island').every((t, i, arr) =>
-        edgeDist(t.x, t.y) - t.r >= ISLAND_EDGE_MIN - 0.01 && arr.every(o => o === t || dist(t.x, t.y, o.x, o.y) - t.r - o.r >= ISLAND_GAP_MIN - 0.01));
-      if (ok) break;
+        edgeDist(t.x, t.y) - t.r >= islandEdgeMin() - 0.01 && arr.every(o => o === t || dist(t.x, t.y, o.x, o.y) - t.r - o.r >= ISLAND_GAP_MIN - 0.01));
+      if (ok) return true;
     }
   }
-  G.terrain.forEach((t, i) => { t.id = i; });
+  return false;
 }
 
 function randomTerrain(n) {
@@ -173,22 +193,73 @@ function islandSpotProblemForTerrain(x, y, r) {
   return G.terrain.some(t => t.type === 'island' && dist(x, y, t.x, t.y) - r - t.r < 9);
 }
 
-/** Where a seat's fleet lines up: a point on the rim and the inward heading. */
+/**
+ * Seats on a rectangular table: { edge, along, span } per seat, in turn
+ * order going round the table (bottom left to right, up the right end,
+ * top right to left, down the left end). along is the seat's middle,
+ * measured along its edge (x for top and bottom, y for the ends); span is
+ * the stretch of edge it has. Two players face across the table, or with
+ * seating 'ends' start at its two ends. More spread over the edges by
+ * length; an end narrower than 70 cm takes no one.
+ */
+function rectSeats(n, seating) {
+  const { w, h } = G.table;
+  if (n <= 2 && seating === 'diagonal') {
+    const long = w >= h ? ['bottom', 'top'] : ['left', 'right'], L = Math.max(w, h);
+    return [{ edge: long[0], along: L / 4, span: L / 2 }, { edge: long[1], along: 3 * L / 4, span: L / 2 }];
+  }
+  if (n <= 2) {
+    const ends = seating === 'ends' ? (w >= h ? ['left', 'right'] : ['bottom', 'top']) : (w >= h ? ['bottom', 'top'] : ['left', 'right']);
+    return ends.map(edge => ({ edge, along: edge === 'bottom' || edge === 'top' ? w / 2 : h / 2, span: edge === 'bottom' || edge === 'top' ? w : h }));
+  }
+  const edges = [{ edge: 'bottom', len: w }, { edge: 'right', len: h }, { edge: 'top', len: w }, { edge: 'left', len: h }].filter(e => e.len >= 70);
+  const total = edges.reduce((a, e) => a + e.len, 0);
+  edges.forEach(e => { e.want = n * e.len / total; e.seats = Math.floor(e.want); });
+  let left = n - edges.reduce((a, e) => a + e.seats, 0);
+  for (const e of edges.slice().sort((a, b) => (b.want - b.seats) - (a.want - a.seats))) if (left-- > 0) e.seats++;
+  const out = [];
+  for (const e of edges) {
+    for (let k = 0; k < e.seats; k++) {
+      // Walk each edge in the going-round direction: bottom and right run up the coordinate, top and left run down it.
+      const t = (k + 0.5) * e.len / e.seats;
+      const along = e.edge === 'bottom' ? t : e.edge === 'right' ? h - t : e.edge === 'top' ? w - t : t;
+      out.push({ edge: e.edge, along, span: e.len / e.seats });
+    }
+  }
+  return out;
+}
+
+function seatOf(p) {
+  const S = G.table.seats;
+  return S ? S[G.order.indexOf(p)] : { edge: p === 1 ? 'bottom' : 'top', along: G.table.w / 2, span: G.table.w };
+}
+
+const EDGE_HEADING = { bottom: 0, top: Math.PI, left: Math.PI / 2, right: 3 * Math.PI / 2 };
+
+/** Where a seat's fleet lines up: a point on the edge and the inward heading. */
 function seatHome(p) {
   if (G.table.shape === 'circle') {
     const k = G.order.indexOf(p), n = G.order.length;
-    const a = Math.PI / 2 + k * TAU / n;
+    const a = Math.PI / 2 + k * (n === 2 && G.opts.seating === 'quarter' ? Math.PI / 2 : TAU / n);
     const c = tableCenter();
     return { x: c.x + Math.cos(a) * G.table.r, y: c.y + Math.sin(a) * G.table.r, h: headingTo(-Math.cos(a), -Math.sin(a)), a };
   }
-  return p === 1 ? { x: G.table.w / 2, y: G.table.h, h: 0 } : { x: G.table.w / 2, y: 0, h: Math.PI };
+  const s = seatOf(p), { w, h } = G.table;
+  const x = s.edge === 'left' ? 0 : s.edge === 'right' ? w : s.along;
+  const y = s.edge === 'top' ? 0 : s.edge === 'bottom' ? h : s.along;
+  return { x, y, h: EDGE_HEADING[s.edge] };
 }
 
+/** How far along its own edge a table point is (x for top and bottom, y for the ends). */
+function seatAlong(p, pt) { const e = seatOf(p).edge; return e === 'left' || e === 'right' ? pt.y : pt.x; }
+
 /** Pose for a ship lined up touching its owner's (rectangular) edge, facing inward. */
-function deployPose(p, ship, x) {
-  const H = G.table.h;
-  const y = p === 1 ? H - ship.len / 2 - 0.02 : ship.len / 2 + 0.02;
-  return { x: clamp(x, ship.wid / 2 + 0.05, G.table.w - ship.wid / 2 - 0.05), y, h: p === 1 ? 0 : Math.PI };
+function deployPose(p, ship, along) {
+  const { w, h } = G.table, e = seatOf(p).edge, L = ship.len / 2 + 0.02, m = ship.wid / 2 + 0.05;
+  if (e === 'bottom') return { x: clamp(along, m, w - m), y: h - L, h: 0 };
+  if (e === 'top') return { x: clamp(along, m, w - m), y: L, h: Math.PI };
+  if (e === 'left') return { x: L, y: clamp(along, m, h - m), h: Math.PI / 2 };
+  return { x: w - L, y: clamp(along, m, h - m), h: 3 * Math.PI / 2 };
 }
 
 function rimPose(p, ship, along) {
@@ -206,13 +277,13 @@ function autoDeploy(p) {
   const ships = G.players[p].ships;
   ships.forEach(s => { s.placed = false; });
   const n = ships.length;
-  const circle = G.table.shape === 'circle';
-  const spacing = circle ? 17 : Math.min(22, (G.table.w - 20) / n);
+  const circle = G.table.shape === 'circle', seat = circle ? null : seatOf(p);
+  const spacing = circle ? 17 : Math.min(22, (seat.span - 20) / n);
   ships.forEach((s, i) => {
     const base = (i - (n - 1) / 2) * spacing;
     for (let k = 0; k < 40; k++) {
       const off = base + (k % 2 ? 1 : -1) * Math.ceil(k / 2) * 1.5;
-      const pose = circle ? rimPose(p, s, off) : deployPose(p, s, G.table.w / 2 + off);
+      const pose = circle ? rimPose(p, s, off) : deployPose(p, s, seat.along + off);
       if (canDeployAt(s, pose)) { Object.assign(s, pose); break; }
       if (k === 0) Object.assign(s, pose);
     }
@@ -229,6 +300,7 @@ function autoDeploy(p) {
  */
 const FLANK_ROCK = { past: 11, inward: 12, r: 4 };
 function flankRocks() {
+  if (G.table.shape !== 'circle') { flankRocksRect(); return; }
   const c = tableCenter(), R = G.table.r;
   for (const p of G.order) {
     const home = seatHome(p).a;
@@ -239,6 +311,25 @@ function flankRocks() {
         const rr = R - FLANK_ROCK.inward - k * 3;
         const x = c.x + Math.cos(a) * rr, y = c.y + Math.sin(a) * rr, r = FLANK_ROCK.r;
         const clear = allShips().every(s => !shipTouchesTerrain(s, { x, y, r })) &&
+          G.terrain.every(t => dist(x, y, t.x, t.y) - r - t.r >= 1);
+        if (clear) { addTerrain('rock', x, y, r); break; }
+      }
+    }
+  }
+  G.terrain.forEach((t, i) => { t.id = i; });
+}
+
+/** The same on a rectangular table: just past each end of every fleet's line, in from its edge. */
+function flankRocksRect() {
+  const { w, h } = G.table, r = FLANK_ROCK.r;
+  for (const p of G.order) {
+    const e = seatOf(p).edge, along = G.players[p].ships.map(s => seatAlong(p, s));
+    for (const [end, side] of [[Math.min(...along), -1], [Math.max(...along), 1]]) {
+      const a = end + side * FLANK_ROCK.past;
+      for (let k = 0; k < 4; k++) {
+        const d = FLANK_ROCK.inward + k * 3;
+        const x = e === 'left' ? d : e === 'right' ? w - d : a, y = e === 'top' ? d : e === 'bottom' ? h - d : a;
+        const clear = edgeDist(x, y) >= r + 1 && allShips().every(s => !shipTouchesTerrain(s, { x, y, r })) &&
           G.terrain.every(t => dist(x, y, t.x, t.y) - r - t.r >= 1);
         if (clear) { addTerrain('rock', x, y, r); break; }
       }
