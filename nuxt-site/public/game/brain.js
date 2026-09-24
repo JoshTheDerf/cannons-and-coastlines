@@ -407,7 +407,7 @@ function aiBestShot(ship, opts) {
     if (!aiLaneNearEnemy(lane, enemies)) continue;
     const src = lane.source === 'island' ? { island: lane.island } : { ship };
     // Straight out hits the first thing in the lane; tipped up sails over
-    // what is close and comes down about 40 cm out. Try both.
+    // what is close and comes down about 38 cm out. Try both.
     for (const elev of ['flat', 'lob']) {
       const aim = traceShot(src, lane.x, lane.y, aimedShot(lane.h, elev));
       if (aim.kind === 'ship' && aim.obj.owner === p && elev === 'flat') continue; // our own hull is in the way

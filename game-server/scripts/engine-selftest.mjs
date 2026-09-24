@@ -140,10 +140,10 @@ for (const n of [2, 3, 5, 7]) {
   engine.newGame({ seats: [{ faction: 'queens_fleet', color: 0 }, { faction: 'corsairs', color: 1 }], setup: 'quick', table: 'round' });
   const G = engine.G;
   G.terrain = [];
-  // Cannons: straight out comes down about 15 cm out, tipped up about 44 cm
+  // Cannons: straight out comes down about 14 cm out, tipped up about 38 cm
   // and clears a hull on the way; the spread stays inside 5 degrees.
   const flat = engine.shotPath(66, 66, engine.aimedShot(0, 'flat')), lob = engine.shotPath(66, 66, engine.aimedShot(0, 'lob'));
-  ok(Math.abs(flat.legs[0].s1 - 15) < 3 && Math.abs(lob.legs[0].s1 - 44) < 4, `first landing: flat ${flat.legs[0].s1.toFixed(1)} cm, lob ${lob.legs[0].s1.toFixed(1)} cm`);
+  ok(Math.abs(flat.legs[0].s1 - 14) < 3 && Math.abs(lob.legs[0].s1 - 38) < 4 && flat.total > 28 && flat.total < 46 && lob.total > flat.total, `first landing flat ${flat.legs[0].s1.toFixed(1)} / lob ${lob.legs[0].s1.toFixed(1)} cm; travel flat ${flat.total.toFixed(0)} / lob ${lob.total.toFixed(0)} cm`);
   ok(engine.pathAt(lob, 20).z > 3 && engine.pathAt(flat, 5).z < 3, 'a lob clears a hull 20 cm out; a flat shot does not');
   let wide = 0;
   for (let i = 0; i < 500; i++) { const s = engine.wobbleShot(0, 'flat'); if (Math.abs(Math.atan2(Math.sin(s.h), Math.cos(s.h))) > 5 * Math.PI / 180 + 1e-9) wide++; }

@@ -276,10 +276,10 @@ function islandGunOrigin(t, h) {
 }
 
 // ─── Cannonball trace ─────────────────────────────────
-// A shot is { h, elev, v, drag, curl, kicks }: the heading it left the
+// A shot is { h, elev, v, drag, curl, kicks, tumble, spins }: the heading it left the
 // muzzle on, the elevation ('flat' or 'lob'), the spring's speed as a
-// fraction of MUZZLE_V, the table's skid drag and curl, and the sideways
-// knock at each bounce. wobbleShot() rolls these once, on the server;
+// fraction of MUZZLE_V, the table's skid drag and curl, the sideways knock
+// and the spin each bounce gives it, and its turn as it drops into a skid. wobbleShot() rolls these once, on the server;
 // everything after is worked out from them, so every screen draws the same
 // path. shotPath() turns a shot into legs: flight and hops (arcs), then a
 // skid in short straight pieces that curl as the ball slows.
@@ -308,12 +308,14 @@ function wobbleShot(h, elev) {
     v: Math.max(0.75, 1 + gaussRandom() * MUZZLE_V_SD),
     drag: Math.max(0.4, 1 + gaussRandom() * SKID_DECEL_SD),
     curl: (rand() < 0.5 ? -1 : 1) * (0.4 + rand() * 1.2),
-    kicks: [0, 1, 2, 3].map(() => gaussRandom() * BOUNCE_KICK_SD),
+    kicks: BOUNCE_KICK_SD.map(sd => gaussRandom() * sd),
+    tumble: gaussRandom() * TUMBLE_SD,
+    spins: BOUNCE_KICK_SD.map(() => gaussRandom() * SPIN_SD),
   };
 }
 
 /** The same shot with no luck in it: what the cannon is pointed at. */
-function aimedShot(h, elev) { return { h, elev: elev === 'lob' ? 'lob' : 'flat', v: 1, drag: 1, curl: 0, kicks: [0, 0, 0, 0] }; }
+function aimedShot(h, elev) { return { h, elev: elev === 'lob' ? 'lob' : 'flat', v: 1, drag: 1, curl: 0, kicks: [0, 0, 0, 0], tumble: 0, spins: [0, 0, 0, 0] }; }
 
 /**
  * Legs of a shot from (ox, oy). Each leg is straight on the table:
@@ -336,17 +338,32 @@ function shotPath(ox, oy, shot) {
     if (cut) edge = true;
     return !cut;
   };
-  // Flight, then hops while the bounce still leaves the table.
+  // Flight, then hops while the bounce still leaves the table. Each bounce
+  // knocks the ball aside and sets the heavy-ended cone spinning, and the
+  // spin keeps bending its path (radians per cm) until the next bounce and
+  // on into the skid.
+  let spin = 0;
   for (let bounce = 0; bounce < 6; bounce++) {
     const t = (vz + Math.sqrt(vz * vz + 2 * GRAVITY * z)) / GRAVITY; // time to touch down
-    const len = vh * t;
-    if (!push(len, z, vz / vh, GRAVITY / (2 * vh * vh))) break;
+    const len = vh * t, k1 = vz / vh, k2 = GRAVITY / (2 * vh * vh);
+    // A spinning hop curves, so it goes in short pieces that keep the arc.
+    const n = spin ? Math.max(1, Math.ceil(len / 2)) : 1;
+    let ok = true;
+    for (let i = 0; i < n && ok; i++) {
+      const u0 = len * i / n, piece = len / n;
+      ok = push(piece, z + k1 * u0 - k2 * u0 * u0, k1 - 2 * k2 * u0, k2);
+      h = normAngle(h + spin * piece);
+    }
+    if (!ok) break;
     const vDown = GRAVITY * t - vz;
     vz = vDown * BOUNCE_E; vh *= BOUNCE_KEEP; z = 0;
-    h = normAngle(h + (shot.kicks[bounce] || 0) * Math.min(1.5, vDown / 80));
+    h = normAngle(h + (shot.kicks[bounce] || 0));
+    spin += (shot.spins && shot.spins[bounce]) || 0;
     if (vz < HOP_MIN_VZ) break;
   }
-  // Skid: a tapered ball scrubs speed and curls, tighter as it slows.
+  // Skid: a tapered ball tumbles onto its side, then scrubs speed and
+  // curls, tighter as it slows.
+  h = normAngle(h + (shot.tumble || 0));
   const a = SKID_DECEL * shot.drag;
   let v2 = vh * vh;
   while (!edge && v2 > 1) {
@@ -355,7 +372,8 @@ function shotPath(ox, oy, shot) {
     const len = Math.min(ds, v2 / (2 * a));
     if (!push(len, 0, 0, 0)) break;
     v2 -= 2 * a * len;
-    h = normAngle(h + shot.curl * SKID_CURL * len / (vNow + SKID_CURL_V));
+    h = normAngle(h + shot.curl * SKID_CURL * len / (vNow + SKID_CURL_V) + spin * len);
+    spin *= SPIN_SKID_KEEP;
     if (s > 400) break;
   }
   return { legs, total: s, edge };

@@ -183,9 +183,25 @@ async function perform(a) {
   if (!res.ok) { logMsg(res.err); sfxError(); }
   resyncUI();
   refresh();
-  if (res.ok && isMyTurn() && a.t !== 'endTurn') camNextShip();
+  const done = res.ok && a.ship != null && isMyTurn() && (() => { const s = shipById(a.ship); return !s || s.owner !== G.active || s.acted; })();
+  if (done && isOnline()) setTimeout(() => autoSelectNext(a.ship), 0);
+  else if (res.ok && isMyTurn() && a.t !== 'endTurn') camNextShip();
   if (res.ok && !isOnline()) afterEvents(res.events);
   return res;
+}
+
+/**
+ * Online: once a ship's turn has played out, pick up the next of your ships
+ * still to go, nearest the one that just went, as if you had tapped it.
+ * Runs after the caller has tidied up, and only if nothing else is open.
+ */
+function autoSelectNext(prevId) {
+  if (!G || G.phase !== 'play' || !isMyTurn() || UI.busy || UI.mode || UI.sel || UI.ring) return;
+  const left = G.players[G.active].ships.filter(s => s.placed && !s.acted);
+  if (!left.length) return;
+  const prev = shipById(prevId) || G.players[G.active].sunk.find(s => s.id === prevId) || left[0];
+  left.sort((x, y) => dist(x.x, x.y, prev.x, prev.y) - dist(y.x, y.y, prev.x, prev.y));
+  selectShip(left[0]);
 }
 
 /** After a state swap, point the UI at the new objects (by id). */
@@ -1346,7 +1362,7 @@ function fillBar(p, prompt, acts) {
     else if (F.stage === 'dir') {
       say(F.locked ? `Aim set. Press Ready to fire, or drag the handle to change it.` : 'Drag the handle, or move the mouse and click, to aim the turret. The hull does not turn.');
     } else say(F.elev === 'lob'
-      ? 'Tipped up: sails over nearby hulls and comes down about 40 cm out. The cannon sprays a few degrees either way. Fire when ready (Space).'
+      ? 'Tipped up: sails over nearby hulls and comes down about 38 cm out. The cannon sprays a few degrees either way. Fire when ready (Space).'
       : 'Straight out: skips and skids along the table into the first thing in line. The cannon sprays a few degrees either way. Fire when ready (Space).');
     if (F.stage === 'dir') acts.appendChild(btn('Ready to fire', lockAim, { cls: 'go', act: 'aim' }));
     if (F.stage === 'power' && F.free) acts.appendChild(btn('Adjust aim', unlockAim, { act: 'adjust' }));

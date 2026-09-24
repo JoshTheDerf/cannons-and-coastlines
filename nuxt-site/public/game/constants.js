@@ -35,7 +35,8 @@ const TERRAIN_DEFS = {
 // dead straight either, spraying up to 5 degrees either side (straight
 // ahead most often). The ball then does most of its work on the table:
 // straight out it drops a hand's width from the muzzle, skips and rolls;
-// tipped up it sails over nearby hulls, lands about 40 cm out and bounces.
+// tipped up it sails over nearby hulls, lands about 38 cm out and bounces.
+// Straight out a shot carries 30-45 cm in all, tipped up 50-70 cm.
 // The printed ball is tapered (10 mm wide, 13 mm long, a ~22 degree cone),
 // so it cannot roll straight: a cone rolls in circles about its tip. Once
 // the bounces die out it skids and tumbles, losing speed fast and curling
@@ -46,22 +47,29 @@ const BALL_R = 0.5;
 const HULL_H = 3.0;
 const GRAVITY = 981;                 // cm/s^2
 const MUZZLE_H = 2.4;                // ball height at the muzzle
-const MUZZLE_V = 213;                // cm/s: a lofted shot lands ~44 cm out
+const MUZZLE_V = 198;                // cm/s: a lofted shot lands ~38 cm out
 const MUZZLE_V_SD = 0.07;            // spring-to-spring and shot-to-shot variation
 const ELEVATIONS = { flat: 0, lob: 30 * Math.PI / 180 };
 const SPREAD_MAX = 5 * Math.PI / 180;        // side-to-side cone, straight ahead most likely
-const BOUNCE_E = 0.45;               // vertical speed kept by a bounce
-const BOUNCE_KEEP = 0.85;            // forward speed kept by a bounce
-const BOUNCE_KICK_SD = 2 * Math.PI / 180;    // sideways knock per bounce
+const BOUNCE_E = 0.35;               // vertical speed kept by a bounce
+const BOUNCE_KEEP = 0.75;           // forward speed kept by a bounce
+// Sideways knock at each bounce: the first landing is fairly true, after
+// that the tapered ball goes where it likes.
+const BOUNCE_KICK_SD = [3, 9, 14, 14].map(d => d * Math.PI / 180);
+// Spin from each bounce (the cone is heavy at its wide end), in radians of
+// turn per cm travelled; it bends the hops after it and fades in the skid.
+const SPIN_SD = 0.9 * Math.PI / 180;
+const SPIN_SKID_KEEP = 0.9;             // spin kept per 1.5 cm of skid
+const TUMBLE_SD = 20 * Math.PI / 180;        // the turn it takes as it drops into a skid
 const HOP_MIN_VZ = 20;               // slower than this off the table and it just skids
-const SKID_DECEL = 250;              // cm/s^2: a tumbling cone scrubs speed fast
+const SKID_DECEL = 450;              // cm/s^2: a tumbling cone scrubs speed fast
 const SKID_DECEL_SD = 0.3;           // tables and landings vary
 const SKID_CURL = 1.3;              // how hard it curls: radians per cm, times cm/s of speed
 const SKID_CURL_V = 30;              // ...so the curl tightens as it slows
 // Distances the computer and the aiming lines treat as in range: past
 // RANGE_MAX the spread makes a hit unlikely, though a ball can roll on.
 const RANGE_MIN = 2;
-const RANGE_MAX = 70;
+const RANGE_MAX = 55;
 const SLOT_SPLAY = 15 * Math.PI / 180;   // end slots angle toward their nearest end or side
 
 // Scoring (rulebook v0.6). Surviving ships and coins do not score: points
