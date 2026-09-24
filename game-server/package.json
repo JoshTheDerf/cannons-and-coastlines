@@ -8,7 +8,9 @@
     "dev": "wrangler dev",
     "deploy": "wrangler deploy",
     "check": "node scripts/build-engine.mjs && node scripts/engine-selftest.mjs",
-    "tournament": "node scripts/build-engine.mjs && node scripts/tournament.mjs 4"
+    "tournament": "node scripts/build-engine.mjs && node scripts/tournament.mjs 4",
+    "balance": "node scripts/build-engine.mjs && node scripts/balance.mjs",
+    "balance:quick": "node scripts/build-engine.mjs && node scripts/balance.mjs --quick"
   },
   "devDependencies": {
     "wrangler": "^4.40.0"

@@ -16,12 +16,16 @@ function aiMemo(p) {
   return G.ai;
 }
 
-// Two styles: 'plain' is the original captain; 'tactical' (the default)
-// plans islands for the whole fleet and reads the opposing fleets.
+// Styles: 'plain' is the original captain; 'tactical' (the default) plans
+// islands for the whole fleet and reads the opposing fleets. Two more are
+// only for balance tests (game-server/scripts/balance.mjs), pulling to the
+// ends of the parking-versus-fighting question: 'turtle' parks a ship on
+// every island it can and collects, 'raider' hunts ships and only takes
+// islands on the way.
 const styleOf = p => (G.aiStyle && G.aiStyle[p]) || 'tactical';
-const tactical = p => { const st = styleOf(p); return st === 'tactical' || st === 'tactics'; };
+const tactical = p => { const st = styleOf(p); return st === 'tactical' || st === 'tactics' || st === 'turtle' || st === 'raider'; };
 const off = k => G.aiOff && G.aiOff.includes(k); // for tuning runs only
-const planner = p => { const st = styleOf(p); return st === 'tactical' || st === 'islands'; };
+const planner = p => { const st = styleOf(p); return st === 'tactical' || st === 'islands' || st === 'turtle'; };
 
 /**
  * A per-turn read of the table: how much each enemy faction matters (by
@@ -66,7 +70,7 @@ function aiNextAction(p) {
   // Re-plan whenever an island changes hands.
   const sig = islands().map(t => t.owner || 0).join('');
   if (memo.sig !== sig) { memo.roles = null; memo.sig = sig; }
-  if (!memo.roles) memo.roles = planner(p) ? aiPlanIslands(p) : aiAssignRoles(p);
+  if (!memo.roles) memo.roles = styleOf(p) === 'raider' ? aiRaiderRoles(p) : planner(p) ? aiPlanIslands(p) : aiAssignRoles(p);
   const roles = aiRoleObjects(memo.roles);
 
   // Finish a turn already under way: a second Gunner shot, or the click
@@ -183,6 +187,26 @@ function aiPlanIslands(p) {
     const pool = held.length ? held : targets.map(g => g.t);
     const t = pool.slice().sort((a, b) => dist(s.x, s.y, a.x, a.y) - dist(s.x, s.y, b.x, b.y))[0];
     roles[s.id] = t ? 'isl:' + t.id : 'hunt';
+  }
+  return roles;
+}
+
+/**
+ * Raider (balance tests): every ship hunts, and only heads for an island
+ * that is not ours when it is much closer than the nearest enemy.
+ */
+function aiRaiderRoles(p) {
+  const roles = {}, enemies = enemyShips(p).filter(e => !isDead(e)), taken = {};
+  for (const s of G.players[p].ships) {
+    if (isDead(s)) { roles[s.id] = 'hunt'; continue; }
+    const ne = enemies.reduce((m, e) => Math.min(m, dist(s.x, s.y, e.x, e.y)), 999);
+    let best = null, bd = Infinity;
+    for (const t of islands()) {
+      if (t.owner === p || taken[t.id] || (t.owner && defendersAt(t, t.owner).length)) continue;
+      const d = dist(s.x, s.y, t.x, t.y) - t.r;
+      if (d < bd) { bd = d; best = t; }
+    }
+    if (best && bd < ne * 0.5) { roles[s.id] = 'isl:' + best.id; taken[best.id] = 1; } else roles[s.id] = 'hunt';
   }
   return roles;
 }
@@ -313,10 +337,11 @@ function aiShipTurn(ship, roles) {
   // better shot than the ship's own guns (both skip the forward click).
   if (own) {
     const isleShot = shot && shot.source === 'island' ? shot : null;
-    const keep = goal === 'collect' || aiThreat(ship, ship) > 0 || islandsHeld(ship.owner) <= 1 || (tactical(ship.owner) && !off('keep') && typeof goal !== 'object');
+    const style = styleOf(ship.owner);
+    const keep = style === 'turtle' ? true : style === 'raider' ? (aiThreat(ship, ship) > 0 && ship.fit <= 1) : goal === 'collect' || aiThreat(ship, ship) > 0 || islandsHeld(ship.owner) <= 1 || (tactical(ship.owner) && !off('keep') && typeof goal !== 'object');
     if (isleShot && isleShot.ev >= 3) return aiFireAction(ship, isleShot);
     // Firing the ship's own guns would mean sailing off the island after.
-    const leave = tactical(ship.owner) && !off('keep') ? 9 : 5;
+    const leave = style === 'turtle' ? 99 : style === 'raider' ? 2 : tactical(ship.owner) && !off('keep') ? 9 : 5;
     if (canHold && keep && !(shot && shot.source === 'ship' && shot.ev >= leave)) return islandAct(ship, own, 'collect');
   }
   const steer = aiBestMove(ship, goal, 1, ship.moveCount);
