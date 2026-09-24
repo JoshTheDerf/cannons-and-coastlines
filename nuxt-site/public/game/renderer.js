@@ -93,7 +93,7 @@ function moveHandleScreen(m) {
   const c = w2s(m.ship.x, m.ship.y), f = fwdVec(m.plan.rot.h), R = w2r(m.ship.len * 1.1);
   return { x: c.x + f.x * R, y: c.y + f.y * R };
 }
-/** Screen position of the aiming handle for the turret or an island gun, and its circle's pivot. */
+/** Screen position of the Industry turret's aiming handle, and its circle's pivot. */
 function aimHandleScreen(F) {
   const p = aimPivot(F), c = w2s(p.x, p.y), f = fwdVec(F.h), R = Math.max(34, w2r(9));
   return { x: c.x + f.x * R, y: c.y + f.y * R, cx: c.x, cy: c.y, R };
@@ -349,11 +349,14 @@ function drawTerrainPiece(t, alpha) {
     ctx.fillStyle = '#3b7036';
     ctx.beginPath(); ctx.arc(s.x - r * 0.3, s.y - r * 0.2, r * 0.22, 0, TAU); ctx.fill();
     ctx.beginPath(); ctx.arc(s.x + r * 0.25, s.y + r * 0.2, r * 0.18, 0, TAU); ctx.fill();
-    // Topper cannon slots.
-    ctx.fillStyle = '#3a2a1a';
-    for (let i = 0; i < 6; i++) {
-      const a = i * TAU / 6 + 0.3;
-      ctx.beginPath(); ctx.arc(s.x + Math.cos(a) * r * 0.86, s.y + Math.sin(a) * r * 0.86, Math.max(1.2, r * 0.07), 0, TAU); ctx.fill();
+    // The six cannon slots, each a groove out to the shore.
+    if (t.id != null) {
+      ctx.strokeStyle = '#3a2a1a'; ctx.lineWidth = Math.max(1.5, r * 0.1); ctx.lineCap = 'round';
+      for (const sl of islandSlots(t)) {
+        const f = fwdVec(sl.h), p = w2s(sl.x, sl.y);
+        ctx.beginPath(); ctx.moveTo(p.x - f.x * r * 0.12, p.y - f.y * r * 0.12); ctx.lineTo(p.x + f.x * r * 0.3, p.y + f.y * r * 0.3); ctx.stroke();
+      }
+      ctx.lineCap = 'butt';
     }
     if (t.owner) {
       const col = colorOf(t.owner);
@@ -689,7 +692,7 @@ function drawFirePreview() {
   const o = fireOrigin(F);
   if (F.stage === 'dir') {
     drawLane(o.x, o.y, o.h, RANGE_MAX, false);
-    // Aiming handle for the turret or island gun, like the heading handle.
+    // Aiming handle for the turret, like the heading handle.
     const hk = aimHandleScreen(F), c = { x: hk.cx, y: hk.cy }, R = hk.R, kx = hk.x, ky = hk.y;
     ctx.strokeStyle = 'rgba(250,243,224,.85)'; ctx.lineWidth = 1.5; ctx.setLineDash([3, 3]);
     ctx.beginPath(); ctx.arc(c.x, c.y, R, 0, TAU); ctx.stroke(); ctx.setLineDash([]);

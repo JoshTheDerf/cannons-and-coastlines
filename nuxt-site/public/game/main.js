@@ -531,7 +531,7 @@ function onMoveHandle(sp) {
 }
 function aimPivot(F) { return F.source === 'island' ? F.island : slotWorld(F.ship, F.slot); }
 function onAimHandle(sp, anyStage) {
-  const F = UI.fire; if (!F || (F.stage !== 'dir' && !anyStage) || !(F.free || F.source === 'island')) return false;
+  const F = UI.fire; if (!F || (F.stage !== 'dir' && !anyStage) || !F.free) return false;
   const k = aimHandleScreen(F);
   return Math.hypot(sp.x - k.x, sp.y - k.y) < 24 || Math.hypot(sp.x - k.cx, sp.y - k.cy) < 16;
 }
@@ -715,13 +715,14 @@ function moveChipLayout() {
 function slotChipLayout() {
   const F = UI.fire;
   if (UI.mode !== 'fire' || !F || F.stage !== 'slot' || UI.busy) return [];
-  const ship = F.ship, c = w2s(ship.x, ship.y);
-  const R = Math.max(w2r(ship.len * 0.6) + 40, 70);
+  // Around the ship, or around the island for its guns.
+  const ship = F.ship, hub = F.source === 'island' ? F.island : ship, c = w2s(hub.x, hub.y);
+  const R = Math.max(w2r(F.source === 'island' ? hub.r + 1.5 : ship.len * 0.6) + 40, 70);
   const items = F.slots.map((sl, idx) => {
     const w = slotWorld(ship, sl);
     const hh = sl.free ? normAngle(ship.h + (ship.turretRel || 0)) : w.h;
     const d = sdir(w.x, w.y, Math.sin(hh), -Math.cos(hh));
-    const lbl = sl.free ? 'Turret' : sl.label === 'Bow' ? 'Bow' : sl.label.startsWith('Stern') ? (sl.label === 'Stern' ? 'Centre' : sl.label.endsWith('port') ? 'Port' : 'Stbd')
+    const lbl = sl.island != null ? sl.label : sl.free ? 'Turret' : sl.label === 'Bow' ? 'Bow' : sl.label.startsWith('Stern') ? (sl.label === 'Stern' ? 'Centre' : sl.label.endsWith('port') ? 'Port' : 'Stbd')
       : sl.label.endsWith('fore') ? 'Fore' : sl.label.endsWith('aft') ? 'Aft' : 'Mid';
     return { idx, a: Math.atan2(d.y, d.x), sw: w2s(w.x, w.y), label: lbl };
   }).sort((p, q) => p.a - q.a);
@@ -942,9 +943,8 @@ function startFire(ship, source, island) {
   cancelMode();
   UI.sel = ship;
   UI.mode = 'fire';
-  const slots = source === 'ship' ? shipSlots(ship) : [];
-  UI.fire = { ship, source, island, slots, slot: null, slotIdx: -1, h: ship.h, hc: ship.h, locked: false, free: source === 'island', hover: -1, stage: source === 'ship' ? 'slot' : 'dir', t0: 0 };
-  if (source === 'island') UI.fire.h = UI.fire.hc = headingTo(island.x - ship.x, island.y - ship.y);
+  const slots = source === 'ship' ? shipSlots(ship) : islandSlots(island);
+  UI.fire = { ship, source, island, slots, slot: null, slotIdx: -1, h: ship.h, hc: ship.h, locked: false, free: false, hover: -1, stage: 'slot', t0: 0 };
   if (source === 'ship' && slots.length === 1) chooseSlot(0);
   refresh();
 }
@@ -953,7 +953,10 @@ function chooseSlot(idx) {
   const F = UI.fire;
   F.slot = F.slots[idx]; F.slotIdx = idx;
   if (F.slot.free) { F.stage = 'dir'; F.free = true; F.locked = false; F.h = F.hc = normAngle(F.ship.h + (F.ship.turretRel || 0)); }
-  else startPower();
+  else {
+    if (F.slot.island != null) F.h = F.hc = F.slot.h;
+    startPower();
+  }
   sfxSelect();
   refresh();
 }
@@ -1328,10 +1331,9 @@ function fillBar(p, prompt, acts) {
   }
   if (UI.mode === 'fire') {
     const F = UI.fire;
-    if (F.stage === 'slot') say(`Tap a cannon slot on ${F.ship.name}. Shots go straight out from the slot.`);
+    if (F.stage === 'slot') say(F.source === 'island' ? 'Tap one of the island\'s six cannon slots. Shots go straight out along the slot.' : `Tap a cannon slot on ${F.ship.name}. Shots go straight out from the slot.`);
     else if (F.stage === 'dir') {
-      const gun = F.source === 'island' ? 'island gun' : 'turret';
-      say(F.locked ? `Aim set. Press Ready to fire, or drag the handle to change it.` : `Drag the handle, or move the mouse and click, to aim the ${gun}. The hull does not turn.`);
+      say(F.locked ? `Aim set. Press Ready to fire, or drag the handle to change it.` : 'Drag the handle, or move the mouse and click, to aim the turret. The hull does not turn.');
     } else say('Tap the table (or press Space) when the ring is where you want the ball to land.');
     if (F.stage === 'dir') acts.appendChild(btn('Ready to fire', lockAim, { cls: 'go', act: 'aim' }));
     if (F.stage === 'power' && F.free) acts.appendChild(btn('Adjust aim', unlockAim, { act: 'adjust' }));
@@ -1446,7 +1448,7 @@ async function aiShowAim(a) {
   const ship = shipById(a.ship);
   if (!ship) return;
   const F = { ship, source: a.source, island: a.island != null ? G.terrain[a.island] : null, slots: [], slotIdx: a.slot, h: a.h, stage: 'power', fixed: rangeToPower(a.aimD || a.D) };
-  F.slot = a.source === 'ship' ? shipSlots(ship)[a.slot] : null;
+  F.slot = a.source === 'ship' ? shipSlots(ship)[a.slot] : islandSlots(F.island)[a.slot] || null;
   UI.mode = 'fire'; UI.fire = F; UI.sel = ship;
   refresh();
   await sleep(AI_DELAY * 0.9);

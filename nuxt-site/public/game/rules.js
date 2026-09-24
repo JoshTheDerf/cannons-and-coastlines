@@ -132,6 +132,12 @@ ACTIONS.fire = (p, a) => {
     F.island = islandById(a.island);
     need(F.island.owner === p, 'Only an island you hold has a gun for you.');
     need(shipTouchesTerrain(s, F.island), 'Cannons need a crew: a ship must be touching the island.');
+    // The island fires from one of its six cannon slots. An action without
+    // a slot index takes the slot nearest the heading it asks for.
+    const slots = islandSlots(F.island);
+    let k = Number.isInteger(a.slot) && a.slot >= 0 && a.slot < slots.length ? a.slot : -1;
+    if (k < 0) slots.forEach((sl, i) => { if (k < 0 || Math.abs(angleDiff(sl.h, F.h)) < Math.abs(angleDiff(slots[k].h, F.h))) k = i; });
+    F.h = slots[k].h;
   } else {
     F.slot = shipSlots(s)[a.slot | 0];
     need(F.slot, 'No such cannon slot.');

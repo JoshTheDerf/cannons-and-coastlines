@@ -97,6 +97,33 @@ for (const n of [2, 3, 5, 7]) {
   if (fails) process.exitCode = 1;
 }
 
+// ── Unit checks: island guns fire only from the island's six slots ──
+{
+  let fails = 0;
+  const ok = (c, m) => { console.log((c ? 'PASS ' : 'FAIL ') + m); if (!c) fails++; };
+  const near = (a, b) => Math.abs(Math.atan2(Math.sin(a - b), Math.cos(a - b))) < 1e-6;
+  engine.setRand(engine.seededRandom(7));
+  engine.newGame({ seats: [{ faction: 'queens_fleet', color: 0 }, { faction: 'corsairs', color: 1 }], setup: 'quick', table: 'rect' });
+  const G = engine.G;
+  // Islands are looked up by index; id 3 turns it, so the slots are not at their unturned angles.
+  G.terrain = [0, 1, 2].map(i => ({ type: 'rock', x: 5 + i * 3, y: 5, r: 1, owner: null, id: i })).concat([{ type: 'island', x: 60, y: 60, r: 6.5, owner: 1, id: 3 }]);
+  const q = G.players[1].ships[0];
+  Object.assign(q, { x: 60 + 6.5 + q.wid / 2 + 0.1, y: 60, h: 0 });
+  const slots = engine.islandSlots(G.terrain[3]);
+  const gaps = slots.map((s, i) => Math.atan2(Math.sin(slots[(i + 1) % 6].h - s.h), Math.cos(slots[(i + 1) % 6].h - s.h)));
+  ok(slots.length === 6 && gaps.every(g => Math.abs(Math.abs(g) - Math.PI / 3) < 1e-6), 'six island slots, 60 deg apart');
+  const fire = a => { G.players[1].ships.forEach(s => { s.acted = false; s.stage = 'action'; s.turnsLeft = 1; }); G.active = 1; return engine.act(1, Object.assign({ t: 'fire', ship: q.id, source: 'island', island: 3, D: 20 }, a)); };
+  let r = fire({ slot: 4, h: 0 });
+  const shot = r.ok && r.events.find(e => e.e === 'shot');
+  ok(shot && Math.abs(Math.atan2(shot.x - shot.origin.x, -(shot.y - shot.origin.y)) - Math.atan2(Math.sin(slots[4].h), Math.cos(slots[4].h))) < 0.15, 'slot 4 fires along slot 4, whatever heading is asked');
+  const between = slots[1].h + 0.2;
+  r = fire({ h: between });
+  const shot2 = r.ok && r.events.find(e => e.e === 'shot');
+  const o = engine.islandGunOrigin(G.terrain[3], slots[1].h);
+  ok(shot2 && Math.hypot(shot2.origin.x - o.x, shot2.origin.y - o.y) < 1e-6, 'no slot given: the nearest slot to the heading fires');
+  if (fails) process.exitCode = 1;
+}
+
 // ── Small self-play tournament (full one: npm run tournament) ──
 {
   const { headToHead, stoneTables, reportStone } = await import('./tournament.mjs');

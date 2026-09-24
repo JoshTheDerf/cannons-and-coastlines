@@ -369,11 +369,10 @@ function aiLanes(ship, opts) {
     for (const i of touchingIslands(ship)) {
       const t = G.terrain[i];
       if (t.owner !== ship.owner) continue;
-      for (const e of enemies) {
-        const h = headingTo(e.x - t.x, e.y - t.y);
-        const o = islandGunOrigin(t, h);
-        lanes.push({ source: 'island', island: t, x: o.x, y: o.y, h });
-      }
+      islandSlots(t).forEach((sl, k) => {
+        const o = islandGunOrigin(t, sl.h);
+        lanes.push({ source: 'island', island: t, slot: sl, slotIdx: k, x: o.x, y: o.y, h: sl.h });
+      });
     }
   }
   return lanes;

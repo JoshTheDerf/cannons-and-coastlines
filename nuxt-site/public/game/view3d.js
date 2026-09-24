@@ -33,6 +33,7 @@
   let lastUser = -1e9;
   let frameT = 0;
   const gunAt = new Map();      // ship id -> the slot its gun last fired from
+  const islandGunAt = new Map(); // island id -> the slot its gun last fired from
 
   const userBusy = () => performance.now() - lastUser < 2500;
   function userMoved() { lastUser = performance.now(); if (V) V.setFollow(null); }
@@ -193,7 +194,13 @@
       const w = slotWorld(ship, sl), d = dist(w.x, w.y, origin.x, origin.y);
       if (d < bd) { bd = d; best = sl; }
     }
-    if (best && bd < 1.5) gunAt.set(ship.id, best);
+    if (best && bd < 1.5) { gunAt.set(ship.id, best); return; }
+    // Not a ship slot: an island gun, fired from the slot whose shot starts here.
+    for (const t of G.terrain) {
+      if (t.type !== 'island') continue;
+      const k = islandSlots(t).findIndex(sl => { const o = islandGunOrigin(t, sl.h); return dist(o.x, o.y, origin.x, origin.y) < 0.5; });
+      if (k >= 0) { islandGunAt.set(t.id, k); return; }
+    }
   };
 
   // ─── Table <-> screen ───────────────────────────────
@@ -259,7 +266,7 @@
       else if (f.kind === 'stack') d.stack = on;
     });
     const F = UI.fire;
-    const mine = F && F.ship && F.ship.id === ship.id;
+    const mine = F && F.source === 'ship' && F.ship && F.ship.id === ship.id;
     if (mine && F.slot && F.slot.free) d.turretRel = F.h - pose.h;
     // The gun sits in the slot being picked, else the one it last fired from.
     let sl = gunAt.get(ship.id) || null;
@@ -283,7 +290,16 @@
   }
 
   function terrainDescs() {
-    return G.terrain.map(t => ({ id: t.id, type: t.type, x: t.x, y: t.y, r: t.r, owner: t.owner ? colorOf(t.owner).main : null }));
+    const F = UI.fire;
+    return G.terrain.map((t) => {
+      // An island's gun sits in the slot being picked, else the one it last fired from.
+      let gun = islandGunAt.has(t.id) ? islandGunAt.get(t.id) : null;
+      if (F && F.source === 'island' && F.island && F.island.id === t.id) {
+        if (F.slot && F.slot.island != null) gun = F.slot.k;
+        else if (F.hover >= 0) gun = F.hover;
+      }
+      return { id: t.id, type: t.type, x: t.x, y: t.y, r: t.r, owner: t.owner ? colorOf(t.owner).main : null, turn: islandTurn(t), gun };
+    });
   }
 
   // ─── Flat drawing along the 3D table ────────────────
@@ -384,7 +400,7 @@
       }
     }
     if (gh && (G.phase === 'islands' || G.phase === 'terrain')) {
-      V.ghostTerrain({ id: 99, type: gh.type, x: gh.x, y: gh.y, r: gh.r, owner: null }, gh.ok);
+      V.ghostTerrain({ id: 99, type: gh.type, x: gh.x, y: gh.y, r: gh.r, owner: null, turn: islandTurn({ id: G.terrain.length }), gun: null }, gh.ok);
       strokeRing(gh.x, gh.y, gh.r + 0.6, gh.ok ? 'rgba(80,220,120,.9)' : 'rgba(240,80,60,.9)', 2);
     }
     if (gh && G.phase === 'deploy' && gh.ship) {

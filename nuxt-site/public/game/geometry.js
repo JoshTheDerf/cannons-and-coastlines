@@ -204,7 +204,8 @@ function fittingWorld(ship, idx, pose) {
 // ─── Cannon slots ─────────────────────────────────────
 // Local coordinates: lx toward starboard, ly toward the bow. `dir` is the
 // firing direction relative to the bow (0 forward, +PI/2 starboard).
-// `free: true` means the slot can point any way (turret, island).
+// `free: true` means the slot can point any way (the Industry turret).
+// Island slots are in islandSlots().
 function shipSlots(ship) {
   const out = [];
   const L = ship.len, W = ship.wid, off = BALL_R + 0.1;
@@ -232,12 +233,36 @@ function shipSlots(ship) {
 }
 
 function slotWorld(ship, slot, pose) {
+  if (slot.island != null) return { x: slot.x, y: slot.y, h: slot.h };
   const p = pose || ship;
   const f = fwdVec(p.h), s = stbVec(p.h);
   return { x: p.x + s.x * slot.lx + f.x * slot.ly, y: p.y + s.y * slot.lx + f.y * slot.ly, h: normAngle(p.h + slot.dir) };
 }
 
-/** Where an island gun sits when pointed along heading h. */
+// ─── Island cannon slots ──────────────────────────────
+// The printed island (assets/stls/base-set/island.stl, 60.3 mm from its
+// centre to its furthest point) has six cannon grooves, one every 60
+// degrees, at 30, 90, 150... degrees in the model's own frame. Each has its
+// peg slot 26.5 mm out from the centre, and a gun fires straight out along
+// its groove. Which way the grooves face on the table depends on how the
+// island is turned, which comes from its id, so every screen, the server
+// and the 3D model agree without storing it.
+const ISLAND_SLOT_R = 26.5 / 60.3;
+const ISLAND_SLOT_NAMES = ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'];
+function islandTurn(t) { return (t.id * 2.39996) % TAU; }
+/** The island's slots: where each peg is (x, y) and the heading it fires along (h). */
+function islandSlots(t) {
+  const out = [];
+  for (let k = 0; k < 6; k++) {
+    // Model groove angle a (from +X toward +Y) faces table heading PI - turn - a.
+    const h = normAngle(Math.PI - islandTurn(t) - (Math.PI / 6 + k * Math.PI / 3));
+    const f = fwdVec(h), r = t.r * ISLAND_SLOT_R;
+    out.push({ island: t.id, k, x: t.x + f.x * r, y: t.y + f.y * r, h, label: ISLAND_SLOT_NAMES[Math.round(h / (Math.PI / 4)) % 8] });
+  }
+  return out;
+}
+
+/** Where an island gun's shot starts: the island's edge along heading h. */
 function islandGunOrigin(t, h) {
   const f = fwdVec(h);
   const r = t.r + BALL_R + 0.1;

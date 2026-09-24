@@ -52,7 +52,12 @@ export type ShipDesc = {
   /** The slot the ship's one gun sits in: direction relative to the bow (clockwise radians) and position (cm, lx starboard, ly bow). */
   gun: { dir: number, lx: number, ly: number } | null
 }
-export type TerrainDesc = { id: number, type: 'island' | 'rock' | 'reef', x: number, y: number, r: number, owner: string | null }
+/** `turn`: how the piece is turned (radians, as the rules' islandTurn); `gun`: the island cannon slot showing a gun (0-5, model groove 30 + 60k degrees). */
+export type TerrainDesc = { id: number, type: 'island' | 'rock' | 'reef', x: number, y: number, r: number, owner: string | null, turn?: number, gun?: number | null }
+
+// The island's cannon grooves (assets/stls/base-set/island.stl, mm): peg
+// slots 26.5 out from the centre every 60 degrees from 30, groove floor at z 34.75.
+const ISLAND_SLOT = { r: 26.5, z: 34.75 }
 export type Table = { shape: 'rect', w: number, h: number } | { shape: 'circle', r: number }
 export type CamState = { tx: number, ty: number, dist: number, yaw: number, pitch: number }
 
@@ -677,7 +682,9 @@ export function create(wrap: HTMLElement, opts: { quality?: 'auto' | 'high' | 'l
   }
   const terrainLayer = new THREE.Group()
   scene.add(terrainLayer)
-  const terrains = new Map<string, { obj: THREE.Group, flag: THREE.Group | null, seen: number, desc: TerrainDesc }>()
+  const terrains = new Map<string, { obj: THREE.Group, flag: THREE.Group | null, gun: THREE.Mesh | null, gunSlot: number | null, seen: number, desc: TerrainDesc }>()
+  let islandGun: THREE.Mesh | null = null
+  kit.mesh(data.parts.cannon!.preview, 'gunmetal', null, undefined, true, data.parts.cannon!.printUp).then((m) => { islandGun = m })
   let flagPole: THREE.Mesh | null = null
   loadGeometry(kit.meshUrl(data.parts['mast-short']!.preview), data.parts['mast-short']!.printUp).then((g) => {
     flagPole = new THREE.Mesh(g, kit.material('wood'))
@@ -704,8 +711,9 @@ export function create(wrap: HTMLElement, opts: { quality?: 'auto' | 'high' | 'l
     frame.add(m)
     obj.add(frame)
     obj.position.set(d.x * MM, 0, d.y * MM)
-    obj.rotation.y = ((d.id * 2.39996) % (Math.PI * 2))
+    obj.rotation.y = d.turn ?? ((d.id * 2.39996) % (Math.PI * 2))
     obj.userData.scale = s
+    obj.userData.frame = frame
     return obj
   }
 
@@ -718,10 +726,28 @@ export function create(wrap: HTMLElement, opts: { quality?: 'auto' | 'high' | 'l
       if (!e) {
         const obj = terrainObject(d, tt)
         terrainLayer.add(obj)
-        e = { obj, flag: null, seen: 0, desc: d }
+        e = { obj, flag: null, gun: null, gunSlot: null, seen: 0, desc: d }
         terrains.set(key, e)
       }
       e.seen = frameNo
+      // The island's gun, in the groove it fires from.
+      if (d.type === 'island' && islandGun) {
+        const slot = d.gun ?? null
+        if (slot !== e.gunSlot) {
+          e.gunSlot = slot
+          if (slot == null) { if (e.gun) e.gun.visible = false }
+          else {
+            if (!e.gun) {
+              e.gun = islandGun.clone()
+              e.gun.matrixAutoUpdate = false
+              ;(e.obj.userData.frame as THREE.Group).add(e.gun)
+            }
+            const a = 30 + 60 * slot, ar = THREE.MathUtils.degToRad(a)
+            e.gun.matrix.copy(placeMatrix([ISLAND_SLOT.r * Math.cos(ar), ISLAND_SLOT.r * Math.sin(ar), ISLAND_SLOT.z], a, (data.parts.cannon!.anchor ?? [0, 0, 0]) as [number, number, number]))
+            e.gun.visible = true
+          }
+        }
+      }
       // A held island flies its owner's flag from a short mast on top.
       if (d.type === 'island') {
         if (d.owner && !e.flag && flagPole) {
