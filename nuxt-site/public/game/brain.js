@@ -143,13 +143,18 @@ function aiPlanIslands(p) {
   const ships = G.players[p].ships;
   const enemies = enemyShips(p).filter(e => !isDead(e));
   const near = (t, r) => enemies.filter(e => dist(e.x, e.y, t.x, t.y) - t.r < r).length;
-  // Keepers: a ship on a held island stays and collects (a coin a turn is
-  // a point a turn, and islands are the only place to hold still), unless
-  // an unclaimed island is a short hop away and the island keeps another.
+  // Keepers: a ship on a held island stays to defend it, unless an
+  // unclaimed island is a short hop away and the island keeps another.
+  // Rulebook v0.6: collecting no longer needs a ship there (the nearest one
+  // collects from anywhere) and coins are not points, so a tactical captain
+  // only keeps a ship on an island with enemies close. The turtle test
+  // style and the Treasure Fleet, whose coins still score, keep every one.
+  const parkAll = styleOf(p) === 'turtle' || passiveOf(p) === 'harvest' || off('park');
   const kept = new Set();
   for (const s of ships) {
     const own = touchingIslands(s).map(i => G.terrain[i]).find(t => t.owner === p);
     if (!own) continue;
+    if (!parkAll && !isDead(s) && near(own, 25) === 0) continue;
     const hop = kept.has(own.id) && islands().some(t => !t.owner && dist(s.x, s.y, t.x, t.y) - t.r < s.moveCount * CLICK_LEN * 1.5);
     if (!hop) { roles[s.id] = 'collect'; kept.add(own.id); }
   }
@@ -178,12 +183,13 @@ function aiPlanIslands(p) {
     if (roles[s.id] || (used[g.t.id] || 0) >= g.slots || score < -12) continue;
     roles[s.id] = 'isl:' + g.t.id; used[g.t.id] = (used[g.t.id] || 0) + 1;
   }
-  // Ships left over head for the nearest held island to collect there too
-  // (several ships may collect at one island), or back up a target.
+  // Ships left over hunt (tactical), or head for the nearest held island
+  // to collect there too, or back up a target.
   const held = islands().filter(t => t.owner === p);
   for (const s of ships) {
     if (roles[s.id]) continue;
     if (isDead(s)) { roles[s.id] = touchingIslands(s).some(i => G.terrain[i].owner === p) ? 'collect' : 'hunt'; continue; }
+    if (!parkAll) { roles[s.id] = 'hunt'; continue; }
     const pool = held.length ? held : targets.map(g => g.t);
     const t = pool.slice().sort((a, b) => dist(s.x, s.y, a.x, a.y) - dist(s.x, s.y, b.x, b.y))[0];
     roles[s.id] = t ? 'isl:' + t.id : 'hunt';
@@ -233,6 +239,11 @@ function aiCoinChoice(p, roles, memo) {
   const me = G.players[p];
   const has = id => me.coins[id] > 0;
   const coin = (id, s, extra) => Object.assign({ t: 'coin', coin: id, target: s.id }, extra || {});
+  // Rulebook v0.6: coins are not points, only things to spend, so the
+  // tactical captain spends them. The Treasure Fleet's coins still score,
+  // so it keeps the old, careful habits.
+  const spend = tactical(p) && !off('spend') && passiveOf(p) !== 'harvest';
+  const reserve = spend ? 1 : 3;
   if (reviveAllowed(p) && coinTotal(p) >= 3) {
     const isl = islands().filter(t => t.owner === p && freePoseAtIsland(me.sunk[0], t));
     if (isl.length) return { t: 'revive', island: isl[0].id };
@@ -246,12 +257,13 @@ function aiCoinChoice(p, roles, memo) {
   if (has('repair')) {
     for (const s of me.ships.slice().sort((a, b) => a.fit - b.fit)) {
       if (memo.used['repair' + s.id]) continue;
-      const hurt = s.fit === 0 || s.fit <= s.maxFit - 2 || (s.fit < s.maxFit && s.fit <= 1);
+      // A repair also takes a prize back from whoever holds it: a point off them.
+      const hurt = spend ? s.fit < s.maxFit : s.fit === 0 || s.fit <= s.maxFit - 2 || (s.fit < s.maxFit && s.fit <= 1);
       if (hurt && coinTargets(p, 'repair').includes(s)) { memo.used['repair' + s.id] = 1; return coin('repair', s); }
     }
   }
   if (has('brace')) {
-    for (const s of me.ships) if (s.fit <= 1 && !s.braced && aiThreat(s, s) > 0) return coin('brace', s);
+    for (const s of me.ships) if (s.fit <= (spend ? 2 : 1) && !s.braced && aiThreat(s, s) > 0) return coin('brace', s);
     // Tactical: brace ships a Corsair could board next turn.
     if (tactical(p) && !off('brace') && coinTotal(p) >= 2) {
       for (const s of me.ships) {
@@ -277,28 +289,28 @@ function aiCoinChoice(p, roles, memo) {
   // Skilled Gunner and Signal Flags both want to know the best shots now.
   const shots = {};
   const shotOf = s => (s.id in shots ? shots[s.id] : (shots[s.id] = aiBestShot(s)));
-  if (has('gunner') && coinTotal(p) >= 3 && !memo.used.gunner) {
+  if (has('gunner') && coinTotal(p) >= reserve && !memo.used.gunner) {
     memo.used.gunner = 1;
     let best = null;
     for (const s of me.ships) {
       if (s.acted || s.gunner || s.noAction || roles[s.id] === 'collect') continue;
       const sh = shotOf(s);
       // Against Stone Hulls one ship firing twice is the way through.
-      const need = tactical(p) && !off('gunner') && sh && sh.target && G.factions[sh.target.owner] === 'stone_fleet' ? 3 : 4;
+      const need = (tactical(p) && !off('gunner') && sh && sh.target && G.factions[sh.target.owner] === 'stone_fleet' ? 3 : 4) - (spend ? 1 : 0);
       if (sh && sh.ev >= need && (!best || sh.ev > best.ev)) best = { s, ev: sh.ev };
     }
     if (best) return coin('gunner', best.s);
   }
   // Signal Flags: a ship with nothing useful to do hands its action to one
   // with a good shot, which then gets a second turn to fire or line up again.
-  if (has('signal') && coinTotal(p) >= 3 && !memo.used.signal) {
+  if (has('signal') && coinTotal(p) >= reserve && !memo.used.signal) {
     memo.used.signal = 1;
     const givers = coinTargets(p, 'signal').filter(s => roles[s.id] !== 'collect' && !touchingIslands(s).length && !(shotOf(s) && shotOf(s).ev >= 1.5));
     let best = null;
     for (const r of me.ships) {
       if (r.acted || r.noAction || isDead(r)) continue;
       const sh = shotOf(r);
-      if (sh && sh.ev >= 4 && (!best || sh.ev > best.ev)) best = { r, ev: sh.ev };
+      if (sh && sh.ev >= (spend ? 3 : 4) && (!best || sh.ev > best.ev)) best = { r, ev: sh.ev };
     }
     const giver = best && givers.find(g => g !== best.r);
     if (giver) return { t: 'coin', coin: 'signal', from: giver.id, target: best.r.id };
@@ -338,7 +350,11 @@ function aiShipTurn(ship, roles) {
   if (own) {
     const isleShot = shot && shot.source === 'island' ? shot : null;
     const style = styleOf(ship.owner);
-    const keep = style === 'turtle' ? true : style === 'raider' ? (aiThreat(ship, ship) > 0 && ship.fit <= 1) : goal === 'collect' || aiThreat(ship, ship) > 0 || islandsHeld(ship.owner) <= 1 || (tactical(ship.owner) && !off('keep') && typeof goal !== 'object');
+    // Tactical (v0.6): stay only as the island's keeper, or when it is the
+    // last island and enemies are coming. Otherwise the ship goes to work.
+    const nearIsle = enemyShips(ship.owner).some(e => !isDead(e) && dist(e.x, e.y, own.x, own.y) - own.r < 25);
+    const tacKeep = goal === 'collect' || (islandsHeld(ship.owner) <= 1 && nearIsle);
+    const keep = style === 'turtle' ? true : style === 'raider' ? (aiThreat(ship, ship) > 0 && ship.fit <= 1) : tactical(ship.owner) && !off('park') && passiveOf(ship.owner) !== 'harvest' ? tacKeep : goal === 'collect' || aiThreat(ship, ship) > 0 || islandsHeld(ship.owner) <= 1 || (tactical(ship.owner) && !off('keep') && typeof goal !== 'object');
     if (isleShot && isleShot.ev >= 3) return aiFireAction(ship, isleShot);
     // Firing the ship's own guns would mean sailing off the island after.
     const leave = style === 'turtle' ? 99 : style === 'raider' ? 2 : tactical(ship.owner) && !off('keep') ? 9 : 5;
