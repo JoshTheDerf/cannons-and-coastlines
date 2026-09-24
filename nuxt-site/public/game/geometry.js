@@ -264,7 +264,7 @@ function slotWorld(ship, slot, pose) {
 // its groove. Which way the grooves face on the table depends on how the
 // island is turned, which comes from its id, so every screen, the server
 // and the 3D model agree without storing it.
-const ISLAND_SLOT_R = 26.5 / 60.3;
+const ISLAND_SLOT_R = 2.65; // cm from the island's centre
 const ISLAND_SLOT_NAMES = ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'];
 function islandTurn(t) { return (t.id * 2.39996) % TAU; }
 /** The island's slots: where each peg is (x, y) and the heading it fires along (h). */
@@ -273,7 +273,7 @@ function islandSlots(t) {
   for (let k = 0; k < 6; k++) {
     // Model groove angle a (from +X toward +Y) faces table heading PI - turn - a.
     const h = normAngle(Math.PI - islandTurn(t) - (Math.PI / 6 + k * Math.PI / 3));
-    const f = fwdVec(h), r = t.r * ISLAND_SLOT_R;
+    const f = fwdVec(h), r = ISLAND_SLOT_R;
     out.push({ island: t.id, k, x: t.x + f.x * r, y: t.y + f.y * r, h, label: ISLAND_SLOT_NAMES[Math.round(h / (Math.PI / 4)) % 8] });
   }
   return out;
@@ -429,7 +429,7 @@ function traceShot(src, ox, oy, shot) {
   for (const o of allShips()) {
     if (o === src.ship) continue;
     const sg = shipSeg(o), rr = sg.r + BALL_R;
-    if (scan(o.x, o.y, o.len / 2 + BALL_R + 0.3, (x, y, hg) => hg < HULL_H && ptSegDist(x, y, sg.ax, sg.ay, sg.bx, sg.by) <= rr)) hit = { kind: 'ship', obj: o };
+    if (scan(o.x, o.y, o.len / 2 + BALL_R + 0.3, (x, y, hg) => hg < (o.height || HULL_H) && ptSegDist(x, y, sg.ax, sg.ay, sg.bx, sg.by) <= rr)) hit = { kind: 'ship', obj: o };
   }
   for (const t of G.terrain) {
     if (t === src.island) continue;

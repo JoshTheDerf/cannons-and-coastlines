@@ -10,7 +10,7 @@ function makeShip(p, fid, i, used = new Set()) {
   return {
     id: `p${p}s${i}`, owner: p, origin: p, build: fid,
     name: shipName(fid, used),
-    len: f.len, wid: f.wid, guns: f.guns, moveCount: f.moveCount, hullStyle: f.hull,
+    len: f.len, wid: f.wid, height: f.height || HULL_H, guns: f.guns, moveCount: f.moveCount, hullStyle: f.hull,
     maxFit: f.fittings, fit: f.fittings,
     fitMask: Array(f.fittings).fill(true),  // which fittings are aboard (see fittingLayout)
     turretRel: 0,        // Industry: turret facing relative to the bow, kept between turns
@@ -129,8 +129,8 @@ function addTerrain(type, x, y, r) {
   G.terrain.push({ type, x, y, r, owner: null, id: G.terrain.length });
 }
 
-function islandRadius() { return 5.5 + rand() * 2.5; }
-function terrainRadius(type) { return type === 'rock' ? 2.8 + rand() * 1.2 : 3.1; }
+function islandRadius() { return TERRAIN_DEFS.island.r; }
+function terrainRadius(type) { return TERRAIN_DEFS[type].r; }
 
 function randomPointOnTable(margin) {
   const c = tableCenter(), sz = tableSize();
@@ -167,10 +167,10 @@ function placeIslands(want) {
       const c = tableCenter(), ring = want - 1;
       const span = (G.table.shape === 'circle' ? G.table.r : Math.min(G.table.w, G.table.h) / 2) - islandEdgeMin() - 7;
       const off = rand() * TAU;
-      addTerrain('island', c.x + (rand() - 0.5) * 3, c.y + (rand() - 0.5) * 3, 6);
+      addTerrain('island', c.x + (rand() - 0.5) * 3, c.y + (rand() - 0.5) * 3, islandRadius());
       for (let k = 0; k < ring; k++) {
         const a = off + k * TAU / ring;
-        addTerrain('island', c.x + Math.cos(a) * span * 0.97, c.y + Math.sin(a) * span * 0.97, 5.5 + rand() * 1.5);
+        addTerrain('island', c.x + Math.cos(a) * span * 0.97, c.y + Math.sin(a) * span * 0.97, islandRadius());
       }
       const ok = G.terrain.filter(t => t.type === 'island').every((t, i, arr) =>
         edgeDist(t.x, t.y) - t.r >= islandEdgeMin() - 0.01 && arr.every(o => o === t || dist(t.x, t.y, o.x, o.y) - t.r - o.r >= ISLAND_GAP_MIN - 0.01));
@@ -319,7 +319,7 @@ function autoDeploy(p) {
  * lobs that fly over anything halfway, so the rocks sit where the ball
  * comes back down, beside the fleet it would hit.
  */
-const FLANK_ROCK = { past: 11, inward: 12, r: 4 };
+const FLANK_ROCK = { past: 9, inward: 10, get r() { return TERRAIN_DEFS.rock.r; } };
 function flankRocks() {
   if (G.table.shape !== 'circle') { flankRocksRect(); return; }
   const c = tableCenter(), R = G.table.r;

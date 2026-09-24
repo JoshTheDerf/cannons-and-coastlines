@@ -116,7 +116,7 @@ for (const n of [2, 3, 5, 7]) {
   const fire = a => { G.players[1].ships.forEach(s => { s.acted = false; s.stage = 'action'; s.turnsLeft = 1; }); G.active = 1; return engine.act(1, Object.assign({ t: 'fire', ship: q.id, source: 'island', island: 3, elev: 'flat' }, a)); };
   let r = fire({ slot: 4, h: 0 });
   const shot = r.ok && r.events.find(e => e.e === 'shot');
-  ok(shot && Math.abs(Math.atan2(shot.x - shot.origin.x, -(shot.y - shot.origin.y)) - Math.atan2(Math.sin(slots[4].h), Math.cos(slots[4].h))) < 0.15, 'slot 4 fires along slot 4, whatever heading is asked');
+  ok(shot && Math.abs(Math.atan2(Math.sin(shot.h - slots[4].h), Math.cos(shot.h - slots[4].h))) <= 5 * Math.PI / 180 + 1e-9, 'slot 4 fires along slot 4 (within the cannon\'s 5 degree spread), whatever heading is asked');
   const between = slots[1].h + 0.2;
   r = fire({ h: between });
   const shot2 = r.ok && r.events.find(e => e.e === 'shot');

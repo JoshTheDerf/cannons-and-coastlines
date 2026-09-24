@@ -703,7 +703,8 @@ export function create(wrap: HTMLElement, opts: { quality?: 'auto' | 'high' | 'l
     const obj = new THREE.Group()
     const frame = new THREE.Group()
     frame.matrixAutoUpdate = false
-    const s = (d.r * MM) / tt.radius
+    // Every piece at its printed size: the models are in mm, one scene unit.
+    const s = 1
     frame.matrix.copy(HULL_TO_SCENE).multiply(new THREE.Matrix4().makeScale(s, s, s))
       .multiply(new THREE.Matrix4().makeTranslation(0, 0, -WATER))
     const m = tt.mesh.clone()
