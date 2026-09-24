@@ -85,6 +85,8 @@ b, strong { color: var(--heading); }
 #boardWrap { position: relative; flex: 1 1 auto; min-height: 0; min-width: 0; }
 #boardCanvas { position: absolute; left: 0; top: 0; display: block; touch-action: none; cursor: crosshair;
   -webkit-user-select: none; user-select: none; }
+/* The 3D table (view3d.js) draws underneath; the board canvas becomes a clear overlay for the controls. */
+#boardWrap canvas.board3d { position: absolute; left: 0; top: 0; display: block; pointer-events: none; }
 #game.landscape #panel2 { order: 0; }
 #game.landscape #boardWrap { order: 1; }
 #game.landscape #panel1 { order: 2; }

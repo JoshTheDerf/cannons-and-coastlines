@@ -131,6 +131,22 @@ The browser loads decimated meshes from `assets/previews/`, built from the
 source STLs with `npx jake preview-meshes` (needs Blender). Paid hulls have no
 public STL, so their preview mesh is the only form of them the site serves.
 
+The web game at `/game/` draws its table with the same models, through the
+same code (`nuxt-site/app/lib/shipAssembly.ts` and `seaScene.ts`). Its 3D
+view is `nuxt-site/app/lib/game3d.ts`, bundled into the generated
+`public/game/game3d.js` by `npm run game3d` (also run by `npm run dev` and
+`npm run build`; use `npm run game3d:watch` while working on it). The game's
+rules, AI and online play stay in the plain scripts beside it, and
+`public/game/view3d.js` connects the two. Add `?2d` to the game's URL for the
+old top-down view, which is also what browsers without WebGL get.
+
+The game loads a lighter mesh set, `assets/previews/game/` (same paths, about
+a quarter of the triangles), built alongside the shop's by the same
+`preview-meshes` task; only the fastest desktops get the full set. It picks a
+graphics level for the device (resolution, ambient occlusion, see-through
+PETG, a 30 fps cap on the lowest two) and keeps adjusting it to the measured
+frame rate. The game menu can pin it to high or fast instead.
+
 ## Community
 
 Join the [Discord community](https://discord.gg/DMuFEWJtZq) to get notified about launches, new files, and playtesting opportunities.

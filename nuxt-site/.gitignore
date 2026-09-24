@@ -9,3 +9,6 @@ dist
 # live at the repo root.
 public/_headers
 public/_redirects
+
+# Bundled from app/lib/game3d.ts by scripts/build-game3d.mjs.
+public/game/game3d.js

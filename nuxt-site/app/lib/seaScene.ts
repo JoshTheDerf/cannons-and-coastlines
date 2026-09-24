@@ -6,9 +6,10 @@
 // over to it. All distances are millimetres, like the models, and the world
 // is three.js Y-up (the ship group is rotated from hull Z-up into it).
 //
-// Nothing here knows about ships. ShipPreview.client.vue owns the renderer,
-// camera and post-processing, and calls:
-//   createSea(renderer, scene, waterLevel)
+// Nothing here knows about ships. The viewer (ShipPreview.client.vue, or the
+// web game's lib/game3d.ts) owns the renderer, camera and post-processing,
+// and calls:
+//   createSea(renderer, scene, waterLevel, options?)
 //   sea.apply(atmosphere)      when the ship (and so the weather) changes
 //   sea.update(seconds, focus) every frame, before rendering
 //   sea.renderOverlay(camera)  after the composer, for rain
@@ -28,9 +29,18 @@ export type Atmosphere = {
   islands: { color: string, beach: string | null, palms: boolean }
 }
 
-const SKY_RADIUS = 15000
-const SEA_RADIUS = 14000
-const NEAR_RADIUS = 1180
+/**
+ * The defaults suit one ship in close-up. A whole table wants the heaving
+ * sea wider (`nearRadius`), no calm patch at the focus (`calmRadius`, which
+ * keeps the swell from cutting through the one hull at the centre), and
+ * everything distant pushed out by `scale`: horizon, fog, islands, rain.
+ * `swell` scales the atmosphere's swell height (a table of ships with no
+ * calm patch needs gentler water, or it laps over the decks), `waveScale`
+ * stretches the waves (seen from across a whole table, close-up-sized waves
+ * line up into rows), and `foam` and `rain` scale those. `detail` scales the
+ * heaving sheet's vertex count (a slow device wants fewer).
+ */
+export type SeaOptions = { nearRadius?: number, calmRadius?: number, scale?: number, swell?: number, waveScale?: number, foam?: number, rain?: number, detail?: number }
 
 // Value noise shared by the sky and the sea shaders.
 const NOISE_GLSL = `
@@ -99,7 +109,15 @@ function mulberry32(seed: number) {
   }
 }
 
-export function createSea(renderer: THREE.WebGLRenderer, scene: THREE.Scene, waterLevel: number) {
+export function createSea(renderer: THREE.WebGLRenderer, scene: THREE.Scene, waterLevel: number, options: SeaOptions = {}) {
+  const scale = options.scale ?? 1
+  const SKY_RADIUS = 15000 * scale
+  const SEA_RADIUS = 14000 * scale
+  const NEAR_RADIUS = options.nearRadius ?? 1180
+  const CALM = options.calmRadius ?? 95
+  const glf = (v: number) => v.toFixed(1)
+  const WS = glf(options.waveScale ?? 1)
+
   // ── Sky ─────────────────────────────────────────────────────────────
   const skyUniforms = {
     uZenith: { value: new THREE.Color() },
@@ -186,8 +204,9 @@ export function createSea(renderer: THREE.WebGLRenderer, scene: THREE.Scene, wat
             // The sheet lies in its local XY; world XZ is (x, -y).
             vec2 p = vec2(position.x, -position.y);
             float r = length(p);
-            float atten = ${heaves ? 'smoothstep(95.0, 190.0, r) * (1.0 - smoothstep(850.0, 1170.0, r))' : '0.0'};
-            vec3 s = swell(seaWarp(p), uTime) * seaPatchAmp(p);
+            vec2 ps = p / ${WS};
+            float atten = ${heaves ? `${CALM > 0 ? `smoothstep(${glf(CALM)}, ${glf(CALM * 2)}, r)` : '1.0'} * (1.0 - smoothstep(${glf(NEAR_RADIUS * 0.72)}, ${glf(NEAR_RADIUS * 0.99)}, r))` : '0.0'};
+            vec3 s = swell(seaWarp(ps), uTime) * seaPatchAmp(ps);
             transformed.z += s.x * uSwell * atten;
             vSeaH = s.x;
             vSeaAtten = atten;
@@ -211,15 +230,15 @@ export function createSea(renderer: THREE.WebGLRenderer, scene: THREE.Scene, wat
           // Sea millimetres per pixel here: how far away this bit of water is.
           float seaPx = length(fwidth(seaP));
           float seaDist = length(vSeaPos.xz - cameraPosition.xz);
-          float seaNear = 1.0 - smoothstep(500.0, 3000.0, seaDist);
+          float seaNear = 1.0 - smoothstep(${glf(500 * scale)}, ${glf(3000 * scale)}, seaDist);
           // Crests catch the light and look greener; troughs stay deep.
           float seaCrest = clamp(vSeaH * 0.5 + 0.5, 0.0, 1.0);
           float seaPatch = seaFbm(seaP * 0.004 + uTime * 0.01);
           diffuseColor.rgb = mix(uDeep, uShallow, clamp(seaCrest * 0.55 * (vSeaAtten * 0.7 + 0.3) + seaPatch * 0.35, 0.0, 1.0));
           // Whitecaps: streaks on the highest crests where the swell runs,
           // torn up by fine noise so they read as spray, not blotches.
-          vec2 seaFoamP = seaP * vec2(0.16, 0.07) + vec2(uTime * 0.09, -uTime * 0.05);
-          float seaFoamN = seaFbm(seaFoamP) * 0.6 + seaFbm(seaP * 0.45 + uTime * 0.2) * 0.4;
+          vec2 seaFoamP = seaP / ${WS} * vec2(0.16, 0.07) + vec2(uTime * 0.09, -uTime * 0.05);
+          float seaFoamN = seaFbm(seaFoamP) * 0.6 + seaFbm(seaP / ${WS} * 0.45 + uTime * 0.2) * 0.4;
           float seaFoam = uFoam * vSeaAtten * seaNear
             * smoothstep(0.66, 0.86, seaCrest) * smoothstep(0.48, 0.72, seaFoamN);
           diffuseColor.rgb = mix(diffuseColor.rgb, vec3(0.92, 0.95, 0.96), seaFoam);`)
@@ -233,17 +252,17 @@ export function createSea(renderer: THREE.WebGLRenderer, scene: THREE.Scene, wat
           roughnessFactor = clamp(mix(roughnessFactor, 0.9, seaFoam), 0.04, 1.0);`)
         .replace('#include <normal_fragment_maps>', `#include <normal_fragment_maps>
           {
-            vec2 wp = seaWarp(seaP);
-            float amp = seaPatchAmp(seaP);
+            vec2 wp = seaWarp(seaP / ${WS});
+            float amp = seaPatchAmp(seaP / ${WS});
             vec3 s = swell(wp, uTime) * uSwell * vSeaAtten * amp;
-            vec2 g = s.yz;
+            vec2 g = s.yz / ${WS};
             // Wind chop on top of the swell (on warped coordinates too, with
             // its own patchiness), then fine ripples from noise.
             float chopAmp = uChop * (0.4 + 1.2 * seaFbm3(seaP * 0.004 + 11.0));
             g += chopAmp * (chopWave(wp, normalize(vec2(1.0, 0.35)), 38.0, 0.35, 1.1)
                           + chopWave(wp, normalize(vec2(-0.6, 1.0)), 23.0, 0.2, 1.6)
                           + chopWave(wp, normalize(vec2(0.2, -1.0)), 13.0, 0.08, 2.3)
-                          + chopWave(wp, normalize(vec2(0.7, 0.9)), 17.0, 0.1, 1.9));
+                          + chopWave(wp, normalize(vec2(0.7, 0.9)), 17.0, 0.1, 1.9)) / ${WS};
             // Fine ripples only while they are bigger than a pixel; any
             // smaller and they alias into exactly the grid we are avoiding.
             float px = seaPx;
@@ -258,12 +277,13 @@ export function createSea(renderer: THREE.WebGLRenderer, scene: THREE.Scene, wat
             normal = normalize((viewMatrix * vec4(nW, 0.0)).xyz);
           }`)
     }
-    mat.customProgramCacheKey = () => `cnc-sea-${heaves ? 1 : 0}`
+    mat.customProgramCacheKey = () => `cnc-sea-${heaves ? 1 : 0}-${NEAR_RADIUS}-${CALM}-${scale}-${WS}`
     return mat
   }
   // Concentric rings rather than a square grid, so the heaving sheet meets
   // the flat one on a circle with no overlap to z-fight.
-  const nearSea = new THREE.Mesh(new THREE.RingGeometry(0.5, NEAR_RADIUS, 256, 150), seaMaterial(true))
+  const detail = options.detail ?? 1
+  const nearSea = new THREE.Mesh(new THREE.RingGeometry(0.5, NEAR_RADIUS, Math.round(256 * Math.sqrt(detail)), Math.round(150 * NEAR_RADIUS / 1180 * Math.sqrt(detail))), seaMaterial(true))
   nearSea.rotation.x = -Math.PI / 2
   nearSea.position.y = waterLevel
   const farGeom = new THREE.RingGeometry(NEAR_RADIUS, SEA_RADIUS, 256, 1)
@@ -299,9 +319,9 @@ export function createSea(renderer: THREE.WebGLRenderer, scene: THREE.Scene, wat
     const count = 9
     for (let i = 0; i < count; i++) {
       const ang = (i / count) * Math.PI * 2 + rand() * 0.5
-      const dist = atm.fog.far * (0.45 + rand() * 0.4)
-      const r = 220 + rand() * 520
-      const h = 70 + rand() * 260
+      const dist = atm.fog.far * scale * (0.45 + rand() * 0.4)
+      const r = (220 + rand() * 520) * scale
+      const h = (70 + rand() * 260) * scale
       const geom = new THREE.IcosahedronGeometry(1, 4)
       const pos = geom.getAttribute('position') as THREE.BufferAttribute
       const seed = rand() * 100
@@ -317,7 +337,7 @@ export function createSea(renderer: THREE.WebGLRenderer, scene: THREE.Scene, wat
       isle.rotation.y = rand() * Math.PI
       islands.add(isle)
       if (beach) {
-        const sand = new THREE.Mesh(new THREE.CylinderGeometry(r * 1.12, r * 1.18, 6, 32), beach)
+        const sand = new THREE.Mesh(new THREE.CylinderGeometry(r * 1.12, r * 1.18, 6 * scale, 32), beach)
         sand.scale.z = 0.8
         sand.position.set(cx, waterLevel + 1, cz)
         sand.rotation.y = isle.rotation.y
@@ -329,16 +349,16 @@ export function createSea(renderer: THREE.WebGLRenderer, scene: THREE.Scene, wat
           const a = rand() * Math.PI * 2
           const rr = r * (0.55 + rand() * 0.45)
           const px = cx + Math.cos(a) * rr, pz = cz + Math.sin(a) * rr * 0.75
-          const tall = 60 + rand() * 50
-          const t = new THREE.Mesh(new THREE.CylinderGeometry(2.5, 4, tall, 5), trunk)
+          const tall = (60 + rand() * 50) * scale
+          const t = new THREE.Mesh(new THREE.CylinderGeometry(2.5 * scale, 4 * scale, tall, 5), trunk)
           t.position.set(px, waterLevel + tall / 2 + 4, pz)
           t.rotation.z = (rand() - 0.5) * 0.4
           islands.add(t)
           for (let f = 0; f < 6; f++) {
-            const leaf = new THREE.Mesh(new THREE.ConeGeometry(6, 40, 4), frond)
-            leaf.position.set(px, waterLevel + tall + 4, pz)
+            const leaf = new THREE.Mesh(new THREE.ConeGeometry(6 * scale, 40 * scale, 4), frond)
+            leaf.position.set(px, waterLevel + tall + 4 * scale, pz)
             leaf.rotation.set(Math.PI / 2 - 0.5, (f / 6) * Math.PI * 2, 0, 'YXZ')
-            leaf.translateY(18)
+            leaf.translateY(18 * scale)
             islands.add(leaf)
           }
         }
@@ -350,7 +370,7 @@ export function createSea(renderer: THREE.WebGLRenderer, scene: THREE.Scene, wat
   // ── Rain: streaks drawn over the finished frame ─────────────────────
   const overlay = new THREE.Scene()
   const DROPS = 2200
-  const RAIN_BOX = new THREE.Vector3(900, 600, 900)
+  const RAIN_BOX = new THREE.Vector3(900, 600, 900).multiplyScalar(Math.sqrt(scale))
   const rainPos = new Float32Array(DROPS * 6)
   const drops = new Float32Array(DROPS * 3)
   const rng = mulberry32(11)
@@ -385,9 +405,9 @@ export function createSea(renderer: THREE.WebGLRenderer, scene: THREE.Scene, wat
     skyUniforms.uCloudShadow.value.set(atm.clouds.shadow)
     skyUniforms.uCloudSpeed.value = atm.clouds.speed
 
-    seaUniforms.uSwell.value = atm.sea.swell
+    seaUniforms.uSwell.value = atm.sea.swell * (options.swell ?? 1)
     seaUniforms.uChop.value = atm.sea.chop
-    seaUniforms.uFoam.value = atm.sea.foam
+    seaUniforms.uFoam.value = atm.sea.foam * (options.foam ?? 1)
     seaUniforms.uDeep.value.set(atm.sea.deep)
     seaUniforms.uShallow.value.set(atm.sea.shallow)
     for (const m of seaMats) m.roughness = atm.sea.roughness
@@ -400,9 +420,9 @@ export function createSea(renderer: THREE.WebGLRenderer, scene: THREE.Scene, wat
     sun.position.set(...atm.sun.dir).multiplyScalar(1000)
     fill.intensity = 0.25 + atm.hemi.intensity * 0.25
 
-    scene.fog = new THREE.Fog(atm.fog.color, atm.fog.near, atm.fog.far)
+    scene.fog = new THREE.Fog(atm.fog.color, atm.fog.near * scale, atm.fog.far * scale)
     renderer.toneMappingExposure = atm.exposure
-    rainMat.opacity = 0.32 * atm.rain
+    rainMat.opacity = 0.32 * atm.rain * (options.rain ?? 1)
 
     // Reflections come from this sky: re-render it into an environment map.
     const envScene = new THREE.Scene()
@@ -427,14 +447,15 @@ export function createSea(renderer: THREE.WebGLRenderer, scene: THREE.Scene, wat
 
     // Rain falls through a box that follows the camera's focus.
     if (current && current.rain > 0) {
-      const fall = 900 * dt
+      const fall = 900 * Math.sqrt(scale) * dt
       for (let i = 0; i < DROPS; i++) {
         let y = drops[i * 3 + 1]! - fall
         if (y < 0) y += RAIN_BOX.y
         drops[i * 3 + 1] = y
         const x = focus.x + drops[i * 3]!, z = focus.z + drops[i * 3 + 2]!
         const yy = waterLevel + y
-        rainPos.set([x, yy, z, x + 1.5, yy + 14, z + 0.5], i * 6)
+        const k = Math.sqrt(scale)
+        rainPos.set([x, yy, z, x + 1.5 * k, yy + 14 * k, z + 0.5 * k], i * 6)
       }
       rainGeom.attributes.position!.needsUpdate = true
     }

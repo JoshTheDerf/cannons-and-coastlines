@@ -149,6 +149,13 @@
       "preview": "/assets/previews/parts/reef.glb",
       "anchor": [133.59, 83.71, 0.0]
     },
+    "island": {
+      "$comment": "The whole island: sits straight on the table. Used by the web game's islands. It is detailed, so it gets a bigger triangle budget.",
+      "source": "assets/stls/base-set/island.stl",
+      "preview": "/assets/previews/parts/island.glb",
+      "anchor": [0.0, 0.0, 0.0],
+      "tris": 24000
+    },
     "island-topper": {
       "source": "assets/stls/base-set/island-topper.stl",
       "preview": "/assets/previews/parts/island-topper.glb",

@@ -94,13 +94,8 @@ function enterGameScreen() {
     window.addEventListener('resize', applyLayout);
     requestAnimationFrame(frame);
   }
-  camReset();
   resizeCanvas();
-  if (isOnline() && NET.seat != null && G.table.shape === 'circle' && G.table.r > 70) {
-    // Big round tables: open zoomed in toward your own fleet.
-    const home = seatHome(NET.seat), c = tableCenter();
-    camLookAt(c.x + (home.x - c.x) * 0.45, c.y + (home.y - c.y) * 0.45, clamp(G.table.r / 60, 1, 2.2));
-  }
+  camHome();
   refresh();
 }
 
@@ -165,6 +160,7 @@ function announceTurn() {
   b.style.borderLeftColor = colorOf(p).main;
   b.classList.remove('show'); void b.offsetWidth; b.classList.add('show');
   sfxTurnChange();
+  camTurnStart(p);
 }
 
 // ═══ Action pipeline ═══════════════════════════════════
@@ -191,6 +187,7 @@ async function perform(a) {
   if (!res.ok) { logMsg(res.err); sfxError(); }
   resyncUI();
   refresh();
+  if (res.ok && isMyTurn() && a.t !== 'endTurn') camNextShip();
   if (res.ok && !isOnline()) afterEvents(res.events);
   return res;
 }
@@ -280,6 +277,7 @@ async function playEvents(events) {
         break;
       case 'shot': {
         sfxFire(); hapticThud();
+        if (s) noteShot(s, e.origin, e.h);
         animSmoke(e.origin.x, e.origin.y, e.h);
         await animCannonball(e.origin.x, e.origin.y, e.h, e.D, e.stopS, e.b);
         if (e.kind === 'ship') {
@@ -383,12 +381,13 @@ function onPointerDown(e) {
   try { canvas.setPointerCapture(e.pointerId); } catch (err) { /* ignore */ }
   if (ptrs.size === 2) {
     const [a, b] = [...ptrs.values()];
-    pinch = { d: Math.hypot(a.x - b.x, a.y - b.y), mx: (a.x + b.x) / 2, my: (a.y + b.y) / 2 };
+    pinch = { d: Math.hypot(a.x - b.x, a.y - b.y), mx: (a.x + b.x) / 2, my: (a.y + b.y) / 2, ang: Math.atan2(b.y - a.y, b.x - a.x) };
     pan = null; UI.dragging = false;
     return;
   }
   if (ptrs.size > 2 || !G) return;
-  if (e.button === 1 || e.button === 2) { pan = { x: e.clientX, y: e.clientY, moved: true }; return; }
+  // Right-drag turns the 3D view round; middle-drag pans.
+  if (e.button === 1 || e.button === 2) { pan = { x: e.clientX, y: e.clientY, moved: true, orbit: e.button === 2 && camCanOrbit() }; return; }
   if (isAnimating() || (G.phase === 'play' && !isMyTurn())) {
     if (isAnimating()) skipAnimations();
     pan = { x: e.clientX, y: e.clientY, moved: false, tap: null };
@@ -461,12 +460,15 @@ function onPointerMove(e) {
     const d = Math.hypot(a.x - b.x, a.y - b.y), mx = (a.x + b.x) / 2, my = (a.y + b.y) / 2;
     if (pinch.d > 0) camZoomAt(mx, my, d / pinch.d);
     camPan(mx - pinch.mx, my - pinch.my);
-    pinch = { d, mx, my };
+    // Twisting two fingers turns the 3D view.
+    const ang = Math.atan2(b.y - a.y, b.x - a.x);
+    camRotate(Math.atan2(Math.sin(ang - pinch.ang), Math.cos(ang - pinch.ang)));
+    pinch = { d, mx, my, ang };
     return;
   }
   if (pan) {
     const dx = e.clientX - pan.x, dy = e.clientY - pan.y;
-    if (pan.moved || Math.hypot(dx, dy) > 6) { pan.moved = true; camPan(dx, dy); pan.x = e.clientX; pan.y = e.clientY; }
+    if (pan.moved || Math.hypot(dx, dy) > 6) { pan.moved = true; if (pan.orbit) camOrbit(dx, dy); else camPan(dx, dy); pan.x = e.clientX; pan.y = e.clientY; }
     return;
   }
   if (!G || !isMyTurn()) return;
@@ -524,14 +526,14 @@ function unlockAim() {
 
 function onMoveHandle(sp) {
   const m = UI.move; if (!m || !m.plan) return false;
-  const c = w2s(m.ship.x, m.ship.y), f = fwdVec(m.plan.rot.h), R = w2r(m.ship.len * 1.1);
-  return Math.hypot(sp.x - (c.x + f.x * R), sp.y - (c.y + f.y * R)) < 24;
+  const k = moveHandleScreen(m);
+  return Math.hypot(sp.x - k.x, sp.y - k.y) < 24;
 }
 function aimPivot(F) { return F.source === 'island' ? F.island : slotWorld(F.ship, F.slot); }
 function onAimHandle(sp, anyStage) {
   const F = UI.fire; if (!F || (F.stage !== 'dir' && !anyStage) || !(F.free || F.source === 'island')) return false;
-  const p = aimPivot(F), c = w2s(p.x, p.y), f = fwdVec(F.h), R = Math.max(34, w2r(9));
-  return Math.hypot(sp.x - (c.x + f.x * R), sp.y - (c.y + f.y * R)) < 24 || Math.hypot(sp.x - c.x, sp.y - c.y) < 16;
+  const k = aimHandleScreen(F);
+  return Math.hypot(sp.x - k.x, sp.y - k.y) < 24 || Math.hypot(sp.x - k.cx, sp.y - k.cy) < 16;
 }
 function slotAt(w) {
   const F = UI.fire; let best = -1, bd = Infinity;
@@ -611,6 +613,7 @@ function selectShip(s) {
   cancelMode();
   UI.sel = s;
   sfxSelect(); hapticTap();
+  camFocusShip(s, true);
   if (s.pending === 'shot2') { startFire(s, s.lastSource || 'ship', s.lastIsland != null ? G.terrain[s.lastIsland] : null); return; }
   if (s.stage === 'click' && !s.acted) { startMove(s, 'sail'); return; }
   UI.ring = { id: s.id };
@@ -671,7 +674,11 @@ function moveChipLayout() {
   const m = UI.move;
   if (UI.mode !== 'move' || !m || !m.plan || UI.busy || (!m.locked && !m.lockHeading)) return [];
   const n = m.ship.moveCount, h = m.plan.rot.h, f = fwdVec(h), st = stbVec(h);
-  const start = m.plan.start, step = w2r(CLICK_LEN);
+  const start = m.plan.start;
+  // On screen: the click spacing, and which way is forward and starboard.
+  const s0 = w2s(start.x, start.y), s1 = w2s(start.x + f.x * CLICK_LEN, start.y + f.y * CLICK_LEN);
+  const step = Math.hypot(s1.x - s0.x, s1.y - s0.y);
+  const sf = sdir(start.x, start.y, f.x, f.y), ss = sdir(start.x, start.y, st.x, st.y);
   const place = sideSign => {
     const out = [];
     if (step >= 44) {
@@ -679,15 +686,15 @@ function moveChipLayout() {
       const off = w2r(m.ship.wid / 2) + 28;
       for (let k = 1; k <= n; k++) {
         const p = w2s(start.x + f.x * k * CLICK_LEN, start.y + f.y * k * CLICK_LEN);
-        out.push({ k, x: p.x + st.x * off * sideSign, y: p.y + st.y * off * sideSign, r: CHIP_R });
+        out.push({ k, x: p.x + ss.x * off * sideSign, y: p.y + ss.y * off * sideSign, r: CHIP_R });
       }
     } else {
       // Zoomed out: a row across the course just past the bow at the far end.
       const tip = w2s(start.x + f.x * (n * CLICK_LEN + m.ship.len / 2), start.y + f.y * (n * CLICK_LEN + m.ship.len / 2));
-      const bx = tip.x + f.x * 34, by = tip.y + f.y * 34;
+      const bx = tip.x + sf.x * 34, by = tip.y + sf.y * 34;
       for (let k = 1; k <= n; k++) {
         const o = (k - (n + 1) / 2) * 46 * sideSign;
-        out.push({ k, x: bx + st.x * o, y: by + st.y * o, r: CHIP_R });
+        out.push({ k, x: bx + ss.x * o, y: by + ss.y * o, r: CHIP_R });
       }
     }
     return out;
@@ -713,9 +720,10 @@ function slotChipLayout() {
   const items = F.slots.map((sl, idx) => {
     const w = slotWorld(ship, sl);
     const hh = sl.free ? normAngle(ship.h + (ship.turretRel || 0)) : w.h;
+    const d = sdir(w.x, w.y, Math.sin(hh), -Math.cos(hh));
     const lbl = sl.free ? 'Turret' : sl.label === 'Bow' ? 'Bow' : sl.label.startsWith('Stern') ? (sl.label === 'Stern' ? 'Centre' : sl.label.endsWith('port') ? 'Port' : 'Stbd')
       : sl.label.endsWith('fore') ? 'Fore' : sl.label.endsWith('aft') ? 'Aft' : 'Mid';
-    return { idx, a: Math.atan2(-Math.cos(hh), Math.sin(hh)), sw: w2s(w.x, w.y), label: lbl };
+    return { idx, a: Math.atan2(d.y, d.x), sw: w2s(w.x, w.y), label: lbl };
   }).sort((p, q) => p.a - q.a);
   // Keep neighbours at least 46 px apart around the ring.
   const minA = 46 / R;
@@ -733,7 +741,7 @@ function evasiveChipLayout() {
   const ev = UI.evasive;
   if (UI.mode !== 'evasive' || !ev || UI.busy) return [];
   return ['port', 'stbd'].map(side => {
-    const pl = ev[side], sgn = side === 'port' ? -1 : 1, st = stbVec(ev.ship.h);
+    const pl = ev[side], sgn = side === 'port' ? -1 : 1, st0 = stbVec(ev.ship.h), st = sdir(pl.end.x, pl.end.y, st0.x, st0.y);
     const p = w2s(pl.end.x, pl.end.y), off = w2r(ev.ship.wid / 2) + 26;
     return { side, label: side === 'port' ? 'Port' : 'Starboard', dir: { x: st.x * sgn, y: st.y * sgn }, r: CHIP_R,
       x: clamp(p.x + st.x * sgn * off, CHIP_R + 2, canvasW - CHIP_R - 2), y: clamp(p.y + st.y * sgn * off, CHIP_R + 2, canvasH - CHIP_R - 2) };
@@ -764,6 +772,7 @@ function openRing(ship) {
   cancelMode();
   UI.sel = ship.owner === G.active ? ship : null;
   UI.ring = { id: ship.id };
+  camFocusShip(ship, true);
   refresh();
 }
 
@@ -1393,6 +1402,7 @@ function showMenu() {
   add('How to play', () => { hideMenu(); showHelp(); }, 'help');
   add(audioMuted ? 'Sound: off' : 'Sound: on', () => { toggleMute(); showMenu(); }, 'sound');
   add('Fit the table on screen', () => { camReset(); hideMenu(); }, 'fit');
+  if (typeof view3dMenuItems === 'function') view3dMenuItems(add);
   if (!isOnline()) for (const p of [1, 2]) add(`Player ${p}: ${aiControlled[p] ? 'computer' : 'human'}`, () => { aiControlled[p] = !aiControlled[p]; showMenu(); refresh(); kickAI(); }, 'ai' + p);
   if (isOnline()) add('Copy game link', () => NET.copyLink(), 'copylink');
   add('Fullscreen', () => { toggleFullscreen(); hideMenu(); }, 'fullscreen');
@@ -1463,7 +1473,7 @@ async function aiMaybeAct() {
       let guard = 0;
       while (G && G.phase === 'play' && aiControlled[G.active] && G.active === p && guard++ < 80) {
         const a = aiNextAction(p);
-        if (a.ship) { UI.sel = shipById(a.ship); refresh(); await sleep(AI_DELAY * 0.5); }
+        if (a.ship) { UI.sel = shipById(a.ship); camFocusShip(UI.sel); refresh(); await sleep(AI_DELAY * 0.5); }
         if (a.t === 'fire') await aiShowAim(a);
         const res = await perform(a);
         if (!res.ok) {

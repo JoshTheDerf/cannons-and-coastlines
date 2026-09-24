@@ -131,21 +131,24 @@
       <p>Up to seven crews on a round table, one turn each in seat order. The server checks every move and rolls every shot. If you drop out, reopen the link and you get your seat back.</p>
 
       <h3>Controls</h3>
-      <p>Everything happens on the table. Tap a ship to open its ring of actions and coins. For Steer, drag the handle (or move the mouse and click) to set the heading, then tap a numbered chip to sail that many clicks. For Fire, tap a slot chip, then tap the table when the ring is where you want the ball to land. The turret and island gun have their own aiming handle. Tap water or press Esc to close or step back. Pinch or use the wheel to zoom, drag empty water to pan. Keys: arrows turn, 1 to 4 sail that many clicks, Enter sails the full count, Space fires. The panel has every action too.</p>
+      <p>Everything happens on the table. Tap a ship to open its ring of actions and coins. For Steer, drag the handle (or move the mouse and click) to set the heading, then tap a numbered chip to sail that many clicks. For Fire, tap a slot chip, then tap the table when the ring is where you want the ball to land. The turret and island gun have their own aiming handle. Tap water or press Esc to close or step back. Pinch or use the wheel to zoom, drag empty water to pan. Right-drag, twist two fingers, or press Q and E to turn the view; the last camera button (or T) looks straight down. The camera follows the action, which you can turn off in the menu. Keys: arrows turn, 1 to 4 sail that many clicks, Enter sails the full count, Space fires. The panel has every action too.</p>
       <button onclick="hideHelp()">Got it</button>
     </div>
   </div>
 </div>
 
-<script src="constants.js"></script>
-<script src="geometry.js"></script>
-<script src="state.js"></script>
-<script src="rules.js"></script>
-<script src="brain.js"></script>
-<script src="audio.js"></script>
-<script src="animations.js"></script>
-<script src="renderer.js"></script>
-<script src="net.js"></script>
-<script src="main.js"></script>
+<!-- game3d.js is built from nuxt-site/app/lib/game3d.ts (npm run game3d). -->
+<script defer src="game3d.js"></script>
+<script defer src="constants.js"></script>
+<script defer src="geometry.js"></script>
+<script defer src="state.js"></script>
+<script defer src="rules.js"></script>
+<script defer src="brain.js"></script>
+<script defer src="audio.js"></script>
+<script defer src="animations.js"></script>
+<script defer src="renderer.js"></script>
+<script defer src="net.js"></script>
+<script defer src="main.js"></script>
+<script defer src="view3d.js"></script>
 </body>
 </html>

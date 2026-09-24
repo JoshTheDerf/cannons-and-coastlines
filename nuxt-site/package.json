@@ -3,8 +3,10 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "build": "nuxt build",
-    "dev": "nuxt dev",
+    "build": "node scripts/build-game3d.mjs && nuxt build",
+    "dev": "node scripts/build-game3d.mjs && nuxt dev",
+    "game3d": "node scripts/build-game3d.mjs",
+    "game3d:watch": "node scripts/build-game3d.mjs --watch",
     "generate": "nuxt generate",
     "preview": "nuxt preview",
     "postinstall": "nuxt prepare"

@@ -53,7 +53,8 @@ async function animShipMove(ship, plan) {
   }
   ship.h = plan.rot.h;
   const bump = !!plan.stoppedBy && plan.moved < plan.planned - 0.05;
-  await animRoll(ship, plan.start, plan.end, bump);
+  camFollowShip(ship);
+  try { await animRoll(ship, plan.start, plan.end, bump); } finally { camFollowShip(null); }
 }
 
 /**
@@ -92,6 +93,7 @@ async function animRoll(ship, from, to, bump) {
 /** Evasive slide: one smooth sideways shove. */
 async function animSlide(ship, from, to) {
   if (dist(from.x, from.y, to.x, to.y) < 0.01) return;
+  camFocusShip(ship);
   await tween(420, p => {
     const e = ease(p);
     ship.x = from.x + (to.x - from.x) * e; ship.y = from.y + (to.y - from.y) * e;
@@ -141,7 +143,10 @@ function animFittingFall(ship, idx) {
   const w = fittingWorld(ship, idx);
   const s = stbVec(ship.h);
   const side = Math.random() < 0.5 ? -1 : 1;
-  pushAnim({ type: 'fitting', x: w.x, y: w.y, dx: s.x * side, dy: s.y * side, kind: w.kind, mast: w.kind === 'mast', shipW: ship.wid, duration: 1200 });
+  // role: which piece of the 3D model this is (the nth mast or cargo from the bow).
+  const layout = fittingLayout(ship), role = w.kind === 'mast' || w.kind === 'cargo'
+    ? `${w.kind}:${layout.slice(0, idx).filter(f => f.kind === w.kind).length}` : w.kind;
+  pushAnim({ type: 'fitting', x: w.x, y: w.y, dx: s.x * side, dy: s.y * side, kind: w.kind, mast: w.kind === 'mast', shipW: ship.wid, shipId: ship.id, role, duration: 1200 });
 }
 
 /** The hull settles, shrinks and goes under. */

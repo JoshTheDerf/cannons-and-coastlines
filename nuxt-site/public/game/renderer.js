@@ -63,6 +63,42 @@ function w2s(wx, wy) { return { x: worldOffX + wx * worldScale, y: worldOffY + w
 function w2r(r) { return r * worldScale; }
 function s2w(sx, sy) { return { x: (sx - worldOffX) / worldScale, y: (sy - worldOffY) / worldScale }; }
 
+// ─── View hooks ───────────────────────────────────────
+// The 3D table (view3d.js) replaces these. Seen from straight above they
+// are trivial: height does not show, and a direction on the table is the
+// same direction on screen.
+function w2s3(wx, wy, h) { return w2s(wx, wy); }
+/** Unit screen direction of table direction (dx, dy) at table point (x, y). */
+function sdir(x, y, dx, dy) { const l = Math.hypot(dx, dy) || 1; return { x: dx / l, y: dy / l }; }
+/** Open a game: the whole table, or on a big round table your own side of it. */
+function camHome() {
+  camReset();
+  if (isOnline() && NET.seat != null && G.table.shape === 'circle' && G.table.r > 70) {
+    const home = seatHome(NET.seat), c = tableCenter();
+    camLookAt(c.x + (home.x - c.x) * 0.45, c.y + (home.y - c.y) * 0.45, clamp(G.table.r / 60, 1, 2.2));
+  }
+}
+function camCanOrbit() { return false; }
+function camOrbit(dx, dy) {}
+function camRotate(rad) {}
+// The camera moving between ships: nothing to do when the whole table is in view.
+function camFocusShip(ship, force) {}
+function camFollowShip(ship) {}
+function camTurnStart(p) {}
+function camNextShip() {}
+/** A shot was fired from (origin); the 3D view moves the ship's gun to that slot. */
+function noteShot(ship, origin, h) {}
+/** Screen position of the heading handle while steering. */
+function moveHandleScreen(m) {
+  const c = w2s(m.ship.x, m.ship.y), f = fwdVec(m.plan.rot.h), R = w2r(m.ship.len * 1.1);
+  return { x: c.x + f.x * R, y: c.y + f.y * R };
+}
+/** Screen position of the aiming handle for the turret or an island gun, and its circle's pivot. */
+function aimHandleScreen(F) {
+  const p = aimPivot(F), c = w2s(p.x, p.y), f = fwdVec(F.h), R = Math.max(34, w2r(9));
+  return { x: c.x + f.x * R, y: c.y + f.y * R, cx: c.x, cy: c.y, R };
+}
+
 function rgba(c, a) { return `rgba(${c[0]},${c[1]},${c[2]},${a})`; }
 
 // ─── Frame ────────────────────────────────────────────
@@ -557,8 +593,7 @@ function drawMovePreview() {
     else { ctx.moveTo(c.x, c.y); ctx.arc(c.x, c.y, R, ship.h - piv - Math.PI / 2, ship.h + piv - Math.PI / 2); ctx.closePath(); }
     ctx.fill(); ctx.stroke();
     // Heading handle: drag it (or tap anywhere) to swing the bow.
-    const hf = fwdVec(plan.rot.h);
-    const kx = c.x + hf.x * R, ky = c.y + hf.y * R;
+    const hk = moveHandleScreen(m), kx = hk.x, ky = hk.y;
     ctx.strokeStyle = 'rgba(250,243,224,.8)'; ctx.lineWidth = 1.5;
     ctx.beginPath(); ctx.moveTo(c.x, c.y); ctx.lineTo(kx, ky); ctx.stroke();
     // Open knob while previewing; solid crimson once the heading is set.
@@ -655,9 +690,7 @@ function drawFirePreview() {
   if (F.stage === 'dir') {
     drawLane(o.x, o.y, o.h, RANGE_MAX, false);
     // Aiming handle for the turret or island gun, like the heading handle.
-    const piv = F.source === 'island' ? F.island : slotWorld(F.ship, F.slot);
-    const c = w2s(piv.x, piv.y), f = fwdVec(F.h), R = Math.max(34, w2r(9));
-    const kx = c.x + f.x * R, ky = c.y + f.y * R;
+    const hk = aimHandleScreen(F), c = { x: hk.cx, y: hk.cy }, R = hk.R, kx = hk.x, ky = hk.y;
     ctx.strokeStyle = 'rgba(250,243,224,.85)'; ctx.lineWidth = 1.5; ctx.setLineDash([3, 3]);
     ctx.beginPath(); ctx.arc(c.x, c.y, R, 0, TAU); ctx.stroke(); ctx.setLineDash([]);
     ctx.fillStyle = F.locked ? '#8b1a1a' : '#faf3e0'; ctx.strokeStyle = F.locked ? '#faf3e0' : '#8b1a1a'; ctx.lineWidth = 2;
