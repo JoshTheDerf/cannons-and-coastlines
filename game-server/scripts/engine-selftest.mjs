@@ -42,7 +42,7 @@ for (const n of [2, 3, 5, 7]) {
   // Turret steering is part of the Fire action; the hull does not turn.
   Object.assign(ind, { x: 40, y: 60, h: 0 }); Object.assign(e, { x: 80, y: 60, h: 0 });
   const h0 = ind.h;
-  const r = engine.act(1, { t: 'fire', ship: ind.id, source: 'ship', slot: 1, h: Math.PI / 2, D: 30 });
+  const r = engine.act(1, { t: 'fire', ship: ind.id, source: 'ship', slot: 1, h: Math.PI / 2, elev: 'flat' });
   ok(r.ok && ind.h === h0 && Math.abs(ind.turretRel - Math.PI / 2) < 1e-9 && ind.stage === 'click', 'turret aims any way, keeps its facing, the hull stays put and the ship still owes its click');
   ok(!engine.act(1, { t: 'move', ship: ind.id, h: 1, clicks: 1 }).ok || Math.abs(ind.h - h0) < 1e-9, 'no steering after firing the turret');
   // Fittings come off turret, cargo, then smokestack; repairs go the other way.
@@ -58,6 +58,7 @@ for (const n of [2, 3, 5, 7]) {
   ok(ind.fit === 1 && ind.fitMask.join() === 'true,false,false' && !engine.hasTurret(ind), 'captured or raised Industry ship has 1 fitting (smokestack) and only its bow gun');
   const qf = engine.G.players[2].ships[0];
   ok(engine.fittingLayout(qf).map(f => f.kind).join() === 'mast,cargo,mast,cargo', "Queen's Fleet: mast, cargo, mast, cargo");
+  qf.fit = qf.maxFit; qf.fitMask = null; // the turret test above may have hit it
   const qorder = []; for (let k = 0; k < 4; k++) { qf.stoneUsed = true; qf.braced = false; engine.applyHit(qf); qorder.push(engine.fittingLayout(qf)[qf.lastLost].kind); }
   ok(qorder.join() === 'cargo,cargo,mast,mast', `sail ships lose cargo before masts (${qorder.join()})`);
   ind.fit = 0; ind.fitMask = [false, false, false];
@@ -91,7 +92,7 @@ for (const n of [2, 3, 5, 7]) {
   engine.G.terrain = [];
   Object.assign(q, { x: 50, y: 60, h: 0 });
   const w = engine.slotWorld(q, by(qs, 'Starboard fore'));
-  const tr = engine.traceShot({ ship: q }, w.x, w.y, w.h, 30, 0);
+  const tr = engine.traceShot({ ship: q }, w.x, w.y, engine.aimedShot(w.h, 'flat'));
   const ang = Math.atan2(tr.x - w.x, -(tr.y - w.y));
   ok(Math.abs(ang - (Math.PI / 2 - D15)) < 0.02, `shot from the forward starboard slot flies 15 deg ahead of abeam (${(ang * 180 / Math.PI).toFixed(1)} deg)`);
   if (fails) process.exitCode = 1;
@@ -112,7 +113,7 @@ for (const n of [2, 3, 5, 7]) {
   const slots = engine.islandSlots(G.terrain[3]);
   const gaps = slots.map((s, i) => Math.atan2(Math.sin(slots[(i + 1) % 6].h - s.h), Math.cos(slots[(i + 1) % 6].h - s.h)));
   ok(slots.length === 6 && gaps.every(g => Math.abs(Math.abs(g) - Math.PI / 3) < 1e-6), 'six island slots, 60 deg apart');
-  const fire = a => { G.players[1].ships.forEach(s => { s.acted = false; s.stage = 'action'; s.turnsLeft = 1; }); G.active = 1; return engine.act(1, Object.assign({ t: 'fire', ship: q.id, source: 'island', island: 3, D: 20 }, a)); };
+  const fire = a => { G.players[1].ships.forEach(s => { s.acted = false; s.stage = 'action'; s.turnsLeft = 1; }); G.active = 1; return engine.act(1, Object.assign({ t: 'fire', ship: q.id, source: 'island', island: 3, elev: 'flat' }, a)); };
   let r = fire({ slot: 4, h: 0 });
   const shot = r.ok && r.events.find(e => e.e === 'shot');
   ok(shot && Math.abs(Math.atan2(shot.x - shot.origin.x, -(shot.y - shot.origin.y)) - Math.atan2(Math.sin(slots[4].h), Math.cos(slots[4].h))) < 0.15, 'slot 4 fires along slot 4, whatever heading is asked');
@@ -129,4 +130,56 @@ for (const n of [2, 3, 5, 7]) {
   const { headToHead, stoneTables, reportStone } = await import('./tournament.mjs');
   headToHead(1);
   reportStone(3, stoneTables({ n: 3, seeds: 1, style: 'plain' }), stoneTables({ n: 3, seeds: 1, style: 'tactical' }));
+}
+
+// ── Unit checks: v0.6 cannons, prizes and collecting ──
+{
+  let fails = 0;
+  const ok = (c, m) => { console.log((c ? 'PASS ' : 'FAIL ') + m); if (!c) fails++; };
+  engine.setRand(engine.seededRandom(42));
+  engine.newGame({ seats: [{ faction: 'queens_fleet', color: 0 }, { faction: 'corsairs', color: 1 }], setup: 'quick', table: 'round' });
+  const G = engine.G;
+  G.terrain = [];
+  // Cannons: straight out comes down about 15 cm out, tipped up about 44 cm
+  // and clears a hull on the way; the spread stays inside 5 degrees.
+  const flat = engine.shotPath(66, 66, engine.aimedShot(0, 'flat')), lob = engine.shotPath(66, 66, engine.aimedShot(0, 'lob'));
+  ok(Math.abs(flat.legs[0].s1 - 15) < 3 && Math.abs(lob.legs[0].s1 - 44) < 4, `first landing: flat ${flat.legs[0].s1.toFixed(1)} cm, lob ${lob.legs[0].s1.toFixed(1)} cm`);
+  ok(engine.pathAt(lob, 20).z > 3 && engine.pathAt(flat, 5).z < 3, 'a lob clears a hull 20 cm out; a flat shot does not');
+  let wide = 0;
+  for (let i = 0; i < 500; i++) { const s = engine.wobbleShot(0, 'flat'); if (Math.abs(Math.atan2(Math.sin(s.h), Math.cos(s.h))) > 5 * Math.PI / 180 + 1e-9) wide++; }
+  ok(wide === 0, 'launch spread never passes 5 degrees');
+  // Prizes: a hit gives the shooter the fitting; a repair takes it back.
+  const [a] = G.players[1].ships, [b] = G.players[2].ships;
+  Object.assign(a, { x: 60, y: 66, h: 0 }); Object.assign(b, { x: 90, y: 66, h: 0 });
+  G.players[2].ships.slice(1).forEach(s => Object.assign(s, { x: 20, y: 20 + G.players[2].ships.indexOf(s) * 8 }));
+  G.players[1].ships.slice(1).forEach(s => Object.assign(s, { x: 110, y: 100 + G.players[1].ships.indexOf(s) * 8 }));
+  engine.applyHit(b, 1);
+  let sc = engine.scoreBreakdown();
+  ok(sc[1].fittings === 1 && sc[1].total === 1 + 2 + 2, `a hit is a prize fitting (${sc[1].fittings}, total ${sc[1].total}: +2 most ships and +2 most islands, tied)`);
+  G.active = 2; G.coinPhase = true; G.players[2].coins.repair = 1;
+  const rep = engine.act(2, { t: 'coin', coin: 'repair', target: b.id });
+  ok(rep.ok && engine.scoreBreakdown()[1].fittings === 0, 'Repair Crew takes the fitting back from the prize pile');
+  // Sinking gives the hull, worth 2.
+  b.fit = 0; b.fitMask = null; engine.applyHit(b, 1);
+  ok(engine.scoreBreakdown()[1].hulls === 1, 'sinking a ship gives its hull as a prize');
+  // Collect: only the nearest of your ships, touching or not, once a turn.
+  G.terrain = [{ type: 'island', x: 66, y: 30, r: 6, owner: 1, id: 0 }];
+  G.active = 1; G.coinPhase = true;
+  G.players[1].ships.forEach(s => { s.acted = false; s.stage = 'action'; s.turnsLeft = 1; s.noAction = false; });
+  const [s1, s2] = G.players[1].ships;
+  Object.assign(s1, { x: 66, y: 50, h: Math.PI / 2 }); Object.assign(s2, { x: 66, y: 60, h: Math.PI / 2 });
+  ok(!engine.act(1, { t: 'collect', ship: s2.id, island: 0 }).ok, 'a farther ship cannot collect');
+  const c = engine.act(1, { t: 'collect', ship: s1.id, island: 0 });
+  ok(c.ok && s1.stage === 'click', 'the nearest ship collects out at sea, then still owes its click');
+  ok(!engine.act(1, { t: 'collect', ship: s2.id, island: 0 }).ok, 'an island pays out once a turn');
+  // Stone Hulls: first hit ignored at sea, not while touching an island.
+  engine.newGame({ seats: [{ faction: 'stone_fleet', color: 0 }, { faction: 'corsairs', color: 1 }], setup: 'quick', table: 'round' });
+  const H = engine.G;
+  H.terrain = [{ type: 'island', x: 66, y: 66, r: 6, owner: null, id: 0 }];
+  const st = H.players[1].ships[0];
+  Object.assign(st, { x: 30, y: 30, h: 0 });
+  ok(engine.applyHit(st, 2) === 'stone', 'Stone Hulls shrug off the first hit at sea');
+  Object.assign(st, { x: 66 + 6 + st.wid / 2 + 0.1, y: 66, h: 0 }); st.stoneUsed = false;
+  ok(engine.applyHit(st, 2) === 'fitting', 'a Stone ship touching an island takes the hit');
+  if (fails) process.exitCode = 1;
 }

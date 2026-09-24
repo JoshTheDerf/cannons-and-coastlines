@@ -52,7 +52,7 @@
     ),
     ability: (
       heading: "Passive: Bountiful Harvest",
-      body: [Draw *2 coins* instead of 1 when collecting from your islands.],
+      body: [Draw *2 coins* instead of 1 when collecting. Your unspent coins score *1 point* each.],
     ),
     playstyle: [Economy. Hold an island or two hard, then use coin actions to buff your ships. Don't trade hulls.],
   ),
@@ -86,7 +86,7 @@
     ),
     ability: (
       heading: "Passive: Stone Hulls",
-      body: [Each ship ignores the *first hit* it takes each turn.],
+      body: [Each ship ignores the *first hit* it takes each turn, unless it is *touching an island*.],
     ),
     playstyle: [Tank salvos. Force opponents to focus-fire or watch their shots bounce off. Advance slowly, fire deliberately.],
   ),

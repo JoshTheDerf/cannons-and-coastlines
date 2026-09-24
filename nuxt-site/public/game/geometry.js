@@ -102,6 +102,12 @@ function shipTouchesTerrain(ship, t, pose) {
   return ptSegDist(t.x, t.y, s.ax, s.ay, s.bx, s.by) - s.r - t.r <= TOUCH_TOL;
 }
 
+/** Water between the ship and the island's shore (0 when touching). */
+function shoreGap(ship, t, pose) {
+  const s = shipSeg(ship, pose);
+  return Math.max(0, ptSegDist(t.x, t.y, s.ax, s.ay, s.bx, s.by) - s.r - t.r);
+}
+
 /** Indices of islands this ship is touching. */
 function touchingIslands(ship, pose) {
   const out = [];
@@ -270,11 +276,13 @@ function islandGunOrigin(t, h) {
 }
 
 // ─── Cannonball trace ─────────────────────────────────
-function ballHeight(s, D) {
-  if (s >= D) return 0;
-  const u = s / D;
-  return 4 * APEX_K * D * u * (1 - u);
-}
+// A shot is { h, elev, v, drag, curl, kicks }: the heading it left the
+// muzzle on, the elevation ('flat' or 'lob'), the spring's speed as a
+// fraction of MUZZLE_V, the table's skid drag and curl, and the sideways
+// knock at each bounce. wobbleShot() rolls these once, on the server;
+// everything after is worked out from them, so every screen draws the same
+// path. shotPath() turns a shot into legs: flight and hops (arcs), then a
+// skid in short straight pieces that curl as the ball slows.
 
 /** Distance along a ray from a point on the table until it leaves the table. */
 function rayExit(ox, oy, dx, dy) {
@@ -291,36 +299,99 @@ function rayExit(ox, oy, dx, dy) {
   return Math.max(0, s);
 }
 
+/** Roll the dice for one shot along heading h. */
+function wobbleShot(h, elev) {
+  const tri = () => rand() + rand() - 1; // -1..1, most likely 0
+  return {
+    h: normAngle(h + tri() * SPREAD_MAX),
+    elev: elev === 'lob' ? 'lob' : 'flat',
+    v: Math.max(0.75, 1 + gaussRandom() * MUZZLE_V_SD),
+    drag: Math.max(0.4, 1 + gaussRandom() * SKID_DECEL_SD),
+    curl: (rand() < 0.5 ? -1 : 1) * (0.4 + rand() * 1.2),
+    kicks: [0, 1, 2, 3].map(() => gaussRandom() * BOUNCE_KICK_SD),
+  };
+}
+
+/** The same shot with no luck in it: what the cannon is pointed at. */
+function aimedShot(h, elev) { return { h, elev: elev === 'lob' ? 'lob' : 'flat', v: 1, drag: 1, curl: 0, kicks: [0, 0, 0, 0] }; }
+
 /**
- * Trace a shot from (ox, oy) along heading h, landing at distance D, then
- * rolling on along h + bounce. src = { ship } or { island } to exclude the
+ * Legs of a shot from (ox, oy). Each leg is straight on the table:
+ * { x, y, fx, fy, s0, s1, z0, k1, k2 } with the ball's height at distance
+ * u into the leg z0 + k1 u - k2 u^2 (0 for the skid). Ends at the table
+ * edge (edge: true) or where the ball stops.
+ */
+function shotPath(ox, oy, shot) {
+  const legs = [];
+  let x = ox, y = oy, h = shot.h, s = 0, edge = false;
+  const speed = MUZZLE_V * shot.v, el = ELEVATIONS[shot.elev] || 0;
+  let vh = speed * Math.cos(el), vz = speed * Math.sin(el), z = MUZZLE_H;
+  // Add a straight leg of length len at heading h; false once off the table.
+  const push = (len, z0, k1, k2) => {
+    const f = fwdVec(h), out = rayExit(x, y, f.x, f.y);
+    const cut = out < len;
+    const L = cut ? out : len;
+    legs.push({ x, y, fx: f.x, fy: f.y, s0: s, s1: s + L, z0, k1, k2 });
+    x += f.x * L; y += f.y * L; s += L;
+    if (cut) edge = true;
+    return !cut;
+  };
+  // Flight, then hops while the bounce still leaves the table.
+  for (let bounce = 0; bounce < 6; bounce++) {
+    const t = (vz + Math.sqrt(vz * vz + 2 * GRAVITY * z)) / GRAVITY; // time to touch down
+    const len = vh * t;
+    if (!push(len, z, vz / vh, GRAVITY / (2 * vh * vh))) break;
+    const vDown = GRAVITY * t - vz;
+    vz = vDown * BOUNCE_E; vh *= BOUNCE_KEEP; z = 0;
+    h = normAngle(h + (shot.kicks[bounce] || 0) * Math.min(1.5, vDown / 80));
+    if (vz < HOP_MIN_VZ) break;
+  }
+  // Skid: a tapered ball scrubs speed and curls, tighter as it slows.
+  const a = SKID_DECEL * shot.drag;
+  let v2 = vh * vh;
+  while (!edge && v2 > 1) {
+    const ds = 1.5;
+    const vNow = Math.sqrt(v2);
+    const len = Math.min(ds, v2 / (2 * a));
+    if (!push(len, 0, 0, 0)) break;
+    v2 -= 2 * a * len;
+    h = normAngle(h + shot.curl * SKID_CURL * len / (vNow + SKID_CURL_V));
+    if (s > 400) break;
+  }
+  return { legs, total: s, edge };
+}
+
+/** Where the ball is at distance s along a path: { x, y, z }. */
+function pathAt(path, s) {
+  const L = path.legs;
+  let leg = L[L.length - 1];
+  for (const g of L) if (s <= g.s1) { leg = g; break; }
+  const u = clamp(s - leg.s0, 0, leg.s1 - leg.s0);
+  return { x: leg.x + leg.fx * u, y: leg.y + leg.fy * u, z: Math.max(0, leg.z0 + leg.k1 * u - leg.k2 * u * u) };
+}
+
+/**
+ * Trace a shot from (ox, oy). src = { ship } or { island } to exclude the
  * firing object. Returns the first contact:
- * { kind: 'ship'|'terrain'|'edge'|'none', obj, x, y, s }.
+ * { kind: 'ship'|'terrain'|'edge'|'none', obj, x, y, s, path }.
  * The ball is checked every 0.3 cm, but only near objects close to its path.
  */
-function traceShot(src, ox, oy, h, D, bounce) {
-  const f = fwdVec(h), fb = fwdVec(h + (bounce || 0));
-  const total = D * (1 + ROLL_K);
+function traceShot(src, ox, oy, shot) {
+  const path = shotPath(ox, oy, shot);
   const STEP = 0.3;
-  const lx = ox + f.x * D, ly = oy + f.y * D;
-  let exitS = rayExit(ox, oy, f.x, f.y);
-  if (exitS >= D) exitS = D + rayExit(lx, ly, fb.x, fb.y);
-  const endS = Math.min(total, exitS);
-  const px = s => (s <= D ? ox + f.x * s : lx + fb.x * (s - D));
-  const py = s => (s <= D ? oy + f.y * s : ly + fb.y * (s - D));
-
   let best = null;
-  // Window of path distance where the ball could reach an object centred
-  // at (x, y) with radius `reach` (flight leg, then roll leg).
+  // Walk each leg where the ball could reach an object centred at (x, y).
   const scan = (x, y, reach, test) => {
-    const legs = [[ox, oy, f, 0, D], [lx, ly, fb, D, total]];
-    for (const [sx, sy, d, s0, s1] of legs) {
-      const dx = x - sx, dy = y - sy;
-      const along = dx * d.x + dy * d.y, perp = Math.abs(dx * d.y - dy * d.x);
+    for (const g of path.legs) {
+      if (best && g.s0 >= best.s) break;
+      const dx = x - g.x, dy = y - g.y;
+      const along = dx * g.fx + dy * g.fy, perp = Math.abs(dx * g.fy - dy * g.fx);
       if (perp > reach) continue;
-      const lo = Math.max(s0, s0 + along - reach), hi = Math.min(s1, s0 + along + reach, endS, best ? best.s : Infinity);
-      for (let s = Math.ceil(lo / STEP - 1e-9) * STEP; s <= hi + 1e-9; s += STEP) {
-        if (test(px(s), py(s), ballHeight(s, D))) { best = { s, x: px(s), y: py(s) }; return true; }
+      const len = g.s1 - g.s0;
+      const lo = Math.max(0, along - reach), hi = Math.min(len, along + reach, best ? best.s - g.s0 : Infinity);
+      for (let u = Math.ceil(lo / STEP - 1e-9) * STEP; u <= hi + 1e-9; u += STEP) {
+        const px = g.x + g.fx * u, py = g.y + g.fy * u;
+        if (test(px, py, Math.max(0, g.z0 + g.k1 * u - g.k2 * u * u))) { best = { s: g.s0 + u, x: px, y: py }; return true; }
       }
     }
     return false;
@@ -336,19 +407,7 @@ function traceShot(src, ox, oy, h, D, bounce) {
     const ht = TERRAIN_DEFS[t.type].height, rr = t.r + BALL_R;
     if (scan(t.x, t.y, rr + 0.3, (x, y, hg) => hg < ht && dist(x, y, t.x, t.y) <= rr)) hit = { kind: 'terrain', obj: t };
   }
-  if (hit) return Object.assign(hit, best);
-  if (exitS < total) return { kind: 'edge', obj: null, x: px(exitS), y: py(exitS), s: exitS };
-  return { kind: 'none', obj: null, x: px(total), y: py(total), s: total };
+  if (hit) return Object.assign(hit, best, { path });
+  const end = pathAt(path, path.total);
+  return { kind: path.edge ? 'edge' : 'none', obj: null, x: end.x, y: end.y, s: path.total, path };
 }
-
-/** Apply the cannon's wobble to an intended shot. */
-function wobbleShot(h, D) {
-  return {
-    h: normAngle(h + gaussRandom() * SHOT_ANGLE_SD),
-    D: clamp(D * (1 + gaussRandom() * SHOT_RANGE_SD), RANGE_MIN * 0.8, RANGE_MAX * 1.1),
-    b: gaussRandom() * BOUNCE_SD,
-  };
-}
-
-function powerToRange(p) { return RANGE_MIN + clamp(p, 0, 1) * (RANGE_MAX - RANGE_MIN); }
-function rangeToPower(D) { return clamp((D - RANGE_MIN) / (RANGE_MAX - RANGE_MIN), 0, 1); }

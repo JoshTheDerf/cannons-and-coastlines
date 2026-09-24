@@ -1,17 +1,18 @@
 // Cannons & Coastlines, digital edition: rules.js
-// The rules engine (rulebook v0.5). act(p, action) checks that seat p may do
+// The rules engine (rulebook v0.6). act(p, action) checks that seat p may do
 // `action` right now, applies it to G and returns the events that happened,
 // in order. Clients animate the events; the online server runs this same
 // file as the authority, so a client can only ever ask, never decide.
 //
 // A ship's turn: one action (Set Heading, Fire, or an Island action if it
-// touches an island), then it clicks forward 1 to Move Count. An Island
-// action skips the click. Dead ships skip the click but may still fire.
+// touches an island, or Collect if it is your ship nearest an island you
+// hold), then it clicks forward 1 to Move Count. An action taken touching an
+// island skips the click. Dead ships skip the click but may still fire.
 // No ship both steers and fires on the same turn.
 //
 // Actions (ids are strings or numbers from the state):
 //   { t: 'move', ship, h, clicks }     steer (if the turn has not started) and click
-//   { t: 'fire', ship, source: 'ship'|'island', slot, island, h, D }
+//   { t: 'fire', ship, source: 'ship'|'island', slot, island, h, elev: 'flat'|'lob' }
 //   { t: 'skipShot', ship }            { t: 'pass', ship }      (dead ships only)
 //   { t: 'raise', ship, island }       { t: 'collect', ship, island }
 //   { t: 'scuttle', ship }
@@ -145,14 +146,15 @@ ACTIONS.fire = (p, a) => {
     // angle is fine. The hull itself does not turn.
     if (F.slot.free) s.turretRel = normAngle(F.h - s.h);
   }
-  const D = clamp(+a.D || RANGE_MIN, RANGE_MIN, RANGE_MAX);
+  // Two elevations and no power control: the spring and the table decide the rest.
+  const elev = a.elev === 'lob' ? 'lob' : 'flat';
   G.coinPhase = false;
   const o = fireOriginFor(s, F);
   const src = F.source === 'island' ? { island: F.island } : { ship: s };
-  const wob = wobbleShot(o.h, D);
-  const tr = traceShot(src, o.x, o.y, wob.h, wob.D, wob.b);
+  const wob = wobbleShot(o.h, elev);
+  const tr = traceShot(src, o.x, o.y, wob);
   G.stats[p].shots++;
-  const shot = ev({ e: 'shot', ship: s.id, origin: { x: o.x, y: o.y }, h: wob.h, D: wob.D, b: wob.b, stopS: tr.s, kind: tr.kind, x: tr.x, y: tr.y });
+  const shot = ev({ e: 'shot', ship: s.id, origin: { x: o.x, y: o.y }, shot: wob, h: wob.h, stopS: tr.s, kind: tr.kind, x: tr.x, y: tr.y });
   if (tr.kind === 'ship') {
     const t = tr.obj;
     shot.target = t.id;
@@ -160,7 +162,7 @@ ACTIONS.fire = (p, a) => {
       shot.friendly = true;
       shot.msg = `The shot hits ${t.name} first. No damage.`;
     } else {
-      const res = applyHit(t);
+      const res = applyHit(t, p);
       shot.res = res; shot.fitAfter = t.fit; shot.mask = fitMaskOf(t).slice();
       if (res === 'fitting' || res === 'dead') shot.lost = t.lastLost;
       if (res === 'sunk') { shot.wreck = snapShip(t); G.stats[p].sunk++; }
@@ -209,15 +211,20 @@ ACTIONS.raise = (p, a) => {
   plunder(p, s);
 };
 
+// The ship nearest the island collects, touching it or not. Touching, it
+// holds still like any island action; out at sea it still clicks forward.
 ACTIONS.collect = (p, a) => {
   const s = ownShip(p, a.ship), t = islandById(a.island);
-  islandActionCheck(s, t);
-  need(t.owner === p, 'You can only collect from an island you hold.');
+  need(canAct(s), s.noAction ? 'This ship gave its action away. It only sails forward.' : 'This ship has already acted this turn.');
+  const why = collectProblem(s, t);
+  need(!why, why);
   G.coinPhase = false;
   const n = passiveOf(p) === 'harvest' ? 2 : 1;
   const got = [];
   for (let i = 0; i < n; i++) { const id = drawCoin(p); if (id) got.push(id); }
-  finishTurn(s);
+  (G.collected ||= []).push(t.id);
+  if (shipTouchesTerrain(s, t) || isDead(s)) finishTurn(s);
+  else s.stage = 'click';
   ev({ e: 'collect', p, ship: s.id, island: t.id, got, msg: got.length ? `${s.name} collects: ${got.map(id => COIN_DEFS[id].short).join(', ')}.` : 'The bag is empty.' });
 };
 
@@ -294,6 +301,7 @@ function capture(p, target) {
   const was = target.owner;
   target.owner = p;
   oneFitting(target);
+  returnPrize(target, 'fitting');
   // It joins the fleet and may act on the following turn.
   target.acted = true; target.turnsLeft = 0; target.stage = null;
   target.pending = null; target.noAction = false; target.gunner = false;
@@ -339,6 +347,7 @@ ACTIONS.coin = (p, a) => {
         const idx = nextToRestore(target);
         payCoin(p, id);
         gainFitting(target, idx);
+        returnPrize(target, 'fitting');
         const what = fittingLayout(target)[idx].kind === 'turret' ? 'turret back on' : `${target.fit}/${target.maxFit}`;
         ev(Object.assign(at, { fit: target.fit, mask: fitMaskOf(target).slice(), idx, msg: `${target.name} repaired (${what}).` }));
       }
@@ -347,7 +356,7 @@ ACTIONS.coin = (p, a) => {
       if (isDead(target)) { capture(p, target); break; }
       payCoin(p, id);
       const from = boarder(p, target);
-      const res = applyHit(target);
+      const res = applyHit(target, p);
       const e = ev({ e: 'board', p, from: from.id, ship: target.id, res, fitAfter: target.fit, mask: fitMaskOf(target).slice(), lost: target.lastLost, msg: `Boarding party on ${target.name}: ${hitWords(res)}.` });
       if (res === 'sunk') e.wreck = snapShip(target);
       if (res === 'fitting' || res === 'dead' || res === 'sunk') { G.stats[p].hits++; plunder(p, from); }
@@ -407,6 +416,8 @@ ACTIONS.revive = (p, a) => {
     noAction: false, gunner: false, stoneUsed: false, touchPrev: [t.id],
   });
   oneFitting(ship);
+  returnPrize(ship, 'hull');
+  returnPrize(ship, 'fitting');
   G.players[p].ships.push(ship);
   ev({ e: 'revive', p, ship: ship.id, x: ship.x, y: ship.y, msg: `${ship.name} returns from the deep.` });
 };
@@ -414,7 +425,7 @@ ACTIONS.revive = (p, a) => {
 // ─── Turn end and victory ─────────────────────────────
 
 ACTIONS.declare = p => {
-  need(canDeclareVictory(p), 'You need 25 points and at least as many as everyone else, at the start of your turn.');
+  need(canDeclareVictory(p), `You need ${VICTORY_POINTS} points and at least as many as everyone else, at the start of your turn.`);
   const s = scoreBreakdown();
   G.phase = 'over'; G.winner = p;
   G.endReason = `${seatName(p)} declared victory with ${s[p].total} points.`;

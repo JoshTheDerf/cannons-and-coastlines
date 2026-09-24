@@ -501,14 +501,21 @@
   // The shot's path, lifted into its real arc: solid where the ball is low
   // enough to touch a hull, dashed where it flies over, with its shadow on
   // the water and a ring where it lands.
-  drawLane = function (ox, oy, h, D, strong) {
-    const f = fwdVec(h), total = D * (1 + ROLL_K), step = 0.5;
+  drawLane = function (ox, oy, h, elev, strong) {
+    const path = shotPath(ox, oy, aimedShot(h, elev)), total = path.total, step = 0.5;
+    for (const k of [-1, 1]) {
+      const f = fwdVec(h + k * SPREAD_MAX);
+      ctx.strokeStyle = 'rgba(255,200,180,.3)'; ctx.lineWidth = 1; ctx.setLineDash([2, 5]);
+      ctx.beginPath(); gLine(ox, oy, ox + f.x * RANGE_MAX, oy + f.y * RANGE_MAX, 12); ctx.stroke(); ctx.setLineDash([]);
+    }
     ctx.strokeStyle = 'rgba(0,0,0,.28)'; ctx.lineWidth = 2;
-    ctx.beginPath(); gLine(ox, oy, ox + f.x * total, oy + f.y * total, 24); ctx.stroke();
+    ctx.beginPath();
+    for (let s = 0; s <= total + 1e-6; s += 2) { const a = pathAt(path, s), q = w2s3(a.x, a.y, 0); s ? ctx.lineTo(q.x, q.y) : ctx.moveTo(q.x, q.y); }
+    ctx.stroke();
     let prev = null, prevLow = null;
     for (let s = 0; s <= total + 1e-6; s += step) {
-      const hg = ballHeight(s, D), low = hg < HULL_H;
-      const q = w2s3(ox + f.x * s, oy + f.y * s, hg + 0.5);
+      const at = pathAt(path, s), hg = at.z, low = hg < HULL_H;
+      const q = w2s3(at.x, at.y, hg + 0.5);
       if (prev) {
         ctx.strokeStyle = low ? (strong ? 'rgba(255,90,70,.95)' : 'rgba(255,90,70,.6)') : 'rgba(255,215,195,.55)';
         ctx.lineWidth = low ? (strong ? 3 : 2) : 1.4;
@@ -518,7 +525,8 @@
       prev = q; prevLow = low;
     }
     ctx.setLineDash([]);
-    strokeRing(ox + f.x * D, oy + f.y * D, 1.5, 'rgba(255,230,120,.95)', 2);
+    const land = pathAt(path, path.legs[0].s1);
+    strokeRing(land.x, land.y, 1.5, 'rgba(255,230,120,.95)', 2);
   };
 
   drawFirePreview = function () {
@@ -540,7 +548,7 @@
     }
     const o = fireOrigin(F);
     if (F.stage === 'dir') {
-      drawLane(o.x, o.y, o.h, RANGE_MAX, false);
+      drawLane(o.x, o.y, o.h, F.elev, false);
       const hk = aimHandleScreen(F);
       ctx.strokeStyle = 'rgba(250,243,224,.85)'; ctx.lineWidth = 1.5;
       strokeRing(hk.p.x, hk.p.y, hk.wR, 'rgba(250,243,224,.85)', 1.5, [3, 3]);
@@ -549,7 +557,7 @@
       ctx.fillStyle = F.locked ? '#faf3e0' : '#8b1a1a'; ctx.beginPath(); ctx.arc(hk.x, hk.y, 3, 0, TAU); ctx.fill();
       return;
     }
-    if (F.stage === 'power') drawLane(o.x, o.y, o.h, powerToRange(currentPower()), true);
+    if (F.stage === 'power') drawLane(o.x, o.y, o.h, F.elev, true);
   };
 
   // ─── Animations ─────────────────────────────────────
@@ -560,12 +568,8 @@
       const p = a.progress || 0;
       switch (a.type) {
         case 'ball': {
-          const s = a.stopS * p, f = fwdVec(a.h), fb = fwdVec(a.h + a.b);
-          const gx = s <= a.D ? a.ox + f.x * s : a.ox + f.x * a.D + fb.x * (s - a.D);
-          const gy = s <= a.D ? a.oy + f.y * s : a.oy + f.y * a.D + fb.y * (s - a.D);
-          // Out of the muzzle at deck height, down to the table where it lands.
-          const muzzle = 1.4 * Math.max(0, 1 - s / Math.max(1, a.D));
-          V.ball(gx, gy, ballHeight(s, a.D) + muzzle);
+          const s = a.stopS * p, at = pathAt(a.path, s), gx = at.x, gy = at.y;
+          V.ball(gx, gy, at.z);
           ballAt = { x: a.ox + (gx - a.ox) * 0.6, y: a.oy + (gy - a.oy) * 0.6 };
           if (p < 0.12) {
             const o = w2s3(a.ox, a.oy, 1.4), q = 1 - p / 0.12;

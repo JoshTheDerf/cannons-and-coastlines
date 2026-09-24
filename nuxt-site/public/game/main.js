@@ -58,7 +58,7 @@ function showSetup() {
       <span>Table</span><div>${opt('setup', 'quick', 'Quick start')}${opt('setup', 'custom', 'Set it up yourselves')}</div>
       <span>Stalemate rule</span><div>${opt('stalemate', true, 'On')}${opt('stalemate', false, 'Off')}</div>
     </div>
-    <p class="optNote callout">Rulebook ${RULES_VERSION}: each ship steers, fires, or takes an island action, then sails forward. Only an island action holds a ship still.</p>`;
+    <p class="optNote callout">Rulebook ${RULES_VERSION}: each ship steers, fires, or takes an island action, then sails forward. Only an island action taken touching the island holds a ship still. Score by holding islands and knocking fittings off enemy ships; first to ${VICTORY_POINTS} can declare victory.</p>`;
   el.querySelectorAll('.fCard').forEach(b => b.onclick = () => { setupChoice.factions[b.dataset.p] = b.dataset.f; showSetup(); });
   el.querySelectorAll('.optBtn').forEach(b => b.onclick = () => {
     const v = b.dataset.v;
@@ -114,10 +114,6 @@ function quitToTitle() {
 function frame(ts) {
   updateAnimations(ts);
   if (G && $('game').style.display !== 'none') drawFrame();
-  if (UI.mode === 'fire' && UI.fire && UI.fire.stage === 'power') {
-    const el = document.getElementById('powerFill');
-    if (el) el.style.width = (currentPower() * 100).toFixed(1) + '%';
-  }
   if (isOnline()) NET.tickTimer();
   requestAnimationFrame(frame);
 }
@@ -279,7 +275,7 @@ async function playEvents(events) {
         sfxFire(); hapticThud();
         if (s) noteShot(s, e.origin, e.h);
         animSmoke(e.origin.x, e.origin.y, e.h);
-        await animCannonball(e.origin.x, e.origin.y, e.h, e.D, e.stopS, e.b);
+        await animCannonball(e.origin.x, e.origin.y, e.shot, e.stopS);
         if (e.kind === 'ship') {
           animRicochet(e.x, e.y, e.h);
           const t = shipById(e.target);
@@ -429,8 +425,8 @@ function onPointerDown(e) {
     case 'fire': {
       const F = UI.fire;
       if (F.stage === 'dir' && F.locked && !onAimHandle(sp)) { pan = { x: e.clientX, y: e.clientY, moved: false, tap: null }; return; }
-      // In the power step, the aim handle takes you back to aiming.
-      if (F.stage === 'power' && F.free && onAimHandle(sp, true)) { F.stage = 'dir'; F.locked = false; F.fixed = null; UI.dragging = true; firePointer(w, true); refresh(); return; }
+      // In the elevation step, the aim handle takes you back to aiming.
+      if (F.stage === 'power' && F.free && onAimHandle(sp, true)) { F.stage = 'dir'; F.locked = false; UI.dragging = true; firePointer(w, true); refresh(); return; }
       if (F.stage === 'dir') F.locked = false;
       firePointer(w, true);
       return;
@@ -515,13 +511,13 @@ function commitDrag() {
   if (UI.mode === 'move' && UI.move && !UI.move.lockHeading) {
     const m = UI.move; m.hc = m.plan.rot.h; m.h = m.hc; m.locked = true; replanMove(); sfxSelect(); refresh();
   } else if (UI.mode === 'fire' && UI.fire && UI.fire.stage === 'dir') {
-    // Setting the aim leads straight into the power ring.
+    // Setting the aim leads straight into choosing the elevation.
     const F = UI.fire; F.hc = F.h; F.locked = true; sfxSelect(); startPower(); refresh();
   }
 }
 function unlockAim() {
   if (UI.mode === 'move' && UI.move) { UI.move.locked = false; refresh(); }
-  else if (UI.mode === 'fire' && UI.fire) { UI.fire.stage = 'dir'; UI.fire.locked = false; UI.fire.fixed = null; refresh(); }
+  else if (UI.mode === 'fire' && UI.fire) { UI.fire.stage = 'dir'; UI.fire.locked = false; refresh(); }
 }
 
 function onMoveHandle(sp) {
@@ -584,6 +580,7 @@ function onKey(e) {
     replanMove(); UI.move.hc = UI.move.plan.rot.h; UI.move.locked = true; refresh(); e.preventDefault();
     return;
   }
+  if (UI.mode === 'fire' && UI.fire.stage === 'power' && (e.key === 'ArrowUp' || e.key === 'ArrowDown')) { setElev(e.key === 'ArrowUp' ? 'lob' : 'flat'); e.preventDefault(); return; }
   if (!ok) return;
   if (UI.mode === 'move') { sailClicks(UI.move.ship.moveCount); return; }  // Enter sails the full Move Count
   if (UI.mode === 'fire' && UI.fire.stage === 'dir') { if (!UI.fire.locked) commitDrag(); else lockAim(); return; }
@@ -944,7 +941,7 @@ function startFire(ship, source, island) {
   UI.sel = ship;
   UI.mode = 'fire';
   const slots = source === 'ship' ? shipSlots(ship) : islandSlots(island);
-  UI.fire = { ship, source, island, slots, slot: null, slotIdx: -1, h: ship.h, hc: ship.h, locked: false, free: false, hover: -1, stage: 'slot', t0: 0 };
+  UI.fire = { ship, source, island, slots, slot: null, slotIdx: -1, h: ship.h, hc: ship.h, locked: false, free: false, hover: -1, stage: 'slot', elev: (UI.lastElev || 'flat') };
   if (source === 'ship' && slots.length === 1) chooseSlot(0);
   refresh();
 }
@@ -961,18 +958,17 @@ function chooseSlot(idx) {
   refresh();
 }
 
+// The 'power' step: the cannon has no power setting, only two elevations,
+// straight out or tipped up. Pick one, then fire.
 function startPower() {
-  const F = UI.fire;
-  F.stage = 'power';
-  F.t0 = performance.now();
+  UI.fire.stage = 'power';
 }
 
-function currentPower() {
+function setElev(elev) {
   const F = UI.fire;
-  if (!F) return 0;
-  if (F.fixed != null) return F.fixed;
-  const u = (((performance.now() - F.t0) / 1000) / POWER_PERIOD) % 1;
-  return u < 0.5 ? u * 2 : 2 - u * 2;
+  if (!F) return;
+  F.elev = UI.lastElev = elev;
+  sfxSelect(); refresh();
 }
 
 function fireOrigin(F) { return fireOriginFor(F.ship, F); }
@@ -1003,9 +999,8 @@ function lockAim() {
 async function releaseShot() {
   const F = UI.fire;
   if (!F || F.stage !== 'power' || UI.busy) return;
-  const D = powerToRange(currentPower());
   const id = F.ship.id;
-  const a = { t: 'fire', ship: id, source: F.source, slot: F.slotIdx, island: F.island ? F.island.id : null, h: F.free ? F.hc : F.h, D };
+  const a = { t: 'fire', ship: id, source: F.source, slot: F.slotIdx, island: F.island ? F.island.id : null, h: F.free ? F.hc : F.h, elev: F.elev };
   cancelMode();
   const res = await perform(a);
   if (!res.ok || !G || G.phase !== 'play') return;
@@ -1044,15 +1039,20 @@ function shipActions(ship) {
       const x2 = ship.turnsLeft > 1 ? ` (turn 1 of ${ship.turnsLeft})` : '';
       if (!dead) acts.push({ id: 'steer', label: 'Steer and sail' + x2 });
       acts.push({ id: 'fire', label: (ship.gunner ? 'Fire twice' : 'Fire') + (dead ? '' : ', then sail') });
-      for (const t of touchingIslands(ship).map(i => G.terrain[i])) {
+      const coll = passiveOf(ship.owner) === 'harvest' ? 'Collect 2' : 'Collect';
+      const touching = touchingIslands(ship).map(i => G.terrain[i]);
+      for (const t of touching) {
         if (t.owner === ship.owner) {
-          acts.push({ id: 'collect', t, label: passiveOf(ship.owner) === 'harvest' ? 'Collect 2' : 'Collect' });
+          const why = collectProblem(ship, t);
+          acts.push({ id: 'collect', t, label: coll, disabled: !!why, why });
           acts.push({ id: 'islandgun', t, label: 'Island gun' });
         } else {
           const why = raiseFlagProblem(ship, t);
           acts.push({ id: 'raise', t, label: 'Raise flag', disabled: !!why, why });
         }
       }
+      // Out at sea: the ship nearest an island you hold collects there, then sails on.
+      for (const t of collectIslands(ship)) if (!touching.includes(t)) acts.push({ id: 'collect', t, label: coll + ', then sail' });
       if (dead) acts.push({ id: 'pass', label: 'Done' });
     }
   }
@@ -1075,6 +1075,7 @@ async function doShipAction(act) {
   if (act.t) a.island = act.t.id;
   const res = await perform(a);
   const s = res.ok && shipById(ship.id);
+  if (s && s.stage === 'click' && !s.acted && G.active === s.owner) { startMove(s, 'sail'); return; }
   if (s && !s.acted && s.turnsLeft > 0 && G.active === s.owner) { UI.sel = s; refresh(); return; }
   UI.sel = null; refresh();
 }
@@ -1236,8 +1237,8 @@ function buildPanel(p, el) {
     <div class="pHead">
       <span class="pDot"></span><span class="pWho">${esc(who)}</span>
       <span class="pFaction">${esc(f.name)}</span>
-      ${sc ? `<span class="pScore" title="Ships ${sc.ships} x3, islands ${sc.islands} x2, coins ${sc.coins}, bonus ${sc.bonus}">${sc.total} pts</span>
-      <span class="pMeta">${sc.ships} ships · ${sc.islands} isl · ${sc.coins} coins</span>` : ''}
+      ${sc ? `<span class="pScore" title="${esc(scoreTitle(sc))}">${sc.total} pts</span>
+      <span class="pMeta">${scoreMeta(sc)}</span>` : ''}
       ${isOnline() ? '<span class="pTimer" id="turnTimer"></span>' : ''}
     </div>
     <div class="coinTray"></div>
@@ -1249,6 +1250,16 @@ function buildPanel(p, el) {
   else if (G.phase === 'play') prompt.textContent = isOnline() ? `Waiting for ${seatName(G.active)}.` : 'Waiting.';
   else if (G.phase !== 'over') prompt.textContent = 'Waiting.';
   if (!G.players[p].ships.length && G.phase === 'play') prompt.textContent = 'Your fleet is gone. You can keep watching.';
+}
+
+// Scores (rulebook v0.6): islands x2, prize fittings x1, prize hulls x2,
+// +2 most ships, +2 most islands; Treasure Fleet coins x1.
+function scoreTitle(sc) {
+  return `Islands ${sc.islands} x${VP_ISLAND}, prize fittings ${sc.fittings} x${VP_PRIZE_FITTING}, prize hulls ${sc.hulls} x${VP_PRIZE_HULL}` +
+    (sc.hoard ? `, coins ${sc.hoard}` : '') + `, bonus ${sc.bonus}`;
+}
+function scoreMeta(sc) {
+  return `${sc.islands} isl · ${sc.fittings + sc.hulls ? `${sc.fittings} fit ${sc.hulls} hull · ` : ''}${sc.ships} ships · ${sc.coins} coins`;
 }
 
 function buildSpectatorPanel(el) {
@@ -1270,7 +1281,7 @@ function buildScoreboard(el) {
       <span class="pDot"></span><span class="sbName">${esc(pl.name)}${p === NET.seat ? ' (you)' : ''}${pl.ai ? ' (AI)' : ''}${away ? ' (away)' : ''}</span>
       <span class="sbFac">${esc(FACTION_DEFS[G.factions[p]].name)}</span>
       <span class="sbPts">${sc[p].total} pts</span>
-      <span class="sbMeta">${sc[p].ships} ships · ${sc[p].islands} isl · ${sc[p].coins} coins</span></div>`;
+      <span class="sbMeta">${scoreMeta(sc[p])}</span></div>`;
   }).join('')}</div>`;
 }
 
@@ -1334,13 +1345,14 @@ function fillBar(p, prompt, acts) {
     if (F.stage === 'slot') say(F.source === 'island' ? 'Tap one of the island\'s six cannon slots. Shots go straight out along the slot.' : `Tap a cannon slot on ${F.ship.name}. Shots go straight out from the slot.`);
     else if (F.stage === 'dir') {
       say(F.locked ? `Aim set. Press Ready to fire, or drag the handle to change it.` : 'Drag the handle, or move the mouse and click, to aim the turret. The hull does not turn.');
-    } else say('Tap the table (or press Space) when the ring is where you want the ball to land.');
+    } else say(F.elev === 'lob'
+      ? 'Tipped up: sails over nearby hulls and comes down about 40 cm out. The cannon sprays a few degrees either way. Fire when ready (Space).'
+      : 'Straight out: skips and skids along the table into the first thing in line. The cannon sprays a few degrees either way. Fire when ready (Space).');
     if (F.stage === 'dir') acts.appendChild(btn('Ready to fire', lockAim, { cls: 'go', act: 'aim' }));
     if (F.stage === 'power' && F.free) acts.appendChild(btn('Adjust aim', unlockAim, { act: 'adjust' }));
     if (F.stage === 'power') {
-      const m = document.createElement('div');
-      m.className = 'meter'; m.innerHTML = '<span>Tension</span><div class="bar"><i id="powerFill"></i></div>';
-      acts.appendChild(m);
+      acts.appendChild(btn('Straight out', () => setElev('flat'), { cls: F.elev === 'flat' ? 'on' : '', act: 'flat' }));
+      acts.appendChild(btn('Tipped up', () => setElev('lob'), { cls: F.elev === 'lob' ? 'on' : '', act: 'lob' }));
       acts.appendChild(btn('Fire!', releaseShot, { cls: 'go fireBtn', act: 'fire' }));
     }
     if (F.ship.pending === 'shot2') acts.appendChild(btn('Skip shot', skipSecond, { act: 'skip' }));
@@ -1423,10 +1435,10 @@ function showGameOver() {
   $('winnerText').textContent = G.winner ? `${name(G.winner)} ${isOnline() && G.winner === NET.seat ? 'win' : 'wins'}` : 'A draw';
   $('winnerText').style.color = G.winner ? colorOf(G.winner).dark : '';
   const rows = G.order.slice().sort((a, b) => s[b].total - s[a].total).map(p => `<tr><td style="color:${colorOf(p).dark};font-weight:700">${esc(seatName(p))}<br><small>${esc(FACTION_DEFS[G.factions[p]].name)}</small></td>
-    <td>${s[p].ships}</td><td>${s[p].islands}</td><td>${s[p].coins}</td><td>${s[p].bonus}</td><td><b>${s[p].total}</b></td>
+    <td>${s[p].islands}</td><td>${s[p].fittings}</td><td>${s[p].hulls}</td><td>${s[p].hoard || '-'}</td><td>${s[p].bonus}</td><td><b>${s[p].total}</b></td>
     <td>${G.stats[p].hits}/${G.stats[p].shots}</td></tr>`).join('');
   $('statsText').innerHTML = `<p>${esc(G.endReason)}</p>
-    <table class="bookTable"><tr><th></th><th>Ships</th><th>Islands</th><th>Coins</th><th>Bonus</th><th>Total</th><th>Hits</th></tr>${rows}</table>
+    <table class="bookTable"><tr><th></th><th>Islands</th><th>Prize fittings</th><th>Prize hulls</th><th>Coins</th><th>Bonus</th><th>Total</th><th>Hits</th></tr>${rows}</table>
     <p class="small">${G.turn} turns played.</p>`;
   $('againBtn').textContent = isOnline() ? 'Back to lobby' : 'Play again';
   $('gameOver').style.display = 'flex';
@@ -1447,7 +1459,7 @@ function kickAI() { setTimeout(aiMaybeAct, 300 / GAME_SPEED); }
 async function aiShowAim(a) {
   const ship = shipById(a.ship);
   if (!ship) return;
-  const F = { ship, source: a.source, island: a.island != null ? G.terrain[a.island] : null, slots: [], slotIdx: a.slot, h: a.h, stage: 'power', fixed: rangeToPower(a.aimD || a.D) };
+  const F = { ship, source: a.source, island: a.island != null ? G.terrain[a.island] : null, slots: [], slotIdx: a.slot, h: a.h, stage: 'power', elev: a.elev };
   F.slot = a.source === 'ship' ? shipSlots(ship)[a.slot] : islandSlots(F.island)[a.slot] || null;
   UI.mode = 'fire'; UI.fire = F; UI.sel = ship;
   refresh();

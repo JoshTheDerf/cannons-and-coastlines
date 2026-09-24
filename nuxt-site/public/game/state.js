@@ -8,14 +8,14 @@ let G = null;
 function makeShip(p, fid, i, used = new Set()) {
   const f = FACTION_DEFS[fid];
   return {
-    id: `p${p}s${i}`, owner: p, build: fid,
+    id: `p${p}s${i}`, owner: p, origin: p, build: fid,
     name: shipName(fid, used),
     len: f.len, wid: f.wid, guns: f.guns, moveCount: f.moveCount, hullStyle: f.hull,
     maxFit: f.fittings, fit: f.fittings,
     fitMask: Array(f.fittings).fill(true),  // which fittings are aboard (see fittingLayout)
     turretRel: 0,        // Industry: turret facing relative to the bow, kept between turns
     x: 0, y: 0, h: 0, placed: false,
-    // A ship's turn (rulebook v0.5): one action (Set Heading, Fire, or an
+    // A ship's turn (rulebook v0.6): one action (Set Heading, Fire, or an
     // Island action), then click forward 1 to Move Count. Island actions and
     // dead ships skip the click.
     acted: false,        // finished all its turns this round
@@ -54,6 +54,8 @@ function newGame(opts) {
     bag,
     coinPhase: true,
     lastFlagChange: 0,
+    prizes: [],          // fittings and hulls knocked off enemy ships: { p, ship, kind }
+    collected: [],       // islands that have paid out this turn
     winner: null, endReason: '',
     terrainPlaced: {},
     stats: {},
@@ -251,6 +253,8 @@ function applyHomeWaters() {
 
 const isDead = s => s.fit <= 0;
 const passiveOf = p => FACTION_DEFS[G.factions[p]].passive;
+/** Stone Hulls (rulebook v0.6): the first hit each turn is ignored, but only at sea, not touching an island. */
+const stoneShields = ship => passiveOf(ship.owner) === 'stone' && !ship.stoneUsed && !touchingIslands(ship).length;
 // Faction passives belong to the fleet that owns the ship (rulebook, Fleets:
 // "Coins and the faction passive belong to the fleet"). Hull stats such as
 // move count, fittings and gun layout stay with the ship itself.
@@ -282,15 +286,62 @@ function raiseFlagProblem(ship, t) {
   return null;
 }
 
+/**
+ * Why ship s may not Collect at island t right now, or null if it may.
+ * Rulebook v0.6: the ship of yours nearest an island you hold collects
+ * there, touching or not, and each island pays once a turn. Enemy ships
+ * never block it.
+ */
+function collectProblem(s, t) {
+  if (t.owner !== s.owner) return 'You can only collect from an island you hold.';
+  if ((G.collected || []).includes(t.id)) return 'That island has already paid out this turn.';
+  const gap = shoreGap(s, t);
+  if (G.players[s.owner].ships.some(o => o !== s && shoreGap(o, t) < gap - TOUCH_TOL)) return 'Another of your ships is nearer that island.';
+  return null;
+}
+
+/** Islands ship s may Collect at right now. */
+function collectIslands(s) { return islands().filter(t => !collectProblem(s, t)); }
+
+// ─── Prizes ───────────────────────────────────────────
+// Rulebook v0.6: a fitting knocked off an enemy ship goes to the player who
+// knocked it off, and so does the hull of a ship they sink. Whenever a
+// fitting or hull goes back on a ship (Repair, capture, Return from the
+// Deep) it comes out of whichever pile holds it: the leader's, if several do.
+// A captured ship sailing in your fleet counts as a prize hull too.
+
+function takePrize(p, ship, kind) { (G.prizes ||= []).push({ p, ship: ship.id, kind }); }
+
+const originOf = s => (s.origin != null ? s.origin : +String(s.id).match(/^p(\d+)/)[1]);
+
+function prizesOf(p) {
+  const out = { fittings: 0, hulls: 0 };
+  for (const z of G.prizes || []) if (z.p === p) out[z.kind === 'hull' ? 'hulls' : 'fittings']++;
+  for (const s of G.players[p].ships) if (originOf(s) !== p) out.hulls++;
+  return out;
+}
+
+function returnPrize(ship, kind) {
+  const L = G.prizes || [];
+  const worth = p => { const z = prizesOf(p); return z.fittings * VP_PRIZE_FITTING + z.hulls * VP_PRIZE_HULL; };
+  let best = -1;
+  L.forEach((z, i) => { if (z.ship === ship.id && z.kind === kind && (best < 0 || worth(z.p) > worth(L[best].p))) best = i; });
+  return best >= 0 ? L.splice(best, 1)[0] : null;
+}
+
 function scoreBreakdown() {
   const out = {};
   for (const p of G.order) {
     const ships = G.players[p].ships.length; // dead-in-the-water ships are still afloat
-    const isl = islandsHeld(p), coins = coinTotal(p);
-    out[p] = { ships, islands: isl, coins, base: ships * VP_SHIP + isl * VP_ISLAND + coins * VP_COIN, bonus: 0 };
+    const isl = islandsHeld(p), coins = coinTotal(p), pr = prizesOf(p);
+    const hoard = passiveOf(p) === 'harvest' ? coins * VP_TREASURE_COIN : 0;
+    out[p] = {
+      ships, islands: isl, coins, fittings: pr.fittings, hulls: pr.hulls, hoard,
+      base: isl * VP_ISLAND + pr.fittings * VP_PRIZE_FITTING + pr.hulls * VP_PRIZE_HULL + hoard, bonus: 0,
+    };
   }
-  // Most ships / islands / coins: every tied player gets the full +2.
-  for (const k of ['ships', 'islands', 'coins']) {
+  // Most ships / most islands: every tied player gets the full +2.
+  for (const k of ['ships', 'islands']) {
     const m = Math.max(...G.order.map(p => out[p][k]));
     for (const p of G.order) if (out[p][k] === m) out[p].bonus += VP_BONUS;
   }
@@ -319,6 +370,7 @@ function beginTurn() {
   // Stone Hulls: "the first hit it takes each turn", so it resets every turn.
   for (const s of allShips()) s.stoneUsed = false;
   G.turnStarted = true;
+  G.collected = [];
   checkStalemate();
 }
 
@@ -414,14 +466,18 @@ function oneFitting(ship) {
  * Cannonball or boarding party, the fitting lost is always the next in
  * the loss order (see nextToLose).
  */
-function applyHit(ship) {
-  if (passiveOf(ship.owner) === 'stone' && !ship.stoneUsed) { ship.stoneUsed = true; return 'stone'; }
+function applyHit(ship, by) {
+  if (stoneShields(ship)) { ship.stoneUsed = true; return 'stone'; }
   if (ship.braced) { ship.braced = false; G.bag.push('brace'); return 'brace'; }
+  // `by` is the seat that landed the hit: it takes the fitting or hull as a prize.
+  const prize = typeof by === 'number' && by !== ship.owner;
   if (ship.fit > 0) {
     loseFitting(ship, nextToLose(ship));
+    if (prize) takePrize(by, ship, 'fitting');
     return ship.fit === 0 ? 'dead' : 'fitting';
   }
   sinkShip(ship);
+  if (prize) takePrize(by, ship, 'hull');
   return 'sunk';
 }
 

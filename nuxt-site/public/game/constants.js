@@ -29,25 +29,46 @@ const TERRAIN_DEFS = {
   reef:   { name: 'Reef',   height: 1.5 },
 };
 
-// Cannon model. The ball flies in a low arc to a landing point set by the
-// shot's power, then rolls a little. It can touch anything whose top is
-// above the ball: hulls near the muzzle and near the landing point, taller
-// terrain almost everywhere. The first thing it touches stops it.
+// Cannon model, after the printed spring cannons. A cannon has two
+// elevations, straight out or tipped up about 30 degrees, and no real
+// control over power: the spring gives what it gives. It rarely fires
+// dead straight either, spraying up to 5 degrees either side (straight
+// ahead most often). The ball then does most of its work on the table:
+// straight out it drops a hand's width from the muzzle, skips and rolls;
+// tipped up it sails over nearby hulls, lands about 40 cm out and bounces.
+// The printed ball is tapered (10 mm wide, 13 mm long, a ~22 degree cone),
+// so it cannot roll straight: a cone rolls in circles about its tip. Once
+// the bounces die out it skids and tumbles, losing speed fast and curling
+// off to whichever side its point faces, more tightly as it slows. Every
+// bounce knocks it a little sideways too. It touches anything whose top is
+// above the ball, and the first thing it touches stops it.
 const BALL_R = 0.5;
 const HULL_H = 3.0;
-const RANGE_MIN = 8;
-const RANGE_MAX = 55;
-const APEX_K = 0.18;        // apex height as a fraction of flight distance
-const ROLL_K = 0.12;        // roll after landing, fraction of flight distance
-const SHOT_ANGLE_SD = 1.2 * Math.PI / 180;   // cannon wobble
-const SHOT_RANGE_SD = 0.05;                   // spring force wobble
-const BOUNCE_SD = 14 * Math.PI / 180;         // the ball kicks sideways when it lands
+const GRAVITY = 981;                 // cm/s^2
+const MUZZLE_H = 2.4;                // ball height at the muzzle
+const MUZZLE_V = 213;                // cm/s: a lofted shot lands ~44 cm out
+const MUZZLE_V_SD = 0.07;            // spring-to-spring and shot-to-shot variation
+const ELEVATIONS = { flat: 0, lob: 30 * Math.PI / 180 };
+const SPREAD_MAX = 5 * Math.PI / 180;        // side-to-side cone, straight ahead most likely
+const BOUNCE_E = 0.45;               // vertical speed kept by a bounce
+const BOUNCE_KEEP = 0.85;            // forward speed kept by a bounce
+const BOUNCE_KICK_SD = 2 * Math.PI / 180;    // sideways knock per bounce
+const HOP_MIN_VZ = 20;               // slower than this off the table and it just skids
+const SKID_DECEL = 250;              // cm/s^2: a tumbling cone scrubs speed fast
+const SKID_DECEL_SD = 0.3;           // tables and landings vary
+const SKID_CURL = 1.3;              // how hard it curls: radians per cm, times cm/s of speed
+const SKID_CURL_V = 30;              // ...so the curl tightens as it slows
+// Distances the computer and the aiming lines treat as in range: past
+// RANGE_MAX the spread makes a hit unlikely, though a ball can roll on.
+const RANGE_MIN = 2;
+const RANGE_MAX = 70;
 const SLOT_SPLAY = 15 * Math.PI / 180;   // end slots angle toward their nearest end or side
-const POWER_PERIOD = 2.4;   // seconds for the power marker to go out and back
 
-// Scoring
-const VP_SHIP = 3, VP_ISLAND = 2, VP_COIN = 1, VP_BONUS = 2;
-const VICTORY_POINTS = 25;
+// Scoring (rulebook v0.6). Surviving ships and coins do not score: points
+// come from islands held and prizes, the fittings and hulls you knock off
+// enemy ships. The Treasure Fleet alone still scores its unspent coins.
+const VP_ISLAND = 2, VP_PRIZE_FITTING = 1, VP_PRIZE_HULL = 2, VP_TREASURE_COIN = 1, VP_BONUS = 2;
+const VICTORY_POINTS = 12;
 
 // Factions. Stats are from rulebook/typst/factions.typ.
 // guns: 'broadside' = 3 slots per side, 'industry' = bow + turret,
@@ -92,7 +113,7 @@ const FACTION_DEFS = {
       b: ['Dragon', 'Junk', 'Phoenix', 'Lantern', 'Tiger', 'Crane', 'Harvest', 'Moon', 'Tortoise', 'Carp'],
     },
     passive: 'harvest', passiveName: 'Bountiful Harvest',
-    passiveText: 'Collect draws 2 coins instead of 1.',
+    passiveText: 'Collect draws 2 coins instead of 1, and unspent coins score a point each.',
     blurb: 'Two ships. Every island pays double.',
     hullColor: [150, 108, 40],
   },
@@ -105,7 +126,7 @@ const FACTION_DEFS = {
       b: ['Altar', 'Tide', 'Temple', 'Idol', 'Pyramid', 'Colossus', 'Throne', 'Monolith', 'Cairn', 'Menhir'],
     },
     passive: 'stone', passiveName: 'Stone Hulls',
-    passiveText: 'Each ship ignores the first hit it takes each turn.',
+    passiveText: 'Each ship ignores the first hit it takes each turn, unless it is touching an island.',
     blurb: 'Slow, and very hard to chip at.',
     hullColor: [128, 120, 100],
   },
@@ -156,7 +177,7 @@ const FACTION_ALIASES = { sun_fleet: 'stone_fleet' };
 const factionId = f => FACTION_ALIASES[f] || f;
 const FACTION_ORDER = ['queens_fleet', 'corsairs', 'treasure_fleet', 'stone_fleet', 'shadow_fleet', 'industry', 'islanders'];
 
-// Coins (rulebook v0.5). Each player adds 20 to the bag.
+// Coins (rulebook v0.6). Each player adds 20 to the bag.
 const COIN_DEFS = {
   brace:    { name: 'Brace for Impact',  short: 'Brace',    icon: '\uD83D\uDEE1\uFE0F', text: 'Put it on one of your ships. The next hit that ship takes is ignored.' },
   signal:   { name: 'Signal Flags',      short: 'Signal',   icon: '\uD83D\uDEA9', text: 'One of your ships gives up its action and only sails forward. Another of your ships takes two full turns.' },
@@ -173,7 +194,7 @@ const COIN_IMG = {
 };
 for (const id of COIN_ORDER) COIN_DEFS[id].img = `../assets/images/coins/${COIN_IMG[id]}.webp`;
 const COIN_SET = { brace: 4, signal: 2, evasive: 2, gunner: 4, repair: 4, boarding: 4 };
-const RULES_VERSION = 'v0.5';
+const RULES_VERSION = 'v0.6';
 
 // Fleet colours. Seats pick one each in an online lobby; local games use
 // red for player 1 and blue for player 2.

@@ -432,7 +432,7 @@ function drawShip(ship) {
     ctx.strokeStyle = `rgba(241,196,15,${0.45 + Math.sin(wavePhase * 4) * 0.2})`; ctx.lineWidth = 2;
     ctx.beginPath(); ctx.arc(c.x, c.y, R + 4, 0, TAU); ctx.stroke();
   }
-  if (passiveOf(ship.owner) === 'stone' && !ship.stoneUsed) {
+  if (stoneShields(ship)) {
     ctx.strokeStyle = 'rgba(200,190,160,.35)'; ctx.lineWidth = 3;
     ctx.beginPath(); ctx.arc(c.x, c.y, R + 1, 0, TAU); ctx.stroke();
   }
@@ -644,25 +644,31 @@ function drawEvasivePreview() {
   }
 }
 
-function drawLane(ox, oy, h, D, strong) {
-  // Solid where the ball is low enough to touch a hull, faint where it flies over.
-  const f = fwdVec(h), total = D * (1 + ROLL_K);
-  let prevLow = null, segStart = 0;
-  const flush = (a, b, low) => {
-    const p1 = w2s(ox + f.x * a, oy + f.y * a), p2 = w2s(ox + f.x * b, oy + f.y * b);
-    ctx.strokeStyle = low ? (strong ? 'rgba(255,90,70,.95)' : 'rgba(255,90,70,.55)') : 'rgba(255,200,180,.35)';
-    ctx.lineWidth = low ? (strong ? 3 : 2) : 1.2;
-    ctx.setLineDash(low ? [] : [4, 5]);
-    ctx.beginPath(); ctx.moveTo(p1.x, p1.y); ctx.lineTo(p2.x, p2.y); ctx.stroke();
-    ctx.setLineDash([]);
-  };
-  for (let s = 0; s <= total; s += 0.5) {
-    const low = ballHeight(s, D) < HULL_H;
-    if (prevLow === null) prevLow = low;
-    if (low !== prevLow) { flush(segStart, s, prevLow); segStart = s; prevLow = low; }
+/**
+ * The aimed path for an elevation, with no luck in it: solid where the ball
+ * is low enough to touch a hull, dashed where it flies over, a ring where
+ * it first comes down, and faint lines for the cannon's side-to-side spread.
+ */
+function drawLane(ox, oy, h, elev, strong) {
+  const path = shotPath(ox, oy, aimedShot(h, elev));
+  for (const k of [-1, 1]) {
+    const f = fwdVec(h + k * SPREAD_MAX), e = w2s(ox + f.x * RANGE_MAX, oy + f.y * RANGE_MAX), o = w2s(ox, oy);
+    ctx.strokeStyle = 'rgba(255,200,180,.3)'; ctx.lineWidth = 1; ctx.setLineDash([2, 5]);
+    ctx.beginPath(); ctx.moveTo(o.x, o.y); ctx.lineTo(e.x, e.y); ctx.stroke(); ctx.setLineDash([]);
   }
-  flush(segStart, total, prevLow);
-  const land = w2s(ox + f.x * D, oy + f.y * D);
+  let prev = null;
+  for (let s = 0; s <= path.total + 1e-6; s += 0.5) {
+    const at = pathAt(path, s), low = at.z < HULL_H, q = w2s(at.x, at.y);
+    if (prev) {
+      ctx.strokeStyle = low ? (strong ? 'rgba(255,90,70,.95)' : 'rgba(255,90,70,.55)') : 'rgba(255,200,180,.35)';
+      ctx.lineWidth = low ? (strong ? 3 : 2) : 1.2;
+      ctx.setLineDash(low ? [] : [4, 5]);
+      ctx.beginPath(); ctx.moveTo(prev.x, prev.y); ctx.lineTo(q.x, q.y); ctx.stroke();
+    }
+    prev = q;
+  }
+  ctx.setLineDash([]);
+  const l = pathAt(path, path.legs[0].s1), land = w2s(l.x, l.y);
   ctx.strokeStyle = 'rgba(255,230,120,.95)'; ctx.lineWidth = 2;
   ctx.beginPath(); ctx.arc(land.x, land.y, Math.max(5, w2r(1.5)), 0, TAU); ctx.stroke();
 }
@@ -691,7 +697,7 @@ function drawFirePreview() {
   }
   const o = fireOrigin(F);
   if (F.stage === 'dir') {
-    drawLane(o.x, o.y, o.h, RANGE_MAX, false);
+    drawLane(o.x, o.y, o.h, F.elev, false);
     // Aiming handle for the turret, like the heading handle.
     const hk = aimHandleScreen(F), c = { x: hk.cx, y: hk.cy }, R = hk.R, kx = hk.x, ky = hk.y;
     ctx.strokeStyle = 'rgba(250,243,224,.85)'; ctx.lineWidth = 1.5; ctx.setLineDash([3, 3]);
@@ -701,5 +707,5 @@ function drawFirePreview() {
     ctx.fillStyle = F.locked ? '#faf3e0' : '#8b1a1a'; ctx.beginPath(); ctx.arc(kx, ky, 3, 0, TAU); ctx.fill();
     return;
   }
-  if (F.stage === 'power') drawLane(o.x, o.y, o.h, powerToRange(currentPower()), true);
+  if (F.stage === 'power') drawLane(o.x, o.y, o.h, F.elev, true);
 }

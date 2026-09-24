@@ -109,8 +109,9 @@ howToPlay:
       body:
         - >-
           Every hit knocks one **fitting** (a mast or a crate of cargo) off
-          the ship. A ship with no fittings left is **dead in the water**. It
-          can't move, but it can still fire. The next hit sinks it.
+          the ship, and whoever fired keeps it as a **prize**. A ship with no
+          fittings left is **dead in the water**. It can't move, but it can
+          still fire. The next hit sinks it, and the shooter takes the hull.
         - >-
           The first ship a cannonball touches takes the hit. Ricochets onto a
           second ship don't count, and if the first ship it touches is one of
@@ -124,9 +125,10 @@ howToPlay:
     - title: Spend coins
       body:
         - >-
-          Coins come from islands you hold. Spend them at the start of your
-          turn, as many as you want, then put them back in the bag. Anything
-          you don't spend counts as a point at the end.
+          Coins come from islands you hold: each turn, your ship nearest each
+          of your islands can collect a coin there, even out at sea. Spend
+          them at the start of your turn, as many as you want, then put them
+          back in the bag. Coins aren't points, so spend them.
       coins:
         - { image: /assets/images/coins/coin-skilled-gunner.webp, name: Skilled Gunner, body: One ship fires twice. }
         - { image: /assets/images/coins/coin-repair-crew.webp, name: Repair Crew, body: Put a fitting back on one of your ships. }
@@ -142,15 +144,16 @@ howToPlay:
         - >-
           If you're the last fleet with ships on the table, you win. Otherwise,
           at the start of your turn you can **declare victory** if you think you
-          have 25 points. Everyone counts up. If you're still at 25 or more and
-          nobody is ahead of you, you win.
+          have 12 points. Everyone counts up. If you're still at 12 or more and
+          nobody is ahead of you, you win. Your prizes are right there in front
+          of you, so there's nothing to write down.
       table:
         head: [What you have, Points]
         rows:
-          - [Each ship still afloat, 3]
           - [Each island you hold, 2]
-          - [Each unspent coin, 1]
-          - [Most ships / islands / coins, +2 each]
+          - [Each prize fitting, 1]
+          - [Each prize hull (sunk or captured), 2]
+          - [Most ships / most islands, +2 each]
   outro: >-
     The rulebook has the rest: boarding, scuttling, the faction abilities, and
     the alternate modes (Group play for big parties, Fleets & Alliances,
@@ -158,7 +161,7 @@ howToPlay:
   rulebook:
     - { label: Rulebook (PDF), href: /rulebook/pdf/rulebook.pdf, icon: i-lucide-book-open }
     - { label: Print-and-fold booklet, href: /rulebook/pdf/rulebook-booklet.pdf, icon: i-lucide-printer }
-  version: v0.5, September 2026
+  version: v0.6, September 2026
   changesHref: /live#changes
 
 fleets:
@@ -202,7 +205,7 @@ fleets:
     - name: Stone Fleet
       image: /assets/ships/ship-preview-stone-fleet-sm.webp
       stats: 3 barges · 4 fittings · Move 2
-      body: Stone ships. They're slow, but each one ignores the first hit it takes every turn.
+      body: Stone ships. They're slow, but at sea each one ignores the first hit it takes every turn.
       card: /rulebook/pdf/faction-card-stone-fleet.pdf
     - name: Shadow Fleet
       image: /assets/ships/ship-preview-shadow-fleet-sm.webp?v=2
@@ -278,6 +281,15 @@ changelog:
   title: What changed
   description: What each rulebook update changed, newest first.
   releases:
+    - version: v0.6
+      released: '2026-09-24'
+      items:
+        - '**Win by fighting, not by parking.** Surviving ships and unspent coins no longer score. You score for islands you hold and for prizes, and you can declare victory at 12 points instead of 25.'
+        - '**Prizes.** Keep every fitting you knock off an enemy ship, and the hull of every ship you sink or capture. A fitting is worth 1 point and a hull 2. When a ship is repaired, captured or raised, the piece comes back out of whoever holds it.'
+        - '**Collect from a distance.** Each turn, your ship nearest each of your islands can collect a coin there, touching it or not. A ship out at sea still sails forward after collecting.'
+        - '**Treasure Fleet keeps its gold.** Its unspent coins still score 1 point each.'
+        - '**Stone Hulls only work at sea.** A Stone Fleet ship touching an island takes every hit.'
+        - '**Cannons in the web game now shoot like the printed ones.** Two elevations (straight out or tipped up), no power control, a few degrees of spread, and a tapered ball that skids and curls to a stop.'
     - version: v0.5
       released: '2026-09-19'
       items:

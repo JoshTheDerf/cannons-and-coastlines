@@ -4,12 +4,11 @@
 // changes the state itself, so it can run in the browser or on the server
 // and always plays by the same rules as everyone else.
 
-const AI_TIMING_SD = 0.08;   // how well the computer times the power ring
 // Search effort. The server runs on a tight CPU budget, so it looks at
 // fewer landing distances, samples and headings.
-let AI_EFFORT = { dStep: 1.5, samples: 14, headings: 6 };
+let AI_EFFORT = { samples: 16, headings: 6 };
 function setAiEffort(level) {
-  AI_EFFORT = level === 'lite' ? { dStep: 3, samples: 6, headings: 3 } : { dStep: 1.5, samples: 14, headings: 6 };
+  AI_EFFORT = level === 'lite' ? { samples: 8, headings: 3 } : { samples: 16, headings: 6 };
 }
 
 function aiMemo(p) {
@@ -289,8 +288,7 @@ const islandAct = (ship, t, kind) => ({ t: kind, ship: ship.id, island: t.id });
 
 function aiFireAction(ship, shot) {
   if (shot.target) { const m = aiMemo(ship.owner); m.hit[shot.target.id] = (m.hit[shot.target.id] || 0) + 1; }
-  const D = clamp(shot.D * (1 + gaussRandom() * AI_TIMING_SD), RANGE_MIN, RANGE_MAX);
-  return { t: 'fire', ship: ship.id, source: shot.source, slot: shot.slotIdx, island: shot.island ? shot.island.id : null, h: shot.h, D, aimD: shot.D };
+  return { t: 'fire', ship: ship.id, source: shot.source, slot: shot.slotIdx, island: shot.island ? shot.island.id : null, h: shot.h, elev: shot.elev };
 }
 
 /**
@@ -304,9 +302,11 @@ function aiShipTurn(ship, roles) {
   for (const t of touch) if (!raiseFlagProblem(ship, t)) return islandAct(ship, t, 'raise');
   const own = touch.find(t => t.owner === ship.owner);
   const shot = aiBestShot(ship);
+  // Collect only works for the ship nearest the island, once a turn.
+  const canHold = own && !collectProblem(ship, own);
   if (isDead(ship)) {
     if (shot && shot.ev > 0.8) return aiFireAction(ship, shot);
-    if (own) return islandAct(ship, own, 'collect');
+    if (canHold) return islandAct(ship, own, 'collect');
     return { t: 'pass', ship: ship.id };
   }
   // Staying put at an island: collect, or use the island gun if it has a
@@ -317,10 +317,19 @@ function aiShipTurn(ship, roles) {
     if (isleShot && isleShot.ev >= 3) return aiFireAction(ship, isleShot);
     // Firing the ship's own guns would mean sailing off the island after.
     const leave = tactical(ship.owner) && !off('keep') ? 9 : 5;
-    if (keep && !(shot && shot.source === 'ship' && shot.ev >= leave)) return islandAct(ship, own, 'collect');
+    if (canHold && keep && !(shot && shot.source === 'ship' && shot.ev >= leave)) return islandAct(ship, own, 'collect');
   }
   const steer = aiBestMove(ship, goal, 1, ship.moveCount);
   const shipShot = shot ? shot.shipBest : null;
+  // Out at sea, the ship nearest one of our islands may collect there and
+  // sail straight on, when there is no shot and holding course costs little.
+  if (!touch.length && !(shipShot && shipShot.ev >= 2)) {
+    const spot = collectIslands(ship)[0];
+    if (spot && G.bag.length) {
+      const straight = aiBestMove(ship, goal, 1, ship.moveCount, true);
+      if (straight && straight.score >= (steer ? steer.score : -99) - 10) return islandAct(ship, spot, 'collect');
+    }
+  }
   if (shipShot && shipShot.ev >= 2) {
     const straight = aiBestMove(ship, goal, 1, ship.moveCount, true);
     // Tactical: shoot early against fleets that punish waiting.
@@ -329,7 +338,7 @@ function aiShipTurn(ship, roles) {
     const fireValue = shipShot.ev * 3 * aggr + (straight ? straight.score : -99);
     if (fireValue >= (steer ? steer.score : -Infinity) - 5) return aiFireAction(ship, shipShot);
   }
-  if (own && (!steer || steer.score < aiEvalPose(ship, ship, goal) - 2)) return islandAct(ship, own, 'collect');
+  if (canHold && (!steer || steer.score < aiEvalPose(ship, ship, goal) - 2)) return islandAct(ship, own, 'collect');
   if (steer) return { t: 'move', ship: ship.id, h: steer.h, clicks: steer.clicks };
   return { t: 'move', ship: ship.id, h: ship.h, clicks: 1 };
 }
@@ -337,11 +346,12 @@ function aiShipTurn(ship, roles) {
 // ═══ Shot search ═══════════════════════════════════════
 
 function aiHitValue(t, p) {
-  let v = 6;
-  if (isDead(t)) v += 12;                 // this hit sinks it
+  // Every fitting knocked off is a point and a sunk hull two (rulebook v0.6).
+  let v = 6 + VP_PRIZE_FITTING * 3;
+  if (isDead(t)) v += 12 + VP_PRIZE_HULL * 2; // this hit sinks it
   else if (t.fit === 1) v += 4;           // this hit leaves it dead in the water
   v += (t.maxFit - t.fit) * 0.5;
-  if (passiveOf(t.owner) === 'stone' && !t.stoneUsed) v *= 0.35;
+  if (stoneShields(t)) v *= 0.35;
   else if (t.braced) v *= 0.4;
   if (p == null || !tactical(p) || off('hitv')) return v;
   const intel = aiIntel(p), memo = aiMemo(p), f = G.factions[t.owner], hitAlready = memo.hit[t.id] || 0;
@@ -384,7 +394,7 @@ function aiLaneNearEnemy(lane, enemies) {
     const dx = e.x - lane.x, dy = e.y - lane.y;
     const along = dx * f.x + dy * f.y;
     const perp = Math.abs(dx * f.y - dy * f.x);
-    return along > 0 && along < RANGE_MAX * (1 + ROLL_K) + e.len / 2 && perp < e.len / 2 + 1;
+    return along > 0 && along < RANGE_MAX * 1.5 + e.len / 2 && perp < e.len / 2 + along * Math.tan(SPREAD_MAX) + 1;
   });
 }
 
@@ -396,27 +406,21 @@ function aiBestShot(ship, opts) {
   for (const lane of aiLanes(ship, opts)) {
     if (!aiLaneNearEnemy(lane, enemies)) continue;
     const src = lane.source === 'island' ? { island: lane.island } : { ship };
-    let run = null;
-    const windows = [];
-    for (let D = RANGE_MIN; D <= RANGE_MAX + 0.01; D += AI_EFFORT.dStep) {
-      const tr = traceShot(src, lane.x, lane.y, lane.h, D);
-      const hitEnemy = tr.kind === 'ship' && tr.obj.owner !== p ? tr.obj : null;
-      if (hitEnemy && run && run.t === hitEnemy) run.hi = D;
-      else { if (run) windows.push(run); run = hitEnemy ? { t: hitEnemy, lo: D, hi: D } : null; }
-    }
-    if (run) windows.push(run);
-    for (const w of windows) {
-      const D = (w.lo + w.hi) / 2;
-      // Monte Carlo with the computer's timing error and the cannon's wobble.
+    // Straight out hits the first thing in the lane; tipped up sails over
+    // what is close and comes down about 40 cm out. Try both.
+    for (const elev of ['flat', 'lob']) {
+      const aim = traceShot(src, lane.x, lane.y, aimedShot(lane.h, elev));
+      if (aim.kind === 'ship' && aim.obj.owner === p && elev === 'flat') continue; // our own hull is in the way
+      // Monte Carlo with the cannon's spread, the spring and the table.
       let ev = 0;
       const N = AI_EFFORT.samples;
       for (let i = 0; i < N; i++) {
-        const wob = wobbleShot(lane.h, D * (1 + gaussRandom() * AI_TIMING_SD));
-        const tr = traceShot(src, lane.x, lane.y, wob.h, wob.D, wob.b);
+        const tr = traceShot(src, lane.x, lane.y, wobbleShot(lane.h, elev));
         if (tr.kind === 'ship' && tr.obj.owner !== p) ev += aiHitValue(tr.obj, p);
       }
       ev /= N;
-      const cand = { ev, D, h: lane.h, source: lane.source, slot: lane.slot, slotIdx: lane.slotIdx, island: lane.island, target: w.t };
+      if (ev <= 0) continue;
+      const cand = { ev, elev, h: lane.h, source: lane.source, slot: lane.slot, slotIdx: lane.slotIdx, island: lane.island, target: aim.kind === 'ship' && aim.obj.owner !== p ? aim.obj : null };
       if (!best || ev > best.ev) best = cand;
       if (lane.source === 'ship' && (!bestShip || ev > bestShip.ev)) bestShip = cand;
     }

@@ -109,13 +109,14 @@ function addWake(ship) {
 }
 
 /**
- * Cannonball flight from (ox, oy) along h, landing at D and stopping at
- * contact distance `stopS`. Resolves when the ball stops.
+ * Cannonball from (ox, oy) along the path of `shot` (see shotPath),
+ * stopping at contact distance `stopS`. Resolves when the ball stops.
  */
-function animCannonball(ox, oy, h, D, stopS, bounce) {
+function animCannonball(ox, oy, shot, stopS) {
   sfxWhistle();
+  const path = shotPath(ox, oy, shot);
   return new Promise(resolve => pushAnim({
-    type: 'ball', ox, oy, h, D, stopS, b: bounce || 0, blocking: true,
+    type: 'ball', ox, oy, path, land: path.legs[0].s1, stopS, blocking: true,
     duration: 250 + stopS * 16, onComplete: resolve,
   }));
 }
@@ -168,10 +169,7 @@ function drawAnimations(ctx) {
     switch (a.type) {
       case 'ball': {
         const s = a.stopS * p;
-        const f = fwdVec(a.h), fb = fwdVec(a.h + a.b);
-        const gx = s <= a.D ? a.ox + f.x * s : a.ox + f.x * a.D + fb.x * (s - a.D);
-        const gy = s <= a.D ? a.oy + f.y * s : a.oy + f.y * a.D + fb.y * (s - a.D);
-        const hgt = ballHeight(s, a.D);
+        const at = pathAt(a.path, s), gx = at.x, gy = at.y, hgt = at.z;
         const g = w2s(gx, gy);
         const lift = w2r(hgt) * 0.8;
         const br = Math.max(2.2, w2r(BALL_R) * (1 + hgt * 0.07));

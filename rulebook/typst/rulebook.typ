@@ -50,8 +50,8 @@
 #let display-font = ("Pirata One",)
 #let body-font    = ("Crimson Text",)
 
-#let version       = "v0.5"
-#let version-long  = "v0.5, In Development · Subject to Change"
+#let version       = "v0.6"
+#let version-long  = "v0.6, In Development · Subject to Change"
 
 // Parchment background (matches faction cards: cream base + texture + lighten)
 #let parchment-bg = {
@@ -357,9 +357,9 @@
 
 On each turn, every one of the ships in your fleet steers or fires, never both, and then sails forward. A ship touching an island may take an island action instead and hold still. To steer, swivel the ship; to move it, push it along its wheels, which click to count the distance. To fire, plug one of your cannons into a slot on the ship and press down on the firing mechanism until the shot releases. The shot goes straight out from the slot, so you line up your aim *before* the turn you fire.
 
-Each cannonball hit removes one *fitting* (a removable piece off your ship, like masts or cargo) from the target ship. A ship with no fittings left is *dead in the water:* it can no longer move, but it can still fire. The bare hull can absorb *one more hit* after the last fitting is gone; the hit after that sinks the ship.
+Each cannonball hit knocks one *fitting* (a removable piece off your ship, like masts or cargo) off the target ship, and the shooter keeps it as a *prize*. A ship with no fittings left is *dead in the water:* it can no longer move, but it can still fire. The bare hull can absorb *one more hit* after the last fitting is gone; the hit after that sinks the ship.
 
-Islands sit between the fleets. Capture one by planting your flag on it and it will pay out *coins.* Coins can be spent at the start of any turn for one-time effects listed in the Coin Actions section, or hoarded as victory points.
+Islands sit between the fleets. Capture one by planting your flag on it and it will pay out *coins.* Coins are spent at the start of any turn for one-time effects listed in the Coin Actions section. Points come from the islands you hold and the prizes in front of you, so the fleet that wins is the one that fights for them.
 
 
 // ----- Print List -----
@@ -409,10 +409,10 @@ There is *no hand limit.* You may hold as many coins as you collect.
 
 Ships are forever sailing forward. On its turn, each of your ships does two things, in this order:
 
-+ *One action:* Set Heading, Fire, or, if it is touching an island, an Island action.
++ *One action:* Set Heading, Fire, or an Island action.
 + *Click forward* at least once, up to its faction's *Move Count*.
 
-A ship that takes an Island action skips the forward click. No ship both steers and fires on the same turn.
+A ship that takes an Island action while touching the island skips the forward click. No ship both steers and fires on the same turn.
 
 *Passing a turn.* A #coin("signal") *Signal Flags* coin passes one ship's action to another. The first only clicks forward; the second takes two full turns, so it may steer on one and fire on the other. The giving ship must be yours and not dead in the water; the receiving ship may be yours or an ally's. One ship may receive more than one transfer, but *Skilled Gunner* still applies to a single turn.
 
@@ -456,13 +456,11 @@ Cannons fire *straight out from the slot.* A ship that fires *does not Set Headi
 
 == Action C: Island
 
-If your ship is *touching an island*, it may take one of the following actions instead of steering or firing. It then skips its forward click:
+Instead of steering or firing, a ship may take one island action:
 
-- *Raise Flag.* Plant your flag on the island. The island must be empty (or have just been cleared of defenders), and your ship must have been touching the island *at the end of your previous turn*.
-- *Collect.* The island must already fly *your flag*. Draw 1 coin from the bag at random.
-- *Fire from Island.* The island must already fly your flag. Plug a cannon into one of the island's cannon slots and fire as normal. Islands have cannon coverage in all directions.
-
-Each ship takes at most one island action per turn.
+- *Raise Flag.* Your ship is touching an empty island (or one just cleared of defenders), and was touching it *at the end of your previous turn*. Plant your flag.
+- *Fire from Island.* Your ship is touching an island flying your flag. Plug a cannon into one of the island's slots and fire as normal.
+- *Collect.* Your ship is *your nearest ship* to an island flying your flag, touching it or not. Draw 1 coin from the bag. Each island pays once per turn. A ship out at sea still clicks forward.
 
 // ----- Islands -----
 
@@ -480,12 +478,11 @@ Each island flies *one flag at a time*.
 
 = Combat
 
-When a cannonball hits an enemy ship, remove one *fitting* (masts or cargo) from the ship and set it in the water beside the ship. No friendly fire.
+When a cannonball hits an enemy ship, remove one *fitting* (masts or cargo). The player who fired *keeps it* as a *prize*, and a player who sinks or captures a ship keeps its hull. Prizes score (see *Scoring*). Whenever a fitting or hull goes back onto a ship, take it from whoever holds it. No friendly fire.
 
 - *Ship has no fittings left.* It is *Dead in the Water.* It cannot move, so it skips its forward click, but it can still fire. The bare hull can still take *one more hit* before sinking.
-- *Hit on a dead-in-the-water ship.* The ship is *Scuttled* and removed.
-- *Ricochets.* The first ship the cannonball touches takes the hit. Any further contact (deflections, rolling onto a second hull) does no damage. If the first ship it touches is friendly, the shot is spent and damages nothing.
-- *Missed shots.* Retrieve missed cannonballs at the end of your turn.
+- *Hit on a dead-in-the-water ship.* The ship sinks.
+- *Ricochets.* Only the first ship the cannonball touches takes the hit. If it is friendly, the shot is spent. Retrieve missed cannonballs at the end of your turn.
 
 #callout[
   *Total hits to sink = Fittings + 1.* A ship with 3 fittings absorbs 3 hits to remove its fittings (leaving it dead in the water), then sinks on the 4th.
@@ -497,11 +494,11 @@ While your ship is *touching* an active enemy ship, you may spend #coin("boardin
 
 == Capturing a Dead Enemy Ship
 
-While your ship is touching a dead-in-the-water enemy ship, spend *both* #coin("boarding") *Boarding Party* and #coin("repair") *Repair Crew* on the same turn. Restore *1 fitting* under your own flag. The captured ship becomes part of your fleet and may act on the following turn.
+While your ship is touching a dead-in-the-water enemy ship, spend *both* #coin("boarding") *Boarding Party* and #coin("repair") *Repair Crew* on the same turn. Restore *1 fitting* under your own flag. The captured ship joins your fleet, acts from your next turn, and counts as a prize hull while it sails for you.
 
 == Scuttling
 
-A dead-in-the-water ship sinks on the next hit it takes. You may scuttle one of your *own* dead ships to prevent an enemy from capturing it.
+A dead-in-the-water ship sinks on the next hit it takes. You may scuttle one of your *own* dead ships to prevent an enemy from capturing it. Nobody takes a scuttled hull as a prize.
 
 == Repairing
 
@@ -519,12 +516,12 @@ Spend #coin("repair") *Repair Crew* to restore 1 fitting to one of your ships.
 #tight(table(
   columns: (0.5fr, 1.05fr, 2.65fr),
   table.header[ ][Coin][What It Does],
-  coin("brace"),    [*Brace for Impact*],  [Place the coin in a ship's coin slot. The next hit that ship takes is negated (no fitting lost) and the coin returns to the bag.],
+  coin("brace"),    [*Brace for Impact*],  [Place it in a ship's coin slot. It negates that ship's next hit, then returns to the bag.],
   coin("signal"),   [*Signal Flags*],      [One of your ships gives up its action; another ship takes two full turns instead of one.],
-  coin("evasive"),  [*Evasive Maneuvers*], [One of your ships slides exactly *one ship-width sideways* (port or starboard) without rotating. The slide is on top of that ship's turn.],
-  coin("gunner"),   [*Skilled Gunner*],    [One of your ships *fires twice* this turn. You may move the cannon between shots. Both resolve before it clicks forward.],
-  coin("repair"),   [*Repair Crew*],       [Restore 1 fitting to one of your ships. *Required to capture a dead-in-the-water enemy ship.*],
-  coin("boarding"), [*Boarding Party*],    [While touching an enemy ship, remove 1 fitting from it. *Required to capture a dead-in-the-water enemy ship.*],
+  coin("evasive"),  [*Evasive Maneuvers*], [One of your ships slides *one ship-width sideways* without rotating, on top of its turn.],
+  coin("gunner"),   [*Skilled Gunner*],    [One of your ships *fires twice* this turn, both before it clicks forward.],
+  coin("repair"),   [*Repair Crew*],       [Restore 1 fitting to one of your ships. *Needed to capture.*],
+  coin("boarding"), [*Boarding Party*],    [While touching an enemy ship, remove 1 fitting from it. *Needed to capture.*],
 ))
 
 Each player contributes 20 coins to the bag at setup: 4 Brace · 2 Signal · 2 Evasive · 4 Gunner · 4 Repair · 4 Boarding.
@@ -537,7 +534,7 @@ Each player contributes 20 coins to the bag at setup: 4 Brace · 2 Signal · 2 E
 The game ends in one of three ways:
 
 - *Last fleet afloat.* Only one player still has ships on the table. That player wins.
-- *Declared victory.* At the start of your turn, declare victory if you believe you have *25 or more points*. Tally all players' scores. If yours is still at least 25 and is higher than or tied with the next-highest, you win.
+- *Declared victory.* At the start of your turn, declare victory if you believe you have *12 or more points*. Tally all players' scores. If yours is still at least 12 and is higher than or tied with the next-highest, you win.
 - *Stalemate.* Every island is under a flag and no island changed hands during the previous two rounds. Proceed to scoring. (optional)
 
 == Scoring
@@ -545,17 +542,16 @@ The game ends in one of three ways:
 #tight(table(
   columns: (2.2fr, 0.6fr),
   table.header[What You Have][Points],
-  [Each surviving ship],       [*3*],
   [Each island you hold],      [*2*],
-  [Each unspent coin],         [*1*],
+  [Each prize fitting],        [*1*],
+  [Each prize hull],           [*2*],
   [_Bonus:_ most ships],       [*+2*],
   [_Bonus:_ most islands],     [*+2*],
-  [_Bonus:_ most coins],       [*+2*],
 ))
 
-Ties on bonuses: every tied player receives the full +2. Highest total wins. In Fleet play, score the fleet as a single player.
+Ships and coins don't score (except Treasure Fleet coins). Ties on bonuses: every tied player receives the full +2. Highest total wins. In Fleet play, score the fleet as a single player.
 
-*Example.* A player with 1 ship, 3 islands, and 12 coins (earning both the most-islands and most-coins bonuses) scores 3 + 6 + 12 + 2 + 2 = *25*. An opponent with 3 ships, 2 islands, and 4 coins (earning the most-ships bonus) scores 9 + 4 + 4 + 2 = *19*. The first player wins.
+*Example.* A player holding 3 islands with 3 prize fittings (earning the most-islands bonus, and tied for most ships) scores 6 + 3 + 2 + 2 = *13*. An opponent holding 2 islands with 2 prize fittings and 1 prize hull (also tied for most ships) scores 4 + 2 + 2 + 2 = *10*. The first player declares and wins.
 
 
 // ----- Alternate Modes -----
@@ -613,7 +609,7 @@ A large-scale variant for advanced games. Each player fields a mixed armada of u
 - *Fleet Flagship sunk.* The entire armada suffers shock. Remove your flags from every island you hold (they become neutral). Move every ship currently touching an island within *6"* of your table edge, facing inward. Take no actions and spend no coins for one full turn; your ships only click forward. Then designate a new Fleet Flagship and resume.
 - *Squadron Flagship sunk.* Only that Squadron suffers shock, with the same effects limited to its ships and islands. Designate a new Squadron Flagship after.
 
-*Scoring.* Standard scoring applies, except *surviving ships are worth 0 VP*. The *most ships* bonus still counts. An armada wins on islands and coins.
+*Scoring.* Standard scoring applies. An armada wins on islands and prizes.
 
 // ----- Factions Overview -----
 
@@ -640,12 +636,12 @@ A large-scale variant for advanced games. Each player fields a mixed armada of u
 #faction-entry("Treasure Fleet")[
   Only two ships on the table, but every island they hold pays double.
 
-  *Bountiful Harvest:* *2 coins* per collect instead of 1, so even a small holding funds big plays.
+  *Bountiful Harvest:* *2 coins* per collect instead of 1, and unspent coins score *1 point* each, so even a small holding adds up.
 ]
 #faction-entry("Stone Fleet")[
   Slow to cross the table, but punishing to chip at.
 
-  *Stone Hulls:* *ignores the first hit* each turn. One big salvo works; pecking at them doesn't.
+  *Stone Hulls:* *ignores the first hit* each turn while at sea. One big salvo works; pecking at them doesn't. Anchored at an island, they're just stone.
 ]
 #faction-entry("Shadow Fleet")[
   Average across every stat, with one trick that changes the math.
@@ -802,8 +798,8 @@ Every ship has a wheel built into the stern. Two details matter:
     #set par(leading: 0.5em)
     - *A, Set Heading:* Rotate up to 90°. Adds no movement.
     - *B, Fire:* Plug cannon into a slot. Press to fire. No rotating.
-    - *C, Island:* _Pick one:_ Raise flag · Collect 1 coin · Fire from island slot.
-    - *Then click forward* 1 to Move Count. An Island action skips it.
+    - *C, Island:* Raise flag · Fire from island · Collect (nearest ship, 1 coin).
+    - *Then click forward* 1 to Move Count, unless touching an island.
 
     _Spend coins at the start of your turn, before ship actions._
   ],
@@ -818,20 +814,9 @@ Every ship has a wheel built into the stern. Two details matter:
   ],
 
   contrast-box("Victory Points")[
-    #table(
-      columns: (2.1fr, 0.6fr),
-      stroke: none,
-      inset: (_, y) => if y == 0 { (x: 6pt, y: 7pt) } else { (x: 6pt, y: 6pt) },
-      fill: (_, y) => if y == 0 { colors.brown }
-                     else if calc.odd(y) { colors.stripe }
-                     else { none },
-      table.header[What You Have][Points],
-      [Each surviving ship], [*3*],
-      [Each island you hold], [*2*],
-      [Each unspent coin], [*1*],
-      [Most in any category], [*+2*],
-    )
-    _Declare Victory at start of turn with ≥ 25 points._
+    *2* per island held · *1* per prize fitting · *2* per prize hull · *+2* most ships · *+2* most islands.
+
+    _Declare Victory at start of turn with ≥ 12 points._
   ],
 
   contrast-box("Hit Resolution")[
@@ -843,12 +828,10 @@ Every ship has a wheel built into the stern. Two details matter:
                      else if calc.odd(y) { colors.stripe }
                      else { none },
       table.header[What Happened][Result],
-      [Hits enemy ship],     [Pull 1 fitting],
+      [Hits enemy ship],     [Pull 1 fitting, keep it as a prize],
       [No fittings left],    [*Dead in the water.* No move, can fire, 1 hit left],
-      [Dead ship hit again], [*Scuttled.* Gone for good],
-      [Hits friendly first], [Nothing. Shot is spent.],
-      [Ricochets to 2nd ship], [Nothing. First contact is the only hit.],
-      [Hits terrain],        [Nothing],
+      [Dead ship hit again], [*Sunk.* Shooter keeps the hull],
+      [Friendly, terrain, or a ricochet], [Nothing. Only the first contact counts.],
     )
   ],
 

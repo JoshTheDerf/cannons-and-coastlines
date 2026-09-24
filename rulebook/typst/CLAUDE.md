@@ -84,7 +84,7 @@ For the banner bottom-fade (transparent top → parchment bottom) use `90deg`. F
 for f in queens-fleet corsairs treasure-fleet shadow-fleet stone-fleet the-industry the-islanders; do
   pdfinfo rulebook/pdf/faction-card-$f.pdf | grep -H Pages || echo "MISSING: $f"
 done
-pdfinfo rulebook/pdf/rulebook.pdf | grep Pages   # expect 10
+pdfinfo rulebook/pdf/rulebook.pdf | grep Pages   # expect 19 (booklet imposition pads to a multiple of 4)
 ```
 
 Every faction line should say `Pages: 1`.

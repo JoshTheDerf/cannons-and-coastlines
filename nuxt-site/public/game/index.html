@@ -16,7 +16,7 @@
     <h1>Cannons &amp;<br>Coastlines</h1>
     <div class="decorLine">&#9875;</div>
     <div class="subtitle">The tabletop naval game, on a screen</div>
-    <div class="rulesVer">Rulebook v0.5</div>
+    <div class="rulesVer">Rulebook v0.6</div>
     <div class="titleBtns">
       <button id="btnSolo" onclick="startSolo()">Play the computer</button>
       <button id="btnHotseat" onclick="startHotSeat()">Two players, one screen</button>
@@ -111,8 +111,9 @@
       <p>First spend any coins you want. Then each of your ships takes its turn: one action, then it sails forward.</p>
       <ul>
         <li><b>Set Heading.</b> Turn up to 90&deg; (Queen's Fleet: 180&deg;).</li>
-        <li><b>Fire.</b> Pick a cannon slot. The shot goes straight out from it, and a ship that fires can't turn this turn, so line up on an earlier turn. Tap when the ring is where you want the ball to land. The first ship it touches takes the hit.</li>
-        <li><b>Island.</b> While touching an island: raise your flag (you must have been touching it at the end of your last turn, with no enemy ships touching it), collect a coin from an island you hold, or fire one of the island's six cannon slots. Each fires straight out along its groove.</li>
+        <li><b>Fire.</b> Pick a cannon slot. The shot goes straight out from it, and a ship that fires can't turn this turn, so line up on an earlier turn. Fire it straight out or tipped up; there is no power setting. The first ship it touches takes the hit.</li>
+        <li><b>Island.</b> While touching an island: raise your flag (you must have been touching it at the end of your last turn, with no enemy ships touching it), or fire one of the island's six cannon slots. Each fires straight out along its groove.</li>
+        <li><b>Collect.</b> Your ship nearest an island you hold may collect a coin there, touching it or not. Each island pays once a turn. A ship touching the island holds still; one out at sea still sails forward.</li>
       </ul>
       <p>Then click forward 1 to your Move Count (Queen's Fleet 3, Corsairs 4, and so on). You can't turn between clicks, and hitting a ship, island, rock or reef stops you there. An island action skips the click, so islands are the only place to hold still. The table edge just stops a ship, and one facing off the table stays put. Ships you don't move sail on one click when you end the turn. Once every ship has gone, the turn ends by itself.</p>
       <p class="callout"><b>Cannons need a crew.</b> Only a ship can fire, and a held island only fires when one of your ships is touching it and spends its action.</p>
@@ -121,17 +122,17 @@
       <p>Each hit removes one fitting. Fittings always come off in this order: turret, then cargo, then masts (the Industry's smokestack counts as a mast). Repair puts them back the other way round, so a turret is the last thing back. With its turret gone, the Industry fires only its bow gun. A ship with no fittings is dead in the water: it can't move (it skips its click) but can still fire, and the next hit sinks it. You can scuttle your own dead ship so the enemy can't take it. No friendly fire.</p>
 
       <h3>Coins</h3>
-      <p>You only get coins by collecting from islands you hold. Spend them at the start of your turn, before any ship acts. Coins you keep are worth a point each.</p>
+      <p>You only get coins by collecting from islands you hold. Spend them at the start of your turn, before any ship acts. Coins are not points (except for the Treasure Fleet, whose unspent coins score a point each).</p>
       <table class="bookTable" id="helpCoins"><tr><th></th><th>Coin</th><th>What it does</th></tr></table>
 
       <h3>Winning</h3>
-      <p>Last fleet afloat wins. Or, at the start of your turn, declare victory with 25 or more points and at least as many as everyone else. Points: 3 per ship, 2 per island, 1 per coin, and +2 for most ships, most islands and most coins (ties both get it). With the stalemate rule on, the game ends on points when every island is flagged and none has changed hands for two rounds.</p>
+      <p>Every fitting you knock off an enemy ship, by cannon or boarding party, is your prize, and so is the hull of every ship you sink or capture. When a ship is repaired, captured or raised, the fitting or hull comes back out of the pile that holds it. Last fleet afloat wins. Or, at the start of your turn, declare victory with 12 or more points and at least as many as everyone else. Points: 2 per island, 1 per prize fitting, 2 per prize hull, and +2 for most ships and most islands (ties both get it). Surviving ships and coins do not score. With the stalemate rule on, the game ends on points when every island is flagged and none has changed hands for two rounds.</p>
 
       <h3>Online</h3>
       <p>Up to seven crews on a round table, one turn each in seat order. The server checks every move and rolls every shot. If you drop out, reopen the link and you get your seat back.</p>
 
       <h3>Controls</h3>
-      <p>Everything happens on the table. Tap a ship to open its ring of actions and coins. For Steer, drag the handle (or move the mouse and click) to set the heading, then tap a numbered chip to sail that many clicks. For Fire, tap a slot chip, then tap the table when the ring is where you want the ball to land. The Industry turret has its own aiming handle. Tap water or press Esc to close or step back. Pinch or use the wheel to zoom, drag empty water to pan. Right-drag, twist two fingers, or press Q and E to turn the view; the last camera button (or T) looks straight down. The camera follows the action, which you can turn off in the menu. Keys: arrows turn, 1 to 4 sail that many clicks, Enter sails the full count, Space fires. The panel has every action too.</p>
+      <p>Everything happens on the table. Tap a ship to open its ring of actions and coins. For Steer, drag the handle (or move the mouse and click) to set the heading, then tap a numbered chip to sail that many clicks. For Fire, tap a slot chip, then choose Straight out or Tipped up (arrow keys up and down) and fire. Like the printed cannons there is no power setting: straight out skips and skids into the first thing in line, tipped up sails over nearby hulls and comes down about 40 cm out, and every shot sprays a few degrees either way. The tapered ball curls as it skids to a stop. The Industry turret has its own aiming handle. Tap water or press Esc to close or step back. Pinch or use the wheel to zoom, drag empty water to pan. Right-drag, twist two fingers, or press Q and E to turn the view; the last camera button (or T) looks straight down. The camera follows the action, which you can turn off in the menu. Keys: arrows turn, 1 to 4 sail that many clicks, Enter sails the full count, Space fires. The panel has every action too.</p>
       <button onclick="hideHelp()">Got it</button>
     </div>
   </div>
