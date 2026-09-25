@@ -10,9 +10,17 @@
     "check": "node scripts/build-engine.mjs && node scripts/engine-selftest.mjs",
     "tournament": "node scripts/build-engine.mjs && node scripts/tournament.mjs 4",
     "balance": "node scripts/build-engine.mjs && node scripts/balance.mjs",
-    "balance:quick": "node scripts/build-engine.mjs && node scripts/balance.mjs --quick"
+    "balance:quick": "node scripts/build-engine.mjs && node scripts/balance.mjs --quick",
+    "balance:tables": "node scripts/build-engine.mjs && node scripts/balance.mjs --tables",
+    "variant": "node scripts/variant.mjs",
+    "start-lanes": "node scripts/build-engine.mjs && node scripts/start-lanes.mjs",
+    "table-fit": "node scripts/build-engine.mjs && node scripts/table-fit.mjs",
+    "cannon-stats": "node scripts/build-engine.mjs && node scripts/cannon-stats.mjs",
+    "map-preview": "node scripts/build-engine.mjs && node scripts/map-preview.mjs",
+    "ui-smoke": "node scripts/ui-smoke.mjs"
   },
   "devDependencies": {
+    "playwright": "1.59.1",
     "wrangler": "^4.40.0"
   }
 }

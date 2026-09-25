@@ -8,6 +8,9 @@
 //   node scripts/balance.mjs --report   print the tables, never fail
 //   node scripts/balance.mjs --tables   real table sizes instead: how soon the
 //                                       fighting starts on each, and balance
+//   node scripts/balance.mjs --only ffa4,styles   just those scenarios
+//   node scripts/balance.mjs --engine /tmp/v.js   run a patched engine (see
+//                                       scripts/variant.mjs) for an A/B test
 //   node scripts/balance.mjs --logs [file.jsonl]
 //                                       also print patterns from the action
 //                                       logs, and save every game's log
@@ -20,6 +23,8 @@ import { Worker, isMainThread, parentPort, workerData } from 'node:worker_thread
 import { cpus } from 'node:os';
 import { fileURLToPath } from 'node:url';
 import { writeFileSync } from 'node:fs';
+import { resolve } from 'node:path';
+import { pathToFileURL } from 'node:url';
 
 // ─── Limits ───────────────────────────────────────────
 // Each fleet's win rate must stay inside FLEET_LIMITS (x fair share);
@@ -50,6 +55,10 @@ const SCENARIOS = [
   { id: 'ffa6', label: '6 players (6 ft round)', kind: 'ffa', n: 6, games: 140 },
   { id: 'mixed4', label: '4 players, mixed computer styles', kind: 'ffa', n: 4, games: 140, styles: ['tactical', 'turtle', 'raider', 'plain'] },
   { id: 'styles', label: 'Parking (turtle) vs fighting (raider)', kind: 'styles', sizes: [2, 3, 4, 6], games: 60 },
+  // Playing for coins: a banker (holds islands, collects, banks coins) at
+  // tables with the other styles. It should win about its share too.
+  { id: 'coins3', label: '3 players, playing for coins', kind: 'ffa', n: 3, games: 140, styles: ['banker', 'tactical', 'turtle', 'raider'], styleCheck: 'banker' },
+  { id: 'coins4', label: '4 players, playing for coins', kind: 'ffa', n: 4, games: 140, styles: ['banker', 'tactical', 'turtle', 'raider'], styleCheck: 'banker' },
 ];
 
 // Real tables (--tables): every two-player pairing on each table and
@@ -61,8 +70,8 @@ const TABLE_SCENARIOS = [
 ];
 
 // ─── One game ─────────────────────────────────────────
-async function playGames(jobs) {
-  const { engine } = await import('../src/engine.gen.js');
+async function playGames({ jobs, enginePath }) {
+  const { engine } = await import(enginePath);
   const out = [];
   for (const j of jobs) {
     engine.setRand(engine.seededRandom(j.seed));
@@ -75,7 +84,7 @@ async function playGames(jobs) {
     const cap = 40 * j.factions.length; // 40 rounds: far past any real game
     // Action log: per-seat tallies of what every seat did, and (with --logs)
     // the move-by-move record [turn, seat, what, detail].
-    const seat = () => ({ moves: 0, shots: { 'ship-flat': 0, 'ship-lob': 0, 'island-flat': 0, 'island-lob': 0 }, hits: { 'ship-flat': 0, 'ship-lob': 0, 'island-flat': 0, 'island-lob': 0 }, stopped: { brace: 0, stone: 0 }, collectTouch: 0, collectSea: 0, raised: 0, coins: {}, boards: 0, captures: 0, revives: 0, scuttles: 0, shipTurns: 0, parked: 0, hitDist: 0 });
+    const seat = () => ({ moves: 0, shots: { 'ship-flat': 0, 'ship-lob': 0, 'island-flat': 0, 'island-lob': 0 }, hits: { 'ship-flat': 0, 'ship-lob': 0, 'island-flat': 0, 'island-lob': 0 }, stopped: { brace: 0, stone: 0 }, collectTouch: 0, collectSea: 0, coinsGot: 0, collectsEmpty: 0, raised: 0, coins: {}, boards: 0, captures: 0, revives: 0, scuttles: 0, shipTurns: 0, parked: 0, hitDist: 0 });
     const tally = Object.fromEntries(G.order.map(p => [p, seat()]));
     const log = j.log ? [] : null;
     while (G.phase === 'play' && steps++ < 30000 && G.turn <= cap) {
@@ -106,6 +115,7 @@ async function playGames(jobs) {
           if (log) log.push([G.turn, p, 'shot', k, e.kind, e.res || '', Math.round(e.stopS)]);
         } else if (e.e === 'board') { T.boards++; if (['fitting', 'dead', 'sunk'].includes(e.res)) hits++; }
         else if (e.e === 'capture') T.captures++;
+        else if (e.e === 'collect') { T.coinsGot += e.got.length; if (!e.got.length) T.collectsEmpty++; }
       }
       if (log && a.t !== 'fire') log.push([G.turn, p, a.t, a.coin || (a.t === 'collect' ? (touching ? 'touch' : 'sea') : '')]);
     }
@@ -181,12 +191,17 @@ async function main() {
   const report = args.includes('--report');
   const li = args.indexOf('--logs'), logFile = li >= 0 && args[li + 1] && !args[li + 1].startsWith('--') ? args[li + 1] : null;
   const tablesMode = args.includes('--tables');
-  const jobs = makeJobs(scale, tablesMode ? TABLE_SCENARIOS : SCENARIOS).map(j => Object.assign(j, { log: !!logFile }));
+  const oi = args.indexOf('--only'), only = oi >= 0 ? args[oi + 1].split(',') : null;
+  const ei = args.indexOf('--engine'), enginePath = ei >= 0 ? pathToFileURL(resolve(args[ei + 1])).href : new URL('../src/engine.gen.js', import.meta.url).href;
+  const list = (tablesMode ? TABLE_SCENARIOS : SCENARIOS).filter(sc => !only || only.includes(sc.id) || (sc.kind === 'styles' && only.includes('styles')));
+  if (!list.some(sc => sc.kind === 'styles')) list.push({ id: 'styles', label: 'Parking (turtle) vs fighting (raider)', kind: 'styles', sizes: [], games: 0 });
+  const jobs = makeJobs(scale, list).map(j => Object.assign(j, { log: !!logFile }));
+  const ACTIVE = list;
   const nw = Math.max(1, Math.min(cpus().length, 8));
   const t0 = Date.now();
   // Deal the jobs out round-robin so every worker gets a mix of long and short games.
   const results = (await Promise.all(Array.from({ length: nw }, (_, w) => new Promise((res, rej) => {
-    const wk = new Worker(fileURLToPath(import.meta.url), { workerData: jobs.filter((_, i) => i % nw === w) });
+    const wk = new Worker(fileURLToPath(import.meta.url), { workerData: { jobs: jobs.filter((_, i) => i % nw === w), enginePath } });
     wk.on('message', res); wk.on('error', rej);
   })))).flat();
   const by = id => results.filter(g => g.scenario === id);
@@ -196,7 +211,7 @@ async function main() {
   const fails = [], known = [];
   console.log(`${results.length} games in ${((Date.now() - t0) / 1000).toFixed(0)} s on ${nw} workers. Win rate as a multiple of a fair share (1.00 = fair).\n`);
   console.log('Scenario'.padEnd(40) + F.map(f => NAME[f].padStart(10)).join('') + '   rounds  capped  hits');
-  for (const sc of SCENARIOS.filter(s => s.kind !== 'styles')) {
+  for (const sc of ACTIVE.filter(s => s.kind !== 'styles' && !s.styleCheck)) {
     const games = by(sc.id);
     const cells = F.map(f => {
       const s = share(games, (g, i) => g.factions[i] === f);
@@ -224,7 +239,7 @@ async function main() {
     }).join(''));
   }
   // Parking against fighting.
-  const sty = SCENARIOS.find(s => s.kind === 'styles');
+  const sty = ACTIVE.find(s => s.kind === 'styles');
   console.log(`\n${sty.label}:`);
   for (const n of sty.sizes) {
     const games = by(`styles${n}`);
@@ -235,6 +250,15 @@ async function main() {
   // Do the fleets go after whoever is winning? Hits on the leader against the leader's share of the fleets.
   const lh = results.reduce((a, g) => { a.n += g.leaderHits.n; a.lead += g.leaderHits.lead; a.share += g.leaderHits.share; return a; }, { n: 0, lead: 0, share: 0 });
   if (lh.n) console.log(`\nThree or more fleets: ${Math.round(100 * lh.lead / lh.n)}% of hits land on the current leader (fair share by numbers ${Math.round(100 * lh.share / lh.n)}%).`);
+  const coinChecks = ACTIVE.filter(sc => sc.styleCheck);
+  if (coinChecks.length) console.log('\nPlaying for coins (banker) against tactical, turtle and raider:');
+  for (const sc of coinChecks) {
+    const g = by(sc.id), bank = g.flatMap(x => x.seats.filter(s => s.style === sc.styleCheck));
+    const row = ['banker', 'tactical', 'turtle', 'raider'].map(st => `${st} ${share(g, (x, i) => x.styles[i] === st).x.toFixed(2)}`).join(', ');
+    const b = share(g, (x, i) => x.styles[i] === sc.styleCheck);
+    console.log(`  ${sc.label}: ${row} (${g.length} games; the banker ends with ${(bank.reduce((a, s) => a + s.score.coins, 0) / Math.max(1, bank.length)).toFixed(1)} coins)`);
+    if (outside(b, STYLE_LIMITS)) fails.push(`${sc.label}: the banker wins ${b.x.toFixed(2)}x fair share (95% ${b.lo.toFixed(2)}-${b.hi.toFixed(2)}), limit ${STYLE_LIMITS.join('-')}`);
+  }
   if (li >= 0) patterns(results, NAME);
   if (logFile) { writeFileSync(logFile, results.map(g => JSON.stringify(g)).join('\n') + '\n'); console.log(`\nAction logs for ${results.length} games written to ${logFile}`); }
   if (known.length) console.log('\nKnown leans (reported, not failed):\n  ' + known.join('\n  '));
@@ -254,7 +278,7 @@ function tableReport(results, by) {
   const F = ['queens_fleet', 'corsairs', 'treasure_fleet', 'stone_fleet', 'shadow_fleet', 'industry', 'islanders'];
   console.log(`${results.length} games on real tables. Rounds are whole turns of the table; "first hit" is how far into the game (by rounds) the first hit lands.\n`);
   console.log('Table'.padEnd(20) + 'islands  rounds  1st shot  1st hit  (of game)  hits in 1st half  capped  fleets (min-max x fair)');
-  for (const sc of TABLE_SCENARIOS) {
+  for (const sc of TABLE_SCENARIOS.filter(sc => by(sc.id).length)) {
     const g = by(sc.id);
     const frac = med(g.map(x => (x.firstHit != null ? x.firstHit / x.rounds : null)));
     const early = g.reduce((a, x) => a + x.earlyHits, 0) / Math.max(1, g.reduce((a, x) => a + x.allHits, 0));
@@ -305,6 +329,8 @@ function patterns(results, NAME) {
     console.log(line(NAME[f], arr) + extra);
     if (won.length) console.log(`  ${''.padEnd(26)} wins by: islands ${(sum(won, s => s.score.islands * 8) / won.length).toFixed(1)}, fittings ${(sum(won, s => s.score.fittings * 4) / won.length).toFixed(1)}, hulls ${(sum(won, s => s.score.hulls * 8) / won.length).toFixed(1)}, coins ${(sum(won, s => s.score.hoard) / won.length).toFixed(1)}, bonus ${(sum(won, s => s.score.bonus) / won.length).toFixed(1)}  (${won.length} wins)`);
   }
+  const cols = sum(seats, s => s.collectTouch + s.collectSea);
+  console.log(`\nCollecting: ${(sum(seats, s => s.coinsGot) / Math.max(1, cols)).toFixed(2)} coins per collect; ${pct(sum(seats, s => s.collectsEmpty), cols)} of collects found the bag empty`);
   console.log('\nCoins spent, per 100 rounds played:');
   const ids = ['brace', 'fullsail', 'evasive', 'gunner', 'repair', 'boarding'];
   const rounds = sum(seats, s => s.rounds);
