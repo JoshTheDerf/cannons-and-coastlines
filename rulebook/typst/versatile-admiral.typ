@@ -11,7 +11,6 @@
 
 #let coin-files = (
   brace:    "coin-brace-for-impact-top",
-  signal:   "coin-signal-flag-top",
   fullsail: "coin-full-sail-top",
   evasive:  "coin-evasive-maneuver-top",
   gunner:   "coin-skilled-gunner-top",
@@ -650,9 +649,10 @@ remains with the ship until it is sunk.
   *2 fittings* instead of 1. Still costs 1 coin and the ship's action.
 ]
 
-#ability-box("Signal Experts")[
-  When this ship is the source of a #coin("signal") *Signal Flags* coin
-  spend, it may grant the free Move to *two ships* instead of one.
+#ability-box("Master Navigators")[
+  When you spend #coin("fullsail") *Full Sail* on this ship, *one other
+  ship* of yours also steers and sails twice this turn. Like this ship, it
+  does not fire or take an island action.
 ]
 
 == Forced Recall
