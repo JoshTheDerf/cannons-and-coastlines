@@ -533,7 +533,7 @@ Each player contributes 20 coins to the bag at setup: 4 Brace · 2 Signal · 2 F
 The game ends in one of three ways:
 
 - *Last fleet afloat.* Only one player still has ships on the table. That player wins.
-- *Declared victory.* At the start of your turn, declare victory if you believe you have *12 or more points*. Tally all players' scores. If yours is still at least 12 and is higher than or tied with the next-highest, you win.
+- *Declared victory.* At the start of your turn, declare victory if you believe you have *48 or more points*. Tally all players' scores. If yours is still at least 48 and is higher than or tied with the next-highest, you win.
 - *Stalemate.* Every island is under a flag and no island changed hands during the previous two rounds. Proceed to scoring. (optional)
 
 == Scoring
@@ -541,16 +541,17 @@ The game ends in one of three ways:
 #tight(table(
   columns: (2.2fr, 0.6fr),
   table.header[What You Have][Points],
-  [Each island you hold],      [*2*],
-  [Each prize fitting],        [*1*],
-  [Each prize hull],           [*2*],
-  [_Bonus:_ most ships],       [*+2*],
-  [_Bonus:_ most islands],     [*+2*],
+  [Each island you hold],      [*8*],
+  [Each prize fitting],        [*4*],
+  [Each prize hull],           [*8*],
+  [Each unspent coin],         [*1*],
+  [_Bonus:_ most ships],       [*+8*],
+  [_Bonus:_ most islands],     [*+8*],
 ))
 
-Ships and coins don't score (except Treasure Fleet coins). Ties on bonuses: every tied player receives the full +2. Highest total wins. In Fleet play, score the fleet as a single player.
+Surviving ships don't score. Ties on bonuses: every tied player receives the full +8. Highest total wins. In Fleet play, score the fleet as a single player.
 
-*Example.* A player holding 3 islands with 3 prize fittings (earning the most-islands bonus, and tied for most ships) scores 6 + 3 + 2 + 2 = *13*. An opponent holding 2 islands with 2 prize fittings and 1 prize hull (also tied for most ships) scores 4 + 2 + 2 + 2 = *10*. The first player declares and wins.
+*Example.* A player holding 3 islands, 3 prize fittings and 3 coins (earning the most-islands bonus, and tied for most ships) scores 24 + 12 + 3 + 8 + 8 = *55*. An opponent holding 2 islands, 2 prize fittings, 1 prize hull and 5 coins (also tied for most ships) scores 16 + 8 + 8 + 5 + 8 = *45*. The first player declares and wins.
 
 
 // ----- Alternate Modes -----
@@ -633,9 +634,9 @@ A large-scale variant for advanced games. Each player fields a mixed armada of u
   *Plunder:* an *extra coin* on every successful board or capture, so their economy rewards picking fights.
 ]
 #faction-entry("Treasure Fleet")[
-  Only two ships on the table, but every island they hold pays double.
+  Three slow junks, and every island they hold pays double.
 
-  *Bountiful Harvest:* *2 coins* per collect instead of 1, and unspent coins score *1 point* each, so even a small holding adds up.
+  *Bountiful Harvest:* *2 coins* per collect instead of 1, so even a small holding funds big plays.
 ]
 #faction-entry("Stone Fleet")[
   Slow to cross the table, but punishing to chip at.
@@ -736,7 +737,7 @@ A *faction set* is one complete print run for one player: their fleet plus a fai
 #tight(table(
   columns: (0.6fr, 0.7fr, 1.7fr),
   table.header[Piece][Quantity][Notes],
-  [Ships], [2–5],     [Some ship models may print better with supports enabled.],
+  [Ships], [3–5],     [Some ship models may print better with supports enabled.],
   [Masts],             [1 per ship + 1 per island],  [*Short Masts* go on islands and Islander ships. Print spares.],
   [Cargo and barrels], [Varies by ship],             [Enough to fill your ships' fitting slots.],
   [Sails],                [1 per mast], [Decorate to customize your fleet.],
@@ -813,9 +814,9 @@ Every ship has a wheel built into the stern. Two details matter:
   ],
 
   contrast-box("Victory Points")[
-    *2* per island held · *1* per prize fitting · *2* per prize hull · *+2* most ships · *+2* most islands.
+    *8* per island held · *4* per prize fitting · *8* per prize hull · *1* per coin · *+8* most ships · *+8* most islands.
 
-    _Declare Victory at start of turn with ≥ 12 points._
+    _Declare Victory at start of turn with ≥ 48 points._
   ],
 
   contrast-box("Hit Resolution")[

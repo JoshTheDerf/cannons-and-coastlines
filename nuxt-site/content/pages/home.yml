@@ -130,7 +130,8 @@ howToPlay:
           Coins come from islands you hold: each turn, your ship nearest each
           of your islands can collect a coin there, even out at sea. Spend
           them before any of your ships takes its turn, as many as you want,
-          then put them back in the bag. Coins aren't points, so spend them.
+          then put them back in the bag. Each coin you still hold is a point,
+          but they're worth far more spent.
       coins:
         - { image: /assets/images/coins/coin-skilled-gunner.webp, name: Skilled Gunner, body: One ship fires twice. }
         - { image: /assets/images/coins/coin-repair-crew.webp, name: Repair Crew, body: Put a fitting back on one of your ships. }
@@ -147,16 +148,17 @@ howToPlay:
         - >-
           If you're the last fleet with ships on the table, you win. Otherwise,
           at the start of your turn you can **declare victory** if you think you
-          have 12 points. Everyone counts up. If you're still at 12 or more and
+          have 48 points. Everyone counts up. If you're still at 48 or more and
           nobody is ahead of you, you win. Your prizes are right there in front
           of you, so there's nothing to write down.
       table:
         head: [What you have, Points]
         rows:
-          - [Each island you hold, 2]
-          - [Each prize fitting, 1]
-          - [Each prize hull (sunk or captured), 2]
-          - [Most ships / most islands, +2 each]
+          - [Each island you hold, 8]
+          - [Each prize fitting, 4]
+          - [Each prize hull (sunk or captured), 8]
+          - [Each unspent coin, 1]
+          - [Most ships / most islands, +8 each]
   outro: >-
     The rulebook has the rest: boarding, scuttling, the faction abilities, and
     the alternate modes (Group play for big parties, Fleets & Alliances,
@@ -202,8 +204,8 @@ fleets:
   addons:
     - name: Treasure Fleet
       image: /assets/ships/ship-preview-treasure-fleet-sm.webp
-      stats: 2 junks · 3 fittings · Move 2
-      body: Only two ships, but every island they hold pays out double.
+      stats: 3 junks · 3 fittings · Move 2
+      body: Three slow junks, and every island they hold pays out double.
       card: /rulebook/pdf/faction-card-treasure-fleet.pdf
     - name: Stone Fleet
       image: /assets/ships/ship-preview-stone-fleet-sm.webp
@@ -287,10 +289,10 @@ changelog:
     - version: v0.6
       released: '2026-09-24'
       items:
-        - '**Win by fighting, not by parking.** Surviving ships and unspent coins no longer score. You score for islands you hold and for prizes, and you can declare victory at 12 points instead of 25.'
-        - '**Prizes.** Keep every fitting you knock off an enemy ship, and the hull of every ship you sink or capture. A fitting is worth 1 point and a hull 2. When a ship is repaired, captured or raised, the piece comes back out of whoever holds it.'
+        - '**Win by fighting, not by parking.** Surviving ships no longer score, and a coin is worth a quarter of what it was. You score for islands you hold, for prizes and a little for coins: 8 per island, 4 per prize fitting, 8 per prize hull, 1 per coin, +8 for most ships and most islands, and you can declare victory at 48.'
+        - '**Prizes.** Keep every fitting you knock off an enemy ship, and the hull of every ship you sink or capture. A fitting is worth 4 points and a hull 8. When a ship is repaired, captured or raised, the piece comes back out of whoever holds it.'
         - '**Collect from a distance.** Each turn, your ship nearest each of your islands can collect a coin there, touching it or not. A ship out at sea still sails forward after collecting.'
-        - '**Treasure Fleet keeps its gold.** Its unspent coins still score 1 point each.'
+        - '**Treasure Fleet gets a third junk.** Two ships were too few to hold a table; three hold their own.'
         - '**Stone Hulls only work at sea.** A Stone Fleet ship touching an island takes every hit.'
         - '**Real tables, and where to sit.** A 6 ft round or a 6 or 8 ft folding table works well. Two players sit a quarter of the way round a round table, or diagonally across a folding one, so the fighting starts sooner. With three or more, put a rock just past each end of every fleet''s line. On a narrow table, islands run down the middle.'
         - '**Full Sail is back.** One ship steers and sails twice in a turn, but does not fire. The 20-coin set is now 4 Brace, 2 Signal, 2 Full Sail, 2 Evasive, 4 Gunner, 4 Repair, 2 Boarding.'

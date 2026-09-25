@@ -1282,8 +1282,7 @@ function buildPanel(p, el) {
 // Scores (rulebook v0.6): islands x2, prize fittings x1, prize hulls x2,
 // +2 most ships, +2 most islands; Treasure Fleet coins x1.
 function scoreTitle(sc) {
-  return `Islands ${sc.islands} x${VP_ISLAND}, prize fittings ${sc.fittings} x${VP_PRIZE_FITTING}, prize hulls ${sc.hulls} x${VP_PRIZE_HULL}` +
-    (sc.hoard ? `, coins ${sc.hoard}` : '') + `, bonus ${sc.bonus}`;
+  return `Islands ${sc.islands} x${VP_ISLAND}, prize fittings ${sc.fittings} x${VP_PRIZE_FITTING}, prize hulls ${sc.hulls} x${VP_PRIZE_HULL}, coins ${sc.hoard}, bonus ${sc.bonus}`;
 }
 function scoreMeta(sc) {
   return `${sc.islands} isl · ${sc.fittings + sc.hulls ? `${sc.fittings} fit ${sc.hulls} hull · ` : ''}${sc.ships} ships · ${sc.coins} coins`;
@@ -1462,7 +1461,7 @@ function showGameOver() {
   $('winnerText').textContent = G.winner ? `${name(G.winner)} ${isOnline() && G.winner === NET.seat ? 'win' : 'wins'}` : 'A draw';
   $('winnerText').style.color = G.winner ? colorOf(G.winner).dark : '';
   const rows = G.order.slice().sort((a, b) => s[b].total - s[a].total).map(p => `<tr><td style="color:${colorOf(p).dark};font-weight:700">${esc(seatName(p))}<br><small>${esc(FACTION_DEFS[G.factions[p]].name)}</small></td>
-    <td>${s[p].islands}</td><td>${s[p].fittings}</td><td>${s[p].hulls}</td><td>${s[p].hoard || '-'}</td><td>${s[p].bonus}</td><td><b>${s[p].total}</b></td>
+    <td>${s[p].islands}</td><td>${s[p].fittings}</td><td>${s[p].hulls}</td><td>${s[p].hoard}</td><td>${s[p].bonus}</td><td><b>${s[p].total}</b></td>
     <td>${G.stats[p].hits}/${G.stats[p].shots}</td></tr>`).join('');
   $('statsText').innerHTML = `<p>${esc(G.endReason)}</p>
     <table class="bookTable"><tr><th></th><th>Islands</th><th>Prize fittings</th><th>Prize hulls</th><th>Coins</th><th>Bonus</th><th>Total</th><th>Hits</th></tr>${rows}</table>

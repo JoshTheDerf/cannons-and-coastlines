@@ -21,11 +21,12 @@ function aiMemo(p) {
 // only for balance tests (game-server/scripts/balance.mjs), pulling to the
 // ends of the parking-versus-fighting question: 'turtle' parks a ship on
 // every island it can and collects, 'raider' hunts ships and only takes
-// islands on the way.
+// islands on the way. 'banker' plays for coins: it holds islands, collects
+// every turn and banks what it draws, spending only on repairs and braces.
 const styleOf = p => (G.aiStyle && G.aiStyle[p]) || 'tactical';
-const tactical = p => { const st = styleOf(p); return st === 'tactical' || st === 'tactics' || st === 'turtle' || st === 'raider'; };
+const tactical = p => { const st = styleOf(p); return st === 'tactical' || st === 'tactics' || st === 'turtle' || st === 'raider' || st === 'banker'; };
 const off = k => G.aiOff && G.aiOff.includes(k); // for tuning runs only
-const planner = p => { const st = styleOf(p); return st === 'tactical' || st === 'islands' || st === 'turtle'; };
+const planner = p => { const st = styleOf(p); return st === 'tactical' || st === 'islands' || st === 'turtle' || st === 'banker'; };
 
 /**
  * A per-turn read of the table: how much each enemy faction matters (by
@@ -53,13 +54,13 @@ function aiIntel(p) {
     let m = 1;
     if (multi) {
       const leader = sc[q].total === totals[0];
-      if (off('lead')) { if (leader && totals[0] >= (totals[1] || 0) + 3) m *= 1.5; }
+      if (off('lead')) { if (leader && totals[0] >= (totals[1] || 0) + 3 * VP_SCALE) m *= 1.5; }
       else {
         // Go after whoever is winning: more fire the further they are ahead
         // of the rest, and a lot more once they are close to declaring.
         const rest = live.filter(o => o !== q), avg = rest.reduce((a, o) => a + sc[o].total, 0) / rest.length;
-        m *= 1 + Math.max(0, sc[q].total - avg) / 4;
-        if (sc[q].total >= VICTORY_POINTS - 3) m *= sc[q].total >= VICTORY_POINTS - 1 ? 2 : 1.5;
+        m *= 1 + Math.max(0, sc[q].total - avg) / (4 * VP_SCALE);
+        if (sc[q].total >= VICTORY_POINTS - 3 * VP_SCALE) m *= sc[q].total >= VICTORY_POINTS - VP_SCALE ? 2 : 1.5;
       }
       if (f === 'stone_fleet') m *= 2 + (leader ? 0.6 : 0) + islandsHeld(q) * 0.15;
       else if (stoneHealthy && p !== stoneSeat && !leader) m *= 0.35; // informal truce while the Stone Fleet is strong, never with the leader
@@ -74,7 +75,7 @@ function aiIntel(p) {
   if (multi) for (const q of live) {
     if (q === p) continue;
     const rest = live.filter(o => o !== q), avg = rest.reduce((a, o) => a + sc[o].total, 0) / rest.length;
-    if ((sc[q].total - avg >= 3 || sc[q].total >= VICTORY_POINTS - 4) && (!leader || sc[q].total > sc[leader].total)) leader = q;
+    if ((sc[q].total - avg >= 3 * VP_SCALE || sc[q].total >= VICTORY_POINTS - 4 * VP_SCALE) && (!leader || sc[q].total > sc[leader].total)) leader = q;
   }
   return (memo.intel = { tw, focus, multi, leader });
 }
@@ -167,7 +168,7 @@ function aiPlanIslands(p) {
   // collects from anywhere) and coins are not points, so a tactical captain
   // only keeps a ship on an island with enemies close. The turtle test
   // style and the Treasure Fleet, whose coins still score, keep every one.
-  const parkAll = styleOf(p) === 'turtle' || passiveOf(p) === 'harvest' || off('park');
+  const parkAll = styleOf(p) === 'turtle' || styleOf(p) === 'banker' || passiveOf(p) === 'harvest' || off('park');
   const kept = new Set();
   for (const s of ships) {
     const own = touchingIslands(s).map(i => G.terrain[i]).find(t => t.owner === p);
@@ -271,17 +272,18 @@ function aiCoinChoice(p, roles, memo) {
   // Rulebook v0.6: coins are not points, only things to spend, so the
   // tactical captain spends them. The Treasure Fleet's coins still score,
   // so it keeps the old, careful habits.
-  const spend = tactical(p) && !off('spend') && passiveOf(p) !== 'harvest';
+  const spend = tactical(p) && !off('spend') && passiveOf(p) !== 'harvest' && styleOf(p) !== 'banker';
+  const banker = styleOf(p) === 'banker';
   const reserve = spend ? 1 : 3;
   if (reviveAllowed(p) && coinTotal(p) >= 3) {
     const isl = islands().filter(t => t.owner === p && freePoseAtIsland(me.sunk[0], t));
     if (isl.length) return { t: 'revive', island: isl[0].id };
   }
   for (const t of enemyShips(p)) {
-    if (isDead(t) && has('boarding') && has('repair') && coinTargets(p, 'boarding').includes(t)) return coin('boarding', t);
+    if (!banker && isDead(t) && has('boarding') && has('repair') && coinTargets(p, 'boarding').includes(t)) return coin('boarding', t);
   }
   for (const t of enemyShips(p)) {
-    if (!isDead(t) && has('boarding') && coinTargets(p, 'boarding').includes(t)) return coin('boarding', t);
+    if (!banker && !isDead(t) && has('boarding') && coinTargets(p, 'boarding').includes(t)) return coin('boarding', t);
   }
   if (has('repair')) {
     for (const s of me.ships.slice().sort((a, b) => a.fit - b.fit)) {
@@ -301,7 +303,7 @@ function aiCoinChoice(p, roles, memo) {
       }
     }
   }
-  if (has('evasive')) {
+  if (has('evasive') && !banker) {
     for (const s of me.ships) {
       if (isDead(s) || memo.used['ev' + s.id]) continue;
       memo.used['ev' + s.id] = 1;
@@ -334,7 +336,7 @@ function aiCoinChoice(p, roles, memo) {
       if (far > s.moveCount * CLICK_LEN * 1.5) return coin('fullsail', s);
     }
   }
-  if (has('gunner') && coinTotal(p) >= reserve && !memo.used.gunner) {
+  if (has('gunner') && !banker && coinTotal(p) >= reserve && !memo.used.gunner) {
     memo.used.gunner = 1;
     let best = null;
     for (const s of me.ships) {
@@ -348,7 +350,7 @@ function aiCoinChoice(p, roles, memo) {
   }
   // Signal Flags: a ship with nothing useful to do hands its action to one
   // with a good shot, which then gets a second turn to fire or line up again.
-  if (has('signal') && coinTotal(p) >= reserve && !memo.used.signal) {
+  if (has('signal') && !banker && coinTotal(p) >= reserve && !memo.used.signal) {
     memo.used.signal = 1;
     const givers = coinTargets(p, 'signal').filter(s => roles[s.id] !== 'collect' && !touchingIslands(s).length && !(shotOf(s) && shotOf(s).ev >= 1.5));
     let best = null;
@@ -400,10 +402,10 @@ function aiShipTurn(ship, roles) {
     // last island and enemies are coming. Otherwise the ship goes to work.
     const nearIsle = enemyShips(ship.owner).some(e => !isDead(e) && dist(e.x, e.y, own.x, own.y) - own.r < 25);
     const tacKeep = goal === 'collect' || (islandsHeld(ship.owner) <= 1 && nearIsle);
-    const keep = style === 'turtle' ? true : style === 'raider' ? (aiThreat(ship, ship) > 0 && ship.fit <= 1) : tactical(ship.owner) && !off('park') && passiveOf(ship.owner) !== 'harvest' ? tacKeep : goal === 'collect' || aiThreat(ship, ship) > 0 || islandsHeld(ship.owner) <= 1 || (tactical(ship.owner) && !off('keep') && typeof goal !== 'object');
+    const keep = style === 'turtle' || style === 'banker' ? true : style === 'raider' ? (aiThreat(ship, ship) > 0 && ship.fit <= 1) : tactical(ship.owner) && !off('park') && passiveOf(ship.owner) !== 'harvest' ? tacKeep : goal === 'collect' || aiThreat(ship, ship) > 0 || islandsHeld(ship.owner) <= 1 || (tactical(ship.owner) && !off('keep') && typeof goal !== 'object');
     if (isleShot && isleShot.ev >= 3) return aiFireAction(ship, isleShot);
     // Firing the ship's own guns would mean sailing off the island after.
-    const leave = style === 'turtle' ? 99 : style === 'raider' ? 2 : tactical(ship.owner) && !off('keep') ? 9 : 5;
+    const leave = style === 'turtle' || style === 'banker' ? 99 : style === 'raider' ? 2 : tactical(ship.owner) && !off('keep') ? 9 : 5;
     if (canHold && keep && !(shot && shot.source === 'ship' && shot.ev >= leave)) return islandAct(ship, own, 'collect');
   }
   const steer = aiBestMove(ship, goal, 1, ship.moveCount);
@@ -434,8 +436,8 @@ function aiShipTurn(ship, roles) {
 
 function aiHitValue(t, p) {
   // Every fitting knocked off is a point and a sunk hull two (rulebook v0.6).
-  let v = 6 + VP_PRIZE_FITTING * 3;
-  if (isDead(t)) v += 12 + VP_PRIZE_HULL * 2; // this hit sinks it
+  let v = 6 + VP_PRIZE_FITTING / VP_SCALE * 3;
+  if (isDead(t)) v += 12 + VP_PRIZE_HULL / VP_SCALE * 2; // this hit sinks it
   else if (t.fit === 1) v += 4;           // this hit leaves it dead in the water
   v += (t.maxFit - t.fit) * 0.5;
   if (stoneShields(t)) v *= 0.35;

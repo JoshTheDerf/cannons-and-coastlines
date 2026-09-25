@@ -31,7 +31,7 @@ export function useFleetCopy() {
     }
     for (const f of fleets.addons ?? []) {
       out[f.name] = {
-        // Add-on fleets have one "2 junks · 3 fittings · Move 2" line.
+        // Add-on fleets have one "3 junks · 3 fittings · Move 2" line.
         stats: String(f.stats ?? '').split('·').map(s => s.trim()).filter(Boolean),
         body: f.body,
         card: f.card

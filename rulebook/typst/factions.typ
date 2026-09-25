@@ -46,13 +46,13 @@
     ship-render: ship-renders + "/ship-treasure-fleet.png",
     tagline: [Merchant junks carrying the seal of a great northern empire. Their orders are simple: fill the holds and ship the cargo home.],
     stats: (
-      ("Ships",        [2 junks]),
+      ("Ships",        [3 junks]),
       ("Fittings",     [3 each]),
       ("Move Count",   [2]),
     ),
     ability: (
       heading: "Passive: Bountiful Harvest",
-      body: [Draw *2 coins* instead of 1 when collecting. Your unspent coins score *1 point* each.],
+      body: [Draw *2 coins* instead of 1 when collecting from your islands.],
     ),
     playstyle: [Economy. Hold an island or two hard, then use coin actions to buff your ships. Don't trade hulls.],
   ),

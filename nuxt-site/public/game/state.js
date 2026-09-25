@@ -476,7 +476,7 @@ function scoreBreakdown() {
   for (const p of G.order) {
     const ships = G.players[p].ships.length; // dead-in-the-water ships are still afloat
     const isl = islandsHeld(p), coins = coinTotal(p), pr = prizesOf(p);
-    const hoard = passiveOf(p) === 'harvest' ? coins * VP_TREASURE_COIN : 0;
+    const hoard = coins * VP_COIN;
     out[p] = {
       ships, islands: isl, coins, fittings: pr.fittings, hulls: pr.hulls, hoard,
       base: isl * VP_ISLAND + pr.fittings * VP_PRIZE_FITTING + pr.hulls * VP_PRIZE_HULL + hoard, bonus: 0,

@@ -32,9 +32,9 @@ const ROUNDS = [4, 20];          // average game length, in rounds
 // ('low' or 'high'). They are reported, not failed, but a lean the other
 // way still fails. Remove an entry once that fleet is back inside limits.
 const KNOWN = {
-  'ffa4:treasure_fleet': ['low', 'Two slow hulls get swarmed at bigger tables.'],
-  'ffa6:treasure_fleet': ['low', 'Two slow hulls get swarmed at bigger tables.'],
-  'mixed4:treasure_fleet': ['low', 'Two slow hulls get swarmed at bigger tables.'],
+  'ffa4:treasure_fleet': ['low', 'Slow junks get swarmed at bigger tables.'],
+  'ffa6:treasure_fleet': ['low', 'Slow junks get swarmed at bigger tables.'],
+  'mixed4:treasure_fleet': ['low', 'Slow junks get swarmed at bigger tables.'],
   'ffa6:islanders': ['low', 'Five one-hit catamarans get picked off at a full table (0.3-0.5x).'],
 };
 
@@ -287,7 +287,7 @@ function patterns(results, NAME) {
   console.log(line('the rest', seats.filter(s => !s.won)));
   const w = seats.filter(s => s.won);
   const part = k => sum(w, s => s.score[k]) / w.length;
-  console.log(`  a winner's points, on average: islands ${(part('islands') * 2).toFixed(1)}, prize fittings ${part('fittings').toFixed(1)}, prize hulls ${(part('hulls') * 2).toFixed(1)}, Treasure coins ${part('hoard').toFixed(1)}, bonuses ${part('bonus').toFixed(1)}`);
+  console.log(`  a winner's points, on average: islands ${(part('islands') * 8).toFixed(1)}, prize fittings ${(part('fittings') * 4).toFixed(1)}, prize hulls ${(part('hulls') * 8).toFixed(1)}, coins ${part('hoard').toFixed(1)}, bonuses ${part('bonus').toFixed(1)}`);
   const duel = seats.filter(s => s.scenario.startsWith('duel'));
   console.log('\nTwo-player games that stalled (hit the round cap) against those that finished:');
   console.log(line('stalled', duel.filter(s => s.capped)));
@@ -303,7 +303,7 @@ function patterns(results, NAME) {
     const arr = seats.filter(s => s.faction === f), won = arr.filter(s => s.won);
     const extra = `  boards/game ${(sum(arr, s => s.boards) / arr.length).toFixed(2)}  captures ${sum(arr, s => s.captures)}  revives ${sum(arr, s => s.revives)}  ships left ${(sum(arr, s => s.shipsLeft) / arr.length).toFixed(1)}`;
     console.log(line(NAME[f], arr) + extra);
-    if (won.length) console.log(`  ${''.padEnd(26)} wins by: islands ${(sum(won, s => s.score.islands * 2) / won.length).toFixed(1)}, fittings ${(sum(won, s => s.score.fittings) / won.length).toFixed(1)}, hulls ${(sum(won, s => s.score.hulls * 2) / won.length).toFixed(1)}, coins ${(sum(won, s => s.score.hoard) / won.length).toFixed(1)}, bonus ${(sum(won, s => s.score.bonus) / won.length).toFixed(1)}  (${won.length} wins)`);
+    if (won.length) console.log(`  ${''.padEnd(26)} wins by: islands ${(sum(won, s => s.score.islands * 8) / won.length).toFixed(1)}, fittings ${(sum(won, s => s.score.fittings * 4) / won.length).toFixed(1)}, hulls ${(sum(won, s => s.score.hulls * 8) / won.length).toFixed(1)}, coins ${(sum(won, s => s.score.hoard) / won.length).toFixed(1)}, bonus ${(sum(won, s => s.score.bonus) / won.length).toFixed(1)}  (${won.length} wins)`);
   }
   console.log('\nCoins spent, per 100 rounds played:');
   const ids = ['brace', 'signal', 'fullsail', 'evasive', 'gunner', 'repair', 'boarding'];

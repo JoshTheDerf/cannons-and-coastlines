@@ -155,7 +155,7 @@ for (const n of [2, 3, 5, 7]) {
   G.players[1].ships.slice(1).forEach(s => Object.assign(s, { x: 110, y: 100 + G.players[1].ships.indexOf(s) * 8 }));
   engine.applyHit(b, 1);
   let sc = engine.scoreBreakdown();
-  ok(sc[1].fittings === 1 && sc[1].total === 1 + 2 + 2, `a hit is a prize fitting (${sc[1].fittings}, total ${sc[1].total}: +2 most ships and +2 most islands, tied)`);
+  ok(sc[1].fittings === 1 && sc[1].total === 4 + 8 + 8 + sc[1].coins, `a hit is a prize fitting worth 4 (${sc[1].fittings}, total ${sc[1].total}: +8 most ships and +8 most islands, tied)`);
   G.active = 2; G.coinPhase = true; G.players[2].coins.repair = 1;
   G.players[2].ships.forEach(s => { s.acted = false; s.stage = 'action'; s.turnsLeft = 1; s.pending = null; });
   const rep = engine.act(2, { t: 'coin', coin: 'repair', target: b.id });
@@ -202,6 +202,9 @@ for (const n of [2, 3, 5, 7]) {
   ok(!engine.act(1, { t: 'coin', coin: 'brace', target: f2.id }).ok, 'no coins between the two Full Sail moves');
   ok(engine.act(1, { t: 'move', ship: f1.id, h: 0, clicks: 3 }).ok && f1.acted && f1.y < y0 - 1, 'second steer-and-sail (it turned back north) ends its turn');
   ok(engine.act(1, { t: 'coin', coin: 'brace', target: f2.id }).ok, 'a coin can be spent before the next ship acts');
+  // Treasure Fleet: three junks.
+  engine.newGame({ seats: [{ faction: 'treasure_fleet', color: 0 }, { faction: 'corsairs', color: 1 }], setup: 'quick', table: 'round' });
+  ok(engine.G.players[1].ships.length === 3, 'the Treasure Fleet fields three junks');
   // Stone Hulls: first hit ignored at sea, not while touching an island.
   engine.newGame({ seats: [{ faction: 'stone_fleet', color: 0 }, { faction: 'corsairs', color: 1 }], setup: 'quick', table: 'round' });
   const H = engine.G;

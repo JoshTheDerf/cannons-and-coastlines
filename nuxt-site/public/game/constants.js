@@ -93,11 +93,16 @@ const SLOT_SPLAY = 15 * Math.PI / 180;   // end slots angle toward their nearest
 // this far either side of the bow and of the stern.
 const TURRET_BLIND = 10 * Math.PI / 180;
 
-// Scoring (rulebook v0.6). Surviving ships and coins do not score: points
-// come from islands held and prizes, the fittings and hulls you knock off
-// enemy ships. The Treasure Fleet alone still scores its unspent coins.
-const VP_ISLAND = 2, VP_PRIZE_FITTING = 1, VP_PRIZE_HULL = 2, VP_TREASURE_COIN = 1, VP_BONUS = 2;
-const VICTORY_POINTS = 12;
+// Scoring (rulebook v0.6). Points come from islands held and prizes, the
+// fittings and hulls you knock off enemy ships; surviving ships do not
+// score. Every value is four times the old one so that an unspent coin can
+// score a whole point and still be worth a quarter of what it was (it used
+// to be half an island; now it is an eighth). VP_SCALE is that factor, for
+// anything that thinks in the old units.
+const VP_SCALE = 4;
+const VP_ISLAND = 2 * VP_SCALE, VP_PRIZE_FITTING = 1 * VP_SCALE, VP_PRIZE_HULL = 2 * VP_SCALE, VP_BONUS = 2 * VP_SCALE;
+const VP_COIN = 1;
+const VICTORY_POINTS = 12 * VP_SCALE;
 
 // Factions. Stats are from rulebook/typst/factions.typ. Hull length, beam
 // and height (cm) are the printed hulls' (ship-*.stl).
@@ -135,7 +140,7 @@ const FACTION_DEFS = {
     hullColor: [44, 40, 38], base: true,
   },
   treasure_fleet: {
-    name: 'Treasure Fleet', shipCount: 2, fittings: 3, moveCount: 2, pivot: 90,
+    name: 'Treasure Fleet', shipCount: 3, fittings: 3, moveCount: 2, pivot: 90,
     guns: 'broadside', len: 13.41, wid: 3.74, height: 3.9, hull: 'junk',
     names: {
       forms: ['{a} {b}'],
@@ -143,8 +148,8 @@ const FACTION_DEFS = {
       b: ['Dragon', 'Junk', 'Phoenix', 'Lantern', 'Tiger', 'Crane', 'Harvest', 'Moon', 'Tortoise', 'Carp'],
     },
     passive: 'harvest', passiveName: 'Bountiful Harvest',
-    passiveText: 'Collect draws 2 coins instead of 1, and unspent coins score a point each.',
-    blurb: 'Two ships. Every island pays double.',
+    passiveText: 'Collect draws 2 coins instead of 1.',
+    blurb: 'Three junks. Every island pays double.',
     hullColor: [150, 108, 40],
   },
   stone_fleet: {
