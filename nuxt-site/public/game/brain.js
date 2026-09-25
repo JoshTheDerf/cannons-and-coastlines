@@ -317,7 +317,7 @@ function aiCoinChoice(p, roles, memo) {
       if (side) return coin('evasive', s, { side });
     }
   }
-  // Skilled Gunner, Signal Flags and Full Sail all want to know the best shots now.
+  // Skilled Gunner and Full Sail both want to know the best shots now.
   const shots = {};
   const shotOf = s => (s.id in shots ? shots[s.id] : (shots[s.id] = aiBestShot(s)));
   // Full Sail: a ship still a long way from where it is going, with no shot
@@ -347,20 +347,6 @@ function aiCoinChoice(p, roles, memo) {
       if (sh && sh.ev >= need && (!best || sh.ev > best.ev)) best = { s, ev: sh.ev };
     }
     if (best) return coin('gunner', best.s);
-  }
-  // Signal Flags: a ship with nothing useful to do hands its action to one
-  // with a good shot, which then gets a second turn to fire or line up again.
-  if (has('signal') && !banker && coinTotal(p) >= reserve && !memo.used.signal) {
-    memo.used.signal = 1;
-    const givers = coinTargets(p, 'signal').filter(s => roles[s.id] !== 'collect' && !touchingIslands(s).length && !(shotOf(s) && shotOf(s).ev >= 1.5));
-    let best = null;
-    for (const r of me.ships) {
-      if (r.acted || r.noAction || isDead(r)) continue;
-      const sh = shotOf(r);
-      if (sh && sh.ev >= (spend ? 3 : 4) && (!best || sh.ev > best.ev)) best = { r, ev: sh.ev };
-    }
-    const giver = best && givers.find(g => g !== best.r);
-    if (giver) return { t: 'coin', coin: 'signal', from: giver.id, target: best.r.id };
   }
   return null;
 }

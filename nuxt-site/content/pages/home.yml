@@ -137,7 +137,6 @@ howToPlay:
         - { image: /assets/images/coins/coin-repair-crew.webp, name: Repair Crew, body: Put a fitting back on one of your ships. }
         - { image: /assets/images/coins/coin-boarding-party.webp, name: Boarding Party, body: Knock a fitting off an enemy ship you're touching. }
         - { image: /assets/images/coins/coin-brace-for-impact.webp, name: Brace for Impact, body: The next hit on that ship does nothing. }
-        - { image: /assets/images/coins/coin-signal-flag.webp, name: Signal Flags, body: One of your ships skips its action so another (yours or an ally's) gets two turns. }
         - { image: /assets/images/coins/coin-full-sail.webp, name: Full Sail, body: One ship steers and sails twice, but doesn't fire. }
         - { image: /assets/images/coins/coin-evasive-maneuver.webp, name: Evasive Maneuvers, body: One ship slides one ship-width sideways. }
       note: >-
@@ -295,7 +294,7 @@ changelog:
         - '**Treasure Fleet gets a third junk.** Two ships were too few to hold a table; three hold their own.'
         - '**Stone Hulls only work at sea.** A Stone Fleet ship touching an island takes every hit.'
         - '**Real tables, and where to sit.** A 6 ft round or a 6 or 8 ft folding table works well. Two players sit a quarter of the way round a round table, or diagonally across a folding one, so the fighting starts sooner. With three or more, put a rock just past each end of every fleet''s line. On a narrow table, islands run down the middle.'
-        - '**Full Sail is back.** One ship steers and sails twice in a turn, but does not fire. The 20-coin set is now 4 Brace, 2 Signal, 2 Full Sail, 2 Evasive, 4 Gunner, 4 Repair, 2 Boarding.'
+        - '**Full Sail is back, Signal Flags are gone.** Full Sail lets one ship steer and sail twice in a turn, but it does not fire. The 20-coin set is now 5 Brace, 2 Full Sail, 2 Evasive, 5 Gunner, 4 Repair, 2 Boarding.'
         - '**Spend coins between ships.** Coins can be spent before any of your ships takes its turn, not only at the start of yours.'
         - '**Cannons in the web game now shoot like the printed ones.** Two elevations (straight out or tipped up), no power control, a few degrees of spread, and a tapered ball that skids and curls to a stop.'
     - version: v0.5

@@ -16,7 +16,7 @@
 //   { t: 'skipShot', ship }            { t: 'pass', ship }      (dead ships only)
 //   { t: 'raise', ship, island }       { t: 'collect', ship, island }
 //   { t: 'scuttle', ship }
-//   { t: 'coin', coin, target, from, side }   (Signal Flags: from = giving ship)
+//   { t: 'coin', coin, target, side }
 //   { t: 'revive', island }            { t: 'declare' }       { t: 'endTurn' }
 
 let EV = null;
@@ -67,7 +67,7 @@ function canAct(s) { return turnFresh(s) && !s.noAction; }
 /** May it steer on this turn? Only before acting, and not a ship that gave its action away. */
 function canSteer(s) { return canAct(s) && !isDead(s); }
 
-/** End the ship's current turn; a Signal Flags receiver may have another. */
+/** End the ship's current turn; a ship with more than one turn this round may have another. */
 function finishTurn(s) {
   s.pending = null; s.shotsDone = 0; s.fullSail = 0;
   s.turnsLeft = Math.max(0, (s.turnsLeft || 1) - 1);
@@ -261,15 +261,8 @@ function touchingOwnShip(p, target) {
   return G.players[p].ships.some(s => s !== target && shipsTouching(s, target));
 }
 
-/** Ships that can take the second half of a Signal Flags transfer from `giver`. */
-function signalReceivers(p, giver) {
-  // No allies online or in local games, so the receiver is one of yours.
-  return G.players[p].ships.filter(s => s !== giver && !s.noAction && !s.acted);
-}
-
 /**
  * Ships that `coinId` could be played on right now by seat p.
- * For Signal Flags these are the ships that can give up their action.
  */
 function coinTargets(p, coinId) {
   if (!coinWindowOpen(p) || !G.players[p].coins[coinId]) return [];
@@ -277,7 +270,6 @@ function coinTargets(p, coinId) {
   const coins = G.players[p].coins;
   switch (coinId) {
     case 'brace': return mine.filter(s => !s.braced);
-    case 'signal': return mine.filter(s => !isDead(s) && canAct(s) && (s.turnsLeft || 1) === 1 && signalReceivers(p, s).length > 0);
     case 'evasive': return mine.filter(s => !isDead(s) && !s.acted);
     case 'gunner': return mine.filter(s => !s.acted && !s.gunner && !s.noAction && !s.fullSail);
     case 'fullsail': return mine.filter(s => !isDead(s) && canAct(s) && !s.fullSail && !s.gunner && (s.turnsLeft || 1) === 1);
@@ -333,16 +325,6 @@ ACTIONS.coin = (p, a) => {
   const id = a.coin;
   need(COIN_DEFS[id], 'Unknown coin.');
   need(G.players[p].coins[id] > 0, `You have no ${COIN_DEFS[id].name}.`);
-  if (id === 'signal') {
-    const giver = shipById(a.from), target = shipById(a.target);
-    need(giver && coinTargets(p, 'signal').includes(giver), 'That ship cannot give up its action.');
-    need(target && signalReceivers(p, giver).includes(target), 'That ship cannot take the extra turn.');
-    payCoin(p, id);
-    giver.noAction = true;
-    target.turnsLeft = (target.turnsLeft || 1) + 1;
-    ev({ e: 'coin', p, coin: id, ship: target.id, from: giver.id, msg: `Signal flags: ${giver.name} only sails, ${target.name} takes ${target.turnsLeft} turns.` });
-    return;
-  }
   const target = shipById(a.target);
   need(target && coinTargets(p, id).includes(target), `${COIN_DEFS[id].name} cannot go on that ship.`);
   const at = { e: 'coin', p, coin: id, ship: target.id };

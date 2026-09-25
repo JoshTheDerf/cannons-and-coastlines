@@ -16,7 +16,6 @@
 // assets/stls/, so the canonical (long) names live with the meshes.
 #let coin-files = (
   brace:    "coin-brace-for-impact-top",
-  signal:   "coin-signal-flag-top",
   fullsail: "coin-full-sail-top",
   evasive:  "coin-evasive-maneuver-top",
   gunner:   "coin-skilled-gunner-top",
@@ -412,7 +411,6 @@ Ships are forever sailing forward. On its turn, each of your ships does two thin
 
 A ship that takes an Island action while touching the island skips the forward click. No ship both steers and fires on the same turn.
 
-*Passing a turn.* A #coin("signal") *Signal Flags* coin passes one ship's action to another. The first only clicks forward; the second takes two full turns, so it may steer on one and fire on the other. The giving ship must be yours and not dead in the water; the receiving ship may be yours or an ally's. One ship may receive more than one transfer, but *Skilled Gunner* still applies to a single turn.
 
 == Movement
 
@@ -515,7 +513,6 @@ Spend #coin("repair") *Repair Crew* to restore 1 fitting to one of your ships.
   columns: (0.5fr, 1.05fr, 2.65fr),
   table.header[ ][Coin][What It Does],
   coin("brace"),    [*Brace for Impact*],  [Place it in a ship's coin slot. It negates that ship's next hit, then returns to the bag.],
-  coin("signal"),   [*Signal Flags*],      [One of your ships gives up its action; another ship takes two full turns instead of one.],
   coin("fullsail"), [*Full Sail*],         [One of your ships *steers and sails twice*: Set Heading and click forward, then again. It does not fire or take an island action this turn.],
   coin("evasive"),  [*Evasive Maneuvers*], [One of your ships slides *one ship-width sideways* without rotating, on top of its turn.],
   coin("gunner"),   [*Skilled Gunner*],    [One of your ships *fires twice* this turn, both before it clicks forward.],
@@ -523,7 +520,7 @@ Spend #coin("repair") *Repair Crew* to restore 1 fitting to one of your ships.
   coin("boarding"), [*Boarding Party*],    [While touching an enemy ship, remove 1 fitting from it. *Needed to capture.*],
 ))
 
-Each player contributes 20 coins to the bag at setup: 4 Brace · 2 Signal · 2 Full Sail · 2 Evasive · 4 Gunner · 4 Repair · 2 Boarding.
+Each player contributes 20 coins to the bag at setup: 5 Brace · 2 Full Sail · 2 Evasive · 5 Gunner · 4 Repair · 2 Boarding.
 
 
 // ----- Winning -----
@@ -565,7 +562,7 @@ Three optional modes layer on top of the standard 2–6 player game: *Group Mode
 All players act simultaneously. Play alternates between two phases, each on a *60–90 second timer*:
 
 - *Movement phase.* Spend *Evasive Maneuvers*, then every ship away from an island sets heading or holds it, and clicks forward.
-- *Action phase.* Spend action coins (*Brace*, *Gunner*, *Repair*, *Boarding*, *Signal Flags*), then every ship that held its heading may Fire, and every ship at an island may take an Island action. A *Signal Flags* transfer passes one ship's Fire to another, even if that ship set heading.
+- *Action phase.* Spend action coins (*Brace*, *Gunner*, *Repair*, *Boarding*), then every ship that held its heading may Fire, and every ship at an island may take an Island action.
 
 Choose one player as the *moderator*. They announce phases, run the timer, and resolve disputes. Group mode is intentionally more chaotic than the standard game.
 
@@ -746,7 +743,7 @@ A *faction set* is one complete print run for one player: their fleet plus a fai
   [Movement wheel],       [1 per ship], [Rubber band over the rim. Hard to remove once in.],
   [Islands],              [2–3],     [Print *Islands*, or put *Island Toppers* on household objects.],
   [Rocks / Reefs],   [2-4],       [Optional terrain. Block movement and cannonballs.],
-  [Coins],                [1 set of 20], [Each set is 4 Brace, 2 Signal, 2 Full Sail, 2 Evasive, 4 Gunner, 4 Repair, 2 Boarding.],
+  [Coins],                [1 set of 20], [Each set is 5 Brace, 2 Full Sail, 2 Evasive, 5 Gunner, 4 Repair, 2 Boarding.],
 ))
 
 // ----- Designer Notes (8th-grade level — for whoever's building the game) -----
@@ -855,7 +852,6 @@ Every ship has a wheel built into the stern. Two details matter:
     #set par(first-line-indent: 0pt, leading: 0.6em, spacing: 0.7em)
     #stack(dir: ttb, spacing: 0.5em,
       [#coin("brace", size: 1.6em) *Brace:* shield next hit.],
-      [#coin("signal", size: 1.6em) *Signal:* one ship idles, another acts twice.],
       [#coin("fullsail", size: 1.6em) *Full Sail:* steer and sail twice, no firing.],
       [#coin("evasive", size: 1.6em) *Evasive:* slide one ship-width.],
       [#coin("gunner", size: 1.6em) *Gunner:* fire twice.],

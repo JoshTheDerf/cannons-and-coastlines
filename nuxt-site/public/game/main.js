@@ -346,8 +346,7 @@ async function playEvents(events) {
       case 'coin':
         sfxCoinPlay(); logMsg(e.msg);
         if (s) {
-          const col = { brace: '241,196,15', gunner: '255,140,90', signal: '120,220,255' }[e.coin];
-          if (e.coin === 'signal') { const g = shipById(e.from); if (g) animRing(g.x, g.y, '200,200,200'); }
+          const col = { brace: '241,196,15', gunner: '255,140,90', fullsail: '120,220,255' }[e.coin];
           if (e.coin === 'repair') { s.fit = e.fit; if (e.mask) s.fitMask = e.mask.slice(); animSparkle(s.x, s.y); animText(s.x, s.y, '+1 fitting', '120,240,160'); }
           else animRing(s.x, s.y, col);
           if (e.coin === 'brace') s.braced = true;
@@ -457,7 +456,6 @@ function onPointerDown(e) {
       return;
     }
     case 'coin': coinTap(w); return;
-    case 'signalTo': signalToTap(w); return;
     case 'evasive': {
       const side = evasiveSideAt(w);
       if (side) chooseEvasive(side);
@@ -519,7 +517,7 @@ function onPointerMove(e) {
       if (UI.move.hoverK !== (ch ? ch.k : null)) { UI.move.hoverK = ch ? ch.k : null; UI.move.clicks = k; replanMove(); refreshPrompt(); }
     }
   }
-  if ((UI.mode === 'signalTo' || UI.mode === 'coin') && mouse) UI.hoverShip = nearestTarget(w);
+  if (UI.mode === 'coin' && mouse) UI.hoverShip = nearestTarget(w);
 }
 
 /** Leaving the board without committing drops the preview back to the committed value. */
@@ -611,7 +609,6 @@ function onKey(e) {
   if (UI.mode === 'fire' && UI.fire.stage === 'dir') { if (!UI.fire.locked) commitDrag(); else lockAim(); return; }
   if (UI.mode === 'fire' && UI.fire.stage === 'power') { releaseShot(); return; }
   if (UI.mode === 'evasive' && UI.evasive.pick) { chooseEvasive(UI.evasive.pick); return; }
-  if (UI.mode === 'signalTo' && UI.signalPick) { confirmSignal(); return; }
 }
 
 function pickShip(w, p) {
@@ -627,7 +624,7 @@ function pickShip(w, p) {
 
 function cancelMode() {
   UI.ring = null; UI.hoverRing = null;
-  UI.signalFrom = null; UI.signalPick = null; UI.hoverShip = null;
+  UI.hoverShip = null;
   UI.mode = null; UI.move = null; UI.fire = null; UI.coin = null; UI.evasive = null; UI.targets = null;
 }
 
@@ -661,7 +658,7 @@ function ringItems(ship) {
       items.push({ id: a.id, t: a.t, label, icon: a.id, disabled: a.disabled, why: a.why, act: a });
     }
     if (coinWindowOpen(p)) {
-      for (const c of ['brace', 'evasive', 'gunner', 'fullsail', 'repair', 'signal']) {
+      for (const c of ['brace', 'evasive', 'gunner', 'fullsail', 'repair']) {
         if (coinTargets(p, c).includes(ship)) items.push({ id: 'coin-' + c, coin: c, label: COIN_DEFS[c].short, img: COIN_DEFS[c].img });
       }
     }
@@ -1133,20 +1130,6 @@ function nearestTarget(w) {
   return target && bd <= Math.max(3, 18 / worldScale) ? target : null;
 }
 
-function signalToTap(w) {
-  const to = nearestTarget(w);
-  if (!to) return; // tapping water keeps you choosing
-  UI.signalPick = to;
-  confirmSignal();
-}
-async function confirmSignal() {
-  const to = UI.signalPick, from = UI.signalFrom;
-  if (!to || !from) return;
-  cancelMode();
-  await perform({ t: 'coin', coin: 'signal', from: from.id, target: to.id });
-  UI.sel = null; refresh();
-}
-
 async function coinTap(w) {
   const id = UI.coin;
   let target = null, bd = Infinity;
@@ -1161,13 +1144,6 @@ async function coinTap(w) {
 
 async function playCoin(id, target) {
   cancelMode();
-  if (id === 'signal') {
-    // Two taps: the ship that gives up its action, then the one that gets two turns.
-    UI.mode = 'signalTo'; UI.coin = 'signal'; UI.signalFrom = target;
-    UI.targets = signalReceivers(G.active, target); UI.sel = target;
-    refresh();
-    return;
-  }
   if (id === 'evasive') {
     UI.sel = target;
     UI.mode = 'evasive';
@@ -1387,17 +1363,12 @@ function fillBar(p, prompt, acts) {
   }
   if (UI.mode === 'coin') {
     const c = COIN_DEFS[UI.coin];
-    const where = UI.coin === 'boarding' ? 'Tap an enemy ship touching yours.' : UI.coin === 'repair' ? 'Tap one of your ships (or a dead enemy to capture it).' : UI.coin === 'signal' ? 'First tap the ship that gives up its action.' : 'Tap one of your ships.';
+    const where = UI.coin === 'boarding' ? 'Tap an enemy ship touching yours.' : UI.coin === 'repair' ? 'Tap one of your ships (or a dead enemy to capture it).' : 'Tap one of your ships.';
     say(`${c.name}: ${c.text} ${where}`);
     acts.appendChild(btn('Cancel', () => { cancelMode(); refresh(); }, { act: 'cancel' }));
     return;
   }
-  if (UI.mode === 'signalTo') {
-    say(UI.signalPick ? `Signal Flags: ${UI.signalFrom.name} only sails, ${UI.signalPick.name} takes two turns.` : `Signal Flags: ${UI.signalFrom.name} gives up its action and only sails. Tap the ship that takes two turns.`);
-    if (UI.signalPick) acts.appendChild(btn('Confirm', confirmSignal, { cls: 'go', act: 'confirm' }));
-    acts.appendChild(btn('Cancel', () => { cancelMode(); refresh(); }, { act: 'cancel' }));
-    return;
-  }
+
   if (UI.mode === 'evasive') {
     const pk = UI.evasive.pick;
     say(pk ? `Evasive: slide ${UI.evasive.ship.name} to ${pk === 'port' ? 'port' : 'starboard'}?` : `Evasive: slide ${UI.evasive.ship.name} one ship-width. Tap a side, or use the buttons.`);

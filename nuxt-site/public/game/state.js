@@ -19,9 +19,9 @@ function makeShip(p, fid, i, used = new Set()) {
     // Island action), then click forward 1 to Move Count. Island actions and
     // dead ships skip the click.
     acted: false,        // finished all its turns this round
-    turnsLeft: 0,        // 1, plus one per Signal Flags transfer received
+    turnsLeft: 0,        // turns it has this round (1)
     stage: null,         // 'action' (turn not started) | 'click' (fired, still owes its click)
-    noAction: false,     // gave its action away with Signal Flags: only clicks forward
+    noAction: false,     // has no action this turn: only clicks forward
     pending: null,       // 'shot2': Skilled Gunner's second shot
     gunner: false, braced: false, stoneUsed: false, shotsDone: 0,
     touchPrev: [],       // islands touched at the end of the owner's previous turn

@@ -422,15 +422,15 @@
   drawShip = function (ship) {
     const mine = G.phase === 'play' && ship.owner === G.active;
     const R = ship.len * 0.62;
-    if (UI.signalPick === ship || UI.hoverShip === ship) {
-      strokeRing(ship.x, ship.y, R + 0.8, UI.signalPick === ship ? 'rgba(139,26,26,.95)' : 'rgba(255,215,110,.8)', UI.signalPick === ship ? 3.5 : 2.5);
+    if (UI.hoverShip === ship) {
+      strokeRing(ship.x, ship.y, R + 0.8, 'rgba(255,215,110,.8)', 2.5);
     }
     if (UI.sel === ship) strokeRing(ship.x, ship.y, R, `rgba(255,215,110,${0.6 + Math.sin(wavePhase * 5) * 0.35})`, 2.5);
     else if (UI.targets && UI.targets.includes(ship)) strokeRing(ship.x, ship.y, R, `rgba(90,230,140,${0.55 + Math.sin(wavePhase * 5) * 0.3})`, 2, [5, 4]);
     if (ship.braced) strokeRing(ship.x, ship.y, R + 1.2, `rgba(241,196,15,${0.45 + Math.sin(wavePhase * 4) * 0.2})`, 2);
     if (passiveOf(ship.owner) === 'stone' && !ship.stoneUsed) strokeRing(ship.x, ship.y, R + 0.4, 'rgba(220,210,180,.45)', 3);
     // Badges over the masthead: Skilled Gunner, extra turns, gave its action away.
-    const badge = (ship.gunner ? COIN_DEFS.gunner.icon : '') + (ship.turnsLeft > 1 && !ship.acted ? ` x${ship.turnsLeft}` : '') + (ship.noAction && !ship.acted ? ' ' + COIN_DEFS.signal.icon : '');
+    const badge = (ship.gunner ? COIN_DEFS.gunner.icon : '') + (ship.turnsLeft > 1 && !ship.acted ? ` x${ship.turnsLeft}` : '') + (ship.fullSail && !ship.acted ? ' ' + COIN_DEFS.fullsail.icon : '');
     const top = w2s3(ship.x, ship.y, isDead(ship) ? 3 : 11);
     if (badge) {
       ctx.font = 'bold 15px "Crimson Text",serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'bottom';

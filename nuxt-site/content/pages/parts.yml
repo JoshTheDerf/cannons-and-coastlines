@@ -108,9 +108,9 @@ gallery:
     - render: /assets/images/renders/coin-skilled-gunner.png
       name: Coins
       desc: >-
-        There are six kinds (Brace, Signal, Evasive, Gunner, Repair and
-        Boarding). You draw them from the bag and spend them at the start of
-        your turn.
+        There are six kinds (Brace, Full Sail, Evasive, Gunner, Repair and
+        Boarding). You draw them from the bag and spend them before any of
+        your ships takes its turn.
       color: Gold. Silk PLA if you have it.
     - render: /assets/images/renders/ship-tolerance-test.png
       name: Fit Test
@@ -208,7 +208,7 @@ quantities:
     - [Islands, 2–3, Print **islands**, or use **island toppers** on household objects.]
     - [Rocks and reefs, 2–4, Optional. They block ships and cannonballs.]
     - [Fit test, 1, Print it before anything else.]
-    - [Coins, 1 set of 20, 4 Brace · 2 Signal · 2 Evasive · 4 Gunner · 4 Repair · 4 Boarding]
+    - [Coins, 1 set of 20, 5 Brace · 2 Full Sail · 2 Evasive · 5 Gunner · 4 Repair · 2 Boarding]
   notPrinted: "**Not printed:** one cloth draw bag for the table, and a thin rubber band per wheel."
 
 cta:

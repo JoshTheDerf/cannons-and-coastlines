@@ -416,9 +416,9 @@ function drawShip(ship) {
   drawShipBody(ship, ship, spent ? 0.55 : 1, false);
   const c = w2s(ship.x, ship.y);
   const R = w2r(ship.len * 0.62);
-  if (UI.signalPick === ship || UI.hoverShip === ship) {
-    ctx.strokeStyle = UI.signalPick === ship ? 'rgba(139,26,26,.95)' : 'rgba(255,215,110,.7)';
-    ctx.lineWidth = UI.signalPick === ship ? 3.5 : 2.5;
+  if (UI.hoverShip === ship) {
+    ctx.strokeStyle = 'rgba(255,215,110,.7)';
+    ctx.lineWidth = 2.5;
     ctx.beginPath(); ctx.arc(c.x, c.y, R + 3, 0, TAU); ctx.stroke();
   }
   if (UI.sel === ship) {
@@ -443,8 +443,8 @@ function drawShip(ship) {
     ctx.strokeStyle = 'rgba(200,190,160,.35)'; ctx.lineWidth = 3;
     ctx.beginPath(); ctx.arc(c.x, c.y, R + 1, 0, TAU); ctx.stroke();
   }
-  // Badges: Skilled Gunner, extra turns from Signal Flags, gave its action away.
-  const badge = (ship.gunner ? COIN_DEFS.gunner.icon : '') + (ship.turnsLeft > 1 && !ship.acted ? ` x${ship.turnsLeft}` : '') + (ship.noAction && !ship.acted ? ' ' + COIN_DEFS.signal.icon : '');
+  // Badges: Skilled Gunner, extra turns, under Full Sail.
+  const badge = (ship.gunner ? COIN_DEFS.gunner.icon : '') + (ship.turnsLeft > 1 && !ship.acted ? ` x${ship.turnsLeft}` : '') + (ship.fullSail && !ship.acted ? ' ' + COIN_DEFS.fullsail.icon : '');
   if (badge) {
     ctx.font = `bold ${Math.round(clamp(worldScale * 3, 11, 16))}px "Crimson Text",serif`;
     ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
