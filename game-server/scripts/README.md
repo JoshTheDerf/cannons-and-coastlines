@@ -12,7 +12,7 @@ into `src/engine.gen.js`. The npm scripts rebuild it first.
 | `variant` | Build a patched engine for an A/B test: `npm run variant -- /tmp/v.js --set VP_COIN=2 --replace "find" "replace"`, then `node scripts/balance.mjs --engine /tmp/v.js`. Each edit must match exactly once. |
 | `start-lanes` | Start-zone exposure: the share of ships with a shot at another fleet after one turn. `--table`, `--players`, `--engine`, `--layout past:inward:r[:row2]` to try flank-rock layouts on an engine built without them. |
 | `table-fit` | Islands placed and fleets fitted for each table and player count. |
-| `bump-stats` | How often computer ships sail into things: the share of moves stopped short by a rock, a reef, an island with nothing to do there, their own fleet, an enemy or the table edge, and ships that could not move at all. `--games N`, `--engine`. |
+| `bump-stats` | How often computer ships sail into things: the share of moves stopped short by a rock, a reef, an island with nothing to do there, their own fleet, an enemy or the table edge, ships that could not move at all, and how often a fleet gives two ships the same island or ends a turn bunched up. `--games N`, `--engine`. |
 | `cannon-stats` | Shot model statistics per elevation (landing, travel, spread, curl), for tuning against the printed cannons. |
 | `map-preview` | Quick-start maps as an HTML page of SVGs: `npm run map-preview -- /tmp/maps.html --maps round6:6:3,fold8:4:1`. |
 | `ui-smoke` | Browser smoke tests in headless Chromium (Playwright): firing, collecting at sea, Full Sail, picking up the next ship, dead ships, tables and seating. `-- --online` also starts `wrangler dev` and tests an online game. First run on a new machine: `npx playwright install chromium`. |

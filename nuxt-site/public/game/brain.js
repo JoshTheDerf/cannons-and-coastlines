@@ -138,15 +138,17 @@ function aiAssignRoles(p) {
     if (own) { roles[s.id] = 'collect'; guarded.add(own.id); }
   }
   const targets = islands().filter(t => t.owner !== p);
-  const taken = {};
+  const taken = new Set();
   for (const s of ships) {
     if (roles[s.id]) continue;
+    // One ship per island; the rest hunt.
     let best = null, bd = Infinity;
     for (const t of targets) {
-      const d = dist(s.x, s.y, t.x, t.y) + (taken[t.id] || 0) * 25;
+      if (taken.has(t.id)) continue;
+      const d = dist(s.x, s.y, t.x, t.y);
       if (d < bd) { bd = d; best = t; }
     }
-    if (best) { roles[s.id] = 'isl:' + best.id; taken[best.id] = (taken[best.id] || 0) + 1; }
+    if (best) { roles[s.id] = 'isl:' + best.id; taken.add(best.id); }
     else roles[s.id] = 'hunt';
   }
   return roles;
@@ -155,7 +157,10 @@ function aiAssignRoles(p) {
  * Fleet plan (tactical): send ships to different islands, unclaimed first,
  * then weakly held enemy ones, scored by turns to get there under forced
  * movement, value and risk. One ship stays on each held island to collect
- * and defend. Two ships only go to the same island if it is contested.
+ * and defend. Every island is one ship's job: no two ships go for the same
+ * one, and a ship keeps its job from turn to turn (G.aiJobs) until the
+ * island is ours or the job stops being worth it, so the fleet doesn't
+ * reshuffle and pile onto one island.
  */
 function aiPlanIslands(p) {
   const roles = {};
@@ -184,8 +189,25 @@ function aiPlanIslands(p) {
     let value = owner ? 7 - 3 * defenders : 10;
     if (owner && ['shadow_fleet', 'treasure_fleet'].includes(G.factions[owner])) value += 3; // deny their engines
     if (owner && tactical(p) && !off('lead')) value += Math.min(6, 3 * ((aiIntel(p).focus[owner] || 1) - 1)); // and the leader's
-    return { t, value, risk: near(t, 30), slots: near(t, 30) > 0 ? 2 : 1 };
-  }).concat(defend.map(t => ({ t, value: 8, risk: near(t, 30), slots: 1 })));
+    return { t, value, risk: near(t, 30) };
+  }).concat(defend.map(t => ({ t, value: 8, risk: near(t, 30) })));
+  const jobScore = (s, g) => {
+    const t = g.t;
+    const run = Math.max(0, dist(s.x, s.y, t.x, t.y) - t.r - s.len / 2);
+    const turn = Math.abs(angleDiff(headingTo(t.x - s.x, t.y - s.y), s.h)) / (pivotFor(s) * Math.PI / 180);
+    const turns = run / (s.moveCount * CLICK_LEN) + turn + (aiPathBlocked(s, s, t) ? 1 : 0);
+    return g.value - turns * 2.2 - g.risk * 1.5;
+  };
+  const used = new Set(kept);
+  // Jobs from earlier turns stand while the island is still to take (or
+  // still needs defending) and the ship is still fit to go.
+  if (!G.aiJobs) G.aiJobs = {};
+  const jobs = G.aiJobs[p] || {}, keep = {};
+  for (const s of ships) {
+    const g = targets.find(x => x.t.id === jobs[s.id]);
+    if (roles[s.id] || isDead(s) || !g || used.has(g.t.id) || jobScore(s, g) < -12) continue;
+    roles[s.id] = 'isl:' + g.t.id; used.add(g.t.id); keep[s.id] = g.t.id;
+  }
   let free = ships.filter(s => !roles[s.id] && !isDead(s));
   // A runaway leader: half the free ships (at least one), the ones nearest
   // its fleet, go after it instead of islands.
@@ -198,21 +220,13 @@ function aiPlanIslands(p) {
     free = free.filter(s => !chase.includes(s));
   }
   const pairs = [];
-  for (const s of free) {
-    for (const g of targets) {
-      const t = g.t;
-      const run = Math.max(0, dist(s.x, s.y, t.x, t.y) - t.r - s.len / 2);
-      const turn = Math.abs(angleDiff(headingTo(t.x - s.x, t.y - s.y), s.h)) / (pivotFor(s) * Math.PI / 180);
-      const turns = run / (s.moveCount * CLICK_LEN) + turn + (aiPathBlocked(s, s, t) ? 1 : 0);
-      pairs.push({ s, g, score: g.value - turns * 2.2 - g.risk * 1.5 });
-    }
-  }
+  for (const s of free) for (const g of targets) if (!used.has(g.t.id)) pairs.push({ s, g, score: jobScore(s, g) });
   pairs.sort((a, b) => b.score - a.score);
-  const used = {};
   for (const { s, g, score } of pairs) {
-    if (roles[s.id] || (used[g.t.id] || 0) >= g.slots || score < -12) continue;
-    roles[s.id] = 'isl:' + g.t.id; used[g.t.id] = (used[g.t.id] || 0) + 1;
+    if (roles[s.id] || used.has(g.t.id) || score < -12) continue;
+    roles[s.id] = 'isl:' + g.t.id; used.add(g.t.id); keep[s.id] = g.t.id;
   }
+  G.aiJobs[p] = keep;
   // Ships left over hunt (tactical), or head for the nearest held island
   // to collect there too, or back up a target.
   const held = islands().filter(t => t.owner === p);
@@ -220,9 +234,10 @@ function aiPlanIslands(p) {
     if (roles[s.id]) continue;
     if (isDead(s)) { roles[s.id] = touchingIslands(s).some(i => G.terrain[i].owner === p) ? 'collect' : 'hunt'; continue; }
     if (!parkAll) { roles[s.id] = 'hunt'; continue; }
-    const pool = held.length ? held : targets.map(g => g.t);
-    const t = pool.slice().sort((a, b) => dist(s.x, s.y, a.x, a.y) - dist(s.x, s.y, b.x, b.y))[0];
-    roles[s.id] = t ? 'isl:' + t.id : 'hunt';
+    // Parking styles send a spare ship to a held island nobody keeps yet.
+    const pool = held.concat(targets.map(g => g.t)).filter(t => !used.has(t.id));
+    const t = pool.sort((a, b) => dist(s.x, s.y, a.x, a.y) - dist(s.x, s.y, b.x, b.y))[0];
+    if (t) { roles[s.id] = 'isl:' + t.id; used.add(t.id); } else roles[s.id] = 'hunt';
   }
   return roles;
 }
@@ -668,6 +683,16 @@ function aiEvalPose(ship, ps, goal) {
     else if (!isDead(o) && coins.boarding) sc += 6;
   }
   if (tactical(p) && !off('pose')) sc += aiTacticalPose(ship, ps, goal, enemies, coins);
+  // Sea room from the rest of the fleet: bunched ships block each other's
+  // next move and share one enemy broadside.
+  if (!off('space')) {
+    const seg = shipSeg(ship, ps);
+    for (const o of G.players[p].ships) {
+      if (o.id === ship.id || !o.placed || Math.abs(o.x - ps.x) > o.len + ship.len || Math.abs(o.y - ps.y) > o.len + ship.len) continue;
+      const gap = segSegDist(seg, shipSeg(o)) - seg.r - o.wid / 2;
+      if (gap < 4) sc -= 4 * (1 - Math.max(0, gap) / 4);
+    }
+  }
   if (edgeGapOfSeg(shipSeg(ship, ps)) < 3) sc -= 6;
   sc -= aiEdgeRisk(ship, ps);
   return sc + rand() * 1.5;

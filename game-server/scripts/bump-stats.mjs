@@ -1,7 +1,10 @@
 // How often computer ships sail into things: every move in seeded
 // computer games, sorted by what stopped it short (a rock, a reef, an
 // island that was not where it was going, its own fleet, an enemy, the
-// table edge), and how many ships could not move at all.
+// table edge), and how many ships could not move at all. Then, at the end
+// of each fleet's turn: how often two of its ships had the same island as
+// their job (shared), and how often two of its ships ended bunched up,
+// hulls within 3 cm of each other (bunched).
 //
 //   node scripts/bump-stats.mjs
 //   node scripts/bump-stats.mjs --games 60 --engine /tmp/variant.js
@@ -13,9 +16,9 @@ const enginePath = args.includes('--engine') ? pathToFileURL(resolve(opt('--engi
 const { engine: E } = await import(enginePath);
 const games = +opt('--games', 40), F = E.FACTION_ORDER;
 const setups = [['round6', 2], ['round6', 4], ['round6', 6], ['fold6', 2], ['fold8', 4]];
-console.log('table     players  moves  rock%  reef%  isle%  own%  enemy%  edge%  stuck%');
+console.log('table     players  moves  rock%  reef%  isle%  own%  enemy%  edge%  stuck%  shared%  bunched%');
 for (const [table, n] of setups) {
-  const c = { moves: 0, rock: 0, reef: 0, island: 0, own: 0, enemy: 0, edge: 0, stuck: 0 };
+  const c = { moves: 0, rock: 0, reef: 0, island: 0, own: 0, enemy: 0, edge: 0, stuck: 0, turns: 0, shared: 0, bunched: 0 };
   for (let g = 0; g < games; g++) {
     E.setRand(E.seededRandom(5000 + g * 7 + n));
     E.setAiEffort('lite');
@@ -24,6 +27,13 @@ for (const [table, n] of setups) {
     let steps = 0;
     while (G.phase === 'play' && steps++ < 30000 && G.turn <= 40 * n) {
       const p = G.active, a = E.aiNextAction(p);
+      if (a.t === 'endTurn') {
+        c.turns++;
+        const jobs = Object.values((G.ai && G.ai.roles) || {}).filter(r => typeof r === 'string' && r.startsWith('isl:'));
+        if (new Set(jobs).size < jobs.length) c.shared++;
+        const mine = G.players[p].ships.filter(s => s.placed && s.fit > 0);
+        if (mine.some((s, i) => mine.slice(i + 1).some(o => E.shipGap(s, o) < 3))) c.bunched++;
+      }
       const r = E.act(p, a);
       if (!r.ok) { E.act(p, { t: 'endTurn' }); continue; }
       for (const e of r.events) {
@@ -50,5 +60,6 @@ for (const [table, n] of setups) {
     }
   }
   const pc = k => (100 * c[k] / c.moves).toFixed(1).padStart(6);
-  console.log(`${table.padEnd(9)} ${String(n).padStart(7)} ${String(c.moves).padStart(6)} ${pc('rock')} ${pc('reef')} ${pc('island')} ${pc('own')} ${pc('enemy')}  ${pc('edge')} ${pc('stuck')}`);
+  const pt = k => (100 * c[k] / c.turns).toFixed(1).padStart(8);
+  console.log(`${table.padEnd(9)} ${String(n).padStart(7)} ${String(c.moves).padStart(6)} ${pc('rock')} ${pc('reef')} ${pc('island')} ${pc('own')} ${pc('enemy')}  ${pc('edge')} ${pc('stuck')} ${pt('shared')}  ${pt('bunched')}`);
 }
