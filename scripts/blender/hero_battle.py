@@ -1107,7 +1107,8 @@ def ballistic_keys(obj, p0, p1, f0, f1, spin_axis, f_end=None):
         t = (f - f0) / FPS
         p = p0 + v * t + Vector((0, 0, -0.5 * G * t * t))
         vel = v + Vector((0, 0, -G * t))
-        rot = Vector((0, 0, 1)).rotation_difference(vel.normalized())
+        # Round end leading, point trailing, as it left the barrel.
+        rot = Vector((0, 0, -1)).rotation_difference(vel.normalized())
         spinq = Matrix.Rotation(t * 25.0, 4, "Z").to_quaternion()
         obj.rotation_mode = "QUATERNION"
         obj.rotation_quaternion = rot @ spinq
@@ -1146,9 +1147,10 @@ def stage_shot(coll, M, rigs, shot, target_fn, name, drop_obj, shard_obj, near):
     direction = (cm.to_3x3() @ Vector((1, 0, 0))).normalized()
 
     ball = build_ball(coll, M, name + "-ball")
-    # Loaded: the ball rides in the bore, point first, until the gun fires.
+    # Loaded: the ball rides in the bore, round end out and its printing
+    # point back toward the breech, until the gun fires. (Its +Z is the point.)
     seat = Matrix.Translation(bore - Vector((radius * 1.6 + 2.0, 0, 0))) @ \
-        Matrix.Rotation(math.radians(90), 4, "Y") @ Matrix.Scale(1.0, 4)
+        Matrix.Rotation(math.radians(-90), 4, "Y")
     for f in range(F_START, f0):
         sc.frame_set(f)
         mw = cannon.matrix_world @ seat
