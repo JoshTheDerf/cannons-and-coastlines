@@ -116,7 +116,7 @@
 // ==== PAGE SETUP ========================================================
 
 #set document(
-  title: "The Versatile Admiral — A Cannons & Coastlines Addon",
+  title: "The Versatile Admiral: A Cannons & Coastlines Addon",
   author: "Joshua David, with Joshua Bemenderfer",
 )
 

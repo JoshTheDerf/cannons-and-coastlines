@@ -36,8 +36,8 @@ Additional factions (Treasure Fleet, Stone Fleet, Shadow Fleet, The Industry, Th
 
 ### Rulebook
 
-- [Rulebook (PDF)](rulebook/pdf/rulebook.pdf) — portrait half-letter, read on screen
-- [Rulebook — Booklet Imposition (PDF)](rulebook/pdf/rulebook-booklet.pdf) — two pages per landscape letter sheet; print double-sided (flip on short edge), fold, saddle-stitch
+- [Rulebook (PDF)](rulebook/pdf/rulebook.pdf): portrait half-letter, for reading on screen
+- [Rulebook booklet imposition (PDF)](rulebook/pdf/rulebook-booklet.pdf): two pages per landscape letter sheet. Print double-sided (flip on short edge), fold and saddle-stitch.
 
 ### Faction Cards
 
@@ -60,7 +60,7 @@ assets/
 ├── playtesting/    # Photos and videos from playtest sessions
 ├── ships/          # Faction ship previews (renders/ is the Blender output)
 └── stls/           # Free 3D-printable sets, plus the released zips
-paid-sets/          # Paid sets, staged locally — gitignored, never published
+paid-sets/          # Paid sets, staged locally (gitignored, never published)
 rulebook/           # Typst sources (typst/), plus built pdf/ and png/
 nuxt-site/          # The website (Nuxt, deployed to Cloudflare Workers)
 └── public/game/    # Static HTML easter-egg game (triggered by typing "fire")
@@ -70,7 +70,7 @@ scripts/            # Every build step; see `npx jake -T`
 ├── blender/        # STL render pipeline
 └── print/          # OrcaSlicer 3MF generation for print orders
 tools/bitty-cad/    # In-browser CAD scratchpad
-Jakefile.js         # Build orchestrator — the entry point for every step
+Jakefile.js         # Build orchestrator, the entry point for every step
 build.sh            # Nuxt/Workers build, invoked by wrangler.jsonc
 ```
 
@@ -85,7 +85,7 @@ TYPST=~/.local/bin/typst npx jake # full build: STLs, rulebook, cards, site
 npx jake rulebook                 # or just one step
 ```
 
-`jake site` runs `build.sh`, which builds `nuxt-site/.output/` — the artifact
+`jake site` runs `build.sh`, which builds `nuxt-site/.output/`, the artifact
 `wrangler deploy` publishes. The rulebook/faction-card PDFs and PNGs, the ship
 renders, and the STL zip are all committed, so a deploy doesn't need Typst or
 Blender.

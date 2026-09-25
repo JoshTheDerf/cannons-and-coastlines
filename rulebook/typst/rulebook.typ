@@ -359,7 +359,7 @@ On each turn, every one of the ships in your fleet steers or fires, never both, 
 
 Each cannonball hit knocks one *fitting* (a removable piece off your ship, like masts or cargo) off the target ship, and the shooter keeps it as a *prize*. A ship with no fittings left is *dead in the water:* it can no longer move, but it can still fire. The bare hull can absorb *one more hit* after the last fitting is gone; the hit after that sinks the ship.
 
-Islands sit between the fleets. Capture one by planting your flag on it and it will pay out *coins.* Coins are spent at the start of any turn for one-time effects listed in the Coin Actions section. Points come from the islands you hold and the prizes in front of you, so the fleet that wins is the one that fights for them.
+Islands sit between the fleets. Capture one by planting your flag on it and it will pay out *coins.* Coins buy one-time effects, listed in the Coin Actions section. Points come mostly from the islands you hold and the prizes you've taken, so you'll have to fight to win.
 
 
 // ----- Print List -----
@@ -370,7 +370,7 @@ Islands sit between the fleets. Capture one by planting your flag on it and it w
 
 + *Choose a table.* A *6 ft round* or a *6 or 8 ft folding table* works well.
 
-+ *Place the islands.* Going clockwise, each player sets one island on the table. Keep islands at least *6" apart* and *12" from any table edge*. On a narrow folding table, run them down the middle, as far from the long edges as it allows; if the count below does not fit, place as many as do.
++ *Place the islands.* Going clockwise, each player sets one island on the table. Keep islands at least *6" apart* and *12" from any table edge*. On a narrow folding table, run them down the middle, as far from the long edges as it allows. If they don't all fit, place as many as do.
 
 + *Add terrain (optional).* Together, place 2–6 rocks or reefs anywhere on the table. Terrain blocks ships and breaks up firing lanes. You can use household objects for this.
 
@@ -398,7 +398,7 @@ Each of your ships takes its turn, one at a time. Before any ship starts its tur
 
 == Spending Coins
 
-Coins are not actions. Spend them *before a ship starts its turn:* at the start of your turn, or between one ship's turn and the next, never partway through a ship's turn. You may spend any number of coins on a single turn. After a coin's effect resolves, return it to the bag.
+Coins are not actions. Spend them *before a ship starts its turn*, either at the start of your turn or between one ship's turn and the next. You can't spend them partway through a ship's turn. You may spend any number of coins on a single turn. After a coin's effect resolves, return it to the bag.
 
 There is *no hand limit.* You may hold as many coins as you collect.
 
@@ -444,10 +444,10 @@ Rotate the ship up to *90°*, port or starboard. It adds *no* movement.
 + Load a cannonball, then press down on the firing mechanism until the shot fires.
 + Remove the cannon from the slot.
 
-Cannons fire *straight out from the slot.* A ship that fires *does not Set Heading* this turn, so your aim is whatever direction the ship is already pointing. Line up the angle on an earlier turn, then commit to the shot. The shot resolves before the ship clicks forward. The same cannon can be used by more than one ship in a single turn; simply move it from one ship to the next.
+Cannons fire *straight out from the slot.* A ship that fires *does not Set Heading* this turn, so your aim is whatever direction the ship is already pointing. Line up the angle on an earlier turn, then commit to the shot. The shot resolves before the ship clicks forward. The same cannon can be used by more than one ship in a single turn. Just move it from one ship to the next.
 
 #callout[
-  *Cannons need a crew. Your ship is the crew.* To fire any cannon, on a ship or an island, one of your ships must be touching it and spend a Fire action. Held islands cannot fire on their own without a ship in contact.
+  *Cannons need a crew.* To fire any cannon, on a ship or an island, one of your ships must be touching it and spend its Fire action. An island you hold can't fire on its own.
 ]
 
 == Action C: Island
@@ -638,7 +638,7 @@ A large-scale variant for advanced games. Each player fields a mixed armada of u
 #faction-entry("Stone Fleet")[
   Slow to cross the table, but punishing to chip at.
 
-  *Stone Hulls:* *ignores the first hit* each turn while at sea. One big salvo works; pecking at them doesn't. Anchored at an island, they're just stone.
+  *Stone Hulls:* *ignores the first hit* each turn, unless touching an island. One big salvo works much better than pecking at them.
 ]
 #faction-entry("Shadow Fleet")[
   Average across every stat, with one trick that changes the math.
@@ -796,18 +796,18 @@ Every ship has a wheel built into the stern. Two details matter:
     - *A, Set Heading:* Rotate up to 90°. Adds no movement.
     - *B, Fire:* Plug cannon into a slot. Press to fire. No rotating.
     - *C, Island:* Raise flag · Fire from island · Collect (nearest ship, 1 coin).
-    - *Then click forward* 1 to Move Count, unless touching an island.
+    - *Then click forward* 1 to Move Count. An island action at the island skips it.
 
     _Spend coins before any ship's turn._
   ],
 
   contrast-box("Cannon Firing")[
-    + Pick a ship and a cannon slot (on the ship, or on the island it's touching).
+    + Pick a ship and a slot (on it, or on the island it's touching).
     + Plug the cannon in.
-    + Ship cannot Set Heading; aim was set on an earlier turn.
+    + The ship can't Set Heading, so aim it on an earlier turn.
     + Press the mechanism. Fire, then click the ship forward.
 
-    _Cannons need a crew. Your ship is the crew._
+    _Island guns need one of your ships touching the island._
   ],
 
   contrast-box("Victory Points")[

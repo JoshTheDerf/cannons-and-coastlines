@@ -36,7 +36,7 @@ gallery:
     - render: /assets/ships/renders/ship-treasure-fleet.png
       name: Treasure Fleet
       badge: Add-on
-      desc: A junk with a deep hold. You get fewer ships, but more coin.
+      desc: A slow junk with a deep hold. Every island it collects from pays double.
       color: Gold.
     - render: /assets/ships/renders/ship-stone-fleet.png
       name: Stone Fleet

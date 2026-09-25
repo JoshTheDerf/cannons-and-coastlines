@@ -127,7 +127,7 @@ howToPlay:
     - title: Spend coins
       body:
         - >-
-          Coins come from islands you hold: each turn, your ship nearest each
+          Coins come from islands you hold. Each turn, your ship nearest each
           of your islands can collect a coin there, even out at sea. Spend
           them before any of your ships takes its turn, as many as you want,
           then put them back in the bag. Each coin you still hold is a point,
@@ -288,14 +288,14 @@ changelog:
     - version: v0.6
       released: '2026-09-24'
       items:
-        - '**Win by fighting, not by parking.** Surviving ships no longer score, and a coin is worth a quarter of what it was. You score for islands you hold, for prizes and a little for coins: 8 per island, 4 per prize fitting, 8 per prize hull, 1 per coin, +8 for most ships and most islands, and you can declare victory at 48.'
-        - '**Prizes.** Keep every fitting you knock off an enemy ship, and the hull of every ship you sink or capture. A fitting is worth 4 points and a hull 8. When a ship is repaired, captured or raised, the piece comes back out of whoever holds it.'
+        - '**Parking at islands no longer wins.** Surviving ships don''t score any more, and a coin is worth a quarter of what it was. Points are 8 per island, 4 per prize fitting, 8 per prize hull, 1 per coin and +8 each for most ships and most islands, and you can declare victory at 48.'
+        - '**Prizes.** Keep every fitting you knock off an enemy ship, and the hull of every ship you sink or capture. A fitting is worth 4 points and a hull 8. When a ship is repaired, captured or raised, whoever holds the piece gives it back.'
         - '**Collect from a distance.** Each turn, your ship nearest each of your islands can collect a coin there, touching it or not. A ship out at sea still sails forward after collecting.'
-        - '**Treasure Fleet gets a third junk.** Two ships were too few to hold a table; three hold their own.'
+        - '**Treasure Fleet gets a third junk.** Two ships were too few to hold their own at the table.'
         - '**Stone Hulls only work at sea.** A Stone Fleet ship touching an island takes every hit.'
         - '**Real tables, and where to sit.** A 6 ft round or a 6 or 8 ft folding table works well. Two players sit a quarter of the way round a round table, or diagonally across a folding one, so the fighting starts sooner. With three or more, put a rock just past each end of every fleet''s line. On a narrow table, islands run down the middle.'
-        - '**Full Sail is back, Signal Flags are gone.** Full Sail lets one ship steer and sail twice in a turn, but it does not fire. The 20-coin set is now 5 Brace, 2 Full Sail, 2 Evasive, 5 Gunner, 4 Repair, 2 Boarding.'
-        - '**Spend coins between ships.** Coins can be spent before any of your ships takes its turn, not only at the start of yours.'
+        - '**Full Sail replaces Signal Flags.** It lets one ship steer and sail twice in a turn, but that ship can''t fire. The 20-coin set is now 5 Brace, 2 Full Sail, 2 Evasive, 5 Gunner, 4 Repair, 2 Boarding.'
+        - '**Spend coins between ships.** You can spend coins before any of your ships takes its turn, as well as at the start of yours.'
         - '**Cannons in the web game now shoot like the printed ones.** Two elevations (straight out or tipped up), no power control, a few degrees of spread, and a tapered ball that skids and curls to a stop.'
     - version: v0.5
       released: '2026-09-19'

@@ -161,7 +161,7 @@ const FACTION_DEFS = {
     },
     passive: 'harvest', passiveName: 'Bountiful Harvest',
     passiveText: 'Collect draws 2 coins instead of 1.',
-    blurb: 'Three junks. Every island pays double.',
+    blurb: 'Three slow junks, and every island pays double.',
     hullColor: [150, 108, 40],
   },
   stone_fleet: {

@@ -506,7 +506,7 @@
     "extras": [
       { "part": "cannon", "count": 4 },
       { "part": "cannonball", "count": 10 },
-      { "part": "coins", "count": 20, "note": "A full bag: 4 Brace · 2 Signal · 2 Evasive · 4 Gunner · 4 Repair · 4 Boarding" },
+      { "part": "coins", "count": 20, "note": "A full bag: 5 Brace · 2 Full Sail · 2 Evasive · 5 Gunner · 4 Repair · 2 Boarding" },
       { "part": "mast-short", "count": 3, "note": "Flagpoles for the island toppers" }
     ]
   },

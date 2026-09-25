@@ -65,7 +65,7 @@ function showSetup() {
       <span>Map</span><div>${opt('setup', 'quick', 'Quick start')}${opt('setup', 'custom', 'Set it up yourselves')}</div>
       <span>Stalemate rule</span><div>${opt('stalemate', true, 'On')}${opt('stalemate', false, 'Off')}</div>
     </div>
-    <p class="optNote callout">Rulebook ${RULES_VERSION}: each ship steers, fires, or takes an island action, then sails forward. Only an island action taken touching the island holds a ship still. Score by holding islands and knocking fittings off enemy ships; first to ${VICTORY_POINTS} can declare victory.</p>`;
+    <p class="optNote callout">Rulebook ${RULES_VERSION}: each ship steers, fires, or takes an island action, then sails forward. Only an island action taken touching the island holds a ship still. Score by holding islands and knocking fittings off enemy ships. At ${VICTORY_POINTS} points you can declare victory.</p>`;
   el.querySelectorAll('.fCard').forEach(b => b.onclick = () => { setupChoice.factions[b.dataset.p] = b.dataset.f; showSetup(); });
   el.querySelectorAll('.optBtn').forEach(b => b.onclick = () => {
     const v = b.dataset.v;
