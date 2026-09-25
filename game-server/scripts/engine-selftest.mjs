@@ -1,6 +1,7 @@
 // Plays a few all-computer games through the bundled engine, the same way
 // the GameRoom does (one action per step, seeded dice), and checks that
 // every game finishes without a refused action.
+import { readFileSync } from 'node:fs';
 import { engine } from '../src/engine.gen.js';
 
 let seed = 12345;
@@ -214,5 +215,29 @@ for (const n of [2, 3, 5, 7]) {
   ok(engine.applyHit(st, 2) === 'stone', 'Stone Hulls shrug off the first hit at sea');
   Object.assign(st, { x: 66 + 6 + st.wid / 2 + 0.1, y: 66, h: 0 }); st.stoneUsed = false;
   ok(engine.applyHit(st, 2) === 'fitting', 'a Stone ship touching an island takes the hit');
+  // Cannon holes: the engine's (constants.js holes) are the hulls' sockets
+  // in shared/data/ship-assemblies.json, measured from the hull's centre.
+  const asm = JSON.parse(readFileSync(new URL('../../nuxt-site/shared/data/ship-assemblies.json', import.meta.url), 'utf8'));
+  const glbBox = url => {
+    const b = readFileSync(new URL('../../nuxt-site/public' + url, import.meta.url)), n = b.readUInt32LE(12), j = JSON.parse(b.subarray(20, 20 + n).toString());
+    const mn = [Infinity, Infinity], mx = [-Infinity, -Infinity];
+    for (const m of j.meshes) for (const pr of m.primitives) { const a = j.accessors[pr.attributes.POSITION]; for (const k of [0, 1]) { mn[k] = Math.min(mn[k], a.min[k]); mx[k] = Math.max(mx[k], a.max[k]); } }
+    return [(mn[0] + mx[0]) / 2, (mn[1] + mx[1]) / 2];
+  };
+  for (const fid of engine.FACTION_ORDER) {
+    const def = asm.ships[fid.replace(/_/g, '-')];
+    const [cx, cy] = glbBox(def.hull.preview);
+    const socks = def.sockets.cannon.filter(s => !(s.where || '').startsWith('turret'));
+    engine.newGame({ seats: [{ faction: fid, color: 0 }, { faction: fid === 'corsairs' ? 'queens_fleet' : 'corsairs', color: 1 }], setup: 'quick', table: 'round' });
+    const slots = engine.shipSlots(engine.G.players[1].ships[0]);
+    let worst = 0;
+    for (const sl of slots) {
+      const s = sl.free ? def.sockets.cannon.find(x => (x.where || '').startsWith('turret')) : socks[sl.sock === 'bow' ? 0 : sl.sock];
+      const lx = (s.at[1] - cy) / 10, ly = -(s.at[0] - cx) / 10, z = s.at[2] / 10;
+      worst = Math.max(worst, Math.hypot(sl.hole ? sl.hole[0] - lx : sl.lx - lx, sl.hole ? sl.hole[1] - ly : sl.ly - ly), Math.abs(sl.z - 0.76 - z));
+      if (!sl.free && socks.length > 1) worst = Math.max(worst, Math.abs(((180 - sl.dir * 180 / Math.PI) - (s.rotZ || 0) + 540) % 360 - 180) / 10);
+    }
+    ok(worst < 0.1, `${fid}: every cannon slot sits on its hull's hole (worst ${worst.toFixed(2)})`);
+  }
   if (fails) process.exitCode = 1;
 }

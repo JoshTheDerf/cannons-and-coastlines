@@ -448,8 +448,8 @@ function aiLanes(ship, opts) {
     const w = slotWorld(ship, sl);
     if (sl.free) {
       // The turret swings to each enemy it can bear on (not through its blind cones).
-      for (const e of enemies) { const h = headingTo(e.x - w.x, e.y - w.y); if (turretBears(ship, h)) lanes.push({ source: 'ship', slot: sl, slotIdx: idx, x: w.x, y: w.y, h }); }
-    } else lanes.push({ source: 'ship', slot: sl, slotIdx: idx, x: w.x, y: w.y, h: w.h });
+      for (const e of enemies) { const h = headingTo(e.x - w.x, e.y - w.y); if (turretBears(ship, h)) { const m = muzzleOf(ship, sl, h); lanes.push({ source: 'ship', slot: sl, slotIdx: idx, x: m.x, y: m.y, z: m.z, h }); } }
+    } else lanes.push({ source: 'ship', slot: sl, slotIdx: idx, x: w.x, y: w.y, z: sl.z, h: w.h });
   });
   if (!(opts && opts.noIsland) && !isDead(ship)) {
     for (const i of touchingIslands(ship)) {
@@ -485,13 +485,13 @@ function aiBestShot(ship, opts) {
     // Straight out hits the first thing in the lane; tipped up sails over
     // what is close and comes down about 38 cm out. Try both.
     for (const elev of ['flat', 'lob']) {
-      const aim = traceShot(src, lane.x, lane.y, aimedShot(lane.h, elev));
+      const aim = traceShot(src, lane.x, lane.y, aimedShot(lane.h, elev, lane.z));
       if (aim.kind === 'ship' && aim.obj.owner === p && elev === 'flat') continue; // our own hull is in the way
       // Monte Carlo with the cannon's spread, the spring and the table.
       let ev = 0;
       const N = AI_EFFORT.samples;
       for (let i = 0; i < N; i++) {
-        const tr = traceShot(src, lane.x, lane.y, wobbleShot(lane.h, elev));
+        const tr = traceShot(src, lane.x, lane.y, wobbleShot(lane.h, elev, lane.z));
         if (tr.kind === 'ship' && tr.obj.owner !== p) ev += aiHitValue(tr.obj, p);
       }
       ev /= N;
@@ -564,23 +564,73 @@ function aiAttackPotential(ship, ps) {
 }
 
 /**
+ * Clear water ahead of a ship at pose ps on heading h, up to max cm: the
+ * table edge, terrain and other ships. Islands in skip are left out.
+ */
+function aiRoomAhead(ship, ps, h, max, skip) {
+  const f = fwdVec(h), w = ship.wid / 2, half = Math.max(0, ship.len / 2 - w);
+  const bx = ps.x + f.x * half, by = ps.y + f.y * half; // centre of the bow's curve
+  let room = Math.min(max, rayExit(bx + f.x * w, by + f.y * w, f.x, f.y));
+  // The bow sweeps a strip w either side; it meets a circle of radius R - w.
+  const hit = (cx, cy, R) => {
+    const dx = cx - bx, dy = cy - by, along = dx * f.x + dy * f.y;
+    if (along <= 0 || along - R > room) return;
+    const perp = Math.abs(dx * f.y - dy * f.x);
+    if (perp >= R - 0.1) return;
+    room = Math.max(0, Math.min(room, along - Math.sqrt(R * R - perp * perp)));
+  };
+  for (const t of G.terrain) if (!(skip && skip.includes(t))) hit(t.x, t.y, t.r + w);
+  for (const o of allShips()) {
+    if (o === ship || o.id === ship.id || dist(bx, by, o.x, o.y) > room + o.len) continue;
+    const sg = shipSeg(o);
+    for (let k = 0; k <= 4; k++) hit(sg.ax + (sg.bx - sg.ax) * k / 4, sg.ay + (sg.by - sg.ay) * k / 4, o.wid / 2 + w);
+  }
+  return room;
+}
+
+/**
+ * Extra sailing to get round terrain on the way from ps to the goal
+ * island's shore: the path hugs each rock, reef or island in the way.
+ */
+function aiDetour(ps, goal, clear) {
+  const d0 = dist(ps.x, ps.y, goal.x, goal.y);
+  if (d0 <= goal.r) return 0;
+  const ex = goal.x + (ps.x - goal.x) * goal.r / d0, ey = goal.y + (ps.y - goal.y) * goal.r / d0;
+  const run = dist(ps.x, ps.y, ex, ey);
+  let extra = 0;
+  for (const t of G.terrain) {
+    if (t === goal) continue;
+    const c = t.r + clear;
+    if (ptSegDist(t.x, t.y, ps.x, ps.y, ex, ey) >= c) continue;
+    const a = dist(ps.x, ps.y, t.x, t.y), b = dist(ex, ey, t.x, t.y);
+    if (a <= c || b <= c) continue;
+    const th = Math.acos(clamp(((ps.x - t.x) * (ex - t.x) + (ps.y - t.y) * (ey - t.y)) / (a * b), -1, 1));
+    const arc = th - Math.acos(c / a) - Math.acos(c / b);
+    if (arc > 0) extra += Math.sqrt(a * a - c * c) + Math.sqrt(b * b - c * c) + c * arc - run;
+  }
+  return extra;
+}
+
+/**
  * How badly a pose sets up the next turn's forced click. Next turn the
  * ship can steer up to its pivot and must then sail at least one click,
- * so it needs room ahead on some heading it can reach.
+ * so it needs open water ahead on some heading it can reach: not the
+ * table edge, a rock, a reef or another ship. An island it is touching
+ * does not count, since it can take an island action there instead.
  */
 function aiEdgeRisk(ship, ps) {
   const piv = pivotFor(ship) * Math.PI / 180;
+  const skip = touchingIslands(ship, ps).map(i => G.terrain[i]);
   let bestRoom = 0;
   for (const k of [0, -0.5, 0.5, -1, 1]) {
     const h = ps.h + k * piv;
     const f = fwdVec(h);
-    const bx = ps.x + f.x * ship.len / 2, by = ps.y + f.y * ship.len / 2;
-    if (!onTable(bx, by)) continue;
-    bestRoom = Math.max(bestRoom, rayExit(bx, by, f.x, f.y) - ship.wid / 2);
-    if (bestRoom > CLICK_LEN * 2) break;
+    if (!onTable(ps.x + f.x * ship.len / 2, ps.y + f.y * ship.len / 2)) continue;
+    bestRoom = Math.max(bestRoom, aiRoomAhead(ship, ps, h, CLICK_LEN * 2, skip));
+    if (bestRoom >= CLICK_LEN * 2) break;
   }
-  // The edge only wastes a turn now (no scuttle), but a ship stuck facing
-  // it can't get anywhere.
+  // A blocked ship only wastes a turn (no scuttle), but one stuck facing
+  // something can't get anywhere.
   if (bestRoom < CLICK_LEN * 0.5) return 14;
   if (bestRoom < CLICK_LEN * 1.2) return 6;
   if (bestRoom < CLICK_LEN * 2) return 2;
@@ -595,7 +645,7 @@ function aiEvalPose(ship, ps, goal) {
   const touching = touchingIslands(ship, ps).map(i => G.terrain[i]);
   if (goal && typeof goal === 'object') {
     if (touching.includes(goal)) sc += opponents(p).some(q => defendersAt(goal, q).length) ? 18 : 45;
-    else sc -= Math.max(0, dist(ps.x, ps.y, goal.x, goal.y) - goal.r - ship.len / 2) * 0.9;
+    else sc -= (Math.max(0, dist(ps.x, ps.y, goal.x, goal.y) - goal.r - ship.len / 2) + (off('detour') ? 0 : aiDetour(ps, goal, ship.wid / 2 + 1))) * 0.9;
   } else if (goal === 'collect') {
     if (!touching.some(t => t.owner === p)) sc -= 30;
   } else if (enemies.length) {
@@ -656,12 +706,21 @@ function aiBestMove(ship, goal, lo, hi, straight) {
     const start = { x: ship.x, y: ship.y, h: rot.h };
     const slide = planSlide(ship, start, rot.h, hi * CLICK_LEN);
     const f = fwdVec(rot.h);
-    for (const c of clickSet) {
+    // Blocked short of the full run: also try stopping a click clear of it.
+    const clear = Math.floor((slide.moved + 0.05) / CLICK_LEN);
+    const cs = slide.stoppedBy && clear >= lo && !clickSet.includes(clear) ? clickSet.concat(clear) : clickSet;
+    for (const c of cs) {
       const d = Math.min(c * CLICK_LEN, slide.moved);
-
       const end = { x: start.x + f.x * d, y: start.y + f.y * d, h: rot.h };
       let score = aiEvalPose(ship, end, goal);
       if (d < 0.3) score -= 4;
+      // Running into something wastes the rest of the move. Sailing up to
+      // the island it is making for is the point, and an enemy may be
+      // worth touching (boarding, scored in the pose).
+      if (slide.stoppedBy && d < c * CLICK_LEN - 0.05 && !off('bump')) {
+        const by = slide.stoppedBy, o = slide.obj;
+        score -= by === 'island' ? (o === goal ? 0 : 2) : by === 'ship' ? (o && o.owner === ship.owner ? 6 : 2) : by === 'edge' ? 3 : 6;
+      }
       if (!best || score > best.score) best = { h: rot.h, clicks: c, score };
     }
   }

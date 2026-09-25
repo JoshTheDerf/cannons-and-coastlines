@@ -15,6 +15,7 @@
     "variant": "node scripts/variant.mjs",
     "start-lanes": "node scripts/build-engine.mjs && node scripts/start-lanes.mjs",
     "table-fit": "node scripts/build-engine.mjs && node scripts/table-fit.mjs",
+    "bump-stats": "node scripts/build-engine.mjs && node scripts/bump-stats.mjs",
     "cannon-stats": "node scripts/build-engine.mjs && node scripts/cannon-stats.mjs",
     "map-preview": "node scripts/build-engine.mjs && node scripts/map-preview.mjs",
     "ui-smoke": "node scripts/ui-smoke.mjs"

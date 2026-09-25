@@ -63,7 +63,11 @@ const TERRAIN_DEFS = {
 const BALL_R = 0.5;
 const HULL_H = 3.0;                  // a typical hull's height, for aiming lines; each hull has its own (FACTION_DEFS height)
 const GRAVITY = 981;                 // cm/s^2
-const MUZZLE_H = 2.4;                // ball height at the muzzle
+const MUZZLE_H = 2.4;                // ball height at the muzzle, for a shot that does not say (island guns)
+// The printed cannon (cannon.stl) seats its peg in a hole and its mouth
+// sits MUZZLE_REACH out along the barrel and MUZZLE_RISE above the hole.
+const MUZZLE_REACH = 1.73;
+const MUZZLE_RISE = 0.76;
 const MUZZLE_V = 198;                // cm/s: a lofted shot lands ~38 cm out
 const MUZZLE_V_SD = 0.07;            // spring-to-spring and shot-to-shot variation
 const ELEVATIONS = { flat: 0, lob: 30 * Math.PI / 180 };
@@ -106,14 +110,20 @@ const VICTORY_POINTS = 12 * VP_SCALE;
 
 // Factions. Stats are from rulebook/typst/factions.typ. Hull length, beam
 // and height (cm) are the printed hulls' (ship-*.stl).
-// guns: 'broadside' = 3 slots per side, 'industry' = bow + turret,
+// guns: 'broadside' = slots down each side, 'industry' = bow + turret,
 // 'stern' = 3 rear-facing slots.
-// Treasure Fleet, Stone Fleet and Shadow Fleet cards list no cannon slots, so
-// they use the standard broadside layout of the base-game hulls.
+// holes: where each hull's cannon holes are (cm from the hull's centre, lx
+// toward starboard, ly toward the bow, z the hole's height off the table),
+// from the sockets in shared/data/ship-assemblies.json. Broadside: the port
+// side bow to stern as [lx, ly, splay], splay +1 angled toward the bow, 0
+// square, -1 toward the stern; starboard mirrors it. Industry: bow and
+// turret [lx, ly, z]. Islanders: the stern arc the gun swivels in.
+// scripts/engine-selftest.mjs checks them against the assemblies file.
 const FACTION_DEFS = {
   queens_fleet: {
     name: "Queen's Fleet", shipCount: 3, fittings: 4, moveCount: 3, pivot: 180,
     guns: 'broadside', len: 13.37, wid: 3.56, height: 2.93, hull: 'frigate',
+    holes: { z: 1.49, side: [[-0.67, 1.27, 1], [-0.78, 0.48, 0], [-0.68, -0.31, -1]] },
     names: {
       forms: ['{v}', '{v}', 'Royal {n}', "Queen's {n}"],
       v: ['Vanguard', 'Resolute', 'Defiance', 'Valiant', 'Steadfast', 'Dauntless', 'Intrepid', 'Formidable', 'Sovereign', 'Vigilant', 'Illustrious', 'Invincible', 'Endeavour', 'Triumph'],
@@ -127,6 +137,7 @@ const FACTION_DEFS = {
   corsairs: {
     name: 'Corsairs', shipCount: 3, fittings: 3, moveCount: 4, pivot: 90,
     guns: 'broadside', len: 11.94, wid: 3.57, height: 3.29, hull: 'sloop',
+    holes: { z: 1.59, side: [[-0.67, 1.10, 1], [-0.78, 0.31, 0], [-0.68, -0.48, -1]] },
     names: {
       forms: ['{a} {n}', '{a} {n}', "{o}'s {t}"],
       a: ['Black', 'Red', 'Salt', 'Crimson', 'Rotten', 'Grim', 'Rusty', 'Mad', 'Sly', 'Wicked'],
@@ -142,6 +153,7 @@ const FACTION_DEFS = {
   treasure_fleet: {
     name: 'Treasure Fleet', shipCount: 3, fittings: 3, moveCount: 2, pivot: 90,
     guns: 'broadside', len: 13.41, wid: 3.74, height: 3.9, hull: 'junk',
+    holes: { z: 1.24, side: [[-0.68, 1.41, 1], [-0.79, 0.63, 0], [-0.68, -0.15, -1]] },
     names: {
       forms: ['{a} {b}'],
       a: ['Golden', 'Jade', 'Silver', 'Pearl', 'Amber', 'Lotus', 'Silk', 'Imperial', 'Jewel', 'Scarlet'],
@@ -155,6 +167,7 @@ const FACTION_DEFS = {
   stone_fleet: {
     name: 'Stone Fleet', shipCount: 3, fittings: 4, moveCount: 2, pivot: 90,
     guns: 'broadside', len: 13.41, wid: 3.53, height: 3.5, hull: 'barge',
+    holes: { z: 1.68, side: [[-0.74, 2.36, 0], [-0.65, 1.57, -1], [-0.65, -1.94, 1], [-0.74, -2.73, 0]] },
     names: {
       forms: ['{a} {b}'],
       a: ['Obsidian', 'Jade', 'Basalt', 'Granite', 'Flint', 'Serpent', 'Jaguar', 'Onyx', 'Marble', 'Slate'],
@@ -168,6 +181,7 @@ const FACTION_DEFS = {
   shadow_fleet: {
     name: 'Shadow Fleet', shipCount: 3, fittings: 3, moveCount: 3, pivot: 90,
     guns: 'broadside', len: 13.04, wid: 3.64, height: 3.57, hull: 'galleon',
+    holes: { z: 1.65, side: [[-0.67, 0.40, 1], [-0.78, -0.39, 0], [-0.68, -1.19, -1]] },
     names: {
       forms: ['{v}', '{a} {b}', '{a} {b}'],
       v: ['Wraith', 'Phantom', 'Revenant', 'Spectre', 'Banshee', 'Shade', 'Haunt', 'Wisp'],
@@ -182,6 +196,7 @@ const FACTION_DEFS = {
   industry: {
     name: 'The Industry', shipCount: 3, fittings: 3, moveCount: 3, pivot: 90,
     guns: 'industry', len: 12.88, wid: 3.36, height: 4.54, hull: 'steam',
+    holes: { bow: [0, 4.94, 1.49], turret: [0, 1.48, 2.09] },
     names: {
       forms: ['{v}', '{a} {b}', '{a} {b}'],
       v: ['Ironclad', 'Dreadnought', 'Juggernaut', 'Monitor', 'Leviathan', 'Vulcan', 'Titan', 'Colossus'],
@@ -196,6 +211,7 @@ const FACTION_DEFS = {
   islanders: {
     name: 'The Islanders', shipCount: 5, fittings: 1, moveCount: 4, pivot: 90,
     guns: 'stern', len: 9.47, wid: 4.06, height: 2.66, hull: 'cat',
+    holes: { z: 2.15, stern: [0, -3.52] },
     names: {
       forms: ['{a}{b}'],
       a: ['Wave', 'Tide', 'Reef', 'Shell', 'Drift', 'Salt', 'Coral', 'Palm', 'Spray', 'Gull', 'Surf', 'Sand'],

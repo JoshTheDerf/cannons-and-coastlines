@@ -740,11 +740,14 @@ function slotChipLayout() {
   const items = F.slots.map((sl, idx) => {
     const w = slotWorld(ship, sl);
     const hh = sl.free ? normAngle(ship.h + (ship.turretRel || 0)) : w.h;
-    const d = sdir(w.x, w.y, Math.sin(hh), -Math.cos(hh));
+    // Every chip's direction is taken at the hub, so guns that face the
+    // same way (the Industry's bow and turret) tie exactly instead of
+    // swapping places with the 3D camera's perspective.
+    const d = sdir(hub.x, hub.y, Math.sin(hh), -Math.cos(hh));
     const lbl = sl.island != null ? sl.label : sl.free ? 'Turret' : sl.label === 'Bow' ? 'Bow' : sl.label.startsWith('Stern') ? (sl.label === 'Stern' ? 'Centre' : sl.label.endsWith('port') ? 'Port' : 'Stbd')
       : sl.label.endsWith('fore') ? 'Fore' : sl.label.endsWith('aft') ? 'Aft' : 'Mid';
     return { idx, a: Math.atan2(d.y, d.x), sw: w2s(w.x, w.y), label: lbl };
-  }).sort((p, q) => p.a - q.a);
+  }).sort((p, q) => (Math.abs(p.a - q.a) > 1e-6 ? p.a - q.a : 0) || p.idx - q.idx);
   // Keep neighbours at least 46 px apart around the ring.
   const minA = 46 / R;
   for (let pass = 0; pass < 4; pass++) {

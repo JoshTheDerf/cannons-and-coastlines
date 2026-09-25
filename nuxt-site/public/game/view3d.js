@@ -272,7 +272,7 @@
     let sl = gunAt.get(ship.id) || null;
     if (mine && F.slot && !F.slot.free) sl = F.slot;
     else if (mine && F.stage === 'slot' && F.hover >= 0 && F.slots[F.hover] && !F.slots[F.hover].free) sl = F.slots[F.hover];
-    if (sl) d.gun = { dir: sl.dir, lx: sl.lx, ly: sl.ly };
+    if (sl) d.gun = { dir: sl.dir, lx: sl.lx, ly: sl.ly, sock: sl.sock };
     return d;
   }
 
@@ -503,8 +503,8 @@
   // The shot's path, lifted into its real arc: solid where the ball is low
   // enough to touch a hull, dashed where it flies over, with its shadow on
   // the water and a ring where it lands.
-  drawLane = function (ox, oy, h, elev, strong) {
-    const path = shotPath(ox, oy, aimedShot(h, elev)), total = path.total, step = 0.5;
+  drawLane = function (ox, oy, h, elev, strong, z) {
+    const path = shotPath(ox, oy, aimedShot(h, elev, z)), total = path.total, step = 0.5;
     for (const k of [-1, 1]) {
       const f = fwdVec(h + k * SPREAD_MAX);
       ctx.strokeStyle = 'rgba(255,200,180,.3)'; ctx.lineWidth = 1; ctx.setLineDash([2, 5]);
@@ -550,7 +550,7 @@
     }
     const o = fireOrigin(F);
     if (F.stage === 'dir') {
-      drawLane(o.x, o.y, o.h, F.elev, false);
+      drawLane(o.x, o.y, o.h, F.elev, false, o.z);
       const hk = aimHandleScreen(F);
       ctx.strokeStyle = 'rgba(250,243,224,.85)'; ctx.lineWidth = 1.5;
       strokeRing(hk.p.x, hk.p.y, hk.wR, 'rgba(250,243,224,.85)', 1.5, [3, 3]);
@@ -559,7 +559,7 @@
       ctx.fillStyle = F.locked ? '#faf3e0' : '#8b1a1a'; ctx.beginPath(); ctx.arc(hk.x, hk.y, 3, 0, TAU); ctx.fill();
       return;
     }
-    if (F.stage === 'power') drawLane(o.x, o.y, o.h, F.elev, true);
+    if (F.stage === 'power') drawLane(o.x, o.y, o.h, F.elev, true, o.z);
   };
 
   // ─── Animations ─────────────────────────────────────

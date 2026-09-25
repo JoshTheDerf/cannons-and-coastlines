@@ -530,15 +530,15 @@ function drawShipBody(ship, pose, alpha, ghost) {
     ctx.closePath(); ctx.fill();
   }
 
-  // Cannon slots, each with a short barrel showing which way it fires.
+  // Cannon holes, each with a short barrel out to the mouth the shot leaves from.
   if (!ghost) {
     ctx.fillStyle = '#111'; ctx.strokeStyle = '#111'; ctx.lineWidth = Math.max(1, W * 0.08);
     for (const sl of shipSlots(ship)) {
       if (sl.free) continue;
-      const cx = sl.lx * worldScale * 0.92, cy = -sl.ly * worldScale * 0.97;
-      const dx = Math.sin(sl.dir), dy = -Math.cos(sl.dir), bl = Math.max(2.5, W * 0.28);
+      const [hx, hy] = sl.hole || [sl.lx, sl.ly];
+      const cx = hx * worldScale, cy = -hy * worldScale;
       ctx.beginPath(); ctx.arc(cx, cy, Math.max(1, W * 0.1), 0, TAU); ctx.fill();
-      ctx.beginPath(); ctx.moveTo(cx, cy); ctx.lineTo(cx + dx * bl, cy + dy * bl); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(cx, cy); ctx.lineTo(sl.lx * worldScale, -sl.ly * worldScale); ctx.stroke();
     }
   }
 
@@ -656,8 +656,8 @@ function drawEvasivePreview() {
  * is low enough to touch a hull, dashed where it flies over, a ring where
  * it first comes down, and faint lines for the cannon's side-to-side spread.
  */
-function drawLane(ox, oy, h, elev, strong) {
-  const path = shotPath(ox, oy, aimedShot(h, elev));
+function drawLane(ox, oy, h, elev, strong, z) {
+  const path = shotPath(ox, oy, aimedShot(h, elev, z));
   for (const k of [-1, 1]) {
     const f = fwdVec(h + k * SPREAD_MAX), e = w2s(ox + f.x * RANGE_MAX, oy + f.y * RANGE_MAX), o = w2s(ox, oy);
     ctx.strokeStyle = 'rgba(255,200,180,.3)'; ctx.lineWidth = 1; ctx.setLineDash([2, 5]);
@@ -704,7 +704,7 @@ function drawFirePreview() {
   }
   const o = fireOrigin(F);
   if (F.stage === 'dir') {
-    drawLane(o.x, o.y, o.h, F.elev, false);
+    drawLane(o.x, o.y, o.h, F.elev, false, o.z);
     // Aiming handle for the turret, like the heading handle.
     const hk = aimHandleScreen(F), c = { x: hk.cx, y: hk.cy }, R = hk.R, kx = hk.x, ky = hk.y;
     ctx.strokeStyle = 'rgba(250,243,224,.85)'; ctx.lineWidth = 1.5; ctx.setLineDash([3, 3]);
@@ -714,5 +714,5 @@ function drawFirePreview() {
     ctx.fillStyle = F.locked ? '#faf3e0' : '#8b1a1a'; ctx.beginPath(); ctx.arc(kx, ky, 3, 0, TAU); ctx.fill();
     return;
   }
-  if (F.stage === 'power') drawLane(o.x, o.y, o.h, F.elev, true);
+  if (F.stage === 'power') drawLane(o.x, o.y, o.h, F.elev, true, o.z);
 }

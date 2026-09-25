@@ -49,8 +49,8 @@ export type ShipDesc = {
   /** Owner's colour, and how strongly to ring the hull (0 hides the ring). */
   color: string
   ring: number
-  /** The slot the ship's one gun sits in: direction relative to the bow (clockwise radians) and position (cm, lx starboard, ly bow). */
-  gun: { dir: number, lx: number, ly: number } | null
+  /** The slot the ship's one gun sits in: direction relative to the bow (clockwise radians), where its mouth is (cm, lx starboard, ly bow) and which hole it is (the rules' shipSlots sock: an index into the hull's non-turret cannon sockets). */
+  gun: { dir: number, lx: number, ly: number, sock?: number | string } | null
 }
 /** `turn`: how the piece is turned (radians, as the rules' islandTurn); `gun`: the island cannon slot showing a gun (0-5, model groove 30 + 60k degrees). */
 export type TerrainDesc = { id: number, type: 'island' | 'rock' | 'reef', x: number, y: number, r: number, owner: string | null, turn?: number, gun?: number | null }
@@ -486,7 +486,7 @@ export function create(wrap: HTMLElement, opts: { quality?: 'auto' | 'high' | 'l
   // last fired from (or the one being picked).
   function placeGun(inst: Instance, t: Template, gun: ShipDesc['gun']) {
     if (!inst.gun) return
-    const key = gun ? `${gun.dir.toFixed(3)}|${gun.lx.toFixed(1)}|${gun.ly.toFixed(1)}` : ''
+    const key = gun ? `${gun.dir.toFixed(3)}|${gun.lx.toFixed(1)}|${gun.ly.toFixed(1)}|${gun.sock ?? ''}` : ''
     if (key === inst.gunKey) return
     inst.gunKey = key
     const socks = t.sockets.filter(s => !s.where?.startsWith('turret'))
@@ -498,12 +498,17 @@ export function create(wrap: HTMLElement, opts: { quality?: 'auto' | 'high' | 'l
     // Game: dir 0 = forward, +PI/2 = starboard. Hull rotZ: 180 = forward, 90 = +Y (starboard).
     const want = 180 - THREE.MathUtils.radToDeg(gun.dir)
     const angle = (a: number, b: number) => Math.abs(((a - b) % 360 + 540) % 360 - 180)
-    let best = socks[0]!, bestScore = Infinity
-    for (const s of socks) {
-      const lyHull = -(s.at[0] - t.cx) / MM, lxHull = (s.at[1] - t.cy) / MM
-      const score = angle(s.rotZ ?? 0, want) + 4 * Math.hypot(lyHull - gun.ly, lxHull - gun.lx)
-      if (score < bestScore) { bestScore = score; best = s }
+    // The rules name the hole; otherwise take the socket nearest the slot.
+    let best = typeof gun.sock === 'number' ? socks[gun.sock] : undefined
+    if (!best) {
+      let bestScore = Infinity
+      for (const s of socks) {
+        const lyHull = -(s.at[0] - t.cx) / MM, lxHull = (s.at[1] - t.cy) / MM
+        const score = angle(s.rotZ ?? 0, want) + 4 * Math.hypot(lyHull - gun.ly, lxHull - gun.lx)
+        if (score < bestScore) { bestScore = score; best = s }
+      }
     }
+    best = best ?? socks[0]!
     // One socket (the Islanders' stern arc): the gun swivels in it.
     const rot = socks.length === 1 ? want : best.rotZ ?? 0
     inst.gun.matrix.copy(placeMatrix(best.at, rot, t.cannonAnchor))

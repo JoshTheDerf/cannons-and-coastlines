@@ -116,8 +116,7 @@ const underFullSail = s => !!s.fullSail;
 
 function fireOriginFor(ship, F) {
   if (F.source === 'island') return islandGunOrigin(F.island, F.h);
-  const w = slotWorld(ship, F.slot);
-  return { x: w.x, y: w.y, h: F.slot.free ? F.h : w.h };
+  return muzzleOf(ship, F.slot, F.h);
 }
 
 /** Firing is done: island guns and dead ships end the turn, a ship at sea still clicks. */
@@ -158,7 +157,7 @@ ACTIONS.fire = (p, a) => {
   G.coinPhase = false;
   const o = fireOriginFor(s, F);
   const src = F.source === 'island' ? { island: F.island } : { ship: s };
-  const wob = wobbleShot(o.h, elev);
+  const wob = wobbleShot(o.h, elev, o.z);
   const tr = traceShot(src, o.x, o.y, wob);
   G.stats[p].shots++;
   const shot = ev({ e: 'shot', ship: s.id, origin: { x: o.x, y: o.y }, shot: wob, h: wob.h, stopS: tr.s, kind: tr.kind, x: tr.x, y: tr.y });

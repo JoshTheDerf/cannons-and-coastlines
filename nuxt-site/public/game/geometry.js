@@ -225,28 +225,44 @@ function turretBears(ship, h) { const a = Math.abs(angleDiff(h, ship.h)); return
 
 function shipSlots(ship) {
   const out = [];
-  const L = ship.len, W = ship.wid, off = BALL_R + 0.1;
+  const holes = (FACTION_DEFS[ship.build] || {}).holes;
+  // Each slot is where the ball leaves: the mouth of a cannon seated in the
+  // hull's hole, MUZZLE_REACH out along the way it points (a turret's
+  // swings with it, see muzzleOf). z is the ball's height there.
+  const mouth = (lx, ly, dir, z, rest) => Object.assign({ lx: lx + Math.sin(dir) * MUZZLE_REACH, ly: ly + Math.cos(dir) * MUZZLE_REACH, dir, z: z + MUZZLE_RISE, hole: [lx, ly] }, rest);
   if (ship.guns === 'industry') {
-    out.push({ lx: 0, ly: L / 2 + off, dir: 0, label: 'Bow' });
+    const bow = holes ? holes.bow : [0, ship.len / 2 - 1.5, 1.49], tur = holes ? holes.turret : [0, ship.len * 0.1, 2.09];
+    out.push(mouth(bow[0], bow[1], 0, bow[2], { label: 'Bow', short: 'Bow', sock: 'bow' }));
     // The turret is a fitting: shot off, it cannot fire until repaired.
-    if (hasTurret(ship)) out.push({ lx: 0, ly: L * 0.08, dir: 0, free: true, label: 'Turret' });
+    if (hasTurret(ship)) out.push({ lx: tur[0], ly: tur[1], dir: 0, z: tur[2] + MUZZLE_RISE, free: true, label: 'Turret', short: 'Turret', sock: 'turret' });
   } else if (ship.guns === 'stern') {
-    // Islanders: three slots across the stern. The outer two splay 15
-    // degrees toward their own side (port-most to port, starboard-most to
-    // starboard); the centre one points straight astern.
-    for (const k of [-1, 0, 1]) out.push({ lx: k * 0.3 * W, ly: -(L / 2 + off), dir: Math.PI - k * SLOT_SPLAY, label: k < 0 ? 'Stern port' : k > 0 ? 'Stern starboard' : 'Stern' });
+    // Islanders: the gun swivels in one arc at the stern to three stops.
+    // The outer two splay 15 degrees toward their own side (port-most to
+    // port, starboard-most to starboard); the centre one points straight astern.
+    const [hx, hy] = holes ? holes.stern : [0, -ship.len * 0.37], z = holes ? holes.z : 2.15;
+    for (const k of [-1, 0, 1]) out.push(mouth(hx, hy, Math.PI - k * SLOT_SPLAY, z, { label: k < 0 ? 'Stern port' : k > 0 ? 'Stern starboard' : 'Stern', short: k < 0 ? 'Port' : k > 0 ? 'Stbd' : 'Centre', sock: 0 }));
   } else {
-    // Three slots per side. The forward slot splays 15 degrees toward the
-    // bow and the aft slot 15 degrees toward the stern; the middle one fires
-    // square to the hull. Shots still go straight out along the slot.
-    for (const side of [-1, 1]) {
-      for (const [k, ly] of [[1, 0.27 * L], [0, 0], [-1, -0.27 * L]]) {
-        const pos = k > 0 ? ' fore' : k < 0 ? ' aft' : '';
-        out.push({ lx: side * (W / 2 + off), ly, dir: side * (Math.PI / 2 - k * SLOT_SPLAY), label: (side < 0 ? 'Port' : 'Starboard') + pos });
-      }
+    // Slots down each side, bow to stern. A splayed slot angles 15 degrees
+    // toward the bow or the stern; the rest fire square to the hull.
+    const side = holes ? holes.side : [[-(ship.wid / 2 - 1.1), 0.8, 1], [-(ship.wid / 2 - 1), 0, 0], [-(ship.wid / 2 - 1.1), -0.8, -1]];
+    const n = side.length, z = holes ? holes.z : 1.5;
+    for (const sd of [-1, 1]) {
+      side.forEach(([hx, hy, k], i) => {
+        const pos = n === 3 ? [' fore', '', ' aft'][i] : [' bow', ' fore', ' aft', ' quarter'][i] || '';
+        const short = n === 3 ? ['Fore', 'Mid', 'Aft'][i] : ['Bow', 'Fore', 'Aft', 'Qtr'][i];
+        out.push(mouth(sd * Math.abs(hx), hy, sd * (Math.PI / 2 - k * SLOT_SPLAY), z, { label: (sd < 0 ? 'Port' : 'Starboard') + pos, short, sock: (sd < 0 ? 0 : n) + i }));
+      });
     }
   }
   return out;
+}
+
+/** Where a shot from this slot leaves the cannon, fired on heading h (a turret swings its barrel to h). */
+function muzzleOf(ship, slot, h) {
+  const w = slotWorld(ship, slot);
+  if (!slot.free) return { x: w.x, y: w.y, h: w.h, z: slot.z };
+  const f = fwdVec(h);
+  return { x: w.x + f.x * MUZZLE_REACH, y: w.y + f.y * MUZZLE_REACH, h, z: slot.z };
 }
 
 function slotWorld(ship, slot, pose) {
@@ -311,9 +327,10 @@ function rayExit(ox, oy, dx, dy) {
 }
 
 /** Roll the dice for one shot along heading h. */
-function wobbleShot(h, elev) {
+function wobbleShot(h, elev, z) {
   const tri = () => rand() + rand() - 1; // -1..1, most likely 0
   return {
+    ...(z != null ? { z } : {}),
     h: normAngle(h + tri() * SPREAD_MAX),
     elev: elev === 'lob' ? 'lob' : 'flat',
     v: Math.max(0.75, 1 + gaussRandom() * MUZZLE_V_SD),
@@ -326,7 +343,7 @@ function wobbleShot(h, elev) {
 }
 
 /** The same shot with no luck in it: what the cannon is pointed at. */
-function aimedShot(h, elev) { return { h, elev: elev === 'lob' ? 'lob' : 'flat', v: 1, drag: 1, curl: 0, kicks: [0, 0, 0, 0], tumble: 0, spins: [0, 0, 0, 0] }; }
+function aimedShot(h, elev, z) { return { ...(z != null ? { z } : {}), h, elev: elev === 'lob' ? 'lob' : 'flat', v: 1, drag: 1, curl: 0, kicks: [0, 0, 0, 0], tumble: 0, spins: [0, 0, 0, 0] }; }
 
 /**
  * Legs of a shot from (ox, oy). Each leg is straight on the table:
@@ -338,7 +355,7 @@ function shotPath(ox, oy, shot) {
   const legs = [];
   let x = ox, y = oy, h = shot.h, s = 0, edge = false;
   const speed = MUZZLE_V * shot.v, el = ELEVATIONS[shot.elev] || 0;
-  let vh = speed * Math.cos(el), vz = speed * Math.sin(el), z = MUZZLE_H;
+  let vh = speed * Math.cos(el), vz = speed * Math.sin(el), z = shot.z != null ? shot.z : MUZZLE_H;
   // Add a straight leg of length len at heading h; false once off the table.
   const push = (len, z0, k1, k2) => {
     const f = fwdVec(h), out = rayExit(x, y, f.x, f.y);
