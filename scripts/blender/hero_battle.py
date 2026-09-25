@@ -1965,7 +1965,9 @@ def main():
     setup_render(a.samples, a.pct)
 
     a.save.parent.mkdir(parents=True, exist_ok=True)
-    bpy.ops.wm.save_as_mainfile(filepath=str(a.save))
+    # Pack the flag textures so the .blend opens on any machine.
+    bpy.ops.file.pack_all()
+    bpy.ops.wm.save_as_mainfile(filepath=str(a.save), compress=True)
     print(f"[hero] saved {a.save}")
 
     a.out.mkdir(parents=True, exist_ok=True)
