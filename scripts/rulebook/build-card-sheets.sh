@@ -10,7 +10,7 @@ source "$HERE/../lib/common.sh"
 mkdir -p "$PDF_DIR"
 
 echo "Imposing faction-card print sheet..."
-python3 "$HERE/impose-card-sheets.py" \
+pypdf_python "$HERE/impose-card-sheets.py" \
   "$PDF_DIR" \
   "$PDF_DIR/faction-cards-print-sheet.pdf"
 

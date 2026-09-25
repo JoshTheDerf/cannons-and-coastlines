@@ -17,7 +17,7 @@
     ),
     ability: (
       heading: "Passive: Disciplined Crew",
-      body: [Your ships can turn up to *180°* instead of 90° at the start of a move.],
+      body: [Your ships can *Set Heading* up to *180°* instead of 90°.],
     ),
     playstyle: [Balanced and forgiving. A solid first pick while you're learning how the table flows.],
   ),
@@ -69,7 +69,7 @@
     ),
     ability: (
       heading: "Passive: Return from the Deep",
-      body: [Spend *2 coins* to raise a sunken ship at *1 HP* on any island you hold.],
+      body: [Spend *2 coins* to raise a sunken ship with *1 fitting* on any island you hold.],
     ),
     playstyle: [Trade ships freely. Press fights others would walk away from; keep a held island close for fast returns.],
   ),

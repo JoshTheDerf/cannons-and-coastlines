@@ -77,6 +77,23 @@ typst_compile() {
         "$out"
 }
 
+# pypdf_python <script.py> [args...]
+#
+# Run a Python script that imports pypdf (the imposition scripts). Uses the
+# system python3 when it already has pypdf; otherwise falls back to uv, which
+# supplies pypdf in a throwaway environment without touching the system.
+pypdf_python() {
+    if python3 -c 'import pypdf' >/dev/null 2>&1; then
+        python3 "$@"
+    elif command -v uv >/dev/null 2>&1; then
+        uv run --quiet --no-project --with pypdf python3 "$@"
+    else
+        echo "error: pypdf is not installed and uv is not available." >&2
+        echo "       Install one: 'pip install pypdf' or https://docs.astral.sh/uv/" >&2
+        return 1
+    fi
+}
+
 # pdf_pages <pdf> — page count, or empty if pdfinfo is unavailable/failed.
 pdf_pages() {
     pdfinfo "$1" 2>/dev/null | awk '/^Pages:/ {print $2}'

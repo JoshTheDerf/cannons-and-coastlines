@@ -106,7 +106,7 @@ const TURRET_BLIND = 10 * Math.PI / 180;
 const VP_SCALE = 4;
 const VP_ISLAND = 2 * VP_SCALE, VP_PRIZE_FITTING = 1 * VP_SCALE, VP_PRIZE_HULL = 2 * VP_SCALE, VP_BONUS = 2 * VP_SCALE;
 const VP_COIN = 1;
-const VICTORY_POINTS = 12 * VP_SCALE;
+const VICTORY_POINTS = 15 * VP_SCALE;
 
 // Factions. Stats are from rulebook/typst/factions.typ. Hull length, beam
 // and height (cm) are the printed hulls' (ship-*.stl).

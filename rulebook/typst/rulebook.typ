@@ -486,11 +486,11 @@ When a cannonball hits an enemy ship, remove one *fitting* (masts or cargo). The
 
 == Boarding
 
-While your ship is *touching* an active enemy ship, you may spend #coin("boarding") *Boarding Party* to remove 1 fitting from that enemy ship.
+While your ship is *touching* an active enemy ship, you may spend #coin("boarding", size: 1.6em) *Boarding Party* to remove 1 fitting from that enemy ship.
 
 == Capturing a Dead Enemy Ship
 
-While your ship is touching a dead-in-the-water enemy ship, spend *both* #coin("boarding") *Boarding Party* and #coin("repair") *Repair Crew* on the same turn. Restore *1 fitting* under your own flag. The captured ship joins your fleet, acts from your next turn, and counts as a prize hull while it sails for you.
+While your ship is touching a dead-in-the-water enemy ship, spend *both* #coin("boarding", size: 1.6em) *Boarding Party* and #coin("repair", size: 1.6em) *Repair Crew* on the same turn. Restore *1 fitting* under your own flag. The captured ship joins your fleet, acts from your next turn, and counts as a prize hull while it sails for you.
 
 == Scuttling
 
@@ -498,7 +498,7 @@ A dead-in-the-water ship sinks on the next hit it takes. You may scuttle one of 
 
 == Repairing
 
-Spend #coin("repair") *Repair Crew* to restore 1 fitting to one of your ships.
+Spend #coin("repair", size: 1.6em) *Repair Crew* to restore 1 fitting to one of your ships.
 
 - If the ship *still has fittings*, the repair can be made from any distance.
 - If the ship is *dead in the water*, another of your ships must touch it to repair.
@@ -530,7 +530,7 @@ Each player contributes 20 coins to the bag at setup: 5 Brace · 2 Full Sail · 
 The game ends in one of three ways:
 
 - *Last fleet afloat.* Only one player still has ships on the table. That player wins.
-- *Declared victory.* At the start of your turn, declare victory if you believe you have *48 or more points*. Tally all players' scores. If yours is still at least 48 and is higher than or tied with the next-highest, you win.
+- *Declared victory.* At the start of your turn, declare victory if you believe you have *60 or more points*. Tally all players' scores. If yours is still at least 60 and is higher than or tied with the next-highest, you win.
 - *Stalemate.* Every island is under a flag and no island changed hands during the previous two rounds. Proceed to scoring. (optional)
 
 == Scoring
@@ -548,7 +548,7 @@ The game ends in one of three ways:
 
 Surviving ships don't score. Ties on bonuses: every tied player receives the full +8. Highest total wins. In Fleet play, score the fleet as a single player.
 
-*Example.* A player holding 3 islands, 3 prize fittings and 3 coins (earning the most-islands bonus, and tied for most ships) scores 24 + 12 + 3 + 8 + 8 = *55*. An opponent holding 2 islands, 2 prize fittings, 1 prize hull and 5 coins (also tied for most ships) scores 16 + 8 + 8 + 5 + 8 = *45*. The first player declares and wins.
+*Example.* A player holding 3 islands, 4 prize fittings and 4 coins (earning the most-islands bonus, and tied for most ships) scores 24 + 16 + 4 + 8 + 8 = *60*. An opponent holding 2 islands, 2 prize fittings, 1 prize hull and 5 coins (also tied for most ships) scores 16 + 8 + 8 + 5 + 8 = *45*. The first player declares and wins.
 
 
 // ----- Alternate Modes -----
@@ -659,8 +659,15 @@ A large-scale variant for advanced games. Each player fields a mixed armada of u
 
 // ----- Parts gallery (visual reference — what each piece is and a print color) -----
 
-#let part-row(render-file, name, desc, color) = (
-  align(center + horizon, image(renders + "/" + render-file + ".png", height: 0.78in)),
+// Most renders carry transparent margins, so overflowing the narrow image cell
+// is invisible. Pass `contain: true` for one that fills its frame edge to edge
+// (the coin) so it scales down to the cell width instead of being clipped.
+#let part-row(render-file, name, desc, color, contain: false) = (
+  align(center + horizon, if contain {
+    image(renders + "/" + render-file + ".png", width: 100%, height: 0.78in, fit: "contain")
+  } else {
+    image(renders + "/" + render-file + ".png", height: 0.78in)
+  }),
   [*#name.* #desc],
   color,
 )
@@ -720,7 +727,7 @@ Every printed piece in the base set, with what it does and recommended print col
 
   ..part-row("coin-boarding-party", "Coins (×6 types)",
     [Drawn from the bag and spent before a ship's turn for one-time effects.],
-    [*Gold*]),
+    [*Gold*], contain: true),
 ))
 
 // ----- Print List (8th-grade reading level — aimed at whoever's printing) ---
@@ -813,7 +820,7 @@ Every ship has a wheel built into the stern. Two details matter:
   contrast-box("Victory Points")[
     *8* per island held · *4* per prize fitting · *8* per prize hull · *1* per coin · *+8* most ships · *+8* most islands.
 
-    _Declare Victory at start of turn with ≥ 48 points._
+    _Declare Victory at start of turn with ≥ 60 points._
   ],
 
   contrast-box("Hit Resolution")[

@@ -28,7 +28,7 @@ if [[ -z "${PAGES:-}" ]]; then
 fi
 
 echo "Imposing $PAGES-page rulebook as booklet signatures..."
-python3 "$HERE/impose-booklet.py" \
+pypdf_python "$HERE/impose-booklet.py" \
   "$PDF_DIR/rulebook.pdf" \
   "$PDF_DIR/rulebook-booklet.pdf"
 

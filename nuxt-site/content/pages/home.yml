@@ -147,7 +147,7 @@ howToPlay:
         - >-
           If you're the last fleet with ships on the table, you win. Otherwise,
           at the start of your turn you can **declare victory** if you think you
-          have 48 points. Everyone counts up. If you're still at 48 or more and
+          have 60 points. Everyone counts up. If you're still at 60 or more and
           nobody is ahead of you, you win. Your prizes are right there in front
           of you, so there's nothing to write down.
       table:
@@ -288,7 +288,7 @@ changelog:
     - version: v0.6
       released: '2026-09-24'
       items:
-        - '**Parking at islands no longer wins.** Surviving ships don''t score any more, and a coin is worth a quarter of what it was. Points are 8 per island, 4 per prize fitting, 8 per prize hull, 1 per coin and +8 each for most ships and most islands, and you can declare victory at 48.'
+        - '**Parking at islands no longer wins.** Surviving ships don''t score any more, and a coin is worth a quarter of what it was. Points are 8 per island, 4 per prize fitting, 8 per prize hull, 1 per coin and +8 each for most ships and most islands, and you can declare victory at 60.'
         - '**Prizes.** Keep every fitting you knock off an enemy ship, and the hull of every ship you sink or capture. A fitting is worth 4 points and a hull 8. When a ship is repaired, captured or raised, whoever holds the piece gives it back.'
         - '**Collect from a distance.** Each turn, your ship nearest each of your islands can collect a coin there, touching it or not. A ship out at sea still sails forward after collecting.'
         - '**Treasure Fleet gets a third junk.** Two ships were too few to hold their own at the table.'
