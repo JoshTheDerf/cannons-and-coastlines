@@ -68,6 +68,41 @@ def reset_scene(engine: str, samples: int, res_x: int, res_y: int = None):
     nt.links.new(ramp.outputs["Color"], bg.inputs["Color"])
 
 
+def brighten_world_for_metal(sky: float = 0.9, upper: float = 0.30,
+                             horizon: float = 0.12, ground: float = 0.06):
+    """Swap reset_scene's dim world for a bright overhead sky that falls off
+    to a dark horizon, for polished metal.
+
+    A shiny surface is mostly a mirror of its surroundings, and the default
+    world is dark everywhere, so a polished coin face mirrors near-black and
+    reads as olive rather than gold. A bright sky gives the face something to
+    reflect, while the dark horizon keeps the rim walls in contrast. The
+    bright part is a tight patch around the zenith rather than the whole
+    upper half: a flat face under an ortho camera mirrors a single direction,
+    so a broad even sky gives an even, paint-like yellow. Falling off fast
+    means the surface's micro-texture tips each spot toward brighter or
+    darker sky, which is what reads as polish. Film is
+    transparent, so none of this shows as background.
+
+    The ramp is driven by Geometry > Incoming, which points back along the
+    ray, so a ray travelling UP reads z = -1 and lands at the ramp's left
+    end. The sky therefore goes on element 0, not the right.
+
+    Safe to call again to retune between passes."""
+    ramp = next(n for n in bpy.context.scene.world.node_tree.nodes
+                if n.type == "VALTORGB").color_ramp
+    while len(ramp.elements) > 2:
+        ramp.elements.remove(ramp.elements[1])
+    ramp.elements[0].color = (sky, sky * 0.98, sky * 0.95, 1.0)
+    band = ramp.elements.new(0.12)
+    band.color = (upper, upper, upper * 1.02, 1.0)
+    mid = ramp.elements.new(0.45)
+    mid.color = (horizon, horizon, horizon * 1.05, 1.0)
+    # Not black: the iso camera sees the rim walls mirror the ground, and
+    # they should still read as gold, just in shadow.
+    ramp.elements[-1].color = (ground, ground, ground * 1.05, 1.0)
+
+
 def add_top_camera():
     """Pure top-down orthographic camera looking along -Z."""
     bpy.ops.object.camera_add(location=(0.0, 0.0, 50.0))

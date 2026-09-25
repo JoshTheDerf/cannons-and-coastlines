@@ -346,7 +346,8 @@ def make_gradient_petg(name: str = "PETG_Gradient",
     return mat
 
 
-def make_silk_gold_pla(noise_scale: float = 35.0,
+def make_silk_gold_pla(base=(1.00, 0.66, 0.20, 1.0),
+                       noise_scale: float = 35.0,
                        noise_strength: float = 0.10,
                        noise_distance: float = 0.025,
                        layer_strength: float = LAYER_BUMP_STRENGTH,
@@ -375,7 +376,6 @@ def make_silk_gold_pla(noise_scale: float = 35.0,
 
     # In metallic mode the base color is the F0 reflectance.
     # Orange-leaning rich gold (think antique doubloon, not lemon gold).
-    base = (1.00, 0.66, 0.20, 1.0)
     bsdf.inputs["Base Color"].default_value = base
     bsdf.inputs["Roughness"].default_value = roughness
     bsdf.inputs["Metallic"].default_value = metallic
@@ -398,25 +398,57 @@ def make_silk_gold_pla(noise_scale: float = 35.0,
     # AO so debossed coin icons read clearly. Tuning is per-view: top view
     # leans on AO heavily for icon contrast, iso view keeps it subtle so the
     # rim and faces stay bright.
-    _add_ao_darkening(mat, distance=ao_distance, samples=16,
-                      strength=ao_strength, contrast=ao_contrast)
+    if ao_strength > 0:
+        _add_ao_darkening(mat, distance=ao_distance, samples=16,
+                          strength=ao_strength, contrast=ao_contrast)
     return mat
+
+
+def make_recess_black():
+    """Black fill for a coin's engraving, as if the icon were inked in.
+    Darker than the black PLA preset and rougher than the gold beside it, so
+    it holds as black even where the gold face is catching a highlight."""
+    mat = make_matte_pla("PLA_RecessBlack", (0.006, 0.006, 0.007))
+    bsdf = mat.node_tree.nodes["Principled BSDF"]
+    bsdf.inputs["Roughness"].default_value = 0.9
+    # Low specular too, or the lights glance off the floor of a wide cut
+    # and it reads as charcoal.
+    _set_if(bsdf, "Specular IOR Level", 0.1)
+    _set_if(bsdf, "Specular", 0.1)
+    # The matte preset's white sheen and subsurface are there to keep dark
+    # plastic from going dead; here dead black is the point.
+    _set_if(bsdf, "Sheen Weight", 0.0)
+    _set_if(bsdf, "Sheen", 0.0)
+    _set_if(bsdf, "Subsurface Weight", 0.0)
+    _set_if(bsdf, "Subsurface", 0.0)
+    return mat
+
+
+# A shade more orange than the hull gold: under the bright metal_world sky the
+# hull's base colour reads as brass on a coin.
+COIN_GOLD = (1.00, 0.56, 0.13, 1.0)
 
 
 def make_material(preset: str, grey: float = 0.75, view: str = "iso"):
     if preset == "gold":
+        # Coin face. The engraving is its own material now (see
+        # make_recess_black), so the gold no longer has to carry the icon
+        # with AO; that only dirtied the face around each cut. Without it the
+        # face can be a bright, polished gold with a tight highlight.
         if view == "top":
-            # Top view: keep bump map subtle so the coin face reads as smooth
-            # gold and the AO-darkened recessed icon stays the dominant detail.
-            return make_silk_gold_pla(noise_scale=22.0, noise_strength=0.08,
+            # Straight down, a flat face mirrors whatever is overhead, so the
+            # noise bump stays up to break the reflection into a sheen.
+            return make_silk_gold_pla(base=COIN_GOLD, roughness=0.22, metallic=0.95, sheen=0.10,
+                                      noise_scale=22.0, noise_strength=0.07,
                                       noise_distance=0.02,
                                       layer_strength=0.025,
-                                      ao_distance=0.20, ao_strength=1.0,
-                                      ao_contrast=2.2)
-        return make_silk_gold_pla(noise_scale=45.0, noise_strength=0.07,
+                                      ao_strength=0.0)
+        return make_silk_gold_pla(base=COIN_GOLD, roughness=0.16, metallic=0.95, sheen=0.10,
+                                  noise_scale=45.0, noise_strength=0.05,
                                   noise_distance=0.02,
-                                  ao_distance=0.06, ao_strength=0.5,
-                                  ao_contrast=1.0)
+                                  ao_strength=0.0)
+    if preset == "recess-black":
+        return make_recess_black()
     if preset == "gold-hull":
         # Treasure Fleet hull. Much rougher and less metallic than the coin
         # gold above: silk PLA on a large printed surface is satin, not

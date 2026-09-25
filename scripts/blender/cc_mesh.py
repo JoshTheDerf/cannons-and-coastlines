@@ -93,9 +93,52 @@ def assign_material(objs, mat, smooth: bool = False):
             continue
         for poly in o.data.polygons:
             poly.use_smooth = smooth
+            poly.material_index = 0
         o.data.materials.clear()
         o.data.materials.append(mat)
 
+
+def recessed_faces(obj, max_depth: float, rim_margin: float):
+    """Indices of the faces that make up an engraving cut into the top face:
+    the floor of the cut and its walls.
+
+    A face counts when its centre sits below the top face but no deeper than
+    `max_depth`, and none of its vertices touch the outer edge of the part.
+    The edge test is what keeps the outer wall out: it also has faces whose
+    centres fall in that band, but every one of them reaches the silhouette.
+
+    Works in the mesh's own coordinates, so it gives the same answer before
+    or after normalize_size (which only scales the object). `max_depth` and
+    `rim_margin` are in those coordinates, i.e. STL millimetres."""
+    verts = obj.data.vertices
+    zs = [v.co.z for v in verts]
+    xs = [v.co.x for v in verts]
+    ys = [v.co.y for v in verts]
+    top = max(zs)
+    cx, cy = (min(xs) + max(xs)) / 2, (min(ys) + max(ys)) / 2
+    radius = min(max(xs) - min(xs), max(ys) - min(ys)) / 2
+    eps = 1e-3
+
+    def on_rim(i):
+        co = verts[i].co
+        return math.hypot(co.x - cx, co.y - cy) > radius - rim_margin
+
+    return [p.index for p in obj.data.polygons
+            if top - max_depth < p.center.z < top - eps
+            and not any(on_rim(i) for i in p.vertices)]
+
+
+def assign_recess_material(objs, mat, max_depth: float, rim_margin: float):
+    """Give the engraved faces of each object a second material. Call AFTER
+    assign_material, which clears the slots this appends to."""
+    for o in objs:
+        if o.type != "MESH":
+            continue
+        faces = recessed_faces(o, max_depth, rim_margin)
+        o.data.materials.append(mat)
+        slot = len(o.data.materials) - 1
+        for i in faces:
+            o.data.polygons[i].material_index = slot
 
 
 def weld_and_smooth(objs, angle_deg: float = 35.0, distance: float = 1e-4):

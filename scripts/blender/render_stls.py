@@ -78,6 +78,46 @@ def _resolution(args):
     return args.res, max(1, int(round(args.res * float(h) / float(w))))
 
 
+def _add_outline(path: Path, thickness_px: int):
+    """Put a black outline around the part in a rendered PNG, for light
+    parts that would otherwise dissolve into the rulebook's parchment.
+
+    Done on the image rather than with Freestyle: Freestyle's silhouette
+    test draws hairlines across flat CAD faces, and looking straight down it
+    finds no contour at all, because the outer wall is exactly edge-on. The
+    alpha mask has neither problem. It is grown by `thickness_px` and filled
+    black behind the part, so the line sits outside the silhouette."""
+    import numpy as np
+
+    img = bpy.data.images.load(str(path))
+    w, h = img.size
+    px = np.array(img.pixels[:], dtype=np.float32).reshape(h, w, 4)
+    alpha = px[..., 3]
+
+    r = thickness_px
+    padded = np.pad(alpha, r)
+    grown = alpha.copy()
+    for dy in range(-r, r + 1):
+        for dx in range(-r, r + 1):
+            if dx * dx + dy * dy <= r * r:
+                np.maximum(grown, padded[r + dy:r + dy + h, r + dx:r + dx + w],
+                           out=grown)
+
+    # Part over a black disc of the grown shape. Pixels are straight
+    # (unassociated) alpha, so composite in premultiplied form and divide back.
+    out_a = alpha + grown * (1.0 - alpha)
+    rgb = px[..., :3] * alpha[..., None]
+    with np.errstate(invalid="ignore", divide="ignore"):
+        px[..., :3] = np.where(out_a[..., None] > 0, rgb / out_a[..., None], 0.0)
+    px[..., 3] = out_a
+
+    img.pixels[:] = px.ravel()
+    img.filepath_raw = str(path)
+    img.file_format = "PNG"
+    img.save()
+    bpy.data.images.remove(img)
+
+
 def _render_view(cam, objs, margin, out_path):
     if cam.data.type == "ORTHO":
         cc_scene.fit_ortho_to_objects(cam, objs, margin)
@@ -96,10 +136,23 @@ def render_one(stl_path: Path, output_path: Path, args):
     top_rot = float(overrides.get("top_rotation_z_deg", 0.0))
     also_top = bool(overrides.get("also_top", False)) and not args.no_top
     shade_smooth = bool(overrides.get("shade_smooth", False))
+    outline_px = int(overrides.get("outline_px", 0))
+    recess_preset = overrides.get("recess_material")
+    recess_depth = float(overrides.get("recess_depth_mm", 1.0))
+
+    def apply_recess(view):
+        # Before normalize_size this would be the same call: recessed_faces
+        # reads mesh coordinates, which stay in STL millimetres throughout.
+        if recess_preset:
+            cc_mesh.assign_recess_material(
+                objs, cc_materials.make_material(recess_preset, view=view),
+                max_depth=recess_depth, rim_margin=0.05)
 
     res_x, res_y = _resolution(args)
     cc_scene.reset_scene(args.engine, args.samples, res_x, res_y)
     cc_scene.add_lights()
+    if overrides.get("metal_world"):
+        cc_scene.brighten_world_for_metal()
 
     objs = cc_mesh.import_stl(stl_path)
     if not objs:
@@ -139,6 +192,7 @@ def render_one(stl_path: Path, output_path: Path, args):
     # Iso pass.
     cc_mesh.assign_material(objs, cc_materials.make_material(preset, grey=args.grey, view="iso"),
                             smooth=shade_smooth)
+    apply_recess("iso")
     for imported, fitting_preset in fitting_objs:
         if fitting_preset != preset:
             cc_mesh.assign_material(
@@ -157,13 +211,20 @@ def render_one(stl_path: Path, output_path: Path, args):
     else:
         cam_iso = cc_scene.add_iso_camera(args.elevation, args.azimuth)
     _render_view(cam_iso, objs, args.margin, output_path)
+    if outline_px:
+        _add_outline(output_path, outline_px)
 
     extras = ""
     if also_top:
         bpy.data.objects.remove(cam_iso, do_unlink=True)
         cc_scene.add_top_view_lights()
+        if overrides.get("metal_world"):
+            # Straight down, the whole face mirrors the zenith at once, so
+            # the iso pass's sky bleaches it to pale yellow. Dim it.
+            cc_scene.brighten_world_for_metal(sky=0.5, upper=0.18)
         cc_mesh.assign_material(objs, cc_materials.make_material(preset, grey=args.grey, view="top"),
                                 smooth=shade_smooth)
+        apply_recess("top")
         if shade_smooth:
             cc_mesh.weld_and_smooth(objs, angle_deg=args.smooth_angle)
         cc_mesh.set_rotation_z(objs, top_rot)
@@ -171,6 +232,8 @@ def render_one(stl_path: Path, output_path: Path, args):
         cam_top = cc_scene.add_top_camera()
         top_path = output_path.with_name(output_path.stem + "-top" + output_path.suffix)
         _render_view(cam_top, objs, args.margin, top_path)
+        if outline_px:
+            _add_outline(top_path, outline_px)
         extras = f" + {top_path.name}"
 
     rot_desc = f"iso={iso_rot:+.0f}" + (f" top={top_rot:+.0f}" if also_top else "")

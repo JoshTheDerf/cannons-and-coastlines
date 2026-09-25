@@ -7,6 +7,7 @@
 #   material: "grey" | "gold" | "black" | "black-hull" | "blue-grey"
 #             | "brown" | "pine" | "rust" | "stone" | "blue" | "green"
 #             | "white" | "neon-green" | "gold-hull" | "shadow-petg" | "reef-pink"
+#             | "recess-black"
 #             (default "grey")
 #             See cc_materials.make_material for what each one is.
 #   preview_material: str        Material for the ship-preview pass only
@@ -36,6 +37,16 @@
 #                                material, i.e. one ship, one filament. Its own
 #                                `material` still governs its solo render for
 #                                the parts gallery.
+#   recess_material: str         Material for faces engraved into the top face
+#                                (see cc_mesh.recessed_faces), so a debossed
+#                                design reads as an inlay. Unset = one material.
+#   recess_depth_mm: float       Deepest cut counted as engraving. Default 1.0.
+#   metal_world: bool            Render under a bright overhead sky so a
+#                                polished metal face has something to mirror
+#                                (see cc_scene.brighten_world_for_metal).
+#   outline_px: int              Black outline this many pixels wide around
+#                                the part, for light parts that would blend
+#                                into the parchment. Default 0 (none).
 #   shade_smooth: bool           Use smooth shading instead of the flat-faceted
 #                                default. Use for organic shapes where facets
 #                                read as artifacts rather than print layers.
@@ -43,8 +54,14 @@ ITEM_OVERRIDES = {
     # Iso camera-up projects to world XY direction (-1, +1)/sqrt(2). Coin
     # designs are authored with the design top pointing world +Y, so a +45°
     # rotation aligns the iso view's vertical with the design's top.
+    #
+    # The engraving is picked out in black rather than left to shadow: it is
+    # only 0.25mm deep, too shallow for AO to separate it from the face at
+    # gallery size, and a painted-in icon is how a finished coin looks.
     "coin-":             {"material": "gold", "also_top": True,
-                          "rotation_z_deg": 45, "top_rotation_z_deg": 0},
+                          "rotation_z_deg": 45, "top_rotation_z_deg": 0,
+                          "recess_material": "recess-black",
+                          "metal_world": True, "outline_px": 4},
     # Every hull is shade-smoothed. STL carries no smoothing data, so the
     # default flat shading shows the mesh's own triangles -- on a part-sized
     # render those read as print facets, but a hull is a big curved surface
