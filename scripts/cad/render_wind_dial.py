@@ -2,8 +2,8 @@
 
   blender -b --python scripts/cad/render_wind_dial.py -- <stl-dir> <out.png> <exploded 0|1>
 
-Raised faces on the vane are coloured as a filament swap at 2.8 mm would
-print them. Crop the transparent margin after.
+Raised faces on the vane are coloured (blue) as a filament swap at 2.8 mm
+would print them. Crop the transparent margin after.
 """
 import bpy, sys, math
 S = sys.argv[sys.argv.index('--')+1]
@@ -28,7 +28,7 @@ def load(n, z, col, rot=0, swap=None, swap_col=None):
 e = 14 if exploded else 0
 load('wind-dial-base', 0, (0.30, 0.19, 0.11, 1))
 load('wind-dial-washer', 4.4 + e * 0.5, (0.66, 0.50, 0.10, 1))
-load('wind-dial-vane', 6.0 + e, (0.85, 0.76, 0.55, 1), rot=35, swap=2.8, swap_col=(0.55, 0.10, 0.10, 1))
+load('wind-dial-vane', 6.0 + e, (0.85, 0.76, 0.55, 1), rot=35, swap=2.8, swap_col=(0.10, 0.28, 0.50, 1))
 load('wind-dial-cap', 9.2 + 2 * e, (0.66, 0.50, 0.10, 1))
 bpy.ops.object.camera_add(location=(95, -120, 110)); cam = bpy.context.object
 c = cam.constraints.new('TRACK_TO'); t = bpy.data.objects.new('t', None); bpy.context.collection.objects.link(t); t.location = (0, 0, 6 + e); c.target = t

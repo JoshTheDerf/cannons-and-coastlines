@@ -60,6 +60,10 @@ def group(key, name, children, pos=(0, 0, 0), color=None):
     }
     if color:
         n["material"] = {"color": color}
+        # Pass the colour down: CubbyCAD colours a cut's walls with the
+        # cutter's colour, and the default grey would show in the holes.
+        for c in children:
+            c.setdefault("material", {"color": color})
     return n
 
 
@@ -115,7 +119,7 @@ ARROW_H, RIDGE_H = 1.4, 0.8
 # overlaps instead of merely touching (touching faces leave non-manifold edges).
 SINK = 0.2
 
-BROWN, PARCHMENT, GOLD, CRIMSON = "#6b4c30", "#e8d8b0", "#a8801a", "#8b1a1a"
+BROWN, PARCHMENT, GOLD, BLUE = "#6b4c30", "#e8d8b0", "#a8801a", "#2b5f8e"
 
 
 def base_part(pos=(0, 0, 0)):
@@ -155,6 +159,10 @@ def vane_part(pos=(0, 0, 0)):
     for side in (-1, 1):
         kids += glyph(f"{k}/fair{side}", 30 * side, 25.0, VANE_H, RIDGE_H, plus=True)
         kids += glyph(f"{k}/foul{side}", 180 + 30 * side, 25.0, VANE_H, RIDGE_H, plus=False)
+    # Everything raised above the disc is the second colour (the filament swap).
+    # group() gives the disc and hole the parchment colour.
+    for n in kids[2:]:
+        n["material"] = {"color": BLUE}
     return group(k, "Wind Dial Vane", kids, pos, PARCHMENT)
 
 

@@ -223,8 +223,8 @@ b, strong { color: var(--heading); }
 #windDial span { display: block; font-size: .68rem; letter-spacing: .08em; text-transform: uppercase; }
 #windDial .wdRim { fill: rgba(232,216,176,.7); stroke: var(--box); stroke-width: 1.2; }
 #windDial .wdQuarters { stroke: var(--rule); stroke-width: 1; }
-#windDial .wdShaft { stroke: var(--crimson); stroke-width: 2.6; stroke-linecap: round; fill: none; }
-#windDial .wdHead { fill: var(--crimson); }
+#windDial .wdShaft { stroke: #2b5f8e; stroke-width: 2.6; stroke-linecap: round; fill: none; }
+#windDial .wdHead { fill: #2b5f8e; }
 #windDial.shift #windArrow { transition: transform .9s cubic-bezier(.2,.8,.3,1); }
 /* Camera buttons stack down the right edge and wrap into a second column
    on a short board, so they never push anything else about. */

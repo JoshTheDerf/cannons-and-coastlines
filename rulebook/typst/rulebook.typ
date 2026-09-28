@@ -394,7 +394,7 @@ Islands sit between the fleets. Capture one by planting your flag on it and it w
 
 = Your Turn
 
-Each of your ships takes its turn, one at a time. Before any ship starts its turn, you may *spend coins*. Play then passes to the next player.
+Your ships take their turns one at a time, and you may *spend coins* before any of them starts. Once every player has had a turn, that's a *round*.
 
 == Spending Coins
 
@@ -616,35 +616,33 @@ A large-scale variant for advanced games. Each player fields a mixed armada of u
 
 #context [#metadata(here().page()) <trade-winds-page>]
 
-_An optional rule for any mode. The wind changes every round, and ships sailing with it move a bit farther._
-
 #grid(
   columns: (1fr, 1.15fr),
   column-gutter: 0.14in,
   align: (horizon, horizon),
   image(renders + "/wind-dial.png", width: 100%),
-  par(justify: false)[Set the *Wind Dial* at the table edge where everyone can see it. Only the vane spins, so leave the base where it is. The arrow points the way the wind blows, and the ridges split the vane into four quarters: *+* around the arrowhead and *−* around the tail.],
+  par(justify: false)[Set the *Wind Dial* at the table edge where everyone can see it. The arrow points the way the wind blows, and the ridges split the vane into four quarters: *+* around the arrowhead and *−* around the tail.],
 )
 
 == Each Round
 
-+ *Spin the wind.* A round is one turn for every player. Before the first player's turn, that player flicks the vane. Where the arrow stops is the wind until the next spin.
++ *Spin the dial.* Before the first player's turn each round, that player spins the vane. Where the arrow stops is the wind for the round.
 + *Read it as you click forward.* Compare the way the ship is pointing to the arrow. Where the ship is on the table doesn't matter.
 
 #block(width: 100%, above: 0.08in, below: 0.1in, breakable: false, table(
   columns: (1.45fr, 0.85fr, 1.3fr),
   table.header[Ship's Heading][Wind][Move Count],
-  [*+* quarter, with it],     [Fair wind],  [*+1*],
-  [*−* quarter, against it],  [Foul wind],  [*−1*, at least 1 click],
+  [*+* quarter],              [Fair wind],  [*+1*],
+  [*−* quarter],              [Foul wind],  [*−1*, at least 1 click],
   [Either side quarter],      [Crosswind],  [No change],
 ))
 
 == Fine Print
 
 - A heading right on a ridge counts as a crosswind.
-- Check the wind after Set Heading. With *Full Sail*, check it again for the second sail.
+- With *Full Sail*, check the wind again for the second sail.
 - *Evasive Maneuvers* slides don't use the wind.
-- *Group Mode:* the moderator spins at the start of every movement phase.
+- *Group Mode:* the moderator spins the dial at the start of every movement phase.
 
 #v(0.06in)
 *Printing the dial.* Print `wind-dial-base`, `-vane`, `-washer` and `-cap` from the base set in PLA, no supports. A steel *M8 washer* spins better than the printed one. For a two-tone arrow, swap filament at *2.8 mm* on the vane. Stack the washer and vane on the pin and press the cap on (glue it if it's loose).
