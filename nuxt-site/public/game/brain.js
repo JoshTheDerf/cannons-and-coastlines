@@ -722,14 +722,16 @@ function aiBestMove(ship, goal, lo, hi, straight) {
   const piv = pivotFor(ship);
   const n = straight ? 0 : piv >= 180 ? AI_EFFORT.headings * 2 : AI_EFFORT.headings;
   const stepA = n ? (piv * Math.PI / 180) / n : 0;
-  const clickSet = [...new Set([lo, Math.round((lo + hi) / 2), hi])].filter(c => c >= lo && c <= hi);
   let best = null;
   for (let k = -n; k <= n; k++) {
     // One rotation and one sweep to the longest run per heading; shorter
     // runs are the same track cut short.
     const rot = planRotate(ship, normAngle(ship.h + k * stepA), piv);
     const start = { x: ship.x, y: ship.y, h: rot.h };
-    const slide = planSlide(ship, start, rot.h, hi * CLICK_LEN);
+    // hi is the ship's Move Count; Trade Winds shift it per heading.
+    const top = Math.max(lo, hi + windDelta(rot.h));
+    const clickSet = [...new Set([lo, Math.round((lo + top) / 2), top])].filter(c => c >= lo && c <= top);
+    const slide = planSlide(ship, start, rot.h, top * CLICK_LEN);
     const f = fwdVec(rot.h);
     // Blocked short of the full run: also try stopping a click clear of it.
     const clear = Math.floor((slide.moved + 0.05) / CLICK_LEN);

@@ -8,7 +8,8 @@
 //   npm run ui-smoke -- --online     also online games, against a local
 //                                    `wrangler dev` game server it starts
 //
-// First run on a new machine: npx playwright install chromium
+// First run on a new machine: npx playwright install chromium, or set
+// CHROMIUM_PATH to a system Chromium if Playwright has no build for the OS.
 import { createServer } from 'node:http';
 import { readFile } from 'node:fs/promises';
 import { extname, join, normalize } from 'node:path';
@@ -33,7 +34,9 @@ const BASE = `http://localhost:${server.address().port}/game/index.html?2d&speed
 
 let fails = 0;
 const ok = (c, m) => { console.log((c ? 'PASS ' : 'FAIL ') + m); if (!c) fails++; };
-const browser = await chromium.launch({ args: ['--no-sandbox'] });
+// CHROMIUM_PATH points at a system Chromium where Playwright has no build
+// of its own (e.g. CHROMIUM_PATH=/snap/bin/chromium on newer Ubuntu).
+const browser = await chromium.launch({ args: ['--no-sandbox'], executablePath: process.env.CHROMIUM_PATH || undefined });
 
 async function page(query = '') {
   const pg = await (await browser.newContext({ viewport: { width: 1280, height: 800 } })).newPage();
@@ -105,6 +108,29 @@ const noErrors = (pg, what) => ok(!pg.errors.length, `${what}: no console errors
   noErrors(pg, 'Full Sail');
 }
 
+// ─── Trade Winds ───
+{
+  const pg = await localGame('#btnSolo', { winds: true });
+  const r = await pg.evaluate(async () => {
+    const s = G.players[1].ships[0], out = { shown: !$('windDial').hidden, opt: G.opts.winds, base: s.moveCount };
+    G.wind = s.h; startMove(s, 'sail'); out.fair = UI.move.cap;
+    G.wind = normAngle(s.h + Math.PI); replanMove(); out.foul = UI.move.cap;
+    G.wind = normAngle(s.h + Math.PI / 2); replanMove(); out.cross = UI.move.cap;
+    G.wind = s.h; replanMove();
+    const y0 = { x: s.x, y: s.y };
+    await sailClicks(UI.move.cap);
+    const t = G.players[1].ships[0];
+    out.moved = dist(y0.x, y0.y, t.x, t.y) / CLICK_LEN;
+    return out;
+  });
+  ok(r.shown && r.opt, 'Trade Winds on: the wind dial shows');
+  ok(r.fair === r.base + 1 && r.foul === r.base - 1 && r.cross === r.base, `the move cap follows the wind (${r.fair}/${r.cross}/${r.foul})`);
+  ok(r.moved > r.base + 0.5, `a fair-wind sail goes past the printed Move Count (${r.moved.toFixed(2)} clicks)`);
+  noErrors(pg, 'Trade Winds');
+  const off = await localGame();
+  ok(await off.evaluate(() => $('windDial').hidden), 'Trade Winds off: no wind dial');
+}
+
 // ─── Picking up the next ship ───
 for (const mode of ['#btnSolo', '#btnHotseat']) {
   const pg = await localGame(mode);
@@ -157,6 +183,7 @@ if (online) {
     const pg = await page('&api=http://localhost:8787');
     await pg.click('#btnOnline');
     await pg.selectOption('#olTable', 'fold8');
+    await pg.selectOption('#olWinds', '1');
     await pg.click('#btnCreate');
     await pg.waitForSelector('#addAi', { timeout: 15000 });
     const room = await pg.textContent('.roomCode');
@@ -167,6 +194,7 @@ if (online) {
     await pg.waitForFunction(() => typeof G !== 'undefined' && G && G.phase === 'play' && NET.online && G.active === NET.seat && !UI.busy, null, { timeout: 30000 });
     const table = await pg.evaluate(() => `${Math.round(G.table.w)}x${Math.round(G.table.h)} ${G.table.seats.map(s => s.edge).join(',')}`);
     ok(/8 ft folding/.test(room) && table.startsWith('244x76'), `online: the host's table choice is used (${table})`);
+    ok(/Trade Winds/.test(room) && await pg.evaluate(() => G.opts.winds === true && G.wind != null), 'online: Trade Winds carries from the room to the game');
     await pg.evaluate(async () => { const s = G.players[NET.seat].ships.find(x => !x.acted); selectShip(s); startMove(s, 'sail'); await sailClicks(1); });
     await pg.waitForFunction(() => !UI.busy, null, { timeout: 20000 }); await pg.waitForTimeout(300);
     ok(await pg.evaluate(() => !!(UI.sel && UI.ring && !UI.sel.acted)), 'online: after a ship sails, the next one is picked up');

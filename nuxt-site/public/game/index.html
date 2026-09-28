@@ -50,6 +50,7 @@
         <label class="olField"><span>Name</span><input id="olGameName" maxlength="32" placeholder="Harbour brawl"></label>
         <label class="olField"><span>Crews</span><select id="olMax"><option>2</option><option>3</option><option selected>4</option><option>5</option><option>6</option><option>7</option></select></label>
         <label class="olField"><span>Table</span><select id="olTable"><option value="round6" selected>6 ft round</option><option value="fold6">6 ft folding</option><option value="fold8">8 ft folding</option></select></label>
+        <label class="olField"><span>Trade Winds</span><select id="olWinds"><option value="0" selected>Off</option><option value="1">On</option></select></label>
         <label class="olField"><span>Turn timer</span><select id="olTimer"><option value="60">60 s</option><option value="90" selected>90 s</option><option value="120">2 min</option><option value="180">3 min</option><option value="0">None</option></select></label>
       </div>
       <p class="olEmpty">Islands per the rulebook, as many as the table fits. Two crews sit a quarter of the way round a round table, or diagonally across a folding one. Empty seats can go to the computer.</p>
@@ -70,6 +71,14 @@
     <div id="boardWrap">
       <canvas id="boardCanvas"></canvas>
       <div id="turnBanner"></div>
+      <div id="windDial" hidden title="Trade Winds. Within 45° of the arrow is +1 Move Count, and within 45° of straight into it is −1 (still at least one click).">
+        <svg viewBox="-30 -30 60 60" aria-hidden="true">
+          <circle r="27" class="wdRim"/>
+          <path class="wdQuarters" d="M-19.1-19.1L19.1 19.1M19.1-19.1L-19.1 19.1"/>
+          <g id="windArrow"><path class="wdShaft" d="M0 17V-12"/><path class="wdHead" d="M0-22L7-11H-7Z"/><path class="wdShaft" d="M0 17L-5 22M0 17L5 22M0 12L-5 17M0 12L5 17"/></g>
+        </svg>
+        <span>Wind</span>
+      </div>
       <div id="toast"></div>
       <div id="netStatus"></div>
       <div id="camBtns"><button onclick="camZoomAt(canvasW/2, canvasH/2, 1.3)" title="Zoom in" aria-label="Zoom in">+</button><button onclick="camZoomAt(canvasW/2, canvasH/2, 0.77)" title="Zoom out" aria-label="Zoom out">&minus;</button><button onclick="camReset()" title="Fit table" aria-label="Fit table">&#9711;</button><button id="fsBtn" onclick="toggleFullscreen(true)" title="Fullscreen" aria-label="Fullscreen" hidden><svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path class="fsIn" d="M2 6V2h4M12 2h4v4M16 12v4h-4M6 16H2v-4"/><path class="fsOut" d="M6 2v4H2M16 6h-4V2M12 16v-4h4M2 12h4v4" style="display:none"/></svg></button></div>
@@ -129,6 +138,8 @@
       <h3>Winning</h3>
       <p>Every fitting you knock off an enemy ship, by cannon or boarding party, is your prize, and so is the hull of every ship you sink or capture. When a ship is repaired, captured or raised, the fitting or hull comes back out of the pile that holds it. Last fleet afloat wins. Or, at the start of your turn, declare victory with 60 or more points and at least as many as everyone else. Only the points you hold when your turn begins count, so points earned during a turn wait for your next one. Points: 8 per island, 4 per prize fitting, 8 per prize hull, 1 per unspent coin, and +8 for most ships and most islands (ties both get it). Surviving ships do not score. With the stalemate rule on, the game ends on points when every island is flagged and none has changed hands for two rounds.</p>
 
+      <h3>Trade Winds (optional)</h3>
+      <p>An optional rule you can turn on at setup. The wind changes at the start of every round, and the dial in the corner of the table shows which way it's blowing. A ship pointed within 45° of the arrow gets +1 Move Count, and one pointed within 45° of straight into it gets −1 (it still clicks at least once). Anything in between is a crosswind and changes nothing. The wind uses the ship's heading after Set Heading.</p>
       <h3>Online</h3>
       <p>Up to seven crews on a round table, one turn each in seat order. The server checks every move and rolls every shot. If you drop out, reopen the link and you get your seat back.</p>
 

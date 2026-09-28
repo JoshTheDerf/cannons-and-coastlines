@@ -44,6 +44,8 @@ export default {
         timer: [0, 60, 90, 120, 180].includes(body.timer | 0) ? body.timer | 0 : 90,
         // The tables people have to hand: a 6 ft round, 6 or 8 ft folding.
         table: ['round6', 'fold6', 'fold8'].includes(body.table) ? body.table : 'round6',
+        // The optional Trade Winds rule.
+        winds: body.winds === true,
       };
       for (let i = 0; i < 6; i++) {
         const code = newCode();
@@ -135,7 +137,7 @@ export class GameRoom extends DurableObject {
   async init(code, settings) {
     if (this.room) return false;
     this.room = {
-      code, name: settings.name, max: settings.maxPlayers, timer: settings.timer, table: settings.table,
+      code, name: settings.name, max: settings.maxPlayers, timer: settings.timer, table: settings.table, winds: !!settings.winds,
       status: 'lobby', host: null, seats: [], nextSeat: 1, created: Date.now(),
     };
     this.meta = { seq: 0, rng: crypto.getRandomValues(new Uint32Array(1))[0], deadline: null, deadlineTurn: null };
@@ -169,7 +171,7 @@ export class GameRoom extends DurableObject {
     const r = this.room;
     const away = this.away();
     return {
-      code: r.code, name: r.name, max: r.max, timer: r.timer, table: r.table || 'round6', status: r.status, host: r.host, rules: engine.RULES_VERSION,
+      code: r.code, name: r.name, max: r.max, timer: r.timer, table: r.table || 'round6', winds: !!r.winds, status: r.status, host: r.host, rules: engine.RULES_VERSION,
       spectators: this.sockets().filter(ws => !this.seatOf(ws)).length,
       seats: r.seats.map(s => ({ seat: s.seat, name: s.name, faction: s.faction, color: s.color, ready: s.ready, ai: s.ai, connected: s.ai || !away.includes(s.seat) })),
     };
@@ -337,7 +339,7 @@ export class GameRoom extends DurableObject {
         for (const w of this.sockets()) { const st = this.seatOf(w); if (st) this.send(w, { type: 'welcome', seat: st.seat, token: st.token, spectator: false }); }
         this.withEngine(() => engine.newGame({
           seats: R.seats.map(x => ({ faction: x.faction, color: x.color, name: x.name, ai: !!x.ai })),
-          setup: 'quick', stalemate: false, table: R.table || 'round',
+          setup: 'quick', stalemate: false, winds: !!R.winds, table: R.table || 'round',
         }));
         R.status = 'play';
         this.meta.seq = 0;

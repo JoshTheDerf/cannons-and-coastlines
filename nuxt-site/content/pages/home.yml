@@ -162,10 +162,11 @@ howToPlay:
   outro: >-
     The rulebook has the rest: boarding, scuttling, the faction abilities, and
     the alternate modes (Group play for big parties, Fleets & Alliances,
-    and Custom Armada).
+    and Custom Armada), plus the optional Trade Winds rule.
   rulebook:
     - { label: Rulebook (PDF), href: /rulebook/pdf/rulebook.pdf, icon: i-lucide-book-open }
     - { label: Print-and-fold booklet, href: /rulebook/pdf/rulebook-booklet.pdf, icon: i-lucide-printer }
+    - { label: Trade Winds rule (1 page), href: /rulebook/pdf/trade-winds.pdf, icon: i-lucide-wind }
   version: v0.6, September 2026
   changesHref: /live#changes
 
@@ -290,6 +291,7 @@ changelog:
       released: '2026-09-24'
       items:
         - '**Parking at islands no longer wins.** Surviving ships don''t score any more, and a coin is worth a quarter of what it was. Points are 8 per island, 4 per prize fitting, 8 per prize hull, 1 per coin and +8 each for most ships and most islands, and you can declare victory at 60. Only points you hold when your turn begins count, so everyone gets a round to answer.'
+        - '**Trade Winds.** An optional one-page rule. Spin the Wind Dial at the start of each round, and ships sailing with the wind get +1 Move Count while ships sailing into it get -1 (they still click at least once). The dial prints from the base set, and a steel M8 washer helps it spin. In the web game, turn it on at setup or when you create an online game.'
         - '**Prizes.** Keep every fitting you knock off an enemy ship, and the hull of every ship you sink or capture. A fitting is worth 4 points and a hull 8. When a ship is repaired, captured or raised, whoever holds the piece gives it back.'
         - '**Collect from a distance.** Each turn, your ship nearest each of your islands can collect a coin there, touching it or not. A ship out at sea still sails forward after collecting.'
         - '**Treasure Fleet gets a third junk.** Two ships were too few to hold their own at the table.'

@@ -38,6 +38,7 @@ Additional factions (Treasure Fleet, Stone Fleet, Shadow Fleet, The Industry, Th
 
 - [Rulebook (PDF)](rulebook/pdf/rulebook.pdf): portrait half-letter, for reading on screen
 - [Rulebook booklet imposition (PDF)](rulebook/pdf/rulebook-booklet.pdf): two pages per landscape letter sheet. Print double-sided (flip on short edge), fold and saddle-stitch.
+- [Trade Winds (PDF)](rulebook/pdf/trade-winds.pdf): the optional wind rule on one page. The Wind Dial prints from `wind-dial-base`, `wind-dial-vane`, `wind-dial-washer` and `wind-dial-cap` in the base set (a steel M8 flat washer spins better than the printed one).
 
 ### Faction Cards
 

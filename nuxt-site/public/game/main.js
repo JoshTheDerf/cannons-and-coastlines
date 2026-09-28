@@ -7,7 +7,7 @@ let aiControlled = { 1: false, 2: true };
 const setupChoice = {
   solo: true,
   factions: { 1: 'queens_fleet', 2: 'corsairs' },
-  setup: 'quick', stalemate: false,
+  setup: 'quick', stalemate: false, winds: false,
   table: 'fold6', seating: 'diagonal',
 };
 // The tables people have to hand, and where two players sit at them.
@@ -64,6 +64,7 @@ function showSetup() {
       <span>Seating</span><div>${(TABLES[setupChoice.table].shape === 'circle' ? ROUND_SEATING : RECT_SEATING).map(([id, name]) => opt('seating', id, name)).join('')}</div>
       <span>Map</span><div>${opt('setup', 'quick', 'Quick start')}${opt('setup', 'custom', 'Set it up yourselves')}</div>
       <span>Stalemate rule</span><div>${opt('stalemate', true, 'On')}${opt('stalemate', false, 'Off')}</div>
+      <span>Trade Winds</span><div>${opt('winds', true, 'On')}${opt('winds', false, 'Off')}</div>
     </div>
     <p class="optNote callout">Rulebook ${RULES_VERSION}: each ship steers, fires, or takes an island action, then sails forward. Only an island action taken touching the island holds a ship still. Score by holding islands and knocking fittings off enemy ships. Start a turn with ${VICTORY_POINTS} points and you can declare victory.</p>`;
   el.querySelectorAll('.fCard').forEach(b => b.onclick = () => { setupChoice.factions[b.dataset.p] = b.dataset.f; showSetup(); });
@@ -82,7 +83,7 @@ function beginGame() {
   setRand(Math.random);
   newGame({
     seats: [1, 2].map(p => ({ faction: setupChoice.factions[p], color: p - 1, name: p === 2 && setupChoice.solo ? 'Computer' : `Player ${p}`, ai: p === 2 && setupChoice.solo })),
-    setup: setupChoice.setup, stalemate: setupChoice.stalemate, table: setupChoice.table, seating: setupChoice.seating,
+    setup: setupChoice.setup, stalemate: setupChoice.stalemate, winds: setupChoice.winds, table: setupChoice.table, seating: setupChoice.seating,
   });
   enterGameScreen();
   if (G.phase === 'play') announceTurn();
@@ -122,9 +123,30 @@ function quitToTitle() {
   showScreen('titleScreen');
 }
 
+/**
+ * Trade Winds HUD: the arrow points the way the wind blows ON SCREEN, so it
+ * is projected through the current camera (the 3D view orbits) from the
+ * middle of the table.
+ */
+let windShown = null, windSpinUntil = 0;
+function drawWindDial() {
+  const el = $('windDial');
+  const on = !!(G.opts && G.opts.winds && G.wind != null);
+  if (el.hidden === on) el.hidden = !on;
+  if (!on) return;
+  const c = tableCenter(), f = fwdVec(G.wind);
+  const a = w2s(c.x, c.y), b = w2s(c.x + f.x * 10, c.y + f.y * 10);
+  const deg = Math.atan2(b.x - a.x, -(b.y - a.y)) * 180 / Math.PI;
+  // Unwrap so a spin animates the short way round, not through 360°.
+  if (windShown != null) { const d = ((deg - windShown) % 360 + 540) % 360 - 180; windShown += d; } else windShown = deg;
+  $('windArrow').style.transform = `rotate(${windShown.toFixed(1)}deg)`;
+  // The spin eases in; otherwise the arrow tracks the camera without lag.
+  if (windSpinUntil && performance.now() > windSpinUntil) { windSpinUntil = 0; el.classList.remove('shift'); }
+}
+
 function frame(ts) {
   updateAnimations(ts);
-  if (G && $('game').style.display !== 'none') drawFrame();
+  if (G && $('game').style.display !== 'none') { drawFrame(); drawWindDial(); }
   if (isOnline()) NET.tickTimer();
   requestAnimationFrame(frame);
 }
@@ -338,6 +360,7 @@ async function playEvents(events) {
     const s = e.ship && typeof e.ship === 'string' ? shipById(e.ship) : null;
     switch (e.e) {
       case 'msg': logMsg(e.msg); break;
+      case 'wind': G.wind = e.h; logMsg(e.msg); $('windDial').classList.add('shift'); windSpinUntil = performance.now() + 1000; break;
       case 'move':
         if (s) { Object.assign(s, e.from); await animShipMove(s, e.plan); s.h = e.plan.rot.h; }
         break;
@@ -565,7 +588,7 @@ function onPointerMove(e) {
     if (UI.mode === 'move' && UI.move && (UI.move.locked || UI.move.lockHeading)) {
       // Hovering a click chip previews that many clicks.
       const ch = chipAt(moveChipLayout(), sp);
-      const k = ch ? ch.k : UI.move.ship.moveCount;
+      const k = ch ? ch.k : UI.move.cap;
       if (UI.move.hoverK !== (ch ? ch.k : null)) { UI.move.hoverK = ch ? ch.k : null; UI.move.clicks = k; replanMove(); refreshPrompt(); }
     }
   }
@@ -638,7 +661,7 @@ function onKey(e) {
   const ok = e.key === 'Enter' || e.key === ' ';
   if (ok) e.preventDefault();
   if (e.key === 'Escape' && UI.ring) { stepBack(); return; }
-  if (UI.mode === 'move' && /^[1-9]$/.test(e.key) && +e.key <= UI.move.ship.moveCount) { sailClicks(+e.key); return; }
+  if (UI.mode === 'move' && /^[1-9]$/.test(e.key) && +e.key <= UI.move.cap) { sailClicks(+e.key); return; }
   if (e.key === 'Escape') { stepBack(); return; }
   if (UI.mode === 'move' && !UI.move.lockHeading && (e.key === 'ArrowLeft' || e.key === 'ArrowRight')) {
     UI.move.locked = false;
@@ -648,7 +671,7 @@ function onKey(e) {
   }
   if (UI.mode === 'fire' && UI.fire.stage === 'power' && (e.key === 'ArrowUp' || e.key === 'ArrowDown')) { setElev(e.key === 'ArrowUp' ? 'lob' : 'flat'); e.preventDefault(); return; }
   if (!ok) return;
-  if (UI.mode === 'move') { sailClicks(UI.move.ship.moveCount); return; }  // Enter sails the full Move Count
+  if (UI.mode === 'move') { sailClicks(UI.move.cap); return; }  // Enter sails the full Move Count
   if (UI.mode === 'fire' && UI.fire.stage === 'dir') { if (!UI.fire.locked) commitDrag(); else lockAim(); return; }
   if (UI.mode === 'fire' && UI.fire.stage === 'power') { releaseShot(); return; }
   if (UI.mode === 'evasive' && UI.evasive.pick) { chooseEvasive(UI.evasive.pick); return; }
@@ -777,7 +800,7 @@ function ringLayout() {
 function moveChipLayout() {
   const m = UI.move;
   if (UI.mode !== 'move' || !m || !m.plan || UI.busy || (!m.locked && !m.lockHeading)) return [];
-  const n = m.ship.moveCount, h = m.plan.rot.h, f = fwdVec(h), st = stbVec(h);
+  const n = m.cap, h = m.plan.rot.h, f = fwdVec(h), st = stbVec(h);
   const start = m.plan.start;
   // On screen: the click spacing, and which way is forward and starboard.
   const s0 = w2s(start.x, start.y), s1 = w2s(start.x + f.x * CLICK_LEN, start.y + f.y * CLICK_LEN);
@@ -974,7 +997,7 @@ async function sailClicks(k) {
   const m = UI.move;
   if (!m) return;
   if (!m.locked && !m.lockHeading) { m.hc = m.plan.rot.h; m.locked = true; }
-  m.clicks = clamp(k, 1, m.ship.moveCount);
+  m.clicks = clamp(k, 1, m.cap);
   replanMove();
   await commitMove();
 }
@@ -1088,7 +1111,13 @@ function startMove(ship, kind) {
 
 function replanMove() {
   const m = UI.move;
-  m.plan = planMove(m.ship, m.lockHeading ? m.ship.h : m.h, m.clicks, pivotFor(m.ship));
+  const h = m.lockHeading ? m.ship.h : m.h;
+  // The most clicks on this heading: the Move Count, shifted by Trade Winds.
+  const cap = moveCountAt(m.ship, planRotate(m.ship, h, pivotFor(m.ship)).h);
+  // A full sail stays full as the heading swings into or out of the wind.
+  if (m.cap == null || m.clicks >= m.cap || m.clicks > cap) m.clicks = cap;
+  m.cap = cap;
+  m.plan = planMove(m.ship, h, m.clicks, pivotFor(m.ship));
 }
 
 function setMoveHeading(w) {
@@ -1102,7 +1131,7 @@ function setMoveHeading(w) {
 
 function changeClicks(d) {
   const m = UI.move;
-  m.clicks = clamp(m.clicks + d, 1, m.ship.moveCount);
+  m.clicks = clamp(m.clicks + d, 1, m.cap);
   replanMove(); refresh();
 }
 
@@ -1484,7 +1513,9 @@ function movePrompt() {
     : `Drag the handle, or move the mouse and click, to set heading (up to ${pivotFor(m.ship)}\u00B0).`;
   const stop = pl && pl.stoppedBy && pl.moved < pl.planned - 0.05 ? ` Stops after ${n} of ${m.clicks}.` : '';
   const off = pl && pl.stoppedBy === 'edge' && pl.moved < 0.05 ? ' It is against the edge and will not move.' : pl && pl.stoppedBy === 'edge' ? ' Stops at the edge.' : '';
-  return `${head} Sail ${m.clicks} click${m.clicks > 1 ? 's' : ''} forward.${stop}${off}`;
+  const wd = pl ? windDelta(pl.rot.h) : 0;
+  const wind = wd > 0 ? ` Fair wind, so up to ${m.cap}.` : wd < 0 ? ` Foul wind, so up to ${m.cap}.` : '';
+  return `${head} Sail ${m.clicks} click${m.clicks > 1 ? 's' : ''} forward.${wind}${stop}${off}`;
 }
 
 function fillBar(p, prompt, acts) {
@@ -1519,7 +1550,7 @@ function fillBar(p, prompt, acts) {
     say(movePrompt());
     const m = UI.move;
     acts.appendChild(btn('\u2212', () => changeClicks(-1), { act: 'less', disabled: m.clicks <= 1 }));
-    acts.appendChild(btn('+', () => changeClicks(1), { act: 'more', disabled: m.clicks >= m.ship.moveCount }));
+    acts.appendChild(btn('+', () => changeClicks(1), { act: 'more', disabled: m.clicks >= m.cap }));
     if (!m.lockHeading && m.locked) acts.appendChild(btn('Adjust', unlockAim, { act: 'adjust' }));
     acts.appendChild(btn('Sail', commitMove, { cls: 'go', act: 'sail' }));
     if (m.ship.stage !== 'click') acts.appendChild(btn('Cancel', () => { cancelMode(); refresh(); }, { act: 'cancel' }));

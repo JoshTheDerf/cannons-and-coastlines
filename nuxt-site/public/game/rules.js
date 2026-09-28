@@ -102,9 +102,10 @@ ACTIONS.move = (p, a) => {
   const s = ownShip(p, a.ship);
   need(!isDead(s), 'A dead ship cannot move. It may still fire.');
   need(!s.acted && (s.stage === 'action' || s.stage === 'click') && !s.pending, 'This ship has finished its turn.');
-  const clicks = clamp(Math.round(+a.clicks || 1), 1, s.moveCount);
   // Steering is the action, so only a ship that has not fired may turn.
   const h = canSteer(s) ? normAngle(+a.h || 0) : s.h;
+  // Trade Winds read the heading the ship actually sails on, after the pivot.
+  const clicks = clamp(Math.round(+a.clicks || 1), 1, moveCountAt(s, planRotate(s, h, pivotFor(s)).h));
   if (!doMove(s, h, clicks)) return;
   // Full Sail: the first steer-and-sail leaves the turn open for a second.
   if (s.fullSail === 2) { s.fullSail = 1; return; }

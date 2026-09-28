@@ -216,6 +216,16 @@ b, strong { color: var(--heading); }
 .swatch:disabled { opacity: .35; cursor: not-allowed; }
 #netStatus { position: absolute; top: 8px; left: 50%; transform: translateX(-50%); z-index: 7; display: none;
   background: var(--crimson); color: var(--cream); padding: 4px 12px; border-radius: 3px; font-weight: 700; }
+#windDial { position: absolute; left: 8px; top: 8px; z-index: 6; width: 64px; padding: 4px 4px 2px; border-radius: 4px; pointer-events: auto;
+  border: 1px solid var(--box); background: rgba(251,244,227,.92); text-align: center; color: var(--brown); box-shadow: 0 1px 4px rgba(0,0,0,.25); }
+#windDial[hidden] { display: none; }
+#windDial svg { width: 54px; height: 54px; display: block; margin: 0 auto; overflow: visible; }
+#windDial span { display: block; font-size: .68rem; letter-spacing: .08em; text-transform: uppercase; }
+#windDial .wdRim { fill: rgba(232,216,176,.7); stroke: var(--box); stroke-width: 1.2; }
+#windDial .wdQuarters { stroke: var(--rule); stroke-width: 1; }
+#windDial .wdShaft { stroke: var(--crimson); stroke-width: 2.6; stroke-linecap: round; fill: none; }
+#windDial .wdHead { fill: var(--crimson); }
+#windDial.shift #windArrow { transition: transform .9s cubic-bezier(.2,.8,.3,1); }
 /* Camera buttons stack down the right edge and wrap into a second column
    on a short board, so they never push anything else about. */
 #camBtns { position: absolute; right: 8px; top: 8px; bottom: 8px; z-index: 6; display: grid; gap: 4px;

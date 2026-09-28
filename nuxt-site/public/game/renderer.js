@@ -195,7 +195,7 @@ function drawControls() {
   const m = UI.move;
   for (const ch of moveChipLayout()) {
     const hot = m.hoverK === ch.k;
-    drawChip(ch, { hot, text: String(ch.k), label: ch.k === m.ship.moveCount && !hot ? 'Sail' : hot ? `Sail ${ch.k}` : '' });
+    drawChip(ch, { hot, text: String(ch.k), label: ch.k === m.cap && !hot ? 'Sail' : hot ? `Sail ${ch.k}` : '' });
   }
   const F = UI.fire;
   for (const ch of slotChipLayout()) {

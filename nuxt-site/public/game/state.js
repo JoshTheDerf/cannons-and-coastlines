@@ -30,7 +30,8 @@ function makeShip(p, fid, i, used = new Set()) {
 
 /**
  * opts: { seats: [{ faction, color, name, ai }], setup: 'quick'|'custom',
- *         stalemate, table: 'rect'|'round'|a TABLES id, seating: 'sides'|'ends' }
+ *         stalemate, winds, table: 'rect'|'round'|a TABLES id, seating: 'sides'|'ends' }
+ * winds: the optional Trade Winds rule (see windDelta).
  * 'rect' is the 4 ft square, 'round' a round table sized to the seats.
  * seating, for two players: on a long table they face across it
  * ('sides', the default), start at its two ends ('ends'), or face across
@@ -501,6 +502,29 @@ function canDeclareVictory(p) {
   return s[p] >= VICTORY_POINTS && s[p] >= best;
 }
 
+// ─── Trade Winds (optional rule) ──────────────────────
+// G.wind is the heading the wind blows toward, in ship-heading terms. A ship
+// whose heading is within 45° of it gets +1 Move Count, within 45° of dead
+// against it -1 (it still clicks at least once), anything else is a
+// crosswind. Exactly on a boundary is a crosswind, as on the dial.
+
+function windDelta(h) {
+  if (!G || !G.opts.winds || G.wind == null) return 0;
+  let d = normAngle(h - G.wind);
+  d = Math.min(d, TAU - d);
+  return d < Math.PI / 4 - 1e-9 ? 1 : d > 3 * Math.PI / 4 + 1e-9 ? -1 : 0;
+}
+
+/** Most clicks a ship may sail on heading h: its Move Count, adjusted for the wind. */
+const moveCountAt = (s, h) => Math.max(1, s.moveCount + windDelta(h));
+
+function spinWind() {
+  G.wind = normAngle(rand() * TAU);
+  G.windTurn = G.turn;
+  // beginTurn also runs from newGame, outside act(), where there is no event list.
+  if (EV) ev({ e: 'wind', h: G.wind, msg: 'The wind shifts.' });
+}
+
 // ─── Turn flow ────────────────────────────────────────
 
 const inGame = p => G.players[p].ships.length > 0;
@@ -516,6 +540,8 @@ function beginTurn() {
   for (const s of allShips()) s.stoneUsed = false;
   G.turnStarted = true;
   G.collected = [];
+  // Trade Winds: the round's first captain spins the dial before their turn.
+  if (G.opts.winds && p === G.order.find(inGame)) spinWind();
   const sc = scoreBreakdown();
   G.turnStartTotals = Object.fromEntries(G.order.map(q => [q, sc[q].total]));
   checkStalemate();

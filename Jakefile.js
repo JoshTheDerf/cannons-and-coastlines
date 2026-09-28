@@ -37,6 +37,7 @@ const TASKS = {
     'versatile-admiral':         ['Build "The Versatile Admiral" addon rulebook', 'scripts/rulebook/build-versatile-admiral.sh'],
     'versatile-admiral-booklet': ['Build the imposed Versatile Admiral booklet', 'scripts/rulebook/build-versatile-admiral-booklet.sh', ['versatile-admiral']],
     'letter':      ['Build the welcome letter PDF that ships in the box', 'scripts/rulebook/build-letter.sh'],
+    'trade-winds': ['Build the one-page Trade Winds variant handout (PDF + PNG)', 'scripts/rulebook/build-trade-winds.sh'],
     'site':        ['Build the Nuxt site (nuxt-site/.output/) for the Workers deploy', 'build.sh'],
 
     // Occasional steps, kept out of the full build because they need tools a
@@ -59,7 +60,7 @@ for (const [name, [description, script, deps = []]] of Object.entries(TASKS)) {
 
 desc('Full build: STL zip, rulebook + booklet, cards + sheets, addon rulebook, then the site');
 task('default', [
-    'stl', 'rulebook', 'booklet', 'cards', 'card-sheets',
+    'stl', 'rulebook', 'booklet', 'trade-winds', 'cards', 'card-sheets',
     'versatile-admiral', 'versatile-admiral-booklet', 'site',
 ], () => {
     console.log('\nAll build steps complete.');

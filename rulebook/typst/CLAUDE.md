@@ -8,7 +8,7 @@ jake: `npx jake -T` lists every step. This directory holds sources only.
 
 ## Files in this directory
 
-- `rulebook.typ` — full rulebook (portrait half-letter, 5.5 × 8.5, single column, ~17 pages). Sized so two pages fit side-by-side on a landscape letter sheet for booklet printing.
+- `rulebook.typ` — full rulebook (portrait half-letter, 5.5 × 8.5, single column, 20 pages, and 20 is the cap: find room on an existing page before adding one). Sized so two pages fit side-by-side on a landscape letter sheet for booklet printing.
 - `versatile-admiral.typ` — "The Versatile Admiral" addon rulebook, same page geometry as `rulebook.typ`.
 - `card.typ` — faction card template: page setup, parchment background, banner, stat grid, ability box. Edit this for **layout/styling**.
 - `factions.typ` — data-only dictionary of all seven factions, dispatches on `--input faction=<id>`. Edit this for **faction content**.
@@ -25,6 +25,7 @@ npx jake booklet        # imposed booklet PDF (depends on the rulebook PDF)
 npx jake cards          # the seven faction cards
 npx jake card-sheets    # two-up print sheet (depends on cards)
 npx jake versatile-admiral[-booklet]
+npx jake trade-winds    # the rulebook's Trade Winds page alone, as a handout
 ```
 
 The scripts are runnable directly too (`scripts/rulebook/build-cards.sh`);
@@ -46,6 +47,10 @@ Per-faction manual build:
 ```
 
 `--root` is required because `card.typ` reads `../../rulebook/assets/*` which sits outside the source file's directory. `typst_compile` in `scripts/lib/common.sh` always passes it (and `--font-path`); use that helper rather than calling `typst compile` by hand in a new script.
+
+## Trade Winds handout
+
+The Trade Winds variant is one rulebook page, also shipped alone as `rulebook/pdf/trade-winds.pdf`. There is no second source: `scripts/rulebook/build-trade-winds.sh` asks Typst which page the `<trade-winds-page>` marker landed on and compiles just that page. Keep the section to exactly one page (a level-1 heading starts it on a fresh page), or the handout loses its tail.
 
 ## Adding a faction
 
@@ -84,7 +89,7 @@ For the banner bottom-fade (transparent top → parchment bottom) use `90deg`. F
 for f in queens-fleet corsairs treasure-fleet shadow-fleet stone-fleet the-industry the-islanders; do
   pdfinfo rulebook/pdf/faction-card-$f.pdf | grep -H Pages || echo "MISSING: $f"
 done
-pdfinfo rulebook/pdf/rulebook.pdf | grep Pages   # expect 19 (booklet imposition pads to a multiple of 4)
+pdfinfo rulebook/pdf/rulebook.pdf | grep Pages   # expect 20, the cap (booklet imposition pads to a multiple of 4)
 ```
 
 Every faction line should say `Pages: 1`.

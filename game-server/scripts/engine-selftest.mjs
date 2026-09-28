@@ -10,7 +10,7 @@ for (const n of [2, 3, 5, 7]) {
   engine.setRand(rng);
   engine.setAiEffort('lite');
   const seats = Array.from({ length: n }, (_, i) => ({ faction: engine.FACTION_ORDER[i % 7], color: i, name: 'AI ' + (i + 1), ai: true }));
-  engine.newGame({ seats, setup: 'quick', stalemate: false, table: 'round' });
+  engine.newGame({ seats, setup: 'quick', stalemate: false, table: 'round', winds: n === 3 });
   let steps = 0, refused = 0, slow = 0;
   while (engine.G.phase === 'play' && steps < 60000) {
     const G = JSON.parse(JSON.stringify(engine.G)); // what the Durable Object does between steps
@@ -223,6 +223,22 @@ for (const n of [2, 3, 5, 7]) {
   ok(engine.scoreBreakdown()[1].total >= 60 && !engine.act(1, { t: 'declare' }).ok, 'points reached mid-turn cannot be declared this turn');
   engine.act(1, { t: 'endTurn' }); engine.act(2, { t: 'endTurn' });
   ok(engine.G.active === 1 && engine.act(1, { t: 'declare' }).ok && engine.G.winner === 1, 'holding 60 at the start of the next turn, victory can be declared');
+  // Trade Winds: the wind spins at the start of each round and shifts Move Count by heading.
+  engine.newGame({ seats: [{ faction: 'corsairs', color: 0 }, { faction: 'queens_fleet', color: 1 }], setup: 'quick', table: 'rect', winds: true });
+  const W = engine.G;
+  ok(W.wind != null, 'Trade Winds: the first round starts with a wind');
+  const cs = W.players[1].ships[0];
+  W.wind = cs.h;
+  ok(engine.moveCountAt(cs, cs.h) === 5 && engine.moveCountAt(cs, cs.h + Math.PI) === 3 && engine.moveCountAt(cs, cs.h + Math.PI / 2) === 4,
+    'fair wind +1, foul wind -1, crosswind unchanged (Corsairs, Move Count 4)');
+  ok(engine.moveCountAt(cs, cs.h + Math.PI / 4) === 4, 'a heading on the boundary is a crosswind');
+  const lastW = W.wind;
+  engine.act(1, { t: 'endTurn' });
+  ok(engine.G.wind === lastW, 'no new wind mid-round');
+  const r2 = engine.act(2, { t: 'endTurn' });
+  ok(r2.events.some(e => e.e === 'wind'), 'a new round spins the wind');
+  engine.newGame({ seats: [{ faction: 'corsairs', color: 0 }, { faction: 'queens_fleet', color: 1 }], setup: 'quick', table: 'rect' });
+  ok(engine.G.wind == null && engine.moveCountAt(engine.G.players[1].ships[0], 0) === 4, 'Trade Winds off: no wind, printed Move Count');
   // Cannon holes: the engine's (constants.js holes) are the hulls' sockets
   // in shared/data/ship-assemblies.json, measured from the hull's centre.
   const asm = JSON.parse(readFileSync(new URL('../../nuxt-site/shared/data/ship-assemblies.json', import.meta.url), 'utf8'));
