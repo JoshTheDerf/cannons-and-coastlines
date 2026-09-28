@@ -57,12 +57,11 @@ G = 9.81
 WIND = Vector((1.0, -0.25, 0.0)).normalized()
 
 # The action. Both ships sail away from the start, toward the island ahead
-# (+X), side by side 30 m apart, the Queen's Fleet about a quarter length
-# ahead. A hull's bow is its -X, so heading 180 deg points it down +X.
+# (+X), side by side 30 m apart, the Queen's Fleet half a length ahead. A hull's bow is its -X, so heading 180 deg points it down +X.
 # Sailing that way the Corsair's starboard (hull +Y) side faces the Queen's
 # Fleet and the Queen's Fleet's port (hull -Y) side faces the Corsair.
-# Each gun is in the angled socket that bears on the other ship: the
-# Corsair's points ~15 deg forward (hull -X), the Queen's ~15 deg aft.
+# Each gun is in the angled socket on that side and trained on the other
+# ship: the Corsair's ~28 deg forward (hull -X), the Queen's ~28 deg aft.
 #
 # `deck_cam` is (x, y, height above deck) in hull mm. The pieces are game
 # pieces, not scale models: the gun stands 17 mm, a "man's" eye height
@@ -70,12 +69,15 @@ WIND = Vector((1.0, -0.25, 0.0)).normalized()
 # top, off the centreline opposite it, so the gun sits at the frame's edge.
 SHIPS = {
     "corsairs":     {"pos": Vector((0.0, 15.0)), "heading": 180.0, "speed": 2.2,
-                     "cannon": {"at": [-10.9, 6.69, 15.88], "rotZ": 105.7},
-                     "deck_cam": (2.0, -4.0, 18.0)},
-    "queens-fleet": {"pos": Vector((8.0, -15.0)), "heading": 180.0, "speed": 2.2,
-                     "cannon": {"at": [3.21, -6.74, 14.9], "rotZ": -75.0},
-                     "deck_cam": (-8.0, 3.0, 18.0)},
+                     "cannon": {"at": [-10.9, 6.69, 15.88], "rotZ": 118.0},
+                     "deck_cam": (2.0, -4.0, 13.0)},
+    "queens-fleet": {"pos": Vector((16.0, -15.0)), "heading": 180.0, "speed": 2.2,
+                     "cannon": {"at": [3.21, -6.74, 14.9], "rotZ": -62.0},
+                     "deck_cam": (-8.0, 3.0, 13.0)},
 }
+# The guns and balls are drawn smaller than the game's: at true size a gun
+# is a third of the beam and walls off the deck cameras.
+GUN_SCALE = 0.6
 WATERLINE_MM = 7.0  # hull height (mm) the mean sea surface cuts
 NEAR_C = Vector((30.0, 0.0))   # centre of the fine ocean patch
 
@@ -103,7 +105,7 @@ WEATHERS = {
         rain=22000, rain_alpha=0.2, rain_glow=0.08, lightning=False,
         sea_deep=(0.002, 0.028, 0.045, 1), sea_crest=(0.006, 0.13, 0.14, 1),
         island=(0.07, 0.16, 0.045, 1), headland=(0.05, 0.085, 0.045, 1),
-        smoke=(0.85, 0.84, 0.8, 1)),
+        smoke=(0.85, 0.84, 0.8, 1), wet=0.0),
     "storm": dict(
         sun=(-0.55, -0.55, 0.62), sun_energy=2.6, sun_angle=12, sun_color=(0.9, 0.93, 1.0),
         fog=(0.10, 0.115, 0.125, 1), mist=0.75, mist_start=80, mist_depth=5000,
@@ -111,7 +113,7 @@ WEATHERS = {
         rain=45000, rain_alpha=0.3, rain_glow=0.12, lightning=True,
         sea_deep=(0.004, 0.016, 0.018, 1), sea_crest=(0.02, 0.07, 0.065, 1),
         island=(0.06, 0.12, 0.05, 1), headland=(0.035, 0.05, 0.04, 1),
-        smoke=(0.62, 0.62, 0.6, 1)),
+        smoke=(0.62, 0.62, 0.6, 1), wet=0.12),
 }
 W = WEATHERS["sunny"]   # set from --weather in main()
 
@@ -180,11 +182,13 @@ def set_object_material(obj, mat):
     slot.material = mat
 
 
-def place_matrix(at, rot_z=0.0, anchor=(0, 0, 0), rot_x=0.0):
-    """world = at + Rz(rotZ) * Rx(rotX) * (p - anchor), as in shipAssembly.ts."""
+def place_matrix(at, rot_z=0.0, anchor=(0, 0, 0), rot_x=0.0, scale=1.0):
+    """world = at + Rz(rotZ) * Rx(rotX) * s * (p - anchor), as in
+    shipAssembly.ts (which has no scale; s shrinks a part about its anchor)."""
     return (Matrix.Translation(Vector(at))
             @ Matrix.Rotation(math.radians(rot_z), 4, "Z")
             @ Matrix.Rotation(math.radians(rot_x), 4, "X")
+            @ Matrix.Scale(scale, 4)
             @ Matrix.Translation(-Vector(anchor)))
 
 
@@ -210,34 +214,87 @@ def setin(node, name, value):
 
 # ---------------------------------------------------------------- materials
 
-def plastic(name, color, rough=0.45, wet=0.35, layers=True, metallic=0.0,
-            translucent=0.0):
-    """Printed PLA, rain-wet: a filament base, faint layer lines in object
-    space (0.2 mm pitch, the parts are modelled in mm) and a thin clear coat
-    for the water film."""
+def plastic(name, color, rough=0.45, layers=True, metallic=0.0, translucent=0.0,
+            sss=0.0):
+    """FDM-printed PLA.
+
+    What makes a print read as plastic rather than painted metal:
+      - a dielectric with a satin finish: IOR 1.5, roughness ~0.45, no
+        clear coat (a storm adds only a faint water film, WEATHERS "wet");
+      - layer lines as real beads, not a sawtooth: each 0.2 mm layer is a
+        rounded ridge (1 - (2t - 1)^2), and the valleys between beads are
+        rougher than their crowns;
+      - anisotropic highlights running along the layers (the beads act like
+        brushed grooves), so a highlight streaks around the part instead of
+        pooling into a hotspot;
+      - light filament is a little translucent (subsurface), which is why a
+        white print glows at thin edges and never looks like enamel.
+    The parts are modelled in mm, so object-space Z is print height in mm.
+    Every filament gets some subsurface; even black PLA scatters a little,
+    and without it dark parts read as painted metal. Metal-free: the kit's
+    cannon is black PLA too."""
     m = new_material(name)
     nt, N, L = nodes(m)
     b = bsdf_of(m)
     b.inputs["Base Color"].default_value = color
-    b.inputs["Roughness"].default_value = rough
     b.inputs["Metallic"].default_value = metallic
-    setin(b, "Specular IOR Level", 0.4)
-    setin(b, "Coat Weight", wet)
-    setin(b, "Coat Roughness", 0.08)
-    setin(b, "Sheen Weight", 0.08)
+    b.inputs["IOR"].default_value = 1.5
+    setin(b, "Specular IOR Level", 0.5)
+    setin(b, "Coat Weight", W.get("wet", 0.0))
+    setin(b, "Coat Roughness", 0.15)
+    setin(b, "Sheen Weight", 0.0)
+    if sss:
+        setin(b, "Subsurface Weight", sss)
+        setin(b, "Subsurface Radius", (1.0, 0.75, 0.55))
+        setin(b, "Subsurface Scale", 1.2 * S)   # ~1 mm of light travel in the filament
+    rough_out = None
     if layers:
         tc = N.new("ShaderNodeTexCoord")
         sep = N.new("ShaderNodeSeparateXYZ")
-        mul = N.new("ShaderNodeMath"); mul.operation = "MULTIPLY"; mul.inputs[1].default_value = 5.0
-        pp = N.new("ShaderNodeMath"); pp.operation = "PINGPONG"; pp.inputs[1].default_value = 1.0
-        bump = N.new("ShaderNodeBump")
-        bump.inputs["Strength"].default_value = 0.12
-        bump.inputs["Distance"].default_value = 0.02
         L.new(tc.outputs["Object"], sep.inputs[0])
+        mul = N.new("ShaderNodeMath"); mul.operation = "MULTIPLY"; mul.inputs[1].default_value = 5.0
         L.new(sep.outputs["Z"], mul.inputs[0])
-        L.new(mul.outputs[0], pp.inputs[0])
-        L.new(pp.outputs[0], bump.inputs["Height"])
-        L.new(bump.outputs["Normal"], b.inputs["Normal"])
+        fr = N.new("ShaderNodeMath"); fr.operation = "FRACT"
+        L.new(mul.outputs[0], fr.inputs[0])
+        cen = N.new("ShaderNodeMath"); cen.operation = "MULTIPLY_ADD"
+        cen.inputs[1].default_value = 2.0; cen.inputs[2].default_value = -1.0
+        L.new(fr.outputs[0], cen.inputs[0])
+        sq = N.new("ShaderNodeMath"); sq.operation = "MULTIPLY"
+        L.new(cen.outputs[0], sq.inputs[0]); L.new(cen.outputs[0], sq.inputs[1])
+        bead = N.new("ShaderNodeMath"); bead.operation = "SUBTRACT"
+        bead.inputs[0].default_value = 1.0
+        L.new(sq.outputs[0], bead.inputs[1])
+        bump = N.new("ShaderNodeBump")
+        bump.inputs["Strength"].default_value = 0.35
+        bump.inputs["Distance"].default_value = 0.05 * S   # bead height ~0.05 mm
+        L.new(bead.outputs[0], bump.inputs["Height"])
+        # Faint surface grain so large flat faces are not mirror-even.
+        grain = N.new("ShaderNodeTexNoise")
+        grain.inputs["Scale"].default_value = 1.5
+        grain.inputs["Detail"].default_value = 6
+        L.new(tc.outputs["Object"], grain.inputs["Vector"])
+        gb = N.new("ShaderNodeBump")
+        gb.inputs["Strength"].default_value = 0.06
+        L.new(grain.outputs["Fac"], gb.inputs["Height"])
+        L.new(bump.outputs["Normal"], gb.inputs["Normal"])
+        L.new(gb.outputs["Normal"], b.inputs["Normal"])
+        rr = N.new("ShaderNodeMapRange")
+        rr.inputs["To Min"].default_value = rough + 0.12
+        rr.inputs["To Max"].default_value = rough - 0.05
+        L.new(bead.outputs[0], rr.inputs["Value"])
+        rough_out = rr.outputs[0]
+        # Highlights stretch along the layers: tangent circles the print's
+        # vertical axis.
+        tan = N.new("ShaderNodeTangent")
+        tan.direction_type = "RADIAL"
+        tan.axis = "Z"
+        setin(b, "Anisotropic", 0.45)
+        if "Tangent" in b.inputs:
+            L.new(tan.outputs["Tangent"], b.inputs["Tangent"])
+    if rough_out is not None:
+        L.new(rough_out, b.inputs["Roughness"])
+    else:
+        b.inputs["Roughness"].default_value = rough
     if translucent:
         out = N["Material Output"]
         tr = N.new("ShaderNodeBsdfTranslucent")
@@ -265,19 +322,20 @@ def build_materials():
     M = {}
     # Hull and fitting colours are the kit's filaments. The Corsair's black is
     # lifted a touch: under an overcast sky pure filament black is a hole.
-    M["black-hull"] = plastic("Corsair Hull", (0.035, 0.035, 0.038, 1), rough=0.5)
-    M["black"] = plastic("Black PLA", (0.028, 0.028, 0.03, 1), rough=0.5)
-    M["black-sail"] = plastic("Corsair Sail", (0.03, 0.03, 0.032, 1), rough=0.6,
-                              wet=0.2, layers=False, translucent=0.08)
-    M["blue-grey"] = plastic("Queen's Hull", (0.50, 0.58, 0.68, 1), rough=0.45)
-    M["white"] = plastic("Sail White", (0.86, 0.84, 0.80, 1), rough=0.6,
-                         wet=0.15, layers=False, translucent=0.3)
-    M["wood"] = plastic("Wood PLA", (0.30, 0.17, 0.08, 1), rough=0.55)
-    M["gunmetal"] = plastic("Cannon", (0.03, 0.03, 0.03, 1), rough=0.35, metallic=0.35)
-    M["grey"] = plastic("Grey PLA", (0.45, 0.45, 0.45, 1))
-    M["neon-green"] = plastic("Cannonball", (0.22, 0.58, 0.10, 1), rough=0.4)
-    gold = plastic("Coin Gold", (1.0, 0.56, 0.13, 1), rough=0.2, metallic=0.95,
-                   wet=0.1, layers=False)
+    M["black-hull"] = plastic("Corsair Hull", (0.035, 0.035, 0.038, 1), rough=0.42, sss=0.08)
+    M["black"] = plastic("Black PLA", (0.028, 0.028, 0.03, 1), rough=0.42, sss=0.08)
+    M["black-sail"] = plastic("Corsair Sail", (0.03, 0.03, 0.032, 1), rough=0.55,
+                              layers=False, translucent=0.08, sss=0.08)
+    M["blue-grey"] = plastic("Queen's Hull", (0.50, 0.58, 0.68, 1), rough=0.45, sss=0.2)
+    M["white"] = plastic("Sail White", (0.86, 0.84, 0.80, 1), rough=0.55,
+                         layers=False, translucent=0.3, sss=0.3)
+    M["wood"] = plastic("Wood PLA", (0.30, 0.17, 0.08, 1), rough=0.5, sss=0.15)
+    M["gunmetal"] = plastic("Cannon", (0.03, 0.03, 0.03, 1), rough=0.4, sss=0.08)
+    M["grey"] = plastic("Grey PLA", (0.45, 0.45, 0.45, 1), sss=0.2)
+    M["neon-green"] = plastic("Cannonball", (0.22, 0.58, 0.10, 1), rough=0.42, sss=0.25)
+    # Silk gold PLA: the one genuinely shiny filament, metallic-looking and
+    # with strong layer lines.
+    gold = plastic("Coin Gold", (1.0, 0.56, 0.13, 1), rough=0.28, metallic=0.7)
     M["gold"] = gold
     return M
 
@@ -382,12 +440,14 @@ def build_ship(key, M, coll):
                     max(v.co.z for v in o.data.vertices) - zmin)
             mat = M["black-sail"] if color == "black" else M[color]
             add(o, mat, Matrix.Translation((mast["at"][0], mast["at"][1], z)))
+            rig.setdefault("sails", []).append(o)
             continue
         if p["part"] == "cannon":
             # The kit's own placement shows the gun in its default socket; the
             # scene fires broadside, so it goes in the socket facing the enemy.
             p = dict(p, at=cannon_spec["at"], rotZ=cannon_spec["rotZ"])
-        m = place_matrix(p["at"], p.get("rotZ", 0), part.get("anchor", (0, 0, 0)), p.get("rotX", 0))
+        m = place_matrix(p["at"], p.get("rotZ", 0), part.get("anchor", (0, 0, 0)), p.get("rotX", 0),
+                         GUN_SCALE if p["part"] == "cannon" else 1.0)
         o = add(part_object(f"{key}-{p['part']}{i}", stl), M[color], m)
         if p["part"] == "cannon":
             rig["cannon"] = o
@@ -1024,6 +1084,135 @@ def build_rain(coll, cam_path_center):
     return rain
 
 
+def ship_frame_xy(key, frame, local):
+    """World XY of a hull-space point (m, hull axes) at `frame`, ignoring heave."""
+    base, h = ship_base(key, frame)
+    x, y = local
+    return Vector((base.x + x * math.cos(h) - y * math.sin(h), base.y + x * math.sin(h) + y * math.cos(h)))
+
+
+def build_wake(coll, key, near):
+    """The foam a moving hull leaves: a Kelvin V (19.5 deg half-angle)
+    opening astern from the transom, densest in the churned water straight
+    behind, fading with distance. The strip follows the ship but its foam
+    pattern is fixed to the sea (world-space noise), so the ship visibly
+    sails on and leaves the wake behind."""
+    length, half0 = 70.0, 3.5
+    bpy.ops.mesh.primitive_grid_add(x_subdivisions=90, y_subdivisions=24, size=1.0)
+    o = bpy.context.active_object
+    o.name = f"{key}-wake"
+    for c in list(o.users_collection):
+        c.objects.unlink(o)
+    link(o, coll)
+    me = o.data
+    for v in me.vertices:
+        u = v.co.x + 0.5              # 0 at the transom, 1 at the far end
+        w = v.co.y * 2                # -1..1 across
+        x = u * length
+        v.co = (x, w * (half0 + x * math.tan(math.radians(19.5))), 0)
+    me.update()
+
+    m = new_material(f"{key}-wake")
+    nt, N, L = nodes(m)
+    b = bsdf_of(m)
+    b.inputs["Base Color"].default_value = (0.78, 0.82, 0.82, 1)
+    b.inputs["Roughness"].default_value = 0.55
+    setin(b, "Subsurface Weight", 0.2)
+    tc = N.new("ShaderNodeTexCoord")
+    geo = N.new("ShaderNodeNewGeometry")
+    # Foam texture in world space: stays put on the water.
+    nz = N.new("ShaderNodeTexNoise")
+    nz.inputs["Scale"].default_value = 0.45
+    nz.inputs["Detail"].default_value = 10
+    nz.inputs["Roughness"].default_value = 0.65
+    L.new(geo.outputs["Position"], nz.inputs["Vector"])
+    # Local position: fade along, and bands across (centre churn, V edges).
+    sep = N.new("ShaderNodeSeparateXYZ")
+    L.new(tc.outputs["Object"], sep.inputs[0])
+    along = N.new("ShaderNodeMapRange")
+    along.inputs["From Min"].default_value = 0.0
+    along.inputs["From Max"].default_value = length
+    along.inputs["To Min"].default_value = 1.0
+    along.inputs["To Max"].default_value = 0.0
+    L.new(sep.outputs["X"], along.inputs["Value"])
+    half = N.new("ShaderNodeMath"); half.operation = "MULTIPLY_ADD"
+    L.new(sep.outputs["X"], half.inputs[0])
+    half.inputs[1].default_value = math.tan(math.radians(19.5))
+    half.inputs[2].default_value = half0
+    ay = N.new("ShaderNodeMath"); ay.operation = "ABSOLUTE"
+    L.new(sep.outputs["Y"], ay.inputs[0])
+    rel = N.new("ShaderNodeMath"); rel.operation = "DIVIDE"
+    L.new(ay.outputs[0], rel.inputs[0]); L.new(half.outputs[0], rel.inputs[1])
+    band = N.new("ShaderNodeValToRGB")
+    e = band.color_ramp.elements
+    e[0].position = 0.0; e[0].color = (0.9, 0.9, 0.9, 1)
+    e[1].position = 1.0; e[1].color = (0, 0, 0, 1)
+    for pos, v in ((0.22, 0.25), (0.35, 0.08), (0.8, 0.12), (0.9, 0.6)):
+        el = band.color_ramp.elements.new(pos); el.color = (v, v, v, 1)
+    L.new(rel.outputs[0], band.inputs[0])
+    k = N.new("ShaderNodeMath"); k.operation = "MULTIPLY"
+    L.new(band.outputs[0], k.inputs[0]); L.new(along.outputs[0], k.inputs[1])
+    thr = N.new("ShaderNodeMath"); thr.operation = "SUBTRACT"
+    L.new(nz.outputs["Fac"], thr.inputs[0])
+    omk = N.new("ShaderNodeMath"); omk.operation = "SUBTRACT"
+    omk.inputs[0].default_value = 1.0
+    L.new(k.outputs[0], omk.inputs[1])
+    L.new(omk.outputs[0], thr.inputs[1])
+    fo = N.new("ShaderNodeMapRange")
+    fo.inputs["From Min"].default_value = -0.05
+    fo.inputs["From Max"].default_value = 0.12
+    L.new(thr.outputs[0], fo.inputs["Value"])
+    L.new(fo.outputs[0], b.inputs["Alpha"])
+    me.materials.append(m)
+
+    sw = o.modifiers.new("OnSea", "SHRINKWRAP")
+    sw.target = near
+    sw.wrap_method = "PROJECT"
+    sw.use_project_z = True
+    sw.use_negative_direction = True
+    sw.use_positive_direction = True
+    sw.offset = 0.05
+    o.visible_shadow = False
+    stern = 58 * S
+    for f in range(F_START, F_END + 2, 2):
+        base, h = ship_base(key, f)
+        o.location = (*ship_frame_xy(key, f, (stern, 0.0)), 0.0)
+        o.rotation_euler = (0, 0, h)
+        o.keyframe_insert("location", frame=f)
+        o.keyframe_insert("rotation_euler", frame=f)
+    return o
+
+
+def build_bow_spray(coll, key, drop, n=2400, seed=60):
+    """Spray thrown off the bow as it shoulders into the swell, a steady
+    stream with gusts, launched from wherever the bow is at each drop's
+    birth frame."""
+    rnd = random.Random(seed)
+    pts, vel, birth, size = [], [], [], []
+    speed = SHIPS[key]["speed"]
+    bow = -58 * S
+    for i in range(n):
+        f = rnd.uniform(F_START - 20, F_END)
+        # Gusty: more spray when the bow meets a crest.
+        if rnd.random() > 0.55 + 0.45 * math.sin(f * 0.21 + seed):
+            continue
+        side = rnd.choice((-1, 1))
+        p = ship_frame_xy(key, f, (bow + rnd.uniform(0, 5), side * rnd.uniform(0.3, 2.5)))
+        _, h = ship_base(key, f)
+        fwd = Vector((-math.cos(h), -math.sin(h), 0))
+        out = Vector((math.sin(h), -math.cos(h), 0)) * side * -1
+        v = out * rnd.uniform(1.5, 4.5) + fwd * speed * rnd.uniform(0.6, 1.0) + Vector((0, 0, rnd.uniform(1.5, 4.0)))
+        pts.append((p.x, p.y, rnd.uniform(0.1, 0.6)))
+        vel.append(tuple(v))
+        birth.append(f)
+        size.append(rnd.uniform(0.03, 0.1))
+    o = points_object(f"{key}-bow-spray", coll, pts, {
+        "vel": ("FLOAT_VECTOR", vel), "birth": ("FLOAT", birth),
+        "size": ("FLOAT", size), "spin": ("FLOAT_VECTOR", [(0, 0, 0)] * len(pts))})
+    gn_ballistic(o, drop, life=28, drag=0.4, spin=False)
+    return o
+
+
 # ---------------------------------------------------------------- smoke & fire
 
 def smoke_puffs(coll, name, origin, direction, frame, n=7, seed=5):
@@ -1143,7 +1332,7 @@ def build_ball(coll, M, name):
     me.transform(Matrix.Translation((-67.9, -131.5, -5.0)))
     me.shade_smooth()
     link(o, coll)
-    o.scale = (S, S, S)
+    o.scale = (S * GUN_SCALE,) * 3
     o.data.materials.clear()
     o.data.materials.append(M["neon-green"])
     return o
@@ -1216,6 +1405,9 @@ def sea_height_at(near, frame, x, y):
 
 def build_shots(coll, M, rigs, near):
     drop = fx_source("fx-drop", coll, "drop", spray_material(), size=1.0)
+    for i, key in enumerate(rigs):
+        build_wake(coll, key, near)
+        build_bow_spray(coll, key, drop, seed=60 + i)
     shard = fx_source("fx-shard", coll, "shard", M["black-hull"], size=1.0)
     sc = bpy.context.scene
 
@@ -1500,11 +1692,9 @@ def build_terrain(coll):
     base = "assets/stls/base-set/"
     # The kit's own terrain, blown up to landscape size. The island they are
     # making for is ahead and to starboard of the Queen's Fleet, behind it as
-    # seen from the Corsair; more coast lies behind the Corsair, which is
-    # what the Queen's Fleet's camera sees.
+    # seen from the Corsair. Astern there is only open water, reefs and rocks.
     place_piece(coll, base + "island.stl", "Island Ahead", green, (300, -120, 0), 25, 0.9, sink=4)
     place_piece(coll, base + "island.stl", "Island Far", green, (640, 90, 0), -70, 1.3, sink=6)
-    place_piece(coll, base + "island-topper.stl", "Islet", green, (-110, 230, 0), 40, 0.6, sink=2)
     place_piece(coll, base + "rock1.stl", "Rock A", stone, (150, -75, 0), 200, 0.22, sink=1.5)
     place_piece(coll, base + "rock1.stl", "Rock B", stone, (-40, 115, 0), 15, 0.16, sink=1)
     place_piece(coll, base + "rock1.stl", "Rock C", stone, (95, -165, 0), 110, 0.12, sink=1)
@@ -1513,8 +1703,8 @@ def build_terrain(coll):
     # And the land beyond, on both sides of the channel.
     backdrop_island(coll, "Headland 1", Vector((1400, -900, 0)), 900, 260, 1, far_mat)
     backdrop_island(coll, "Headland 2", Vector((900, -1700, 0)), 1400, 420, 2, far_mat)
-    backdrop_island(coll, "Headland 3", Vector((-600, 1400, 0)), 900, 300, 3, far_mat)
-    backdrop_island(coll, "Headland 4", Vector((-1900, 900, 0)), 1500, 500, 4, far_mat)
+    # Nothing astern: the Queen's Fleet's camera looks back that way, and land
+    # behind the Corsair would read as the ships sailing away from it.
     backdrop_island(coll, "Headland 5", Vector((2600, 400, 0)), 1400, 450, 5, far_mat)
 
 # ---------------------------------------------------------------- flags
@@ -1948,6 +2138,19 @@ def build_camera(coll, rigs):
     cam_a = deck_camera(coll, "Corsair Deck Cam", rigs["corsairs"], rigs["queens-fleet"], 22)
     cam_b = deck_camera(coll, "Queen's Deck Cam", rigs["queens-fleet"], rigs["corsairs"], 22)
     sc.camera = cam_a
+    # Each deck camera stands under its own ship's canvas, which would fill
+    # half the frame. Hide that ship's sails from the camera (only) for its
+    # shot: they still shade the deck, and the other shot shows them.
+    for key, (f_on, f_off) in (("corsairs", (F_START, CUT)), ("queens-fleet", (CUT, F_END + 1))):
+        for sail in rigs[key].get("sails", []):
+            for f, vis in ((F_START, True), (f_on, False), (f_off, True)):
+                if f > F_END:
+                    continue
+                sail.visible_camera = vis
+                sail.keyframe_insert("visible_camera", frame=f)
+            for fc in _iter_fcurves(sail):
+                for k in fc.keyframe_points:
+                    k.interpolation = "CONSTANT"
     sc.timeline_markers.new("Corsair fires", frame=F_START).camera = cam_a
     sc.timeline_markers.new("Queen's Fleet answers", frame=CUT).camera = cam_b
     return cam_a
