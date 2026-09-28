@@ -39,7 +39,7 @@ from pathlib import Path
 import bpy
 import bmesh
 import numpy as np
-from mathutils import Matrix, Vector, noise
+from mathutils import Euler, Matrix, Quaternion, Vector, noise
 
 HERE = Path(__file__).resolve().parent
 REPO = HERE.parents[1]
@@ -52,25 +52,40 @@ F_START, F_END = 1, 192
 PREROLL = 48        # frames of ship motion simulated before F_START so it starts settled
 G = 9.81
 
-# Wind blows from the Corsair toward the Queen's Fleet and a little downstage:
-# smoke drifts that way, the flags stream that way, the rain leans that way.
-WIND = Vector((0.35, -1.0, 0.0)).normalized()
+# The ships run before the wind toward the island, so it blows from astern:
+# smoke drifts ahead of them, the flags stream forward, the rain leans on.
+WIND = Vector((1.0, -0.25, 0.0)).normalized()
 
-# The action. Hulls lie along X with their bows toward -X (hull space), 70 m
-# apart, broadside to broadside: the Corsair's port guns face -Y, the Queen's
-# Fleet's starboard guns +Y.
+# The action. Both ships sail away from the start, toward the island ahead
+# (+X), side by side 30 m apart, the Queen's Fleet about a quarter length
+# ahead. A hull's bow is its -X, so heading 180 deg points it down +X.
+# Sailing that way the Corsair's starboard (hull +Y) side faces the Queen's
+# Fleet and the Queen's Fleet's port (hull -Y) side faces the Corsair.
+# Each gun is in the angled socket that bears on the other ship: the
+# Corsair's points ~15 deg forward (hull -X), the Queen's ~15 deg aft.
+#
+# `deck_cam` is (x, y, height above deck) in hull mm. The pieces are game
+# pieces, not scale models: the gun stands 17 mm, a "man's" eye height
+# (7 mm) would put the camera behind the gun. So the eye is above the gun's
+# top, off the centreline opposite it, so the gun sits at the frame's edge.
 SHIPS = {
-    "corsairs":     {"pos": Vector((0.0, 28.0)),  "heading": -3.0, "speed": 0.7,
-                     "cannon": {"at": [-2.99, -7.81, 15.88], "rotZ": -90.0}},
-    "queens-fleet": {"pos": Vector((-6.0, -28.0)), "heading": 4.0, "speed": 0.6,
-                     "cannon": {"at": [-4.83, 7.81, 14.9], "rotZ": 90.0}},
+    "corsairs":     {"pos": Vector((0.0, 15.0)), "heading": 180.0, "speed": 2.2,
+                     "cannon": {"at": [-10.9, 6.69, 15.88], "rotZ": 105.7},
+                     "deck_cam": (2.0, -4.0, 18.0)},
+    "queens-fleet": {"pos": Vector((8.0, -15.0)), "heading": 180.0, "speed": 2.2,
+                     "cannon": {"at": [3.21, -6.74, 14.9], "rotZ": -75.0},
+                     "deck_cam": (-8.0, 3.0, 18.0)},
 }
 WATERLINE_MM = 7.0  # hull height (mm) the mean sea surface cuts
+NEAR_C = Vector((30.0, 0.0))   # centre of the fine ocean patch
 
-# Timeline (frames).
-SHOT_1 = {"from": "corsairs", "fire": 40, "flight": 22}       # falls just short: splash
-SHOT_2 = {"from": "queens-fleet", "fire": 104, "flight": 20}  # hits the Corsair's side
-LIGHTNING = [(150, 1.0), (152, 0.35), (154, 0.8), (158, 0.2)]
+# Timeline (frames). Two shots, cut in the middle: from the Corsair's deck as
+# it fires on the Queen's Fleet, then from the Queen's Fleet's deck as it
+# answers.
+CUT = 97
+SHOT_1 = {"from": "corsairs", "fire": 30, "flight": 20}        # falls just short: splash
+SHOT_2 = {"from": "queens-fleet", "fire": 124, "flight": 18}   # hits the Corsair's side
+LIGHTNING = [(68, 1.0), (70, 0.35), (72, 0.8), (170, 0.6), (172, 0.2)]
 
 # The two looks. `sun` points from the scene toward the sun.
 #   sunny: a bright afternoon after the squall has passed over. The sun is
@@ -84,8 +99,8 @@ WEATHERS = {
     "sunny": dict(
         sun=(-0.90, 0.33, 0.43), sun_energy=4.2, sun_angle=0.6, sun_color=(1.0, 0.93, 0.82),
         fog=(0.46, 0.56, 0.68, 1), mist=0.22, mist_start=250, mist_depth=9000,
-        exposure=0.0, wind=10.5, wave_scale=1.35, chop=1.25, foam=0.12,
-        rain=26000, rain_alpha=0.3, rain_glow=0.08, lightning=False,
+        exposure=-0.5, wind=10.5, wave_scale=1.35, chop=1.25, foam=0.12,
+        rain=22000, rain_alpha=0.2, rain_glow=0.08, lightning=False,
         sea_deep=(0.002, 0.028, 0.045, 1), sea_crest=(0.006, 0.13, 0.14, 1),
         island=(0.07, 0.16, 0.045, 1), headland=(0.05, 0.085, 0.045, 1),
         smoke=(0.85, 0.84, 0.8, 1)),
@@ -93,7 +108,7 @@ WEATHERS = {
         sun=(-0.55, -0.55, 0.62), sun_energy=2.6, sun_angle=12, sun_color=(0.9, 0.93, 1.0),
         fog=(0.10, 0.115, 0.125, 1), mist=0.75, mist_start=80, mist_depth=5000,
         exposure=0.45, wind=15.0, wave_scale=2.2, chop=1.5, foam=0.4,
-        rain=90000, rain_alpha=0.55, rain_glow=0.25, lightning=True,
+        rain=45000, rain_alpha=0.3, rain_glow=0.12, lightning=True,
         sea_deep=(0.004, 0.016, 0.018, 1), sea_crest=(0.02, 0.07, 0.065, 1),
         island=(0.06, 0.12, 0.05, 1), headland=(0.035, 0.05, 0.04, 1),
         smoke=(0.62, 0.62, 0.6, 1)),
@@ -331,7 +346,7 @@ def build_ship(key, M, coll):
     parts = DATA["parts"]
     root = link(bpy.data.objects.new(f"{key}-root", None), coll)
     root.scale = (S, S, S)
-    rig = {"root": root, "objs": []}
+    rig = {"root": root, "objs": [], "key": key}
 
     def add(obj, mat, matrix=None):
         link(obj, coll)
@@ -377,6 +392,8 @@ def build_ship(key, M, coll):
         if p["part"] == "cannon":
             rig["cannon"] = o
             rig["cannon_rest"] = m.copy()
+        if p["part"] in ("cargo", "barrel"):
+            rig.setdefault("cargo", []).append(o)
         if p["part"].startswith("mast"):
             rig.setdefault("mast_tops", []).append(
                 Vector((p["at"][0], p["at"][1], p["at"][2] + part["height"])))
@@ -592,16 +609,16 @@ def build_ocean(coll):
     # Near patch: fine enough to carry the ships and the splashes.
     me = bpy.data.meshes.new("ocean-near")
     near = link(bpy.data.objects.new("Ocean Near", me), coll)
-    near.location = (-40, -10, 0)
+    near.location = (NEAR_C.x, NEAR_C.y, 0)
     ocean_modifier(near, 256, 48)
     me.materials.append(mat)
-    # Far patches: same spectrum, coarser, out to the haze. Cut where the
-    # near patch sits.
+    # Far patch: same spectrum, coarser, out into the distance, centred on
+    # the near patch and cut where it sits.
     me2 = bpy.data.meshes.new("ocean-far")
     far = link(bpy.data.objects.new("Ocean Far", me2), coll)
-    far.location = (600, -10, 0)
+    far.location = (NEAR_C.x, NEAR_C.y, 0)
     ocean_modifier(far, 1024, 16, repeat=1)
-    gn_delete_box(far, -40 - 128 - 600 + 2, -40 + 128 - 600 - 2, -128 + 2, 128 - 2)
+    gn_delete_box(far, -126, 126, -126, 126)
     me2.materials.append(mat)
     # Beyond that, a flat sea to the horizon; its ripples are all shader.
     bpy.ops.mesh.primitive_plane_add(size=60000, location=(0, 0, -1.2))
@@ -610,7 +627,7 @@ def build_ocean(coll):
     for c in list(horizon.users_collection):
         c.objects.unlink(horizon)
     link(horizon, coll)
-    gn_delete_box(horizon, 600 - 512 + 4, 600 + 512 - 4, -10 - 512 + 4, -10 + 512 - 4)
+    gn_delete_box(horizon, NEAR_C.x - 508, NEAR_C.x + 508, NEAR_C.y - 508, NEAR_C.y + 508)
     horizon.data.materials.append(mat)
     return near
 
@@ -959,15 +976,14 @@ def build_rain(coll, cam_path_center):
 
     fall = Vector((WIND.x * 0.28, WIND.y * 0.28, -1.0)).normalized()
     speed = 9.0
-    lo = cam_path_center + Vector((-45, -45, -2))
-    hi = cam_path_center + Vector((60, 45, 32))
+    # Both deck cameras sit inside this box for the whole shot.
+    lo = cam_path_center + Vector((-35, -35, -2))
+    hi = cam_path_center + Vector((50, 35, 30))
     rnd = random.Random(11)
     n = W["rain"]
     pts = []
     for _ in range(n):
-        # Denser toward the camera end of the box, where drops are big enough to see.
-        u = rnd.random() ** 1.7
-        pts.append((lo.x + (hi.x - lo.x) * u, rnd.uniform(lo.y, hi.y), rnd.uniform(lo.z, hi.z)))
+        pts.append((rnd.uniform(lo.x, hi.x), rnd.uniform(lo.y, hi.y), rnd.uniform(lo.z, hi.z)))
     me = bpy.data.meshes.new("rain")
     me.from_pydata(pts, [], [])
     rain = link(bpy.data.objects.new("Rain", me), coll)
@@ -1141,8 +1157,9 @@ def stage_shot(coll, M, rigs, shot, target_fn, name, drop_obj, shard_obj, near):
     f0 = shot["fire"]
     f1 = f0 + shot["flight"]
 
-    sc.frame_set(f0)
-    cm = cannon.matrix_world.copy()
+    with quick_eval():
+        sc.frame_set(f0)
+        cm = cannon.matrix_world.copy()
     muzzle = cm @ bore
     direction = (cm.to_3x3() @ Vector((1, 0, 0))).normalized()
 
@@ -1151,10 +1168,12 @@ def stage_shot(coll, M, rigs, shot, target_fn, name, drop_obj, shard_obj, near):
     # point back toward the breech, until the gun fires. (Its +Z is the point.)
     seat = Matrix.Translation(bore - Vector((radius * 1.6 + 2.0, 0, 0))) @ \
         Matrix.Rotation(math.radians(-90), 4, "Y")
-    for f in range(F_START, f0):
-        sc.frame_set(f)
-        mw = cannon.matrix_world @ seat
-        loc, rot, _ = mw.decompose()
+    with quick_eval():
+        poses = []
+        for f in range(F_START, f0):
+            sc.frame_set(f)
+            poses.append((f, (cannon.matrix_world @ seat).decompose()))
+    for f, (loc, rot, _) in poses:
         ball.rotation_mode = "QUATERNION"
         ball.location = loc
         ball.rotation_quaternion = rot
@@ -1173,6 +1192,22 @@ def stage_shot(coll, M, rigs, shot, target_fn, name, drop_obj, shard_obj, near):
     muzzle_flash(coll, name, muzzle, direction, f0)
     smoke_puffs(coll, name, muzzle, direction, f0, seed=hash(name) % 1000)
     return muzzle, direction, p1
+
+
+class quick_eval:
+    """Switch every modifier off while the build steps through frames just
+    to read keyed transforms (where a cannon is at frame N). Otherwise each
+    frame_set re-runs the ocean FFT, geometry nodes and all, a few seconds a
+    frame, which made building the scene take longer than rendering it."""
+    def __enter__(self):
+        self.saved = [(m, m.show_viewport) for o in bpy.data.objects for m in o.modifiers]
+        for m, _ in self.saved:
+            m.show_viewport = False
+        return self
+
+    def __exit__(self, *exc):
+        for m, v in self.saved:
+            m.show_viewport = v
 
 
 def sea_height_at(near, frame, x, y):
@@ -1203,15 +1238,17 @@ def build_shots(coll, M, rigs, near):
 
     # Shot 2: the Queen's Fleet answers and hits the Corsair amidships.
     def target2(f):
-        sc.frame_set(f)
         cr = rigs["corsairs"]["root"]
-        hit_local = Vector((6.0, -17.2, 17.0))
-        p = cr.matrix_world @ hit_local
-        normal = (cr.matrix_world.to_3x3() @ Vector((0, -1, 0))).normalized()
+        with quick_eval():
+            sc.frame_set(f)
+            crm = cr.matrix_world.copy()
+        hit_local = Vector((6.0, 17.2, 17.0))
+        p = crm @ hit_local
+        normal = (crm.to_3x3() @ Vector((0, 1, 0))).normalized()
 
         def after(ball, f1):
             # Glances off the planking and drops into the sea alongside.
-            v_out = normal * 3.0 + Vector((1.5, 0, 2.5))
+            v_out = normal * 3.0 + Vector((0, 0, 2.5))
             land_f = f1 + 14
             lx, ly = p.x + v_out.x * 14 / FPS, p.y + v_out.y * 14 / FPS
             lz = sea_height_at(near, land_f, lx, ly)
@@ -1220,9 +1257,85 @@ def build_shots(coll, M, rigs, near):
             ball.keyframe_insert("location", frame=land_f + 2)
             splinters(coll, "splinters-2", p, normal, f1, shard, seed=33)
             splash(coll, "splash-2b", Vector((lx, ly, lz)), land_f, drop, scale=0.55, n=400, seed=34)
+            for i, crate in enumerate(rigs["corsairs"].get("cargo", [])):
+                cargo_overboard(coll, crate, rigs["corsairs"]["root"], normal, f1 + 2 + i * 3,
+                                near, drop, seed=40 + i)
         return p, after
 
     stage_shot(coll, M, rigs, SHOT_2, target2, "shot2", drop, shard, near)
+
+
+def cargo_overboard(coll, crate, root, normal, frame, near, drop, seed=40):
+    """The hit jolts the Corsair's deck cargo loose: the crate is thrown up
+    and over the side toward the shot, tumbles into the sea with a splash,
+    then floats, riding the waves as the ship sails on without it.
+
+    The crate on deck is parented to the ship, so the loose crate is a copy
+    in world space that takes over at `frame`; each is hidden while the
+    other is in play."""
+    sc = bpy.context.scene
+    rnd = random.Random(seed)
+    with quick_eval():
+        sc.frame_set(frame)
+        start = crate.matrix_world.copy()
+    loose = link(bpy.data.objects.new(crate.name + "-loose", crate.data), coll)
+    loose.material_slots[0].link = "OBJECT"
+    loose.material_slots[0].material = crate.material_slots[0].material
+    p0, q0, sc0 = start.decompose()
+    loose.scale = sc0
+    loose.rotation_mode = "QUATERNION"
+
+    ship_v = Vector((2.2, 0, 0))
+    v = normal * 4.5 + Vector((0, 0, 3.8)) + ship_v * 0.6
+    spin_axis = Vector((rnd.uniform(-1, 1), rnd.uniform(-1, 1), rnd.uniform(-.3, .3))).normalized()
+    spin_rate = 7.0
+    # Fly until the crate's centre meets the sea (checked against the height
+    # there a moment later, when it will actually arrive).
+    t_land = None
+    for k in range(1, 60):
+        t = k / FPS
+        p = p0 + v * t + Vector((0, 0, -0.5 * G * t * t))
+        if p.z < 1.5:
+            t_land = t
+            break
+    t_land = t_land or 1.2
+    land_f = frame + round(t_land * FPS)
+    pl = p0 + v * t_land + Vector((0, 0, -0.5 * G * t_land * t_land))
+    for f in range(frame, land_f + 1):
+        t = (f - frame) / FPS
+        loose.location = p0 + v * t + Vector((0, 0, -0.5 * G * t * t))
+        loose.rotation_quaternion = Quaternion(spin_axis, spin_rate * t) @ q0
+        loose.keyframe_insert("location", frame=f)
+        loose.keyframe_insert("rotation_quaternion", frame=f)
+    q_land = Quaternion(spin_axis, spin_rate * t_land) @ q0
+    splash(coll, crate.name + "-splash", Vector((pl.x, pl.y, 0.0)), land_f, drop, scale=0.7, n=500, seed=seed)
+
+    # Afloat: sits low, heaves and rocks on the swell, drifts slowly downwind.
+    float_frames = list(range(land_f + 2, F_END + 3, 3))
+    heights = sample_ocean(near, float_frames, lambda f: {"c": [
+        (pl.x + WIND.x * 0.4 * (f - land_f) / FPS, pl.y + WIND.y * 0.4 * (f - land_f) / FPS)]})
+    upright = Quaternion(q_land.to_euler().to_quaternion())
+    for i, f in enumerate(float_frames):
+        t = (f - land_f) / FPS
+        x = pl.x + WIND.x * 0.4 * t
+        y = pl.y + WIND.y * 0.4 * t
+        z = heights[f]["c"][0] - 0.6
+        # Settle from the tumble toward floating flat, then rock.
+        settle = min(1.0, t / 1.2)
+        rock = Euler((math.sin(t * 2.1 + seed) * 0.18, math.sin(t * 1.7 + 1) * 0.14, t * 0.2), "XYZ").to_quaternion()
+        flat = Euler((0, 0, q_land.to_euler().z), "XYZ").to_quaternion() @ rock
+        loose.rotation_quaternion = q_land.slerp(flat, settle)
+        loose.location = (x, y, z) if settle >= 1.0 else (x, y, z * settle + pl.z * (1 - settle))
+        loose.keyframe_insert("location", frame=f)
+        loose.keyframe_insert("rotation_quaternion", frame=f)
+
+    for ob, visible_from in ((crate, None), (loose, frame)):
+        for f, hidden in ((F_START, ob is loose), (frame, ob is crate)):
+            ob.hide_render = hidden
+            ob.hide_viewport = hidden
+            ob.keyframe_insert("hide_render", frame=f)
+            ob.keyframe_insert("hide_viewport", frame=f)
+    return loose
 
 
 def foam_ring(coll, name, center, frame):
@@ -1385,21 +1498,24 @@ def build_terrain(coll):
     far_mat = terrain_material("Headland", W["headland"], rough=0.9, wet_line=False)
 
     base = "assets/stls/base-set/"
-    # The kit's own terrain, blown up to landscape size, beyond the ships.
-    place_piece(coll, base + "island.stl", "Island A", green, (300, -70, 0), 25, 0.75, sink=4)
-    place_piece(coll, base + "island.stl", "Island B", green, (620, 190, 0), -70, 1.1, sink=6)
-    place_piece(coll, base + "island-topper.stl", "Islet", green, (190, 75, 0), 40, 0.55, sink=2)
-    place_piece(coll, base + "rock1.stl", "Rock A", stone, (110, -60, 0), 200, 0.22, sink=1.5)
-    place_piece(coll, base + "rock1.stl", "Rock B", stone, (140, 22, 0), 15, 0.16, sink=1)
-    place_piece(coll, base + "rock1.stl", "Rock C", stone, (60, 62, 0), 110, 0.12, sink=1)
-    place_piece(coll, base + "reef.stl", "Reef A", reef, (70, 8, 0), 40, 0.28, sink=2.2)
-    place_piece(coll, base + "reef.stl", "Reef B", reef, (55, -70, 0), 130, 0.3, sink=2.4)
-    # And the land behind them all, going grey in the rain.
-    backdrop_island(coll, "Headland 1", Vector((1500, -600, 0)), 900, 260, 1, far_mat)
-    backdrop_island(coll, "Headland 2", Vector((2300, 500, 0)), 1400, 420, 2, far_mat)
-    backdrop_island(coll, "Headland 3", Vector((900, 700, 0)), 450, 120, 3, far_mat)
-    backdrop_island(coll, "Headland 4", Vector((3800, -1500, 0)), 1800, 600, 4, far_mat)
-
+    # The kit's own terrain, blown up to landscape size. The island they are
+    # making for is ahead and to starboard of the Queen's Fleet, behind it as
+    # seen from the Corsair; more coast lies behind the Corsair, which is
+    # what the Queen's Fleet's camera sees.
+    place_piece(coll, base + "island.stl", "Island Ahead", green, (300, -120, 0), 25, 0.9, sink=4)
+    place_piece(coll, base + "island.stl", "Island Far", green, (640, 90, 0), -70, 1.3, sink=6)
+    place_piece(coll, base + "island-topper.stl", "Islet", green, (-110, 230, 0), 40, 0.6, sink=2)
+    place_piece(coll, base + "rock1.stl", "Rock A", stone, (150, -75, 0), 200, 0.22, sink=1.5)
+    place_piece(coll, base + "rock1.stl", "Rock B", stone, (-40, 115, 0), 15, 0.16, sink=1)
+    place_piece(coll, base + "rock1.stl", "Rock C", stone, (95, -165, 0), 110, 0.12, sink=1)
+    place_piece(coll, base + "reef.stl", "Reef A", reef, (75, -50, 0), 40, 0.28, sink=1.2)
+    place_piece(coll, base + "reef.stl", "Reef B", reef, (-70, 75, 0), 130, 0.3, sink=1.3)
+    # And the land beyond, on both sides of the channel.
+    backdrop_island(coll, "Headland 1", Vector((1400, -900, 0)), 900, 260, 1, far_mat)
+    backdrop_island(coll, "Headland 2", Vector((900, -1700, 0)), 1400, 420, 2, far_mat)
+    backdrop_island(coll, "Headland 3", Vector((-600, 1400, 0)), 900, 300, 3, far_mat)
+    backdrop_island(coll, "Headland 4", Vector((-1900, 900, 0)), 1500, 500, 4, far_mat)
+    backdrop_island(coll, "Headland 5", Vector((2600, 400, 0)), 1400, 450, 5, far_mat)
 
 # ---------------------------------------------------------------- flags
 
@@ -1605,7 +1721,7 @@ def build_world_sunny():
     k = N.new("ShaderNodeMath"); k.operation = "MULTIPLY"
     L.new(pm.outputs[0], k.inputs[0]); L.new(horizon.outputs[0], k.inputs[1])
     k2 = N.new("ShaderNodeMath"); k2.operation = "MULTIPLY"
-    L.new(k.outputs[0], k2.inputs[0]); k2.inputs[1].default_value = 1.3
+    L.new(k.outputs[0], k2.inputs[0]); k2.inputs[1].default_value = 4.0
     add = N.new("ShaderNodeMix"); add.data_type = "RGBA"; add.blend_type = "ADD"
     L.new(k2.outputs[0], add.inputs[0])
     L.new(withcl.outputs[2], add.inputs[6]); L.new(bow.outputs[0], add.inputs[7])
@@ -1688,10 +1804,10 @@ def build_world_storm():
     L.new(drift.outputs[0], cl.inputs["Vector"])
     L.new(val.outputs[0], cl.inputs["W"])
     cramp = N.new("ShaderNodeValToRGB")
-    cramp.color_ramp.elements[0].position = 0.35
-    cramp.color_ramp.elements[0].color = (1.5, 1.5, 1.5, 1)
-    cramp.color_ramp.elements[1].position = 0.7
-    cramp.color_ramp.elements[1].color = (0.3, 0.32, 0.35, 1)
+    cramp.color_ramp.elements[0].position = 0.45
+    cramp.color_ramp.elements[0].color = (1.9, 1.9, 1.95, 1)
+    cramp.color_ramp.elements[1].position = 0.6
+    cramp.color_ramp.elements[1].color = (0.22, 0.24, 0.27, 1)
     L.new(cl.outputs["Fac"], cramp.inputs[0])
     sky = N.new("ShaderNodeMix"); sky.data_type = "RGBA"; sky.blend_type = "MULTIPLY"
     sky.inputs[0].default_value = 1.0
@@ -1699,7 +1815,7 @@ def build_world_storm():
     lit = N.new("ShaderNodeMix"); lit.data_type = "RGBA"; lit.blend_type = "ADD"
     L.new(gpow.outputs[0], lit.inputs[0])
     L.new(sky.outputs[2], lit.inputs[6])
-    lit.inputs[7].default_value = (0.32, 0.30, 0.26, 1)
+    lit.inputs[7].default_value = (0.20, 0.22, 0.25, 1)
     L.new(lit.outputs[2], bg.inputs["Color"])
     # Lightning: the whole sky flashes.
     bg.inputs["Strength"].default_value = 1.0
@@ -1746,7 +1862,7 @@ def build_lights(coll):
 
 def lightning_bolt(coll):
     rnd = random.Random(8)
-    pts = [Vector((2600, 900, 900))]
+    pts = [Vector((1500, -1300, 900))]
     while pts[-1].z > 0:
         p = pts[-1]
         pts.append(p + Vector((rnd.gauss(0, 35), rnd.gauss(0, 35), -rnd.uniform(40, 90))))
@@ -1780,41 +1896,61 @@ def lightning_bolt(coll):
     o.visible_shadow = False
 
 
-def build_camera(coll):
-    cd = bpy.data.cameras.new("Camera")
-    cd.lens = 26
+def deck_height(rig, x, y):
+    """Hull-space deck height at (x, y): cast down onto the hull mesh."""
+    from mathutils.bvhtree import BVHTree
+    bm = bmesh.new()
+    bm.from_mesh(rig["hull"].data)
+    tree = BVHTree.FromBMesh(bm)
+    bm.free()
+    hit = tree.ray_cast(Vector((x, y, 200)), Vector((0, 0, -1)))
+    return hit[0].z if hit[0] else 20.0
+
+
+def deck_camera(coll, name, rig, other, lens):
+    """A camera standing on `rig`'s deck (eye height ~1.75 m) and riding its
+    motion, kept level and aimed at the other ship, with a little hand-held
+    float."""
+    x, y, eye = SHIPS[rig["key"]]["deck_cam"]
+    z = deck_height(rig, x, y) + eye
+    cd = bpy.data.cameras.new(name)
+    cd.lens = lens
     cd.sensor_width = 36
+    cd.clip_start = 0.1
+    cd.clip_end = 20000
     cd.dof.use_dof = True
     cd.dof.aperture_fstop = 5.6
-    cam = link(bpy.data.objects.new("Camera", cd), coll)
-    bpy.context.scene.camera = cam
-    target = link(bpy.data.objects.new("Camera Target", None), coll)
+    cam = link(bpy.data.objects.new(name, cd), coll)
+    cam.parent = rig["root"]
+    cam.location = (x, y, z)
+    cam.scale = (1 / S, 1 / S, 1 / S)   # cancel the model scale of the parent
+    target = link(bpy.data.objects.new(f"{name} Target", None), coll)
+    target.parent = other["root"]
+    target.location = (0, 0, 14)
     tr = cam.constraints.new("TRACK_TO")
     tr.target = target
     tr.track_axis = "TRACK_NEGATIVE_Z"
     tr.up_axis = "UP_Y"
     cd.dof.focus_object = target
-    # A slow push in low over the water, drifting from the Corsair's bow
-    # toward the gap between the ships, with a little hand-held float.
-    keys = [(F_START, (-64, 9, 3.4), (2, 0, 7.0)),
-            (F_END, (-50, 2, 4.4), (0, -5, 7.5))]
-    for f, p, t in keys:
-        cam.location = p
-        target.location = t
-        cam.keyframe_insert("location", frame=f)
+    # Hand-held: noise on the aim point (in the target ship's mm).
+    for f in (F_START, F_END):
         target.keyframe_insert("location", frame=f)
-    for ob in (cam, target):
-        for fc in _iter_fcurves(ob):
-            for k in fc.keyframe_points:
-                k.interpolation = "BEZIER"
-                k.easing = "EASE_IN_OUT"
-    for i in range(3):
-        fc = next(fc for fc in _iter_fcurves(cam) if fc.data_path == "location" and fc.array_index == i)
+    for fc in _iter_fcurves(target):
         md = fc.modifiers.new("NOISE")
-        md.scale = 40
-        md.strength = (0.25, 0.25, 0.18)[i]
-        md.phase = i * 17
+        md.scale = 30
+        md.strength = (1.2, 1.2, 0.8)[fc.array_index] / S * 0.25
+        md.phase = fc.array_index * 11 + len(name)
     return cam
+
+
+def build_camera(coll, rigs):
+    sc = bpy.context.scene
+    cam_a = deck_camera(coll, "Corsair Deck Cam", rigs["corsairs"], rigs["queens-fleet"], 22)
+    cam_b = deck_camera(coll, "Queen's Deck Cam", rigs["queens-fleet"], rigs["corsairs"], 22)
+    sc.camera = cam_a
+    sc.timeline_markers.new("Corsair fires", frame=F_START).camera = cam_a
+    sc.timeline_markers.new("Queen's Fleet answers", frame=CUT).camera = cam_b
+    return cam_a
 
 
 # ---------------------------------------------------------------- render setup
@@ -1829,12 +1965,18 @@ def setup_render(samples, pct):
         d.use = d.type == "OPTIX"
     sc.cycles.device = "GPU"
     sc.cycles.samples = samples
-    sc.cycles.adaptive_threshold = 0.015
+    # Adaptive sampling stops clean pixels (sky, open water) early; the
+    # denoiser does the rest. 64 samples + a 0.03 threshold looked the same
+    # as 128 + 0.015 at hero size and renders about twice as fast.
+    sc.cycles.adaptive_threshold = 0.03
+    sc.cycles.adaptive_min_samples = 16
     sc.cycles.use_denoising = True
     sc.cycles.denoiser = "OPENIMAGEDENOISE"
-    sc.cycles.max_bounces = 6
-    sc.cycles.diffuse_bounces = 3
-    sc.cycles.glossy_bounces = 4
+    sc.cycles.denoising_use_gpu = True
+    sc.cycles.tile_size = 2048
+    sc.cycles.max_bounces = 4
+    sc.cycles.diffuse_bounces = 2
+    sc.cycles.glossy_bounces = 3
     sc.cycles.transmission_bounces = 4
     sc.cycles.volume_bounces = 1
     sc.cycles.transparent_max_bounces = 8
@@ -1919,6 +2061,44 @@ def build_compositor():
     L.new(final, out.inputs[0])
 
 
+def bake_oceans(frames, weather):
+    """Bake the Ocean modifiers for the frames about to render, so each frame
+    reads its waves from disk instead of recomputing the FFT on the CPU.
+
+    Only done for --render: the .blend is saved before this, unbaked, so the
+    committed scene stays procedural and opens anywhere (a baked modifier
+    points at cache files that would not exist on another machine). Checks
+    one vertex against the live simulation so a time mismatch between the
+    bake and the ships' sampled motion cannot slip by."""
+    sc = bpy.context.scene
+    f0, f1 = frames
+    for name in ("Ocean Near", "Ocean Far"):
+        o = bpy.data.objects[name]
+        m = o.modifiers["Ocean"]
+        probe_f = (f0 + f1) // 2
+        sc.frame_set(probe_f)
+        dg = bpy.context.evaluated_depsgraph_get()
+        me = o.evaluated_get(dg).to_mesh()
+        live = me.vertices[len(me.vertices) // 3].co.copy()
+        o.evaluated_get(dg).to_mesh_clear()
+        d = BUILD / f"ocean-bake-{weather}" / name.split()[-1].lower()
+        d.mkdir(parents=True, exist_ok=True)
+        m.filepath = str(d)
+        m.frame_start, m.frame_end = f0, f1 + 1
+        with bpy.context.temp_override(object=o, active_object=o, selected_objects=[o]):
+            bpy.ops.object.ocean_bake(modifier="Ocean")
+        sc.frame_set(probe_f)
+        dg = bpy.context.evaluated_depsgraph_get()
+        me = o.evaluated_get(dg).to_mesh()
+        baked = me.vertices[len(me.vertices) // 3].co.copy()
+        o.evaluated_get(dg).to_mesh_clear()
+        err = (baked - live).length
+        print(f"[hero] baked {name} frames {f0}-{f1 + 1}; check at {probe_f}: {err:.4f} m")
+        if err > 0.02:
+            raise SystemExit(f"[hero] baked {name} disagrees with the live ocean by {err:.3f} m; "
+                             "the ships would not ride these waves. Not rendering.")
+
+
 # ---------------------------------------------------------------- main
 
 def parse():
@@ -1929,9 +2109,12 @@ def parse():
     p.add_argument("--render", action="store_true")
     p.add_argument("--frames", default="")
     p.add_argument("--pct", type=int, default=100)
-    p.add_argument("--samples", type=int, default=128)
+    p.add_argument("--samples", type=int, default=64)
     p.add_argument("--out", type=Path, default=BUILD)
     p.add_argument("--weather", choices=sorted(WEATHERS), default="sunny")
+    p.add_argument("--threads", type=int, default=6,
+                   help="CPU threads (default 6 of 16): keeps a laptop cool; the GPU does the rendering.")
+    p.add_argument("--no-bake", action="store_true", help="Render with the live ocean.")
     p.add_argument("--no-fx", action="store_true", help="Skip rain/shots (fast layout checks).")
     return p.parse_args(argv)
 
@@ -1956,13 +2139,15 @@ def main():
     build_terrain(coll)
     build_world()
     build_lights(coll)
-    cam = build_camera(coll)
+    cam = build_camera(coll, rigs)
     if not a.no_fx:
         build_shots(coll, M, rigs, near)
-        build_rain(coll, Vector((-57, 5, 0)))
+        build_rain(coll, Vector((12, 0, 0)))
         if W["lightning"]:
             lightning_bolt(coll)
     setup_render(a.samples, a.pct)
+    sc.render.threads_mode = "FIXED"
+    sc.render.threads = a.threads
 
     a.save.parent.mkdir(parents=True, exist_ok=True)
     # Pack the flag textures so the .blend opens on any machine.
@@ -1981,6 +2166,8 @@ def main():
         if a.frames:
             s, e = (int(x) for x in a.frames.split("-"))
             sc.frame_start, sc.frame_end = s, e
+        if not a.no_bake:
+            bake_oceans((sc.frame_start, sc.frame_end), a.weather)
         sc.render.filepath = str(a.out / f"frames-{a.weather}" / "hero_")
         bpy.ops.render.render(animation=True)
 

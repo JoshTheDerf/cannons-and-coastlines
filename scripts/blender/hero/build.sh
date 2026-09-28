@@ -26,6 +26,8 @@ mkdir -p "$REPO/build/hero"
 cd "$REPO"
 for w in "${weathers[@]}"; do
   echo "==> $w"
-  "$BLENDER" -b --python scripts/blender/hero_battle.py -- \
+  # nice + a thread cap (in hero_battle.py, --threads, default 6) keep the
+  # CPU side from cooking a laptop; the render itself is on the GPU.
+  nice -n 10 "$BLENDER" -b -t "${BLENDER_THREADS:-6}" --python scripts/blender/hero_battle.py -- \
       --weather "$w" --save "$HERE/hero-battle-$w.blend" "$@"
 done
