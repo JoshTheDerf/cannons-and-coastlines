@@ -48,7 +48,7 @@ BUILD = REPO / "build" / "hero"
 
 S = 0.25            # metres per model millimetre: a 120 mm hull is a 30 m ship
 FPS = 24
-F_START, F_END = 1, 192
+F_START, F_END = 1, 288
 PREROLL = 48        # frames of ship motion simulated before F_START so it starts settled
 G = 9.81
 
@@ -57,7 +57,10 @@ G = 9.81
 WIND = Vector((1.0, -0.25, 0.0)).normalized()
 
 # The action. Both ships sail away from the start, toward the island ahead
-# (+X), side by side 30 m apart, the Queen's Fleet half a length ahead. A hull's bow is its -X, so heading 180 deg points it down +X.
+# (+X), side by side 30 m apart. The Queen's Fleet starts well ahead, beyond
+# the arc of the Corsair's gun; the Corsair, much the faster, runs it down
+# (see CHASE) until the gun bears, fires, then eases to just a little faster
+# than its quarry. A hull's bow is its -X, so heading 180 deg points it down +X.
 # Sailing that way the Corsair's starboard (hull +Y) side faces the Queen's
 # Fleet and the Queen's Fleet's port (hull -Y) side faces the Corsair.
 # Each gun is in the angled socket on that side and trained on the other
@@ -68,26 +71,85 @@ WIND = Vector((1.0, -0.25, 0.0)).normalized()
 # (7 mm) would put the camera behind the gun. So the eye is above the gun's
 # top, off the centreline opposite it, so the gun sits at the frame's edge.
 SHIPS = {
-    "corsairs":     {"pos": Vector((0.0, 15.0)), "heading": 180.0, "speed": 2.2,
+    "corsairs":     {"pos": Vector((0.0, 15.0)), "heading": 180.0, "speed": 2.2, "chase": True,
                      "cannon": {"at": [-10.9, 6.69, 15.88], "rotZ": 118.0},
-                     "deck_cam": (2.0, -4.0, 13.0)},
-    "queens-fleet": {"pos": Vector((16.0, -15.0)), "heading": 180.0, "speed": 2.2,
+                     # Low, just aft of the gun, so its barrel runs along the
+                     # bottom of the frame.
+                     "deck_cam": (-1.0, -3.0, 9.0)},
+    "queens-fleet": {"pos": None, "heading": 180.0, "speed": 2.2,   # pos: see below
                      "cannon": {"at": [3.21, -6.74, 14.9], "rotZ": -62.0},
-                     "deck_cam": (-8.0, 3.0, 13.0)},
+                     # On deck just forward of the gun and to one side, low,
+                     # looking back over its barrel at the Corsair: the gun and
+                     # a corner of the deck and stern castle say whose ship
+                     # this is. (The Corsair's camera mirrors it.)
+                     "deck_cam": (1.0, 3.5, 9.0)},
+    # Two more of the Corsair's consorts, a couple of hundred metres astern
+    # on the same course, filling out the Queen's Fleet's view behind it.
+    # Each on its own slightly different course and speed, so they read as
+    # separate ships rather than a formation, but roughly keeping pace with
+    # the lead Corsair (within ~0.1 m/s of it).
+    # Placed so that when the Queen's Fleet fires (frame ~178) they stand
+    # clear either side of the foreground Corsair in its camera, ~35 deg
+    # left at ~150 m and ~33 deg right at ~170 m, rather than behind it.
+    "corsairs-2":   {"model": "corsairs", "pos": Vector((-111.0, 66.0)), "heading": 177.0,
+                     "speed": 2.1, "chase": True, "cannon": {"at": [-10.9, 6.69, 15.88], "rotZ": 118.0}},
+    "corsairs-3":   {"model": "corsairs", "pos": Vector((39.0, 150.0)), "heading": 184.0,
+                     "speed": 2.3, "chase": True, "cannon": {"at": [-10.9, 6.69, 15.88], "rotZ": 118.0}},
 }
 # The guns and balls are drawn smaller than the game's: at true size a gun
 # is a third of the beam and walls off the deck cameras.
-GUN_SCALE = 0.6
-WATERLINE_MM = 7.0  # hull height (mm) the mean sea surface cuts
+GUN_SCALE = 0.45
+WATERLINE_MM = 6.0  # hull height (mm) the mean sea surface cuts
 NEAR_C = Vector((30.0, 0.0))   # centre of the fine ocean patch
 
 # Timeline (frames). Two shots, cut in the middle: from the Corsair's deck as
 # it fires on the Queen's Fleet, then from the Queen's Fleet's deck as it
 # answers.
-CUT = 97
-SHOT_1 = {"from": "corsairs", "fire": 30, "flight": 20}        # falls just short: splash
-SHOT_2 = {"from": "queens-fleet", "fire": 124, "flight": 18}   # hits the Corsair's side
-LIGHTNING = [(68, 1.0), (70, 0.35), (72, 0.8), (170, 0.6), (172, 0.2)]
+CUT = 150
+SHOT_1 = {"from": "corsairs", "fire": 84, "flight": 20}        # falls just short: splash
+SHOT_2 = {"from": "queens-fleet", "fire": 178, "flight": 18}   # hits the Corsair's side
+# ...and fires again: brings down the Corsair's foremast, which crippled,
+# falls off the pace (CRIPPLE).
+SHOT_3 = {"from": "queens-fleet", "fire": 206, "flight": 18, "train": (198, 205)}
+CRIPPLE = {"to": 0.6, "over": 2.0}   # speed (m/s) the Corsair slows to, over this many s
+LIGHTNING = [(118, 1.0), (120, 0.35), (122, 0.8), (236, 0.6), (238, 0.2)]
+
+# The chase. Ships marked "chase" sail CHASE["extra"] m/s faster than their
+# base speed until the first shot, then ease over CHASE["ease"] s to
+# CHASE["after"] m/s faster, which they keep. The Queen's Fleet's start is
+# set so that when the Corsair fires it is CHASE["lead"] m ahead, the lead
+# the Corsair's gun is trained for.
+CHASE = {"extra": 2.4, "ease": 1.5, "after": 0.35, "lead": 16.0}
+
+
+def chase_distance(t):
+    """Extra distance (m) a chasing ship has made good by time t (s)."""
+    t1 = (SHOT_1["fire"] - F_START) / FPS
+    e, E, a = CHASE["extra"], CHASE["ease"], CHASE["after"]
+    if t <= t1:
+        return e * t
+    d = e * t1
+    u = min(t - t1, E)
+    d += e * u + (a - e) * u * u / (2 * E)     # speed eases linearly e -> a
+    if t - t1 > E:
+        d += a * (t - t1 - E)
+    return d
+
+
+SHIPS["queens-fleet"]["pos"] = Vector(
+    (SHIPS["corsairs"]["pos"].x + CHASE["lead"] + chase_distance((SHOT_1["fire"] - F_START) / FPS), -15.0))
+
+# The two consorts steer to intercept the Queen's Fleet: each heads for where
+# it will be INTERCEPT_S seconds on (a long, converging course, not a dash
+# across the frame), a few degrees either side of it so they don't sail in
+# lockstep. heading h means travel along (-cos h, -sin h).
+INTERCEPT_S = 40.0
+_q = SHIPS["queens-fleet"]
+_aim = _q["pos"] + Vector((-math.cos(math.radians(_q["heading"])),
+                           -math.sin(math.radians(_q["heading"])))) * _q["speed"] * INTERCEPT_S
+for _k, _off in (("corsairs-2", 3.0), ("corsairs-3", -3.0)):
+    _d = _aim - SHIPS[_k]["pos"]
+    SHIPS[_k]["heading"] = math.degrees(math.atan2(-_d.y, -_d.x)) + _off
 
 # The two looks. `sun` points from the scene toward the sun.
 #   sunny: a bright afternoon after the squall has passed over. The sun is
@@ -101,9 +163,9 @@ WEATHERS = {
     "sunny": dict(
         sun=(-0.90, 0.33, 0.43), sun_energy=4.2, sun_angle=0.6, sun_color=(1.0, 0.93, 0.82),
         fog=(0.46, 0.56, 0.68, 1), mist=0.22, mist_start=250, mist_depth=9000,
-        exposure=-0.5, wind=10.5, wave_scale=1.35, chop=1.25, foam=0.12,
-        rain=22000, rain_alpha=0.2, rain_glow=0.08, lightning=False,
-        sea_deep=(0.002, 0.028, 0.045, 1), sea_crest=(0.006, 0.13, 0.14, 1),
+        exposure=-0.5, wind=9.0, wave_scale=1.0, chop=1.1, foam=0.05,
+        rain=22000, rain_alpha=0.2, rain_glow=0.35, lightning=False,
+        sea_deep=(0.004, 0.028, 0.03, 1), sea_crest=(0.02, 0.16, 0.13, 1),
         island=(0.07, 0.16, 0.045, 1), headland=(0.05, 0.085, 0.045, 1),
         smoke=(0.85, 0.84, 0.8, 1), wet=0.0),
     "storm": dict(
@@ -111,7 +173,7 @@ WEATHERS = {
         fog=(0.10, 0.115, 0.125, 1), mist=0.75, mist_start=80, mist_depth=5000,
         exposure=0.45, wind=15.0, wave_scale=2.2, chop=1.5, foam=0.4,
         rain=45000, rain_alpha=0.3, rain_glow=0.12, lightning=True,
-        sea_deep=(0.004, 0.016, 0.018, 1), sea_crest=(0.02, 0.07, 0.065, 1),
+        sea_deep=(0.004, 0.02, 0.02, 1), sea_crest=(0.025, 0.12, 0.09, 1),
         island=(0.06, 0.12, 0.05, 1), headland=(0.035, 0.05, 0.04, 1),
         smoke=(0.62, 0.62, 0.6, 1), wet=0.12),
 }
@@ -245,7 +307,8 @@ def plastic(name, color, rough=0.45, layers=True, metallic=0.0, translucent=0.0,
     setin(b, "Sheen Weight", 0.0)
     if sss:
         setin(b, "Subsurface Weight", sss)
-        setin(b, "Subsurface Radius", (1.0, 0.75, 0.55))
+        # Neutral scatter: a warm radius turns black filament brown in sun.
+        setin(b, "Subsurface Radius", (1.0, 0.95, 0.9))
         setin(b, "Subsurface Scale", 1.2 * S)   # ~1 mm of light travel in the filament
     rough_out = None
     if layers:
@@ -307,6 +370,72 @@ def plastic(name, color, rough=0.45, layers=True, metallic=0.0, translucent=0.0,
     return m
 
 
+def queens_livery():
+    """The Queen's Fleet hull as a painted man-o'-war, since blue-grey
+    filament vanished against the sea: light wood planking with a faint
+    grain along the length and a navy strake along the side between gold
+    wale lines. Bands are by hull height in mm (object space), measured off
+    the hull: waterline 7, sides up to a rail at ~15-21."""
+    m = plastic("Queen's Hull", (0.36, 0.2, 0.09, 1), rough=0.45, sss=0.12)
+    nt, N, L = nodes(m)
+    b = bsdf_of(m)
+    tc = N.new("ShaderNodeTexCoord")
+    sep = N.new("ShaderNodeSeparateXYZ")
+    L.new(tc.outputs["Object"], sep.inputs[0])
+    nsep = N.new("ShaderNodeSeparateXYZ")
+    L.new(tc.outputs["Normal"], nsep.inputs[0])
+
+    def cmp(sock, op, v):
+        c = N.new("ShaderNodeMath"); c.operation = op
+        L.new(sock, c.inputs[0]); c.inputs[1].default_value = v
+        return c.outputs[0]
+
+    def mul(*socks):
+        out = socks[0]
+        for sk in socks[1:]:
+            n = N.new("ShaderNodeMath"); n.operation = "MULTIPLY"
+            L.new(out, n.inputs[0]); L.new(sk, n.inputs[1])
+            out = n.outputs[0]
+        return out
+
+    def add(a, b_):
+        n = N.new("ShaderNodeMath"); n.operation = "ADD"; n.use_clamp = True
+        L.new(a, n.inputs[0]); L.new(b_, n.inputs[1])
+        return n.outputs[0]
+
+    z = sep.outputs["Z"]
+    band = lambda lo, hi: mul(cmp(z, "GREATER_THAN", lo), cmp(z, "LESS_THAN", hi))
+    side = cmp(nsep.outputs["Z"], "LESS_THAN", 0.6)   # hull sides, not deck or rail tops
+    # Just the one painted strake along the side, between gold lines. (A
+    # blue rail cap and gilded stern castle only half covered the carving,
+    # which read as a mess.)
+    blue = mul(band(9.7, 13.1), side)
+    gold = mul(add(band(9.1, 9.7), band(13.1, 13.6)), side)
+
+    # Planking: light wood with a grain stretched along the hull.
+    grain_v = N.new("ShaderNodeVectorMath"); grain_v.operation = "MULTIPLY"
+    L.new(tc.outputs["Object"], grain_v.inputs[0]); grain_v.inputs[1].default_value = (0.08, 1.2, 1.2)
+    grain = N.new("ShaderNodeTexNoise")
+    grain.inputs["Scale"].default_value = 1.0
+    grain.inputs["Detail"].default_value = 4
+    L.new(grain_v.outputs[0], grain.inputs["Vector"])
+    wood = N.new("ShaderNodeValToRGB")
+    wood.color_ramp.elements[0].color = (0.27, 0.14, 0.06, 1)
+    wood.color_ramp.elements[1].color = (0.40, 0.23, 0.10, 1)
+    L.new(grain.outputs["Fac"], wood.inputs[0])
+    c1 = N.new("ShaderNodeMix"); c1.data_type = "RGBA"
+    L.new(blue, c1.inputs[0]); L.new(wood.outputs[0], c1.inputs[6])
+    c1.inputs[7].default_value = (0.075, 0.075, 0.09, 1)   # weathered slate, near the wood
+    c2 = N.new("ShaderNodeMix"); c2.data_type = "RGBA"
+    L.new(gold, c2.inputs[0]); L.new(c1.outputs[2], c2.inputs[6])
+    c2.inputs[7].default_value = (1.0, 0.56, 0.13, 1)
+    L.new(c2.outputs[2], b.inputs["Base Color"])
+    met = N.new("ShaderNodeMath"); met.operation = "MULTIPLY"
+    L.new(gold, met.inputs[0]); met.inputs[1].default_value = 0.7
+    L.new(met.outputs[0], b.inputs["Metallic"])
+    return m
+
+
 def emissive(name, color, strength):
     m = new_material(name)
     nt, N, L = nodes(m)
@@ -322,15 +451,17 @@ def build_materials():
     M = {}
     # Hull and fitting colours are the kit's filaments. The Corsair's black is
     # lifted a touch: under an overcast sky pure filament black is a hole.
-    M["black-hull"] = plastic("Corsair Hull", (0.035, 0.035, 0.038, 1), rough=0.42, sss=0.08)
-    M["black"] = plastic("Black PLA", (0.028, 0.028, 0.03, 1), rough=0.42, sss=0.08)
+    M["black-hull"] = plastic("Corsair Hull", (0.035, 0.035, 0.038, 1), rough=0.42, sss=0.03)
+    M["black"] = plastic("Black PLA", (0.028, 0.028, 0.03, 1), rough=0.42, sss=0.03)
     M["black-sail"] = plastic("Corsair Sail", (0.03, 0.03, 0.032, 1), rough=0.55,
-                              layers=False, translucent=0.08, sss=0.08)
-    M["blue-grey"] = plastic("Queen's Hull", (0.50, 0.58, 0.68, 1), rough=0.45, sss=0.2)
+                              layers=False, translucent=0.08, sss=0.03)
+    M["blue-grey"] = queens_livery()   # the Queen's Fleet hull (kit colour key "blue-grey")
     M["white"] = plastic("Sail White", (0.86, 0.84, 0.80, 1), rough=0.55,
                          layers=False, translucent=0.3, sss=0.3)
     M["wood"] = plastic("Wood PLA", (0.30, 0.17, 0.08, 1), rough=0.5, sss=0.15)
-    M["gunmetal"] = plastic("Cannon", (0.03, 0.03, 0.03, 1), rough=0.4, sss=0.08)
+    # The Queen's Fleet's masts: a dark walnut brown, deeper than the crates.
+    M["mast-wood"] = plastic("Mast Wood PLA", (0.075, 0.035, 0.015, 1), rough=0.48, sss=0.1)
+    M["gunmetal"] = plastic("Cannon", (0.03, 0.03, 0.03, 1), rough=0.4, sss=0.03)
     M["grey"] = plastic("Grey PLA", (0.45, 0.45, 0.45, 1), sss=0.2)
     M["neon-green"] = plastic("Cannonball", (0.22, 0.58, 0.10, 1), rough=0.42, sss=0.25)
     # Silk gold PLA: the one genuinely shiny filament, metallic-looking and
@@ -399,8 +530,66 @@ def bend_sail(me, holes, chord_ratio):
     me.update()
 
 
+_sail_ripple = None
+
+
+def sail_ripple_group():
+    """Wind stirring the canvas: a travelling wave pushed through the sheet
+    (sail-local X, fore and aft, the way the sheet bellies), strongest at the
+    free edges and still at the mast (sail-local Y = 0), about half a
+    millimetre at model scale. Two waves at odd ratios so it never repeats
+    visibly; phase drifts with height so each sail moves on its own."""
+    global _sail_ripple
+    if _sail_ripple:
+        return _sail_ripple
+    ng = bpy.data.node_groups.new("sail-ripple", "GeometryNodeTree")
+    ng.interface.new_socket("Geometry", in_out="INPUT", socket_type="NodeSocketGeometry")
+    ng.interface.new_socket("Geometry", in_out="OUTPUT", socket_type="NodeSocketGeometry")
+    N, L = ng.nodes, ng.links
+    gi, go = N.new("NodeGroupInput"), N.new("NodeGroupOutput")
+    pos = N.new("GeometryNodeInputPosition")
+    sep = N.new("ShaderNodeSeparateXYZ")
+    L.new(pos.outputs[0], sep.inputs[0])
+    st = N.new("GeometryNodeInputSceneTime")
+
+    def wave(ky, kz, w, amp):
+        a = N.new("ShaderNodeMath"); a.operation = "MULTIPLY"
+        L.new(sep.outputs["Y"], a.inputs[0]); a.inputs[1].default_value = ky
+        b = N.new("ShaderNodeMath"); b.operation = "MULTIPLY_ADD"
+        L.new(sep.outputs["Z"], b.inputs[0]); b.inputs[1].default_value = kz
+        L.new(a.outputs[0], b.inputs[2])
+        c = N.new("ShaderNodeMath"); c.operation = "MULTIPLY_ADD"
+        L.new(st.outputs["Seconds"], c.inputs[0]); c.inputs[1].default_value = -w
+        L.new(b.outputs[0], c.inputs[2])
+        sn = N.new("ShaderNodeMath"); sn.operation = "SINE"
+        L.new(c.outputs[0], sn.inputs[0])
+        m = N.new("ShaderNodeMath"); m.operation = "MULTIPLY"
+        L.new(sn.outputs[0], m.inputs[0]); m.inputs[1].default_value = amp
+        return m.outputs[0]
+
+    w1 = wave(0.22, 0.09, 5.5, 0.45)
+    w2 = wave(0.51, -0.17, 8.3, 0.2)
+    sm = N.new("ShaderNodeMath"); sm.operation = "ADD"
+    L.new(w1, sm.inputs[0]); L.new(w2, sm.inputs[1])
+    ay = N.new("ShaderNodeMath"); ay.operation = "ABSOLUTE"
+    L.new(sep.outputs["Y"], ay.inputs[0])
+    pin = N.new("ShaderNodeMapRange"); pin.interpolation_type = "SMOOTHSTEP"
+    pin.inputs["From Min"].default_value = 1.5
+    pin.inputs["From Max"].default_value = 18.0
+    L.new(ay.outputs[0], pin.inputs["Value"])
+    dx = N.new("ShaderNodeMath"); dx.operation = "MULTIPLY"
+    L.new(sm.outputs[0], dx.inputs[0]); L.new(pin.outputs[0], dx.inputs[1])
+    off = N.new("ShaderNodeCombineXYZ")
+    L.new(dx.outputs[0], off.inputs["X"])
+    sp = N.new("GeometryNodeSetPosition")
+    L.new(gi.outputs[0], sp.inputs["Geometry"]); L.new(off.outputs[0], sp.inputs["Offset"])
+    L.new(sp.outputs[0], go.inputs[0])
+    _sail_ripple = ng
+    return ng
+
+
 def build_ship(key, M, coll):
-    ship = DATA["ships"][key]
+    ship = DATA["ships"][SHIPS[key].get("model", key)]
     parts = DATA["parts"]
     root = link(bpy.data.objects.new(f"{key}-root", None), coll)
     root.scale = (S, S, S)
@@ -441,6 +630,8 @@ def build_ship(key, M, coll):
             mat = M["black-sail"] if color == "black" else M[color]
             add(o, mat, Matrix.Translation((mast["at"][0], mast["at"][1], z)))
             rig.setdefault("sails", []).append(o)
+            rig.setdefault("sails_on_mast", {}).setdefault(p.get("onMast", 0), []).append(o)
+            o.modifiers.new("Wind", "NODES").node_group = sail_ripple_group()
             continue
         if p["part"] == "cannon":
             # The kit's own placement shows the gun in its default socket; the
@@ -448,13 +639,16 @@ def build_ship(key, M, coll):
             p = dict(p, at=cannon_spec["at"], rotZ=cannon_spec["rotZ"])
         m = place_matrix(p["at"], p.get("rotZ", 0), part.get("anchor", (0, 0, 0)), p.get("rotX", 0),
                          GUN_SCALE if p["part"] == "cannon" else 1.0)
-        o = add(part_object(f"{key}-{p['part']}{i}", stl), M[color], m)
+        mat = M["mast-wood"] if p["part"].startswith("mast") and color == "wood" else M[color]
+        o = add(part_object(f"{key}-{p['part']}{i}", stl), mat, m)
         if p["part"] == "cannon":
             rig["cannon"] = o
             rig["cannon_rest"] = m.copy()
         if p["part"] in ("cargo", "barrel"):
             rig.setdefault("cargo", []).append(o)
         if p["part"].startswith("mast"):
+            rig.setdefault("masts", []).append(o)
+            rig.setdefault("mast_at", []).append(Vector(p["at"]))
             rig.setdefault("mast_tops", []).append(
                 Vector((p["at"][0], p["at"][1], p["at"][2] + part["height"])))
     return rig
@@ -541,17 +735,24 @@ def water_material():
     m = new_material("Sea")
     nt, N, L = nodes(m)
     b = bsdf_of(m)
-    b.inputs["Roughness"].default_value = 0.09
-    b.inputs["IOR"].default_value = 1.333
-    setin(b, "Specular IOR Level", 0.5)
-    # Colour: deep storm green-grey, lifted toward sea-glass on the crests
-    # where light would come through the wave, and white where it foams.
+    b.inputs["Roughness"].default_value = 0.3
+    b.inputs["IOR"].default_value = 1.45
+    setin(b, "Specular IOR Level", 0.35)
+    # Toy-box sea: moulded plastic rather than real water. Dark green-teal
+    # from trough to crest, a satin (not glassy) finish, a little subsurface glow in
+    # the crests, and hard-edged painted-on foam.
+    setin(b, "Coat Weight", 0.15)
+    setin(b, "Coat Roughness", 0.2)
+    setin(b, "Subsurface Weight", 0.15)
+    setin(b, "Subsurface Radius", (0.3, 1.0, 0.9))
+    setin(b, "Subsurface Scale", 0.4)
     geo = N.new("ShaderNodeNewGeometry")
     sep = N.new("ShaderNodeSeparateXYZ")
     L.new(geo.outputs["Position"], sep.inputs[0])
     crest = N.new("ShaderNodeMapRange")
-    crest.inputs["From Min"].default_value = -0.3
-    crest.inputs["From Max"].default_value = 1.6
+    crest.interpolation_type = "SMOOTHSTEP"
+    crest.inputs["From Min"].default_value = -0.4
+    crest.inputs["From Max"].default_value = 1.0
     L.new(sep.outputs["Z"], crest.inputs["Value"])
     body = N.new("ShaderNodeMix"); body.data_type = "RGBA"
     body.inputs[6].default_value = W["sea_deep"]
@@ -569,18 +770,24 @@ def water_material():
     L.new(foam.outputs["Fac"], fmul.inputs[0])
     L.new(fn.outputs["Fac"], fmul.inputs[1])
     framp = N.new("ShaderNodeValToRGB")
-    framp.color_ramp.elements[0].position = 0.22
-    framp.color_ramp.elements[1].position = 0.55
+    framp.color_ramp.elements[0].position = 0.36
+    framp.color_ramp.elements[1].position = 0.40
     L.new(fmul.outputs[0], framp.inputs[0])
     col = N.new("ShaderNodeMix"); col.data_type = "RGBA"
-    L.new(framp.outputs[0], col.inputs[0])
+    # Every foam source (whitecaps here, ship wakes added later by
+    # add_wakes_to_sea) is MAXed into this one value.
+    foam_total = N.new("ShaderNodeMath"); foam_total.operation = "MAXIMUM"
+    foam_total.name = "foam_total"
+    L.new(framp.outputs[0], foam_total.inputs[0])
+    foam_total.inputs[1].default_value = 0.0
+    L.new(foam_total.outputs[0], col.inputs[0])
     L.new(body.outputs[2], col.inputs[6])
-    col.inputs[7].default_value = (0.55, 0.58, 0.58, 1)
+    col.inputs[7].default_value = (0.85, 0.9, 0.9, 1)
     L.new(col.outputs[2], b.inputs["Base Color"])
     rough = N.new("ShaderNodeMapRange")
-    rough.inputs["To Min"].default_value = 0.09
-    rough.inputs["To Max"].default_value = 0.7
-    L.new(framp.outputs[0], rough.inputs["Value"])
+    rough.inputs["To Min"].default_value = 0.3
+    rough.inputs["To Max"].default_value = 0.55
+    L.new(foam_total.outputs[0], rough.inputs["Value"])
     L.new(rough.outputs[0], b.inputs["Roughness"])
 
     # Rain on the water: small wind ripples plus rings from drops, moving.
@@ -622,7 +829,7 @@ def water_material():
     L.new(fade.outputs[0], add.inputs[0])
     L.new(ripple.outputs["Fac"], add.inputs[2])
     bump = N.new("ShaderNodeBump")
-    bump.inputs["Strength"].default_value = 0.05
+    bump.inputs["Strength"].default_value = 0.015
     bump.inputs["Distance"].default_value = 0.03
     L.new(add.outputs[0], bump.inputs["Height"])
     L.new(bump.outputs["Normal"], b.inputs["Normal"])
@@ -664,30 +871,75 @@ def gn_delete_box(obj, xmin, xmax, ymin, ymax):
     mod.node_group = ng
 
 
+OCEAN_TILE, OCEAN_REPEAT = 256, 3
+OCEAN_FADE = (250.0, 360.0)   # wave height fades to flat between these radii
+
+
+def gn_fade_waves(obj, center, r0, r1):
+    """Geometry nodes after the ocean: scale wave height to zero between
+    radii r0 and r1 from `center` (object space), so the tiled sea lies
+    flat by its edge and meets the horizon plane with no step."""
+    ng = bpy.data.node_groups.new(f"{obj.name}-fade", "GeometryNodeTree")
+    ng.interface.new_socket("Geometry", in_out="INPUT", socket_type="NodeSocketGeometry")
+    ng.interface.new_socket("Geometry", in_out="OUTPUT", socket_type="NodeSocketGeometry")
+    N, L = ng.nodes, ng.links
+    gi, go = N.new("NodeGroupInput"), N.new("NodeGroupOutput")
+    pos = N.new("GeometryNodeInputPosition")
+    sep = N.new("ShaderNodeSeparateXYZ")
+    L.new(pos.outputs[0], sep.inputs[0])
+    flat = N.new("ShaderNodeCombineXYZ")
+    L.new(sep.outputs["X"], flat.inputs["X"]); L.new(sep.outputs["Y"], flat.inputs["Y"])
+    dist = N.new("ShaderNodeVectorMath"); dist.operation = "DISTANCE"
+    L.new(flat.outputs[0], dist.inputs[0]); dist.inputs[1].default_value = (center[0], center[1], 0)
+    fade = N.new("ShaderNodeMapRange")
+    fade.interpolation_type = "SMOOTHSTEP"
+    fade.inputs["From Min"].default_value = r0
+    fade.inputs["From Max"].default_value = r1
+    fade.inputs["To Min"].default_value = 1.0
+    fade.inputs["To Max"].default_value = 0.0
+    L.new(dist.outputs["Value"], fade.inputs["Value"])
+    z = N.new("ShaderNodeMath"); z.operation = "MULTIPLY"
+    L.new(sep.outputs["Z"], z.inputs[0]); L.new(fade.outputs[0], z.inputs[1])
+    out = N.new("ShaderNodeCombineXYZ")
+    L.new(sep.outputs["X"], out.inputs["X"]); L.new(sep.outputs["Y"], out.inputs["Y"])
+    L.new(z.outputs[0], out.inputs["Z"])
+    sp = N.new("GeometryNodeSetPosition")
+    L.new(gi.outputs[0], sp.inputs["Geometry"]); L.new(out.outputs[0], sp.inputs["Position"])
+    L.new(sp.outputs[0], go.inputs[0])
+    obj.modifiers.new("Fade", "NODES").node_group = ng
+
+
 def build_ocean(coll):
+    """One FFT ocean, tiled. The simulated patch is periodic, so its copies
+    join without a seam (separate patches of different sizes did not, and
+    showed as steps in the water). The 3x3 tiles are centred on the
+    action; the waves fade flat toward the edge, where a flat plane at the
+    same level carries the sea to the horizon on shader ripples alone."""
     mat = water_material()
-    # Near patch: fine enough to carry the ships and the splashes.
-    me = bpy.data.meshes.new("ocean-near")
+    me = bpy.data.meshes.new("ocean")
     near = link(bpy.data.objects.new("Ocean Near", me), coll)
-    near.location = (NEAR_C.x, NEAR_C.y, 0)
-    ocean_modifier(near, 256, 48)
+    # Tiles run +X/+Y from the first; put the middle one over NEAR_C.
+    half = OCEAN_TILE * (OCEAN_REPEAT - 1) / 2
+    near.location = (NEAR_C.x - half, NEAR_C.y - half, 0)
+    ocean_modifier(near, OCEAN_TILE, 32, repeat=OCEAN_REPEAT)
+    gn_fade_waves(near, (half, half), *OCEAN_FADE)
     me.materials.append(mat)
-    # Far patch: same spectrum, coarser, out into the distance, centred on
-    # the near patch and cut where it sits.
-    me2 = bpy.data.meshes.new("ocean-far")
-    far = link(bpy.data.objects.new("Ocean Far", me2), coll)
-    far.location = (NEAR_C.x, NEAR_C.y, 0)
-    ocean_modifier(far, 1024, 16, repeat=1)
-    gn_delete_box(far, -126, 126, -126, 126)
-    me2.materials.append(mat)
-    # Beyond that, a flat sea to the horizon; its ripples are all shader.
-    bpy.ops.mesh.primitive_plane_add(size=60000, location=(0, 0, -1.2))
-    horizon = bpy.context.active_object
-    horizon.name = "Ocean Horizon"
-    for c in list(horizon.users_collection):
-        c.objects.unlink(horizon)
-    link(horizon, coll)
-    gn_delete_box(horizon, NEAR_C.x - 508, NEAR_C.x + 508, NEAR_C.y - 508, NEAR_C.y + 508)
+    # No deformation blur on the sea: its waves barely move in a 1/48 s
+    # shutter, and blurring 2.4M moving vertices needs several copies of
+    # them on the GPU, which ran an 8 GB card out of memory.
+    near.cycles.use_deform_motion = False
+    # The rest of the sea to the horizon: a square frame of four quads around
+    # the tiled ocean (a single quad with a hole cut by geometry nodes lost
+    # its only face, since that face's centre lies inside the hole).
+    edge = OCEAN_FADE[1] + 10
+    far = 30000.0
+    cx, cy = NEAR_C.x, NEAR_C.y
+    vs = [(cx - far, cy - far), (cx + far, cy - far), (cx + far, cy + far), (cx - far, cy + far),
+          (cx - edge, cy - edge), (cx + edge, cy - edge), (cx + edge, cy + edge), (cx - edge, cy + edge)]
+    hme = bpy.data.meshes.new("ocean-horizon")
+    hme.from_pydata([(x, y, -0.02) for x, y in vs], [],
+                    [(0, 1, 5, 4), (1, 2, 6, 5), (2, 3, 7, 6), (3, 0, 4, 7)])
+    horizon = link(bpy.data.objects.new("Ocean Horizon", hme), coll)
     horizon.data.materials.append(mat)
     return near
 
@@ -737,7 +989,8 @@ def cached_ship_samples(near, frames, rigs):
                       "wind_velocity", "wave_scale", "choppiness", "wave_alignment",
                       "wave_direction", "damping", "depth")], list(near.location),
                       frames[0], frames[-1], S, {k: [SHIPS[k]["pos"][:], SHIPS[k]["heading"],
-                      SHIPS[k]["speed"]] for k in rigs}], default=float)
+                      SHIPS[k]["speed"], SHIPS[k].get("chase", False)] for k in rigs}, CHASE,
+                      SHOT_1["fire"], SHOT_3, CRIPPLE], default=float)
     path = BUILD / f"ocean-samples-{hashlib.sha1(key.encode()).hexdigest()[:12]}.json"
     if path.exists():
         raw = json.loads(path.read_text())
@@ -774,7 +1027,29 @@ def ship_base(key, frame):
     h = math.radians(s["heading"])
     fwd = Vector((-math.cos(h), -math.sin(h)))   # bow is hull -X
     t = (frame - F_START) / FPS
-    return s["pos"] + fwd * s["speed"] * t, h
+    d = s["speed"] * t + (chase_distance(t) if s.get("chase") else 0.0)
+    if key == "corsairs":
+        d -= cripple_distance(t)
+    return s["pos"] + fwd * d, h
+
+
+def cripple_distance(t):
+    """Distance the Corsair loses once its foremast is down: its speed
+    falls linearly to CRIPPLE["to"] over CRIPPLE["over"] s."""
+    th = (SHOT_3["fire"] + SHOT_3["flight"] - F_START) / FPS
+    if t <= th:
+        return 0.0
+    loss = SHOTS_SPEED_AFTER() - CRIPPLE["to"]
+    E = CRIPPLE["over"]
+    u = min(t - th, E)
+    d = loss * u * u / (2 * E)
+    if t - th > E:
+        d += loss * (t - th - E)
+    return d
+
+
+def SHOTS_SPEED_AFTER():
+    return SHIPS["corsairs"]["speed"] + CHASE["after"]
 
 
 def ship_sample_points(key, frame):
@@ -807,12 +1082,19 @@ def animate_ships(rigs, near):
             if state is None:
                 state = [a, bx, by]
             else:
-                state[0] += (a - state[0]) * 0.35
-                state[1] += (bx - state[1]) * 0.18
-                state[2] += (by - state[2]) * 0.18
+                state[0] += (a - state[0]) * 0.6
+                state[1] += (bx - state[1]) * 0.35
+                state[2] += (by - state[2]) * 0.35
             if f < F_START - 1:
                 continue
             base, hdg = ship_base(key, f)
+            # Stay afloat: where a swell stands higher under part of the hull
+            # than the fitted plane, lift the ship to meet it rather than
+            # let the wave swallow that end (a lagging plane fit left the
+            # stern buried in a crest).
+            fitted = [state[0] + state[1] * x + state[2] * y for x, y in loc]
+            excess = max(hh - ff for hh, ff in zip(h, fitted))
+            lift = max(0.0, excess - 0.3) * 0.85
             pitch = math.atan(state[1]) * 0.9
             roll = math.atan(state[2]) * 0.9
             # A gun's kick heels the ship away from it, then it rolls back.
@@ -823,8 +1105,15 @@ def animate_ships(rigs, near):
             if key == "corsairs" and f >= hit_frame:
                 dt = (f - hit_frame) / FPS
                 roll += math.radians(1.6) * math.exp(-dt * 1.2) * math.sin(dt * 4.5)
+            mast_frame = SHOT_3["fire"] + SHOT_3["flight"]
+            if key == "corsairs" and f >= mast_frame:
+                # The foremast going over the side drags her down that way,
+                # and she settles with a list toward the wreck.
+                dt = (f - mast_frame) / FPS
+                roll -= math.radians(3.0) * (1 - math.exp(-dt * 1.5)) + \
+                    math.radians(1.5) * math.exp(-dt * 1.0) * math.sin(dt * 4.0)
             root = rig["root"]
-            root.location = (base.x, base.y, state[0] - WATERLINE_MM * S)
+            root.location = (base.x, base.y, state[0] + lift - WATERLINE_MM * S)
             root.rotation_mode = "ZXY"
             # rotation_euler ZXY: heading about Z, then roll (X), pitch (Y) in hull space.
             root.rotation_euler = (roll, -pitch, hdg)
@@ -925,7 +1214,12 @@ def gn_ballistic(obj, instance, life, gravity=G, drag=0.0, shrink=True, spin=Tru
         e2r = N.new("FunctionNodeEulerToRotation")
         L.new(rot, e2r.inputs[0])
         L.new(e2r.outputs[0], iop.inputs["Rotation"])
-    L.new(iop.outputs[0], go.inputs[0])
+    # One mesh, not one instance per drop: Cycles builds acceleration data
+    # per instance, and tens of thousands of them cost far more to set up
+    # each frame than rendering the frame does.
+    real = N.new("GeometryNodeRealizeInstances")
+    L.new(iop.outputs[0], real.inputs[0])
+    L.new(real.outputs[0], go.inputs[0])
     mod = obj.modifiers.new("FX", "NODES")
     mod.node_group = ng
     return obj
@@ -958,15 +1252,17 @@ def fx_source(name, coll, kind, mat, size=1.0):
 def spray_material():
     m = new_material("Spray")
     b = bsdf_of(m)
-    b.inputs["Base Color"].default_value = (0.85, 0.9, 0.9, 1)
-    b.inputs["Roughness"].default_value = 0.15
-    setin(b, "Transmission Weight", 0.55)
+    # Clear water, not white: droplets glint and refract; they only read as
+    # white where many overlap.
+    b.inputs["Base Color"].default_value = (0.8, 0.9, 0.9, 1)
+    b.inputs["Roughness"].default_value = 0.08
+    setin(b, "Transmission Weight", 0.9)
     b.inputs["IOR"].default_value = 1.33
-    setin(b, "Subsurface Weight", 0.3)
+    setin(b, "Subsurface Weight", 0.1)
     return m
 
 
-def splash(coll, name, center, frame, drop_obj, scale=1.0, n=900, seed=1):
+def splash(coll, name, center, frame, drop_obj, scale=1.0, n=300, seed=1):
     """A cannonball entering the sea: a tight crown column and a wider skirt
     of heavier drops, all launched over the first few frames."""
     rnd = random.Random(seed)
@@ -983,7 +1279,7 @@ def splash(coll, name, center, frame, drop_obj, scale=1.0, n=900, seed=1):
             r = rnd.uniform(0.3, 1.2) * scale
             up = rnd.uniform(3, 8) * math.sqrt(scale)
             out = rnd.uniform(2.5, 6.0) * math.sqrt(scale)
-            s = rnd.uniform(0.08, 0.22) * scale
+            s = rnd.uniform(0.08, 0.2) * scale
         pts.append(center + Vector((math.cos(a) * r, math.sin(a) * r, rnd.uniform(-0.2, 0.3))))
         vel.append((math.cos(a) * out + WIND.x * 1.5, math.sin(a) * out + WIND.y * 1.5, up))
         birth.append(frame + rnd.uniform(0, 3.5) + (0 if crown else 1.0))
@@ -992,7 +1288,9 @@ def splash(coll, name, center, frame, drop_obj, scale=1.0, n=900, seed=1):
     o = points_object(name, coll, pts, {
         "vel": ("FLOAT_VECTOR", vel), "birth": ("FLOAT", birth),
         "size": ("FLOAT", size), "spin": ("FLOAT_VECTOR", spin)})
-    gn_ballistic(o, drop_obj, life=52, drag=0.35, spin=False)
+    # Short-lived: the spray falls back into the sea rather than hanging
+    # in the air as a cloud of white blobs.
+    gn_ballistic(o, drop_obj, life=38, drag=0.35, spin=False)
     return o
 
 
@@ -1070,12 +1368,29 @@ def build_rain(coll, cam_path_center):
     oi = Nn.new("GeometryNodeObjectInfo")
     oi.inputs["Object"].default_value = streak
     iop = Nn.new("GeometryNodeInstanceOnPoints")
-    Ln.new(setp.outputs[0], iop.inputs["Points"])
+    # Keep a 3 m bubble around each camera clear: drops at arm's length
+    # render as big dark bars across the frame.
+    keep = setp.outputs[0]
+    for cam in [o for o in bpy.data.objects if o.type == "CAMERA"]:
+        ci = Nn.new("GeometryNodeObjectInfo")
+        ci.inputs["Object"].default_value = cam
+        ci.transform_space = "ORIGINAL"
+        pos2 = Nn.new("GeometryNodeInputPosition")
+        dist = Nn.new("ShaderNodeVectorMath"); dist.operation = "DISTANCE"
+        Ln.new(pos2.outputs[0], dist.inputs[0]); Ln.new(ci.outputs["Location"], dist.inputs[1])
+        near_cam = Nn.new("FunctionNodeCompare"); near_cam.data_type = "FLOAT"; near_cam.operation = "LESS_THAN"
+        Ln.new(dist.outputs["Value"], near_cam.inputs[0]); near_cam.inputs[1].default_value = 3.0
+        dl = Nn.new("GeometryNodeDeleteGeometry"); dl.domain = "POINT"
+        Ln.new(keep, dl.inputs["Geometry"]); Ln.new(near_cam.outputs[0], dl.inputs["Selection"])
+        keep = dl.outputs[0]
+    Ln.new(keep, iop.inputs["Points"])
     Ln.new(oi.outputs["Geometry"], iop.inputs["Instance"])
     # Cylinder is along Z; lean it along the fall direction.
     q = Vector((0, 0, 1)).rotation_difference(-fall).to_euler()
     iop.inputs["Rotation"].default_value = q
-    Ln.new(iop.outputs[0], go.inputs[0])
+    real = Nn.new("GeometryNodeRealizeInstances")   # see gn_ballistic
+    Ln.new(iop.outputs[0], real.inputs[0])
+    Ln.new(real.outputs[0], go.inputs[0])
     mod = rain.modifiers.new("Rain", "NODES")
     mod.node_group = ng
     # The wrap teleports drops, which motion blur would smear across the frame.
@@ -1091,96 +1406,86 @@ def ship_frame_xy(key, frame, local):
     return Vector((base.x + x * math.cos(h) - y * math.sin(h), base.y + x * math.sin(h) + y * math.cos(h)))
 
 
-def build_wake(coll, key, near):
-    """The foam a moving hull leaves: a Kelvin V (19.5 deg half-angle)
-    opening astern from the transom, densest in the churned water straight
-    behind, fading with distance. The strip follows the ship but its foam
-    pattern is fixed to the sea (world-space noise), so the ship visibly
-    sails on and leaves the wake behind."""
-    length, half0 = 70.0, 3.5
-    bpy.ops.mesh.primitive_grid_add(x_subdivisions=90, y_subdivisions=24, size=1.0)
-    o = bpy.context.active_object
-    o.name = f"{key}-wake"
-    for c in list(o.users_collection):
-        c.objects.unlink(o)
-    link(o, coll)
-    me = o.data
-    for v in me.vertices:
-        u = v.co.x + 0.5              # 0 at the transom, 1 at the far end
-        w = v.co.y * 2                # -1..1 across
-        x = u * length
-        v.co = (x, w * (half0 + x * math.tan(math.radians(19.5))), 0)
-    me.update()
+WAKE_LENGTH, WAKE_HALF0 = 70.0, 3.5
 
-    m = new_material(f"{key}-wake")
-    nt, N, L = nodes(m)
-    b = bsdf_of(m)
-    b.inputs["Base Color"].default_value = (0.78, 0.82, 0.82, 1)
-    b.inputs["Roughness"].default_value = 0.55
-    setin(b, "Subsurface Weight", 0.2)
-    tc = N.new("ShaderNodeTexCoord")
-    geo = N.new("ShaderNodeNewGeometry")
-    # Foam texture in world space: stays put on the water.
-    nz = N.new("ShaderNodeTexNoise")
-    nz.inputs["Scale"].default_value = 0.45
-    nz.inputs["Detail"].default_value = 10
-    nz.inputs["Roughness"].default_value = 0.65
-    L.new(geo.outputs["Position"], nz.inputs["Vector"])
-    # Local position: fade along, and bands across (centre churn, V edges).
-    sep = N.new("ShaderNodeSeparateXYZ")
-    L.new(tc.outputs["Object"], sep.inputs[0])
-    along = N.new("ShaderNodeMapRange")
-    along.inputs["From Min"].default_value = 0.0
-    along.inputs["From Max"].default_value = length
-    along.inputs["To Min"].default_value = 1.0
-    along.inputs["To Max"].default_value = 0.0
-    L.new(sep.outputs["X"], along.inputs["Value"])
-    half = N.new("ShaderNodeMath"); half.operation = "MULTIPLY_ADD"
-    L.new(sep.outputs["X"], half.inputs[0])
-    half.inputs[1].default_value = math.tan(math.radians(19.5))
-    half.inputs[2].default_value = half0
-    ay = N.new("ShaderNodeMath"); ay.operation = "ABSOLUTE"
-    L.new(sep.outputs["Y"], ay.inputs[0])
-    rel = N.new("ShaderNodeMath"); rel.operation = "DIVIDE"
-    L.new(ay.outputs[0], rel.inputs[0]); L.new(half.outputs[0], rel.inputs[1])
-    band = N.new("ShaderNodeValToRGB")
-    e = band.color_ramp.elements
-    e[0].position = 0.0; e[0].color = (0.9, 0.9, 0.9, 1)
-    e[1].position = 1.0; e[1].color = (0, 0, 0, 1)
-    for pos, v in ((0.22, 0.25), (0.35, 0.08), (0.8, 0.12), (0.9, 0.6)):
-        el = band.color_ramp.elements.new(pos); el.color = (v, v, v, 1)
-    L.new(rel.outputs[0], band.inputs[0])
-    k = N.new("ShaderNodeMath"); k.operation = "MULTIPLY"
-    L.new(band.outputs[0], k.inputs[0]); L.new(along.outputs[0], k.inputs[1])
-    thr = N.new("ShaderNodeMath"); thr.operation = "SUBTRACT"
-    L.new(nz.outputs["Fac"], thr.inputs[0])
-    omk = N.new("ShaderNodeMath"); omk.operation = "SUBTRACT"
-    omk.inputs[0].default_value = 1.0
-    L.new(k.outputs[0], omk.inputs[1])
-    L.new(omk.outputs[0], thr.inputs[1])
-    fo = N.new("ShaderNodeMapRange")
-    fo.inputs["From Min"].default_value = -0.05
-    fo.inputs["From Max"].default_value = 0.12
-    L.new(thr.outputs[0], fo.inputs["Value"])
-    L.new(fo.outputs[0], b.inputs["Alpha"])
-    me.materials.append(m)
 
-    sw = o.modifiers.new("OnSea", "SHRINKWRAP")
-    sw.target = near
-    sw.wrap_method = "PROJECT"
-    sw.use_project_z = True
-    sw.use_negative_direction = True
-    sw.use_positive_direction = True
-    sw.offset = 0.05
-    o.visible_shadow = False
-    stern = 58 * S
+def wake_origin(coll, key):
+    """An empty riding each ship's transom (no heave), +X pointing astern.
+    The sea shader draws that ship's wake in this empty's space."""
+    o = link(bpy.data.objects.new(f"{key}-wake-origin", None), coll)
     for f in range(F_START, F_END + 2, 2):
-        base, h = ship_base(key, f)
-        o.location = (*ship_frame_xy(key, f, (stern, 0.0)), 0.0)
+        _, h = ship_base(key, f)
+        o.location = (*ship_frame_xy(key, f, (58 * S, 0.0)), 0.0)
         o.rotation_euler = (0, 0, h)
         o.keyframe_insert("location", frame=f)
         o.keyframe_insert("rotation_euler", frame=f)
     return o
+
+
+def add_wakes_to_sea(sea, origins):
+    """Ship wakes as part of the sea's own foam, not as meshes laid on it:
+    a Kelvin V (19.5 deg) opening astern of each transom, densest in the
+    churn straight behind, fading over WAKE_LENGTH. The foam texture is
+    world-space, so a wake stays on the water as its ship sails on.
+    (Wake meshes shrink-wrapped to the ocean held copies of its whole
+    surface and pushed a render past the laptop's memory.)"""
+    nt, N, L = nodes(sea)
+    total = N["foam_total"]
+    geo = N.new("ShaderNodeNewGeometry")
+    grain = N.new("ShaderNodeTexNoise")
+    grain.inputs["Scale"].default_value = 0.45
+    grain.inputs["Detail"].default_value = 10
+    grain.inputs["Roughness"].default_value = 0.65
+    L.new(geo.outputs["Position"], grain.inputs["Vector"])
+    prev = total.inputs[0].links[0].from_socket
+    for origin in origins:
+        tc = N.new("ShaderNodeTexCoord")
+        tc.object = origin
+        sep = N.new("ShaderNodeSeparateXYZ")
+        L.new(tc.outputs["Object"], sep.inputs[0])
+        # Behind the transom only (x > 0), fading with distance astern.
+        along = N.new("ShaderNodeMapRange")
+        along.inputs["From Min"].default_value = 0.0
+        along.inputs["From Max"].default_value = WAKE_LENGTH
+        along.inputs["To Min"].default_value = 1.0
+        along.inputs["To Max"].default_value = 0.0
+        L.new(sep.outputs["X"], along.inputs["Value"])
+        ahead = N.new("ShaderNodeMath"); ahead.operation = "GREATER_THAN"
+        L.new(sep.outputs["X"], ahead.inputs[0]); ahead.inputs[1].default_value = 0.0
+        half = N.new("ShaderNodeMath"); half.operation = "MULTIPLY_ADD"
+        L.new(sep.outputs["X"], half.inputs[0])
+        half.inputs[1].default_value = math.tan(math.radians(19.5))
+        half.inputs[2].default_value = WAKE_HALF0
+        ay = N.new("ShaderNodeMath"); ay.operation = "ABSOLUTE"
+        L.new(sep.outputs["Y"], ay.inputs[0])
+        rel = N.new("ShaderNodeMath"); rel.operation = "DIVIDE"
+        L.new(ay.outputs[0], rel.inputs[0]); L.new(half.outputs[0], rel.inputs[1])
+        band = N.new("ShaderNodeValToRGB")
+        e = band.color_ramp.elements
+        e[0].position = 0.0; e[0].color = (0.9, 0.9, 0.9, 1)
+        e[1].position = 1.0; e[1].color = (0, 0, 0, 1)
+        for pos, v in ((0.22, 0.25), (0.35, 0.08), (0.8, 0.12), (0.9, 0.6), (0.97, 0.0)):
+            el = band.color_ramp.elements.new(pos); el.color = (v, v, v, 1)
+        L.new(rel.outputs[0], band.inputs[0])
+        k = N.new("ShaderNodeMath"); k.operation = "MULTIPLY"
+        L.new(band.outputs[0], k.inputs[0]); L.new(along.outputs[0], k.inputs[1])
+        k2 = N.new("ShaderNodeMath"); k2.operation = "MULTIPLY"
+        L.new(k.outputs[0], k2.inputs[0]); L.new(ahead.outputs[0], k2.inputs[1])
+        # Break it into foam: the grain has to beat (1 - strength).
+        thr = N.new("ShaderNodeMath"); thr.operation = "SUBTRACT"
+        L.new(grain.outputs["Fac"], thr.inputs[0])
+        omk = N.new("ShaderNodeMath"); omk.operation = "SUBTRACT"
+        omk.inputs[0].default_value = 1.0
+        L.new(k2.outputs[0], omk.inputs[1])
+        L.new(omk.outputs[0], thr.inputs[1])
+        fo = N.new("ShaderNodeMapRange")
+        fo.inputs["From Min"].default_value = -0.18
+        fo.inputs["From Max"].default_value = 0.0
+        L.new(thr.outputs[0], fo.inputs["Value"])
+        mx = N.new("ShaderNodeMath"); mx.operation = "MAXIMUM"
+        L.new(prev, mx.inputs[0]); L.new(fo.outputs[0], mx.inputs[1])
+        prev = mx.outputs[0]
+    L.new(prev, total.inputs[0])
 
 
 def build_bow_spray(coll, key, drop, n=2400, seed=60):
@@ -1215,92 +1520,185 @@ def build_bow_spray(coll, key, drop, n=2400, seed=60):
 
 # ---------------------------------------------------------------- smoke & fire
 
-def smoke_puffs(coll, name, origin, direction, frame, n=7, seed=5):
-    rnd = random.Random(seed)
-    objs = []
-    for i in range(n):
-        m = new_material(f"{name}-smoke{i}")
-        nt, N, L = nodes(m)
-        N.remove(N["Principled BSDF"])
-        vol = N.new("ShaderNodeVolumePrincipled")
-        vol.inputs["Color"].default_value = W["smoke"]
-        vol.inputs["Anisotropy"].default_value = 0.3
-        tc = N.new("ShaderNodeTexCoord")
-        nz = N.new("ShaderNodeTexNoise")
-        nz.inputs["Scale"].default_value = 1.6
-        nz.inputs["Detail"].default_value = 6
-        nz.inputs["Roughness"].default_value = 0.6
-        L.new(tc.outputs["Object"], nz.inputs["Vector"])
-        ln = N.new("ShaderNodeVectorMath"); ln.operation = "LENGTH"
-        L.new(tc.outputs["Object"], ln.inputs[0])
-        fall = N.new("ShaderNodeMapRange")
-        fall.inputs["From Min"].default_value = 1.0
-        fall.inputs["From Max"].default_value = 0.2
-        L.new(ln.outputs["Value"], fall.inputs["Value"])
-        shape = N.new("ShaderNodeMapRange")
-        shape.inputs["From Min"].default_value = 0.42
-        shape.inputs["From Max"].default_value = 0.7
-        L.new(nz.outputs["Fac"], shape.inputs["Value"])
-        mul = N.new("ShaderNodeMath"); mul.operation = "MULTIPLY"
-        L.new(fall.outputs[0], mul.inputs[0]); L.new(shape.outputs[0], mul.inputs[1])
-        dens = N.new("ShaderNodeMath"); dens.operation = "MULTIPLY"
-        L.new(mul.outputs[0], dens.inputs[0])
-        dens.inputs[1].default_value = 0.0
-        L.new(dens.outputs[0], vol.inputs["Density"])
-        L.new(vol.outputs[0], N["Material Output"].inputs["Volume"])
+def _volume_material(name, color, density_k, emission=None, noise_scale=2.4, edge=(0.35, 0.68),
+                     detail=6.0):
+    """A soft noise-shaped volume whose strength is driven per object by
+    the object's colour (keyframed), so every puff can share one material:
+    red scales density, green scales emission."""
+    m = new_material(name)
+    nt, N, L = nodes(m)
+    N.remove(N["Principled BSDF"])
+    vol = N.new("ShaderNodeVolumePrincipled")
+    vol.inputs["Color"].default_value = color
+    vol.inputs["Anisotropy"].default_value = 0.35
+    oi = N.new("ShaderNodeObjectInfo")
+    sepc = N.new("ShaderNodeSeparateColor")
+    L.new(oi.outputs["Color"], sepc.inputs[0])
+    tc = N.new("ShaderNodeTexCoord")
+    nz = N.new("ShaderNodeTexNoise")
+    nz.inputs["Scale"].default_value = noise_scale
+    nz.inputs["Detail"].default_value = detail
+    nz.inputs["Roughness"].default_value = 0.6
+    L.new(tc.outputs["Object"], nz.inputs["Vector"])
+    ln = N.new("ShaderNodeVectorMath"); ln.operation = "LENGTH"
+    L.new(tc.outputs["Object"], ln.inputs[0])
+    fall = N.new("ShaderNodeMapRange")
+    fall.inputs["From Min"].default_value = 1.0
+    fall.inputs["From Max"].default_value = 0.25
+    L.new(ln.outputs["Value"], fall.inputs["Value"])
+    shape = N.new("ShaderNodeMapRange")
+    shape.inputs["From Min"].default_value = edge[0]
+    shape.inputs["From Max"].default_value = edge[1]
+    L.new(nz.outputs["Fac"], shape.inputs["Value"])
+    body = N.new("ShaderNodeMath"); body.operation = "MULTIPLY"
+    L.new(fall.outputs[0], body.inputs[0]); L.new(shape.outputs[0], body.inputs[1])
+    dens = N.new("ShaderNodeMath"); dens.operation = "MULTIPLY"
+    L.new(body.outputs[0], dens.inputs[0]); L.new(sepc.outputs["Red"], dens.inputs[1])
+    dk = N.new("ShaderNodeMath"); dk.operation = "MULTIPLY"; dk.inputs[1].default_value = density_k
+    L.new(dens.outputs[0], dk.inputs[0])
+    L.new(dk.outputs[0], vol.inputs["Density"])
+    if emission:
+        # Flame colour by heat: white-yellow in the dense core, through
+        # orange, to a deep red at the ragged edges.
+        heat = N.new("ShaderNodeValToRGB")
+        he = heat.color_ramp.elements
+        he[0].position = 0.0; he[0].color = (0.6, 0.04, 0.005, 1)
+        he[1].position = 1.0; he[1].color = (1.0, 0.9, 0.6, 1)
+        e = heat.color_ramp.elements.new(0.45); e.color = emission[0]
+        L.new(body.outputs[0], heat.inputs[0])
+        L.new(heat.outputs[0], vol.inputs["Emission Color"])
+        es = N.new("ShaderNodeMath"); es.operation = "MULTIPLY"
+        L.new(body.outputs[0], es.inputs[0]); L.new(sepc.outputs["Green"], es.inputs[1])
+        ek = N.new("ShaderNodeMath"); ek.operation = "MULTIPLY"; ek.inputs[1].default_value = emission[1]
+        L.new(es.outputs[0], ek.inputs[0])
+        L.new(ek.outputs[0], vol.inputs["Emission Strength"])
+    L.new(vol.outputs[0], N["Material Output"].inputs["Volume"])
+    return m
 
-        bpy.ops.mesh.primitive_ico_sphere_add(subdivisions=3, radius=1.0)
-        o = bpy.context.active_object
-        o.name = f"{name}-smoke{i}"
-        for c in list(o.users_collection):
-            c.objects.unlink(o)
-        link(o, coll)
-        o.data.materials.append(m)
-        o.rotation_euler = (rnd.uniform(0, 6), rnd.uniform(0, 6), rnd.uniform(0, 6))
-        d = i / max(1, n - 1)
-        start = origin + direction * (0.5 + d * 3.5) + Vector((rnd.gauss(0, .3), rnd.gauss(0, .3), rnd.gauss(0.1, .2)))
-        f0 = frame + int(d * 2)
-        drift = WIND * 2.2 + direction * (2.5 * (1 - d)) + Vector((0, 0, 0.6))
-        r0 = 0.5 + d * 0.8
-        for f, s, dn in ((F_START, 0.01, 0.0), (f0 - 1, 0.01, 0.0), (f0, r0, 3.5),
-                         (f0 + 6, r0 * 2.4, 1.6), (f0 + 30, r0 * 4.0, 0.55), (f0 + 80, r0 * 6.0, 0.0)):
-            o.scale = (s, s, s * 0.85)
-            o.location = start + drift * max(0, (f - f0)) / FPS
-            dens.inputs[1].default_value = dn
+
+_puff_mesh = None
+
+
+def _puff(coll, name, mat):
+    global _puff_mesh
+    if _puff_mesh is None:
+        bm = bmesh.new()
+        bmesh.ops.create_icosphere(bm, subdivisions=2, radius=1.0)
+        _puff_mesh = bpy.data.meshes.new("puff")
+        bm.to_mesh(_puff_mesh)
+        bm.free()
+    o = link(bpy.data.objects.new(name, _puff_mesh), coll)
+    if not o.data.materials:
+        o.data.materials.append(None)
+    o.material_slots[0].link = "OBJECT"
+    o.material_slots[0].material = mat
+    o.visible_shadow = False
+    return o
+
+
+def alive_between(o, f_on, f_off):
+    """Render `o` only from f_on to f_off. Cycles pre-evaluates every
+    volume's density every frame, live or not, and ~100 smoke puffs doing
+    that cost ~27 s a frame before a single sample was traced."""
+    for f, hidden in ((F_START, True), (f_on, False), (f_off + 1, True)):
+        o.hide_render = hidden
+        o.keyframe_insert("hide_render", frame=max(F_START, f))
+    for fc in _iter_fcurves(o):
+        if fc.data_path == "hide_render":
+            for k in fc.keyframe_points:
+                k.interpolation = "CONSTANT"
+
+
+def muzzle_flash(coll, name, origin, direction, frame, seed=0):
+    """The gun going off: a short burst of flame out of the muzzle (glowing
+    volume, flaring and gone in four frames), a spray of sparks, and a
+    flash of light on the deck and water."""
+    rnd = random.Random(seed)
+    fire = _volume_material(f"{name}-fire", (0.2, 0.15, 0.12, 1), 0.5,
+                            emission=((1.0, 0.36, 0.05, 1), 160.0),
+                            noise_scale=4.5, edge=(0.46, 0.6))
+    rot = Vector((1, 0, 0)).rotation_difference(direction).to_euler()
+    # A jet out of the barrel and a rounder bloom around the muzzle.
+    for k, (reach, stretch, size) in enumerate(((1.1, 2.8, 0.42), (0.3, 1.1, 0.5))):
+        o = _puff(coll, f"{name}-fire{k}", fire)
+        o.rotation_euler = (rot.x, rot.y, rot.z + rnd.uniform(-0.2, 0.2))
+        for f, grow, dens, glow in ((frame - 1, 0.01, 0, 0), (frame, 1.0, 1.0, 1.0),
+                                    (frame + 1, 1.5, 0.8, 0.55), (frame + 2, 1.8, 0.5, 0.18),
+                                    (frame + 3, 2.0, 0.2, 0.03), (frame + 4, 2.1, 0.0, 0.0)):
+            sz = size * grow
+            o.scale = (sz * stretch, sz, sz)
+            o.location = origin + direction * reach * min(grow, 1.6)
+            o.color = (dens, glow, 0, 1)
             o.keyframe_insert("scale", frame=f)
             o.keyframe_insert("location", frame=f)
-            dens.inputs[1].keyframe_insert("default_value", frame=f)
-        o.visible_shadow = True
-        objs.append(o)
-    return objs
+            o.keyframe_insert("color", frame=f)
+        alive_between(o, frame - 1, frame + 4)
 
+    sm, sem = emissive(f"{name}-spark", (1.0, 0.55, 0.15, 1), 60.0)
+    spark = fx_source(f"{name}-spark-src", coll, "drop", sm, size=1.0)
+    pts, vel, birth, size_, spin = [], [], [], [], []
+    for i in range(70):
+        d = (direction + Vector((rnd.gauss(0, .25), rnd.gauss(0, .25), rnd.gauss(0.05, .2)))).normalized()
+        pts.append(origin + direction * 0.3)
+        vel.append(tuple(d * rnd.uniform(10, 32)))
+        birth.append(frame + rnd.uniform(0, 1.5))
+        size_.append(rnd.uniform(0.02, 0.05))
+        spin.append((0, 0, 0))
+    sp = points_object(f"{name}-sparks", coll, pts, {
+        "vel": ("FLOAT_VECTOR", vel), "birth": ("FLOAT", birth),
+        "size": ("FLOAT", size_), "spin": ("FLOAT_VECTOR", spin)})
+    gn_ballistic(sp, spark, life=10, drag=1.5, spin=False)
+    sp.visible_shadow = False
 
-def muzzle_flash(coll, name, origin, direction, frame):
-    m, em = emissive(f"{name}-flash", (1.0, 0.55, 0.18, 1), 0.0)
-    bpy.ops.mesh.primitive_uv_sphere_add(segments=16, ring_count=8, radius=1.0)
-    o = bpy.context.active_object
-    o.name = f"{name}-flash"
-    for c in list(o.users_collection):
-        c.objects.unlink(o)
-    link(o, coll)
-    o.data.materials.append(m)
-    o.location = origin + direction * 1.2
-    o.rotation_euler = Vector((1, 0, 0)).rotation_difference(direction).to_euler()
-    for f, s, e in ((frame - 1, 0.01, 0), (frame, 1.0, 60), (frame + 1, 1.5, 25), (frame + 2, 1.2, 4), (frame + 3, 0.01, 0)):
-        o.scale = (s * 1.8, s * 0.7, s * 0.7)
-        em.inputs["Strength"].default_value = e
-        o.keyframe_insert("scale", frame=f)
-        em.inputs["Strength"].keyframe_insert("default_value", frame=f)
-    o.visible_shadow = False
     ld = bpy.data.lights.new(f"{name}-flashlight", "POINT")
     ld.color = (1.0, 0.6, 0.25)
     ld.shadow_soft_size = 0.6
     lo = link(bpy.data.objects.new(f"{name}-flashlight", ld), coll)
     lo.location = origin + direction * 1.5
-    for f, e in ((frame - 1, 0), (frame, 300000), (frame + 1, 120000), (frame + 2, 20000), (frame + 4, 0)):
+    # Bright on the deck and the gun, not across the water on the enemy.
+    for f, e in ((frame - 1, 0), (frame, 40000), (frame + 1, 16000), (frame + 2, 3000), (frame + 4, 0)):
         ld.energy = e
         ld.keyframe_insert("energy", frame=f)
-    return o
+    return lo
+
+
+_trail_mat = None
+
+
+def smoke_trail(coll, name, p0, v, f0, f1):
+    """The ball's smoke trail: overlapping puffs laid along its arc every
+    half frame, each stretched along the flight so they merge into one
+    streak, then swelling, drifting with the wind and thinning out."""
+    global _trail_mat
+    if _trail_mat is None:
+        _trail_mat = _volume_material("ball-trail", W["smoke"], 2.2)
+    b = f0 + 0.5
+    k = 0
+    while b < f1:
+        t = (b - f0) / FPS
+        p = p0 + v * t + Vector((0, 0, -0.5 * G * t * t))
+        vel = v + Vector((0, 0, -G * t))
+        spacing = vel.length * 0.5 / FPS
+        # Puffs appear where the ball was up to half a frame ago; push each
+        # forward by that lag plus the ball's radius so the streak starts
+        # at the ball's leading face, not a metre behind it.
+        ball_r = 5.0 * S * GUN_SCALE
+        p = p + vel.normalized() * (ball_r + spacing)
+        o = _puff(coll, f"{name}-trail{k:02d}", _trail_mat)
+        o.rotation_euler = Vector((1, 0, 0)).rotation_difference(vel.normalized()).to_euler()
+        born = math.ceil(b)
+        for f, (sx, sr), c in ((born - 1, (0.001, 0.001), 0.0), (born, (spacing * 0.9, 0.3), 1.0),
+                               (born + 8, (spacing * 1.1, 0.6), 0.6), (born + 20, (spacing * 1.3, 1.0), 0.3),
+                               (born + 36, (spacing * 1.5, 1.4), 0.0)):
+            o.scale = (sx, sr, sr)
+            o.location = p + (WIND * 1.2 + Vector((0, 0, 0.35))) * max(0, f - b) / FPS
+            o.color = (c, 0, 0, 1)
+            o.keyframe_insert("scale", frame=f)
+            o.keyframe_insert("location", frame=f)
+            o.keyframe_insert("color", frame=f)
+        alive_between(o, born - 1, born + 36)
+        b += 0.5
+        k += 1
 
 
 # ---------------------------------------------------------------- the shots
@@ -1338,13 +1736,50 @@ def build_ball(coll, M, name):
     return o
 
 
-def stage_shot(coll, M, rigs, shot, target_fn, name, drop_obj, shard_obj, near):
+def train_gun(cannon, rest, bore, p1, f0, f1, frames):
+    """Swing the gun from `rest` to lie along the launch direction that puts
+    a ball from its muzzle on p1, turning over `frames` (first, last) and
+    holding there. Yaw about the deck's vertical, then elevation, both about
+    the gun's own origin (its mount). Returns the trained basis."""
+    sc = bpy.context.scene
+    with quick_eval():
+        sc.frame_set(f0)
+        parent = cannon.matrix_world @ cannon.matrix_basis.inverted()
+    T = (f1 - f0) / FPS
+    loc, rot, scl = rest.decompose()
+    r = (rest.to_3x3() @ Vector((1, 0, 0))).normalized()
+    basis = rest
+    for _ in range(3):                             # the muzzle moves as the gun turns
+        muzzle = parent @ basis @ bore
+        v = (p1 - muzzle) / T + Vector((0, 0, 0.5 * G * T))
+        d = (parent.to_3x3().inverted() @ v).normalized()
+        yaw = math.atan2(d.y, d.x) - math.atan2(r.y, r.x)
+        pitch = math.asin(max(-1, min(1, d.z))) - math.asin(max(-1, min(1, r.z)))
+        Rz = Matrix.Rotation(yaw, 3, "Z")
+        across = (Rz @ Vector((-r.y, r.x, 0))).normalized()
+        R = Matrix.Rotation(-pitch, 3, across) @ Rz
+        basis = Matrix.Translation(loc) @ (R @ rot.to_matrix()).to_4x4() @ Matrix.Diagonal(scl).to_4x4()
+    for f, m in ((frames[0], rest), (frames[1], basis)):
+        cannon.matrix_basis = m
+        cannon.keyframe_insert("location", frame=f)
+        cannon.keyframe_insert("rotation_euler", frame=f)
+    print(f"[hero] {cannon.name} trained {math.degrees(yaw):.1f} deg yaw, "
+          f"{math.degrees(pitch):.1f} deg elevation over frames {frames[0]}-{frames[1]}", flush=True)
+    return basis
+
+
+def stage_shot(coll, M, rigs, shot, target_fn, name, drop_obj, shard_obj, near, loaded_from=F_START,
+               train=None):
     sc = bpy.context.scene
     rig = rigs[shot["from"]]
     cannon = rig["cannon"]
     bore, radius = find_bore(cannon)
     f0 = shot["fire"]
     f1 = f0 + shot["flight"]
+    if train:
+        # A new target: bring the gun round onto it before it fires.
+        p_aim, _ = target_fn(f1)
+        rig["cannon_rest"] = train_gun(cannon, rig["cannon_rest"], bore, p_aim, f0, f1, train)
 
     with quick_eval():
         sc.frame_set(f0)
@@ -1359,7 +1794,7 @@ def stage_shot(coll, M, rigs, shot, target_fn, name, drop_obj, shard_obj, near):
         Matrix.Rotation(math.radians(-90), 4, "Y")
     with quick_eval():
         poses = []
-        for f in range(F_START, f0):
+        for f in range(loaded_from, f0):
             sc.frame_set(f)
             poses.append((f, (cannon.matrix_world @ seat).decompose()))
     for f, (loc, rot, _) in poses:
@@ -1369,8 +1804,12 @@ def stage_shot(coll, M, rigs, shot, target_fn, name, drop_obj, shard_obj, near):
         ball.keyframe_insert("location", frame=f)
         ball.keyframe_insert("rotation_quaternion", frame=f)
 
+    if loaded_from > F_START:
+        # Reloaded: this ball only goes in once the last one is away.
+        alive_between(ball, loaded_from, F_END + 1)
     p1, after = target_fn(f1)
-    ballistic_keys(ball, muzzle, p1, f0, f1, direction)
+    v = ballistic_keys(ball, muzzle, p1, f0, f1, direction)
+    smoke_trail(coll, name, muzzle, v, f0, f1)
     after(ball, f1)
 
     # Recoil: the tensioned gun kicks back along its own axis and settles.
@@ -1378,8 +1817,7 @@ def stage_shot(coll, M, rigs, shot, target_fn, name, drop_obj, shard_obj, near):
     for f, back in ((f0 - 1, 0.0), (f0, 3.5), (f0 + 2, 2.4), (f0 + 8, 0.4), (f0 + 14, 0.0)):
         cannon.matrix_basis = rest @ Matrix.Translation((-back, 0, 0))
         cannon.keyframe_insert("location", frame=f)
-    muzzle_flash(coll, name, muzzle, direction, f0)
-    smoke_puffs(coll, name, muzzle, direction, f0, seed=hash(name) % 1000)
+    muzzle_flash(coll, name, muzzle, direction, f0, seed=len(name) + f0)
     return muzzle, direction, p1
 
 
@@ -1406,8 +1844,8 @@ def sea_height_at(near, frame, x, y):
 def build_shots(coll, M, rigs, near):
     drop = fx_source("fx-drop", coll, "drop", spray_material(), size=1.0)
     for i, key in enumerate(rigs):
-        build_wake(coll, key, near)
         build_bow_spray(coll, key, drop, seed=60 + i)
+    add_wakes_to_sea(near.data.materials[0], [wake_origin(coll, k) for k in rigs])
     shard = fx_source("fx-shard", coll, "shard", M["black-hull"], size=1.0)
     sc = bpy.context.scene
 
@@ -1423,7 +1861,6 @@ def build_shots(coll, M, rigs, near):
             ball.location = p + Vector((0, 0, -3))
             ball.keyframe_insert("location", frame=f1 + 2)
             splash(coll, "splash-1", p, f1, drop, scale=1.25, seed=21)
-            foam_ring(coll, "foam-1", p, f1)
         return p, after
 
     stage_shot(coll, M, rigs, SHOT_1, target1, "shot1", drop, shard, near)
@@ -1444,20 +1881,183 @@ def build_shots(coll, M, rigs, near):
             land_f = f1 + 14
             lx, ly = p.x + v_out.x * 14 / FPS, p.y + v_out.y * 14 / FPS
             lz = sea_height_at(near, land_f, lx, ly)
-            ballistic_keys(ball, p, Vector((lx, ly, lz)), f1, land_f, normal)
+            v2 = ballistic_keys(ball, p, Vector((lx, ly, lz)), f1, land_f, normal)
+            smoke_trail(coll, "shot2-glance", p, v2, f1, land_f)
             ball.location = Vector((lx, ly, lz - 3))
             ball.keyframe_insert("location", frame=land_f + 2)
             splinters(coll, "splinters-2", p, normal, f1, shard, seed=33)
-            splash(coll, "splash-2b", Vector((lx, ly, lz)), land_f, drop, scale=0.55, n=400, seed=34)
+            splash(coll, "splash-2b", Vector((lx, ly, lz)), land_f, drop, scale=0.55, n=140, seed=34)
             for i, crate in enumerate(rigs["corsairs"].get("cargo", [])):
                 cargo_overboard(coll, crate, rigs["corsairs"]["root"], normal, f1 + 2 + i * 3,
-                                near, drop, seed=40 + i)
+                                near, drop, seed=40 + i, rig=rigs["corsairs"])
         return p, after
 
     stage_shot(coll, M, rigs, SHOT_2, target2, "shot2", drop, shard, near)
 
+    # Shot 3: a second ball, soon after, takes the Corsair's foremast.
+    cr_rig = rigs["corsairs"]
+    fore = min(range(len(cr_rig["mast_at"])), key=lambda i: cr_rig["mast_at"][i].x)   # bow is -X
 
-def cargo_overboard(coll, crate, root, normal, frame, near, drop, seed=40):
+    def target3(f):
+        cr = cr_rig["root"]
+        with quick_eval():
+            sc.frame_set(f)
+            crm = cr.matrix_world.copy()
+        at = cr_rig["mast_at"][fore]
+        p = crm @ Vector((at.x, at.y + 2.4, 46.0))
+        normal = (crm.to_3x3() @ Vector((0, 1, 0))).normalized()
+
+        def after(ball, f1):
+            splinters(coll, "splinters-3", p, normal, f1, shard_mast, n=110, seed=51)
+            # Ricochets back off the spar and drops into the sea alongside.
+            land_f = f1 + 16
+            v_out = normal * 5.0 + Vector((0, 0, 3.0))
+            lx, ly = p.x + v_out.x * 16 / FPS, p.y + v_out.y * 16 / FPS
+            lz = sea_height_at(near, land_f, lx, ly)
+            v3 = ballistic_keys(ball, p, Vector((lx, ly, lz)), f1, land_f, normal)
+            smoke_trail(coll, "shot3-glance", p, v3, f1, land_f)
+            ball.location = Vector((lx, ly, lz - 3))
+            ball.keyframe_insert("location", frame=land_f + 2)
+            splash(coll, "splash-3b", Vector((lx, ly, lz)), land_f, drop, scale=0.5, n=120, seed=52)
+            topple_mast(coll, cr_rig, fore, f1 + 1, near, drop)
+        return p, after
+
+    shard_mast = fx_source("fx-shard-mast", coll, "shard", M["black"], size=0.8)
+    stage_shot(coll, M, rigs, SHOT_3, target3, "shot3", drop, shard, near,
+               loaded_from=SHOT_2["fire"] + 4, train=SHOT_3["train"])
+
+
+def gn_keep_z(obj, h, above):
+    """Keep only the part of `obj` above (or below) local height h: the
+    fallen mast and its stump are one mast mesh cut in two."""
+    ng = bpy.data.node_groups.new(f"{obj.name}-cut", "GeometryNodeTree")
+    ng.interface.new_socket("Geometry", in_out="INPUT", socket_type="NodeSocketGeometry")
+    ng.interface.new_socket("Geometry", in_out="OUTPUT", socket_type="NodeSocketGeometry")
+    N, L = ng.nodes, ng.links
+    gi, go = N.new("NodeGroupInput"), N.new("NodeGroupOutput")
+    pos = N.new("GeometryNodeInputPosition")
+    sep = N.new("ShaderNodeSeparateXYZ")
+    L.new(pos.outputs[0], sep.inputs[0])
+    cmp = N.new("FunctionNodeCompare"); cmp.data_type = "FLOAT"
+    cmp.operation = "LESS_THAN" if above else "GREATER_THAN"
+    L.new(sep.outputs["Z"], cmp.inputs[0]); cmp.inputs[1].default_value = h
+    dl = N.new("GeometryNodeDeleteGeometry"); dl.domain = "FACE"
+    L.new(gi.outputs[0], dl.inputs["Geometry"]); L.new(cmp.outputs[0], dl.inputs["Selection"])
+    L.new(dl.outputs[0], go.inputs[0])
+    obj.modifiers.new("Cut", "NODES").node_group = ng
+
+
+def topple_mast(coll, rig, mi, frame, near, drop):
+    """The foremast snaps at the deck and goes over the far side, sail and
+    flag still on it: slow at first, then falling fast, crashing into the
+    sea, where it lies rocking, dragged along by its rigging and swinging
+    aft as the ship forges on. A stump stays standing."""
+    sc = bpy.context.scene
+    mast = rig["masts"][mi]
+    at = rig["mast_at"][mi]
+    deck = deck_height(rig, at.x + 4.0, at.y) + 0.5
+    cut = deck - at.z                      # in the mast's own height
+    stump = link(bpy.data.objects.new(mast.name + "-stump", mast.data), coll)
+    stump.material_slots[0].link = "OBJECT"
+    stump.material_slots[0].material = mast.material_slots[0].material
+    stump.parent = rig["root"]
+    stump.matrix_basis = mast.matrix_basis.copy()
+    gn_keep_z(stump, cut, above=False)
+    gn_keep_z(mast, cut, above=True)
+    # Same camera hiding as the rest of the rig during the Corsair's own shot.
+    for f, vis in ((F_START, False), (CUT, True)):
+        stump.visible_camera = vis
+        stump.keyframe_insert("visible_camera", frame=f)
+
+    pivot = link(bpy.data.objects.new(mast.name + "-pivot", None), coll)
+    pivot.parent = rig["root"]
+    pivot.location = (at.x, at.y, deck)
+    hinge = Matrix.Translation(pivot.location).inverted()
+    riders = [mast] + rig.get("sails_on_mast", {}).get(mi, []) + \
+        [fl for fl in rig.get("flags", []) if fl.name.endswith(f"flag{mi}")]
+    for o in riders:
+        basis = o.matrix_basis.copy()
+        o.parent = pivot
+        o.matrix_basis = hinge @ basis
+
+    # Tip toward hull -Y, the side away from the Queen's Fleet (+X rotation
+    # carries +Z toward -Y), then yaw aft (+Z rotation swings -Y toward +X)
+    # as the wreck drags.
+    hit_water = frame + 17
+    keys = [(frame, 0.0, 0.0), (frame + 3, 0.04, 0.0), (frame + 7, 0.22, 0.0),
+            (frame + 11, 0.62, 0.01), (frame + 14, 1.15, 0.03), (hit_water - 1, 1.55, 0.05),
+            (hit_water, 1.72, 0.06), (hit_water + 4, 1.62, 0.08), (hit_water + 10, 1.69, 0.13)]
+    t = hit_water + 10
+    k = 0
+    while t < F_END + 2:
+        t += 12
+        k += 1
+        keys.append((t, 1.68 + 0.04 * (-1) ** k, min(0.5, 0.13 + 0.02 * k)))
+    pivot.rotation_mode = "XYZ"
+    for f, tip, yaw in keys:
+        pivot.rotation_euler = (tip, 0.0, yaw)
+        pivot.keyframe_insert("rotation_euler", frame=f)
+
+    # Where it hits the sea: along the mast, from its root to its top.
+    with quick_eval():
+        sc.frame_set(hit_water)
+        pm = pivot.matrix_world.copy()
+    length = at.z + DATA["parts"]["mast"]["height"] - deck
+    for k, (frac, sc_, n) in enumerate(((0.55, 1.1, 260), (0.9, 0.8, 160))):
+        p = pm @ Vector((0, 0, length * frac))
+        z = sea_height_at(near, hit_water, p.x, p.y)
+        splash(coll, f"{mast.name}-splash{k}", Vector((p.x, p.y, z)), hit_water + k, drop,
+               scale=sc_, n=n, seed=70 + k)
+
+
+def crate_centre(crate):
+    """Centre of the crate's bounding box in its own mesh space, and the
+    radius (hull mm) of the sphere it sweeps however it turns."""
+    vs = [v.co for v in crate.data.vertices]
+    lo = Vector((min(v.x for v in vs), min(v.y for v in vs), min(v.z for v in vs)))
+    hi = Vector((max(v.x for v in vs), max(v.y for v in vs), max(v.z for v in vs)))
+    c = (lo + hi) / 2
+    radius = max((crate.matrix_basis.to_3x3() @ (v - c)).length for v in vs)
+    return c, radius
+
+
+def clear_rail_launch(rig, crate, side_speed, margin=3.0):
+    """Upward speed (m/s) that carries `crate` over the ship's side at
+    `side_speed` m/s sideways (toward hull +Y), with the whole sphere it
+    sweeps while tumbling at least `margin` mm clear of the hull all the
+    way across. Traced in hull space against the hull's own top surface
+    (deck, then bulwark and rail), riding with the ship so only the
+    sideways and vertical motion count."""
+    c, rad = crate_centre(crate)
+    at = crate.matrix_basis @ c                  # hull mm: the crate's centre
+    half_y = half_x = rad
+    beam = max(abs(v.co.y) for v in rig["hull"].data.vertices)
+    g_mm = G / S                                  # hull mm per s^2
+    vs = side_speed / S
+    for vup10 in range(20, 160, 2):
+        vu = vup10 / 10 / S
+        ok = True
+        t = 0.0
+        while True:
+            t += 1 / 240
+            y = at.y + vs * t
+            z = at.z + vu * t - 0.5 * g_mm * t * t
+            if y - half_y > beam + 1:
+                break                             # clear of the side
+            lead = min(y + half_y, beam)
+            if lead < beam - 3.0:
+                continue                          # over the deck: only the rail it must clear matters
+            top = max(deck_height(rig, at.x + dx, lead) for dx in (-half_x, 0.0, half_x))
+            if z < top + margin:
+                ok = False
+                break
+        if ok:
+            return vup10 / 10
+    print(f"[hero] no clean launch found for {crate.name}; using 8 m/s", flush=True)
+    return 8.0
+
+
+def cargo_overboard(coll, crate, root, normal, frame, near, drop, seed=40, rig=None):
     """The hit jolts the Corsair's deck cargo loose: the crate is thrown up
     and over the side toward the shot, tumbles into the sea with a splash,
     then floats, riding the waves as the ship sails on without it.
@@ -1470,24 +2070,40 @@ def cargo_overboard(coll, crate, root, normal, frame, near, drop, seed=40):
     with quick_eval():
         sc.frame_set(frame)
         start = crate.matrix_world.copy()
-    loose = link(bpy.data.objects.new(crate.name + "-loose", crate.data), coll)
+    # The loose crate turns about its own centre, not the base-corner origin
+    # it was placed by, so its mesh is recentred and it flies by that centre.
+    c, _ = crate_centre(crate)
+    me = crate.data.copy()
+    me.transform(Matrix.Translation(-c))
+    loose = link(bpy.data.objects.new(crate.name + "-loose", me), coll)
     loose.material_slots[0].link = "OBJECT"
     loose.material_slots[0].material = crate.material_slots[0].material
-    p0, q0, sc0 = start.decompose()
+    _, q0, sc0 = start.decompose()
+    p0 = start @ c
+    half_h = (c.z - min(v.co.z for v in crate.data.vertices)) * sc0.z     # world m, centre above base
     loose.scale = sc0
     loose.rotation_mode = "QUATERNION"
 
-    ship_v = Vector((2.2, 0, 0))
-    v = normal * 4.5 + Vector((0, 0, 3.8)) + ship_v * 0.6
-    spin_axis = Vector((rnd.uniform(-1, 1), rnd.uniform(-1, 1), rnd.uniform(-.3, .3))).normalized()
-    spin_rate = 7.0
+    # It keeps the ship's own way on (so the ship does not sail into it),
+    # and goes up hard enough to clear the rail, not through it.
+    a0, _ = ship_base("corsairs", frame)
+    a1, _ = ship_base("corsairs", frame + 1)
+    ship_v = Vector(((a1 - a0).x, (a1 - a0).y, 0)) * FPS
+    side = 4.0
+    up = clear_rail_launch(rig, crate, side) if rig else 6.0
+    print(f"[hero] {crate.name} thrown at {side} m/s sideways, {up} m/s up to clear the rail", flush=True)
+    v = normal * side + Vector((0, 0, up)) + ship_v
+    # Tumbles outboard, top first, the way a crate kicked over a rail goes.
+    spin_axis = (Vector((0, 0, 1)).cross(normal).normalized() +
+                 Vector((rnd.uniform(-.25, .25), rnd.uniform(-.25, .25), rnd.uniform(-.15, .15)))).normalized()
+    spin_rate = 4.5
     # Fly until the crate's centre meets the sea (checked against the height
     # there a moment later, when it will actually arrive).
     t_land = None
     for k in range(1, 60):
         t = k / FPS
         p = p0 + v * t + Vector((0, 0, -0.5 * G * t * t))
-        if p.z < 1.5:
+        if p.z < 1.5 + half_h:
             t_land = t
             break
     t_land = t_land or 1.2
@@ -1500,7 +2116,7 @@ def cargo_overboard(coll, crate, root, normal, frame, near, drop, seed=40):
         loose.keyframe_insert("location", frame=f)
         loose.keyframe_insert("rotation_quaternion", frame=f)
     q_land = Quaternion(spin_axis, spin_rate * t_land) @ q0
-    splash(coll, crate.name + "-splash", Vector((pl.x, pl.y, 0.0)), land_f, drop, scale=0.7, n=500, seed=seed)
+    splash(coll, crate.name + "-splash", Vector((pl.x, pl.y, 0.0)), land_f, drop, scale=0.7, n=170, seed=seed)
 
     # Afloat: sits low, heaves and rocks on the swell, drifts slowly downwind.
     float_frames = list(range(land_f + 2, F_END + 3, 3))
@@ -1511,7 +2127,7 @@ def cargo_overboard(coll, crate, root, normal, frame, near, drop, seed=40):
         t = (f - land_f) / FPS
         x = pl.x + WIND.x * 0.4 * t
         y = pl.y + WIND.y * 0.4 * t
-        z = heights[f]["c"][0] - 0.6
+        z = heights[f]["c"][0] - 0.6 + half_h
         # Settle from the tumble toward floating flat, then rock.
         settle = min(1.0, t / 1.2)
         rock = Euler((math.sin(t * 2.1 + seed) * 0.18, math.sin(t * 1.7 + 1) * 0.14, t * 0.2), "XYZ").to_quaternion()
@@ -1528,62 +2144,6 @@ def cargo_overboard(coll, crate, root, normal, frame, near, drop, seed=40):
             ob.keyframe_insert("hide_render", frame=f)
             ob.keyframe_insert("hide_viewport", frame=f)
     return loose
-
-
-def foam_ring(coll, name, center, frame):
-    m = new_material(f"{name}-mat")
-    nt, N, L = nodes(m)
-    b = bsdf_of(m)
-    b.inputs["Base Color"].default_value = (0.7, 0.73, 0.72, 1)
-    b.inputs["Roughness"].default_value = 0.6
-    tc = N.new("ShaderNodeTexCoord")
-    nz = N.new("ShaderNodeTexNoise")
-    nz.inputs["Scale"].default_value = 3.5
-    nz.inputs["Detail"].default_value = 8
-    L.new(tc.outputs["Object"], nz.inputs["Vector"])
-    ln = N.new("ShaderNodeVectorMath"); ln.operation = "LENGTH"
-    L.new(tc.outputs["Object"], ln.inputs[0])
-    edge = N.new("ShaderNodeMapRange")
-    edge.inputs["From Min"].default_value = 1.0
-    edge.inputs["From Max"].default_value = 0.4
-    L.new(ln.outputs["Value"], edge.inputs["Value"])
-    mul = N.new("ShaderNodeMath"); mul.operation = "MULTIPLY"
-    L.new(nz.outputs["Fac"], mul.inputs[0]); L.new(edge.outputs[0], mul.inputs[1])
-    thr = N.new("ShaderNodeMapRange")
-    thr.inputs["From Min"].default_value = 0.3
-    thr.inputs["From Max"].default_value = 0.5
-    L.new(mul.outputs[0], thr.inputs["Value"])
-    fade = N.new("ShaderNodeMath"); fade.operation = "MULTIPLY"
-    L.new(thr.outputs[0], fade.inputs[0])
-    fade.inputs[1].default_value = 0.0
-    L.new(fade.outputs[0], b.inputs["Alpha"])
-    for f, a in ((frame - 1, 0.0), (frame + 2, 1.0), (frame + 40, 0.7), (frame + 90, 0.0)):
-        fade.inputs[1].default_value = a
-        fade.inputs[1].keyframe_insert("default_value", frame=f)
-    bpy.ops.mesh.primitive_circle_add(vertices=48, radius=1.0, fill_type="NGON")
-    o = bpy.context.active_object
-    o.name = name
-    for c in list(o.users_collection):
-        c.objects.unlink(o)
-    link(o, coll)
-    bpy.context.view_layer.objects.active = o
-    bpy.ops.object.mode_set(mode="EDIT")
-    bpy.ops.mesh.subdivide(number_cuts=12)
-    bpy.ops.object.mode_set(mode="OBJECT")
-    o.data.materials.append(m)
-    o.location = center
-    for f, s in ((frame, 1.0), (frame + 20, 5.0), (frame + 90, 9.0)):
-        o.scale = (s, s, 1)
-        o.keyframe_insert("scale", frame=f)
-    sw = o.modifiers.new("OnSea", "SHRINKWRAP")
-    sw.target = bpy.data.objects["Ocean Near"]
-    sw.wrap_method = "PROJECT"
-    sw.use_project_z = True
-    sw.use_negative_direction = True
-    sw.use_positive_direction = True
-    sw.offset = 0.04
-    o.visible_shadow = False
-    return o
 
 
 # ---------------------------------------------------------------- terrain
@@ -1723,7 +2283,8 @@ def build_flags(coll, rigs):
     ph = N.new("ShaderNodeMath"); ph.operation = "MULTIPLY_ADD"
     L.new(sep.outputs["X"], ph.inputs[0]); ph.inputs[1].default_value = 9.0
     tt = N.new("ShaderNodeMath"); tt.operation = "MULTIPLY"
-    L.new(st.outputs["Seconds"], tt.inputs[0]); tt.inputs[1].default_value = -14.0
+    # ~0.8 Hz: a flag this size in a fresh breeze, not a fast flutter.
+    L.new(st.outputs["Seconds"], tt.inputs[0]); tt.inputs[1].default_value = -5.0
     L.new(tt.outputs[0], ph.inputs[2])
     sn = N.new("ShaderNodeMath"); sn.operation = "SINE"
     L.new(ph.outputs[0], sn.inputs[0])
@@ -1745,7 +2306,8 @@ def build_flags(coll, rigs):
     L.new(gi.outputs[0], sp.inputs["Geometry"]); L.new(comb.outputs[0], sp.inputs["Offset"])
     L.new(sp.outputs[0], go.inputs[0])
 
-    for key, img_name in (("corsairs", "flag-corsairs.png"), ("queens-fleet", "flag-queens-fleet.png")):
+    for key in rigs:
+        img_name = f"flag-{SHIPS[key].get('model', key)}.png"
         path = HERE / "hero" / img_name
         if not path.exists():
             print(f"[hero] no {path}, skipping {key} flag")
@@ -1791,6 +2353,7 @@ def build_flags(coll, rigs):
         # streaming downwind. A fore flag a touch smaller, as on a real rig.
         for mi, top in enumerate(rig["mast_tops"]):
             o = link(bpy.data.objects.new(f"{key}-flag{mi}", me), coll)
+            rig.setdefault("flags", []).append(o)
             mod = o.modifiers.new("Wave", "NODES"); mod.node_group = ng
             o.parent = rig["root"]
             size = 26.0 if mi == len(rig["mast_tops"]) - 1 else 22.0
@@ -2101,8 +2664,10 @@ def deck_camera(coll, name, rig, other, lens):
     """A camera standing on `rig`'s deck (eye height ~1.75 m) and riding its
     motion, kept level and aimed at the other ship, with a little hand-held
     float."""
-    x, y, eye = SHIPS[rig["key"]]["deck_cam"]
-    z = deck_height(rig, x, y) + eye
+    x, y, h, *mode = SHIPS[rig["key"]]["deck_cam"]
+    # Height above the deck there, or ("abs") above the keel for a camera
+    # rigged outboard where there is no deck under it.
+    z = h if mode == ["abs"] else deck_height(rig, x, y) + h
     cd = bpy.data.cameras.new(name)
     cd.lens = lens
     cd.sensor_width = 36
@@ -2116,7 +2681,9 @@ def deck_camera(coll, name, rig, other, lens):
     cam.scale = (1 / S, 1 / S, 1 / S)   # cancel the model scale of the parent
     target = link(bpy.data.objects.new(f"{name} Target", None), coll)
     target.parent = other["root"]
-    target.location = (0, 0, 14)
+    # Aim halfway up the other ship's rig so the waterline and the flags at
+    # the mastheads (~100 mm) both stay in frame.
+    target.location = (0, 0, 50)
     tr = cam.constraints.new("TRACK_TO")
     tr.target = target
     tr.track_axis = "TRACK_NEGATIVE_Z"
@@ -2135,14 +2702,16 @@ def deck_camera(coll, name, rig, other, lens):
 
 def build_camera(coll, rigs):
     sc = bpy.context.scene
-    cam_a = deck_camera(coll, "Corsair Deck Cam", rigs["corsairs"], rigs["queens-fleet"], 22)
-    cam_b = deck_camera(coll, "Queen's Deck Cam", rigs["queens-fleet"], rigs["corsairs"], 22)
+    cam_a = deck_camera(coll, "Corsair Deck Cam", rigs["corsairs"], rigs["queens-fleet"], 20)
+    cam_b = deck_camera(coll, "Queen's Deck Cam", rigs["queens-fleet"], rigs["corsairs"], 20)
     sc.camera = cam_a
-    # Each deck camera stands under its own ship's canvas, which would fill
-    # half the frame. Hide that ship's sails from the camera (only) for its
-    # shot: they still shade the deck, and the other shot shows them.
+    # Each deck camera stands among its own ship's rig: the canvas would fill
+    # half the frame and a mast close by reads as a dark bar at the edge.
+    # Hide that ship's sails, masts and flags from the camera (only) for its
+    # shot: they still cast shadows, and the other shot shows them.
     for key, (f_on, f_off) in (("corsairs", (F_START, CUT)), ("queens-fleet", (CUT, F_END + 1))):
-        for sail in rigs[key].get("sails", []):
+        rig = rigs[key]
+        for sail in rig.get("sails", []) + rig.get("masts", []) + rig.get("flags", []):
             for f, vis in ((F_START, True), (f_on, False), (f_off, True)):
                 if f > F_END:
                     continue
@@ -2275,7 +2844,7 @@ def bake_oceans(frames, weather):
     bake and the ships' sampled motion cannot slip by."""
     sc = bpy.context.scene
     f0, f1 = frames
-    for name in ("Ocean Near", "Ocean Far"):
+    for name in ("Ocean Near",):
         o = bpy.data.objects[name]
         m = o.modifiers["Ocean"]
         probe_f = (f0 + f1) // 2
@@ -2317,9 +2886,23 @@ def parse():
     p.add_argument("--weather", choices=sorted(WEATHERS), default="sunny")
     p.add_argument("--threads", type=int, default=6,
                    help="CPU threads (default 6 of 16): keeps a laptop cool; the GPU does the rendering.")
+    p.add_argument("--no-blur", action="store_true",
+                   help="No motion blur (drafts): blur re-evaluates the live ocean several times a frame.")
+    p.add_argument("--step", type=int, default=1, help="Render every Nth frame (drafts).")
     p.add_argument("--no-bake", action="store_true", help="Render with the live ocean.")
     p.add_argument("--no-fx", action="store_true", help="Skip rain/shots (fast layout checks).")
     return p.parse_args(argv)
+
+
+def stage(label):
+    """Progress line with this process's current memory, flushed at once so
+    it survives the process being killed."""
+    try:
+        with open("/proc/self/status") as f:
+            rss = next(int(l.split()[1]) for l in f if l.startswith("VmRSS")) // 1024
+    except Exception:
+        rss = -1
+    print(f"[hero] {label} (RSS {rss} MB)", flush=True)
 
 
 def main():
@@ -2336,19 +2919,27 @@ def main():
 
     M = build_materials()
     near = build_ocean(coll)
+    stage("ocean")
     rigs = {k: build_ship(k, M, coll) for k in SHIPS}
+    stage("ships")
     animate_ships(rigs, near)
+    stage("ship motion")
     build_flags(coll, rigs)
     build_terrain(coll)
     build_world()
     build_lights(coll)
     cam = build_camera(coll, rigs)
+    stage("flags, terrain, sky, cameras")
     if not a.no_fx:
         build_shots(coll, M, rigs, near)
+        stage("shots, wakes, spray")
         build_rain(coll, Vector((12, 0, 0)))
         if W["lightning"]:
             lightning_bolt(coll)
+        stage("rain")
     setup_render(a.samples, a.pct)
+    if a.no_blur:
+        sc.render.use_motion_blur = False
     sc.render.threads_mode = "FIXED"
     sc.render.threads = a.threads
 
@@ -2356,6 +2947,9 @@ def main():
     # Pack the flag textures so the .blend opens on any machine.
     bpy.ops.file.pack_all()
     bpy.ops.wm.save_as_mainfile(filepath=str(a.save), compress=True)
+    stage("saved")
+    bpy.app.handlers.render_pre.append(lambda *_: stage(f"render frame {bpy.context.scene.frame_current}"))
+    bpy.app.handlers.render_post.append(lambda *_: stage("rendered"))
     print(f"[hero] saved {a.save}")
 
     a.out.mkdir(parents=True, exist_ok=True)
@@ -2369,6 +2963,7 @@ def main():
         if a.frames:
             s, e = (int(x) for x in a.frames.split("-"))
             sc.frame_start, sc.frame_end = s, e
+        sc.frame_step = a.step
         if not a.no_bake:
             bake_oceans((sc.frame_start, sc.frame_end), a.weather)
         sc.render.filepath = str(a.out / f"frames-{a.weather}" / "hero_")

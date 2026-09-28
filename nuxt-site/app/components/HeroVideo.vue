@@ -1,0 +1,60 @@
+<script setup lang="ts">
+// Rendered Blender cinematic (scripts/blender/hero_battle.py) behind the
+// hero copy. Muted, looping and inline so browsers allow autoplay; visitors
+// who ask for reduced motion get the still poster instead.
+const src = '/assets/videos/hero-battle'
+const video = ref<HTMLVideoElement | null>(null)
+
+onMounted(() => {
+  const el = video.value
+  if (!el) return
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    el.pause()
+    return
+  }
+  el.play().catch(() => {})
+})
+</script>
+
+<template>
+  <div class="hero-video" aria-hidden="true">
+    <video
+      ref="video"
+      :poster="`${src}-poster.jpg`"
+      muted
+      loop
+      playsinline
+      preload="auto"
+      disablepictureinpicture
+    >
+      <source :src="`${src}.webm`" type="video/webm">
+      <source :src="`${src}.mp4`" type="video/mp4">
+    </video>
+  </div>
+</template>
+
+<style scoped>
+.hero-video {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+.hero-video video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 50% 40%;
+}
+/* Darken toward the middle and bottom so the wordmark and copy stay legible
+   over bright sky and sea. */
+.hero-video::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(70% 60% at 50% 50%, rgba(10, 8, 6, 0.45) 0%, rgba(10, 8, 6, 0.15) 75%),
+    linear-gradient(180deg, rgba(10, 8, 6, 0.2) 0%, transparent 30%, rgba(10, 8, 6, 0.55) 100%);
+}
+</style>

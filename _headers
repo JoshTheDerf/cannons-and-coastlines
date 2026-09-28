@@ -23,6 +23,11 @@
 /assets/icons/*
     Cache-Control: public, max-age=31536000, immutable
 
+# The hero video keeps its filename across re-renders: cache a day, then
+# revalidate.
+/assets/videos/*
+    Cache-Control: public, max-age=86400, must-revalidate
+
 # The base-set zip keeps one URL across releases (its filename carries no
 # version), so browsers and the CDN must check back for a new copy. The
 # ETag makes an unchanged file a cheap 304.

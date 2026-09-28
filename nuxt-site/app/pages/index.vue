@@ -22,7 +22,7 @@ const actionLetters = ['A', 'B', 'C']
   <div>
     <!-- Hero -->
     <section class="band-sea relative flex items-center justify-center px-4 pt-16 pb-40 md:pt-20 md:pb-48 lg:min-h-[80vh] text-center">
-      <HeroScene />
+      <HeroVideo />
       <div class="relative z-10 max-w-2xl mx-auto hero-copy">
         <h1 class="sr-only">Cannons &amp; Coastlines</h1>
         <img :src="p.hero.wordmark" alt="" class="mx-auto max-w-xl w-full" style="filter: drop-shadow(0 2px 12px rgba(0,0,0,0.45));">
