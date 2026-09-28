@@ -159,7 +159,7 @@
     "island-topper": {
       "source": "assets/stls/base-set/island-topper.stl",
       "preview": "/assets/previews/parts/island-topper.glb",
-      "anchor": [354.1, -152.13, 38.71]
+      "anchor": [-2.07, 0.78, 0.0]
     },
     "coin-brace-for-impact": {
       "source": "assets/stls/base-set/coin-brace-for-impact.stl",
