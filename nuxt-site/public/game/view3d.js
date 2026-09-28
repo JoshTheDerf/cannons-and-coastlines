@@ -24,6 +24,9 @@
     // auto: the 3D view picks a level for the device and adjusts it to the frame rate.
     quality: pref('quality', 'auto'),
     follow: pref('follow', 'on') === 'on',
+    // Off: picking a ship keeps the zoom where you left it (it only pans to
+    // keep the ship in view), so you can aim with the far side of the table showing.
+    zoomSel: pref('zoomsel', 'on') === 'on',
     top: pref('view', 'angled') === 'top',
   };
   const PITCH_ANGLED = 0.64, PITCH_TOP = 1.5;
@@ -52,10 +55,13 @@
         b.innerHTML = html; b.title = title; b.setAttribute('aria-label', title);
         b.addEventListener('click', e => { e.stopPropagation(); fn(); });
         btns.appendChild(b);
+        return b;
       };
       add('&#8634;', 'Turn view left', () => camRotate(-Math.PI / 8));
       add('&#8635;', 'Turn view right', () => camRotate(Math.PI / 8));
       add('&#9707;', 'Top-down or angled view', toggleTop);
+      zoomBtn = add('<svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="7.5" cy="7.5" r="5"/><path d="M11.3 11.3L16 16M5 7.5h5M7.5 5v5"/></svg>', '', toggleZoomSel);
+      syncZoomBtn();
     }
     window.addEventListener('keydown', e => {
       if (!G || (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT'))) return;
@@ -70,6 +76,21 @@
     resizeCanvas2D();
     if (V) V.resize(canvasW, canvasH);
   };
+
+  let zoomBtn = null;
+  function syncZoomBtn() {
+    if (!zoomBtn) return;
+    zoomBtn.classList.toggle('on', opts.zoomSel);
+    zoomBtn.title = opts.zoomSel ? 'Zooms in on the ship you pick (tap to keep the zoom instead)' : 'Keeps the zoom when you pick a ship (tap to zoom in instead)';
+    zoomBtn.setAttribute('aria-label', 'Zoom in on the selected ship');
+    zoomBtn.setAttribute('aria-pressed', String(opts.zoomSel));
+  }
+  function toggleZoomSel() {
+    opts.zoomSel = !opts.zoomSel;
+    setPref('zoomsel', opts.zoomSel ? 'on' : 'off');
+    syncZoomBtn();
+    logMsg(opts.zoomSel ? 'Picking a ship zooms in on it.' : 'Picking a ship keeps the zoom as it is.');
+  }
 
   function toggleTop() {
     opts.top = !opts.top;
@@ -153,6 +174,14 @@
   camFocusShip = function (ship, force) {
     if (!V || !ship || !ship.placed) return;
     if (!force && (!opts.follow || userBusy())) return;
+    if (!opts.zoomSel) {
+      // Keep the zoom; glide only if the ship is near the edge or off screen.
+      const sp = w2s(ship.x, ship.y), mx = canvasW * 0.18, my = canvasH * 0.18;
+      if (sp.x > mx && sp.x < canvasW - mx && sp.y > my && sp.y < canvasH - my) return;
+      const p = lead(ship.x, ship.y, V.goal.dist);
+      V.camFocus(p.x, p.y, V.goal.dist);
+      return;
+    }
     // Your own ships come in close; watching someone else's turn stays wider.
     const d = Math.min(V.goal.dist, isMyTurn() ? SHIP_DIST : SHIP_DIST * 1.5), p = lead(ship.x, ship.y, d);
     V.camFocus(p.x, p.y, d);
@@ -161,7 +190,7 @@
     if (!V) return;
     if (!ship) { V.setFollow(null); return; }
     if (!opts.follow || userBusy()) return;
-    V.goal.dist = Math.min(V.goal.dist, SHIP_DIST * 1.2);
+    if (opts.zoomSel) V.goal.dist = Math.min(V.goal.dist, SHIP_DIST * 1.2);
     V.setFollow(() => (ship.placed ? lead(ship.x, ship.y, V.goal.dist) : null));
   };
   camTurnStart = function (p) {
@@ -694,6 +723,7 @@
   const WEATHER_NAME = { fleet: 'your fleet’s', fair: 'fair', storm: 'storm', golden: 'golden hour', overcast: 'overcast', tropical: 'tropical', sunrise: 'sunrise' };
   window.view3dMenuItems = function (add) {
     add(`Camera: ${opts.follow ? 'follows the action' : 'stays put'}`, () => { opts.follow = !opts.follow; setPref('follow', opts.follow ? 'on' : 'off'); showMenu(); }, 'follow');
+    add(`Zoom to picked ship: ${opts.zoomSel ? 'on' : 'off'}`, () => { toggleZoomSel(); showMenu(); }, 'zoomsel');
     add(`View: ${opts.top ? 'top-down' : 'angled'}`, () => { toggleTop(); showMenu(); }, 'view');
     add(`Weather: ${WEATHER_NAME[opts.weather] || opts.weather}`, () => {
       const all = ['fleet'].concat(CNC3D.atmospheres);

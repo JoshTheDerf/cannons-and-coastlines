@@ -142,7 +142,11 @@ function drawIcon(kind, x, y, col) {
     case 'raise': ctx.moveTo(-4, 8); ctx.lineTo(-4, -8); ctx.stroke(); ctx.beginPath(); ctx.moveTo(-4, -8); ctx.lineTo(7, -4.5); ctx.lineTo(-4, -1); ctx.closePath(); ctx.fill(); break;
     case 'collect': ctx.arc(0, 0, 7, 0, TAU); ctx.stroke(); ctx.beginPath(); ctx.arc(0, 0, 3.2, 0, TAU); ctx.fill(); break;
     case 'pass': ctx.moveTo(-6, 0); ctx.lineTo(-1.5, 5); ctx.lineTo(7, -5); ctx.stroke(); break;
-    case 'scuttle': ctx.moveTo(-6, -6); ctx.lineTo(6, 6); ctx.moveTo(6, -6); ctx.lineTo(-6, 6); ctx.stroke(); break;
+    case 'scuttle': case 'cancel': ctx.moveTo(-6, -6); ctx.lineTo(6, 6); ctx.moveTo(6, -6); ctx.lineTo(-6, 6); ctx.stroke(); break;
+    case 'flat': ctx.moveTo(-8, 3); ctx.lineTo(7, 3); ctx.moveTo(3, -1); ctx.lineTo(7, 3); ctx.lineTo(3, 7); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(-8, 7); ctx.lineTo(8, 7); ctx.globalAlpha = 0.45; ctx.stroke(); break;
+    case 'lob': ctx.moveTo(-8, 7); ctx.quadraticCurveTo(-1, -12, 7, 5); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(7.5, -0.5); ctx.lineTo(7, 5); ctx.lineTo(2, 3); ctx.stroke(); break;
     case 'arrow': ctx.moveTo(-7, 0); ctx.lineTo(7, 0); ctx.moveTo(2, -5); ctx.lineTo(7, 0); ctx.lineTo(2, 5); ctx.stroke(); break;
     default: ctx.arc(0, 0, 3, 0, TAU); ctx.fill();
   }
@@ -202,6 +206,11 @@ function drawControls() {
   for (const ch of evasiveChipLayout()) {
     drawChip(ch, { hot: UI.evasive.hover === ch.side, icon: 'arrow', rot: Math.atan2(ch.dir.y, ch.dir.x), label: ch.label });
   }
+  for (const ch of powerChipLayout()) {
+    if (ch.id === 'fire') drawChip(ch, { hot: UI.hoverCtl === 'fire', icon: 'fire', fill: '#8b1a1a', ink: '#faf3e0', label: ch.label });
+    else drawChip(ch, { hot: F.elev === ch.id || UI.hoverCtl === ch.id, icon: ch.id, fill: F.elev === ch.id ? '#3c2415' : null, ink: F.elev === ch.id ? '#faf3e0' : null, label: ch.label });
+  }
+  for (const ch of cancelChipLayout()) drawChip(ch, { hot: UI.hoverCtl === 'cancel', icon: 'cancel', ink: '#5a3a1e', label: ch.label });
 }
 
 function drawRoundTable() {

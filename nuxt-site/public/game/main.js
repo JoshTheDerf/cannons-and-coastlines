@@ -40,8 +40,8 @@ function showScreen(id) {
   for (const s of SCREENS) { const el = $(s); if (el) el.style.display = s === id ? 'flex' : 'none'; }
 }
 
-function startSolo() { setupChoice.solo = true; showSetup(); }
-function startHotSeat() { setupChoice.solo = false; showSetup(); }
+function startSolo() { autoFullscreen(); setupChoice.solo = true; showSetup(); }
+function startHotSeat() { autoFullscreen(); setupChoice.solo = false; showSetup(); }
 
 function factionCard(fid, selected, attrs) {
   const f = FACTION_DEFS[fid];
@@ -92,6 +92,8 @@ function beginGame() {
 function enterGameScreen() {
   resetUI();
   showScreen('game');
+  guardNav();
+  syncFullscreenBtn();
   $('gameOver').style.display = 'none';
   $('game').classList.toggle('online', isOnline());
   applyLayout();
@@ -109,7 +111,7 @@ function enterGameScreen() {
 }
 
 function resetUI() {
-  Object.assign(UI, { mode: null, sel: null, move: null, fire: null, coin: null, evasive: null, targets: null, ghost: null, busy: false, dragging: false, msg: '' });
+  Object.assign(UI, { mode: null, sel: null, move: null, fire: null, coin: null, evasive: null, targets: null, ghost: null, busy: false, dragging: false, msg: '', armAt: 0 });
 }
 
 function quitToTitle() {
@@ -137,11 +139,58 @@ function applyLayout() {
   setTimeout(resizeCanvas, 30);
 }
 
-function toggleFullscreen() {
+// ─── Fullscreen and navigation ────────────────────────
+
+const pref = (k, d) => { try { return localStorage.getItem('cnc-' + k) || d; } catch (e) { return d; } };
+const setPref = (k, v) => { try { localStorage.setItem('cnc-' + k, v); } catch (e) { /* private mode */ } };
+const isFullscreen = () => !!(document.fullscreenElement || document.webkitFullscreenElement);
+const canFullscreen = () => !!(document.fullscreenEnabled || document.webkitFullscreenEnabled);
+const isTouch = () => !!(window.matchMedia && window.matchMedia('(pointer: coarse)').matches);
+
+/** byUser: the board's own button, which also sets whether games open fullscreen. */
+function toggleFullscreen(byUser) {
   const d = document, el = d.documentElement;
-  if (!d.fullscreenElement && !d.webkitFullscreenElement) (el.requestFullscreen || el.webkitRequestFullscreen || (() => {})).call(el);
-  else (d.exitFullscreen || d.webkitExitFullscreen).call(d);
+  const enter = !isFullscreen();
+  if (byUser === true) setPref('fullscreen', enter ? 'on' : 'off');
+  if (enter) {
+    const r = (el.requestFullscreen || el.webkitRequestFullscreen || (() => {})).call(el, { navigationUI: 'hide' });
+    if (r && r.catch) r.catch(() => {});
+  } else (d.exitFullscreen || d.webkitExitFullscreen).call(d);
 }
+/** On a phone or tablet, going into a game goes fullscreen (unless you turned it off). Needs a tap to call it. */
+function autoFullscreen() {
+  if (isTouch() && canFullscreen() && !isFullscreen() && pref('fullscreen', 'on') === 'on') toggleFullscreen();
+}
+function syncFullscreenBtn() {
+  const b = $('fsBtn');
+  if (!b) return;
+  b.hidden = !canFullscreen();
+  const on = isFullscreen();
+  b.title = on ? 'Leave fullscreen' : 'Fullscreen'; b.setAttribute('aria-label', b.title);
+  b.querySelector('.fsIn').style.display = on ? 'none' : '';
+  b.querySelector('.fsOut').style.display = on ? '' : 'none';
+}
+document.addEventListener('fullscreenchange', syncFullscreenBtn);
+document.addEventListener('webkitfullscreenchange', syncFullscreenBtn);
+
+// While a game is on screen, Back (a button, a swipe from the edge, a mouse
+// button) opens the menu instead of leaving. A spare history entry catches
+// it, and is put back each time.
+function gameOnScreen() { return !!G && $('game').style.display !== 'none'; }
+function guardNav() {
+  if (!(history.state && history.state.cncGame)) history.pushState({ cncGame: true }, '', location.href);
+}
+window.addEventListener('popstate', () => {
+  if (!gameOnScreen()) return;
+  guardNav();
+  if ($('menu').style.display !== 'flex') showMenu();
+});
+window.addEventListener('beforeunload', e => {
+  if (!gameOnScreen() || G.phase === 'over') return;
+  e.preventDefault(); e.returnValue = '';
+});
+// Safari pinches the whole page otherwise; the board handles its own pinch.
+document.addEventListener('gesturestart', e => { if (gameOnScreen()) e.preventDefault(); });
 
 // ═══ Messages ══════════════════════════════════════════
 
@@ -410,7 +459,7 @@ function onPointerDown(e) {
   if (e.button === 1 || e.button === 2) { pan = { x: e.clientX, y: e.clientY, moved: true, orbit: e.button === 2 && camCanOrbit() }; return; }
   if (isAnimating() || (G.phase === 'play' && !isMyTurn())) {
     if (isAnimating()) skipAnimations();
-    pan = { x: e.clientX, y: e.clientY, moved: false, tap: null };
+    pan = { x: e.clientX, y: e.clientY, moved: false, onTap: null };
     return;
   }
   if (!canInteract()) return;
@@ -420,21 +469,21 @@ function onPointerDown(e) {
   if (G.phase === 'deploy') { deployTap(w); return; }
   if (G.phase !== 'play') return;
   const sp = eventScreen(e);
+  // Nothing in play happens on the press itself: a tap (lifting the finger
+  // without dragging) runs it, and a drag pans the view instead. A finger
+  // that lands on the table meaning to pan never fires, sails or spends.
+  const tap = onTap => { pan = { x: e.clientX, y: e.clientY, moved: false, onTap }; };
   // On-canvas controls first.
-  if (UI.ring) {
-    const it = chipAt(ringLayout(), sp);
-    if (it) { runRingItem(it); return; }
-  }
-  if (UI.mode === 'move') { const ch = chipAt(moveChipLayout(), sp); if (ch) { sailClicks(ch.k); return; } }
-  if (UI.mode === 'fire' && UI.fire.stage === 'slot') { const ch = chipAt(slotChipLayout(), sp); if (ch) { chooseSlot(ch.idx); return; } }
-  if (UI.mode === 'evasive') { const ch = chipAt(evasiveChipLayout(), sp); if (ch) { chooseEvasive(ch.side); return; } }
+  const ch = controlChipAt(sp);
+  if (ch) { tap(ch.run); return; }
   if (UI.ring) {
     // Off the ring: another ship opens its own ring, water closes it.
-    const other = pickShip(w, G.active) || G.order.filter(q => q !== G.active).map(q => pickShip(w, q)).find(Boolean);
-    UI.ring = null;
-    if (other && ringItems(other).length && other.id !== (UI.sel && UI.sel.id)) { openRing(other); return; }
-    UI.sel = null; refresh();
-    pan = { x: e.clientX, y: e.clientY, moved: false, tap: null };
+    tap(() => {
+      const other = pickShip(w, G.active) || G.order.filter(q => q !== G.active).map(q => pickShip(w, q)).find(Boolean);
+      UI.ring = null;
+      if (other && ringItems(other).length && other.id !== (UI.sel && UI.sel.id)) { openRing(other); return; }
+      UI.sel = null; refresh();
+    });
     return;
   }
   switch (UI.mode) {
@@ -442,34 +491,36 @@ function onPointerDown(e) {
       // A set heading only changes from its handle or the ship itself;
       // anywhere else on the board just pans.
       const m = UI.move;
-      if (m.lockHeading || (m.locked && !onMoveHandle(sp) && pickShip(w, G.active) !== m.ship)) { pan = { x: e.clientX, y: e.clientY, moved: false, tap: null }; return; }
+      if (m.lockHeading || (m.locked && !onMoveHandle(sp) && pickShip(w, G.active) !== m.ship)) { tap(null); return; }
       m.locked = false; UI.dragging = true; setMoveHeading(w);
       return;
     }
     case 'fire': {
       const F = UI.fire;
-      if (F.stage === 'dir' && F.locked && !onAimHandle(sp)) { pan = { x: e.clientX, y: e.clientY, moved: false, tap: null }; return; }
+      if (F.stage === 'slot') { tap(() => { if (UI.fire === F && F.stage === 'slot') { const best = slotAt(w); if (best >= 0) chooseSlot(best); } }); return; }
       // In the elevation step, the aim handle takes you back to aiming.
       if (F.stage === 'power' && F.free && onAimHandle(sp, true)) { F.stage = 'dir'; F.locked = false; UI.dragging = true; firePointer(w, true); refresh(); return; }
-      if (F.stage === 'dir') F.locked = false;
+      // Only the Fire chip (or button) fires: anywhere else just pans.
+      if (F.stage === 'power' || (F.stage === 'dir' && F.locked && !onAimHandle(sp))) { tap(null); return; }
+      F.locked = false;
       firePointer(w, true);
       return;
     }
-    case 'coin': coinTap(w); return;
-    case 'evasive': {
-      const side = evasiveSideAt(w);
-      if (side) chooseEvasive(side);
-      return;
-    }
-    case 'revive': reviveTap(w); return;
+    case 'coin': tap(() => coinTap(w)); return;
+    case 'evasive': tap(() => { const side = evasiveSideAt(w); if (side) chooseEvasive(side); }); return;
+    case 'revive': tap(() => reviveTap(w)); return;
   }
   const s = pickShip(w, G.active);
-  if (s) { selectShip(s); return; }
+  if (s) { tap(() => selectShip(s)); return; }
   // An enemy you can board opens a ring too.
   const foe = G.order.filter(q => q !== G.active).map(q => pickShip(w, q)).find(Boolean);
-  if (foe && ringItems(foe).length) { openRing(foe); return; }
-  // Empty water: drag to pan the view, tap to deselect.
-  pan = { x: e.clientX, y: e.clientY, moved: false, tap: w };
+  if (foe && ringItems(foe).length) { tap(() => openRing(foe)); return; }
+  // Empty water: drag to pan the view, tap to deselect (or read an enemy's state).
+  tap(() => {
+    const enemy = G.order.filter(q => q !== G.active).map(q => pickShip(w, q)).find(Boolean);
+    if (enemy) logMsg(`${enemy.name} (${seatName(enemy.owner)}): ${enemy.fit}/${enemy.maxFit} fittings${isDead(enemy) ? ', dead in the water' : ''}${enemy.braced ? ', braced' : ''}.`);
+    UI.sel = null; refresh();
+  });
 }
 
 function onPointerMove(e) {
@@ -509,6 +560,7 @@ function onPointerMove(e) {
   if (mouse) {
     const sp = eventScreen(e);
     UI.hoverRing = UI.ring ? (chipAt(ringLayout(), sp) || {}).id || null : null;
+    UI.hoverCtl = (chipAt(cancelChipLayout().concat(powerChipLayout()), sp) || {}).id || null;
     if (UI.mode === 'fire' && UI.fire && UI.fire.stage === 'slot') { const ch = chipAt(slotChipLayout(), sp); if (ch) UI.fire.hover = ch.idx; }
     if (UI.mode === 'move' && UI.move && (UI.move.locked || UI.move.lockHeading)) {
       // Hovering a click chip previews that many clicks.
@@ -532,7 +584,7 @@ function onPointerLeave() {
 
 function commitDrag() {
   if (UI.mode === 'move' && UI.move && !UI.move.lockHeading) {
-    const m = UI.move; m.hc = m.plan.rot.h; m.h = m.hc; m.locked = true; replanMove(); sfxSelect(); refresh();
+    const m = UI.move; m.hc = m.plan.rot.h; m.h = m.hc; m.locked = true; arm(); replanMove(); sfxSelect(); refresh();
   } else if (UI.mode === 'fire' && UI.fire && UI.fire.stage === 'dir') {
     // Setting the aim leads straight into choosing the elevation.
     const F = UI.fire; F.hc = F.h; F.locked = true; sfxSelect(); startPower(); refresh();
@@ -571,12 +623,9 @@ function onPointerUp(e) {
   if (UI.dragging && ptrs.size === 0) { UI.dragging = false; commitDrag(); }
   UI.dragging = false;
   if (pan && ptrs.size === 0) {
-    if (!pan.moved && pan.tap && canInteract()) {
-      const enemy = G.order.filter(q => q !== G.active).map(q => pickShip(pan.tap, q)).find(Boolean);
-      if (enemy) logMsg(`${enemy.name} (${seatName(enemy.owner)}): ${enemy.fit}/${enemy.maxFit} fittings${isDead(enemy) ? ', dead in the water' : ''}${enemy.braced ? ', braced' : ''}.`);
-      UI.sel = null; refresh();
-    }
+    const p = pan;
     pan = null;
+    if (!p.moved && p.onTap && canInteract() && G.phase === 'play') p.onTap();
   }
 }
 
@@ -588,15 +637,9 @@ function onKey(e) {
   if (!canInteract()) return;
   const ok = e.key === 'Enter' || e.key === ' ';
   if (ok) e.preventDefault();
-  if (e.key === 'Escape' && UI.ring) { UI.ring = null; UI.sel = null; refresh(); return; }
+  if (e.key === 'Escape' && UI.ring) { stepBack(); return; }
   if (UI.mode === 'move' && /^[1-9]$/.test(e.key) && +e.key <= UI.move.ship.moveCount) { sailClicks(+e.key); return; }
-  if (e.key === 'Escape') {
-    // Back one step: a set heading or aim unlocks first, then the mode closes.
-    if (UI.mode === 'move' && UI.move.locked && !UI.move.lockHeading) { unlockAim(); return; }
-    if (UI.mode === 'fire' && UI.fire.free && (UI.fire.stage === 'power' || UI.fire.locked)) { unlockAim(); return; }
-    if (UI.mode === 'move' && UI.move.ship.stage === 'click') return; // the click after firing must happen
-    cancelMode(); refresh(); return;
-  }
+  if (e.key === 'Escape') { stepBack(); return; }
   if (UI.mode === 'move' && !UI.move.lockHeading && (e.key === 'ArrowLeft' || e.key === 'ArrowRight')) {
     UI.move.locked = false;
     UI.move.h = normAngle(UI.move.h + (e.key === 'ArrowLeft' ? -1 : 1) * Math.PI / 36);
@@ -609,6 +652,48 @@ function onKey(e) {
   if (UI.mode === 'fire' && UI.fire.stage === 'dir') { if (!UI.fire.locked) commitDrag(); else lockAim(); return; }
   if (UI.mode === 'fire' && UI.fire.stage === 'power') { releaseShot(); return; }
   if (UI.mode === 'evasive' && UI.evasive.pick) { chooseEvasive(UI.evasive.pick); return; }
+}
+
+/** What the back step (Esc, or the cross chip) would do now: 'back', 'cancel', or null. */
+function stepBackKind() {
+  if (UI.ring) return 'cancel';
+  switch (UI.mode) {
+    case 'move':
+      if (UI.move.locked && !UI.move.lockHeading) return 'back';
+      return UI.move.ship.stage === 'click' ? null : 'cancel'; // the click after firing must happen
+    case 'fire': {
+      const F = UI.fire;
+      if (F.stage === 'power' && F.free) return 'back';
+      if (F.stage === 'dir' && F.locked) return 'back';
+      if (F.stage !== 'slot' && F.slots.length > 1) return 'back';
+      return 'cancel';
+    }
+    case 'coin': case 'evasive': case 'revive': return 'cancel';
+  }
+  return null;
+}
+
+/**
+ * Back one step: a set heading or aim unlocks first, a chosen gun goes back
+ * to picking the gun, then the mode closes and the ship's ring comes back
+ * so you can pick something else on the table.
+ */
+function stepBack() {
+  const kind = stepBackKind();
+  if (!kind) return;
+  sfxSelect();
+  if (UI.ring) { UI.ring = null; UI.sel = null; refresh(); return; }
+  if (kind === 'back') {
+    const F = UI.fire;
+    if (UI.mode === 'move' || (F.free && (F.stage === 'power' || F.locked))) { unlockAim(); return; }
+    Object.assign(F, { stage: 'slot', slot: null, slotIdx: -1, free: false, locked: false, hover: -1, h: F.ship.h, hc: F.ship.h });
+    refresh();
+    return;
+  }
+  const ship = UI.mode === 'coin' || UI.mode === 'revive' ? null : UI.sel;
+  cancelMode();
+  if (ship && shipById(ship.id) && ringItems(ship).length) openRing(ship);
+  else refresh();
 }
 
 function pickShip(w, p) {
@@ -771,6 +856,81 @@ function evasiveChipLayout() {
   });
 }
 
+/**
+ * The elevation step: Straight out and Tipped up side by side behind the
+ * gun, with Fire set apart at one end and the cross at the other, so a
+ * thumb choosing the elevation does not land on Fire.
+ */
+function powerChipLayout() {
+  const F = UI.fire;
+  if (UI.mode !== 'fire' || !F || F.stage !== 'power' || UI.busy || !isMyTurn() || !F.slot) return [];
+  const hub = F.source === 'island' ? F.island : F.ship, c = w2s(hub.x, hub.y);
+  const R = Math.max(w2r(F.source === 'island' ? hub.r + 1.5 : F.ship.len * 0.6) + 44, 76);
+  // Opposite the shot, so the chips stay clear of the line it flies along.
+  const d = sdir(hub.x, hub.y, Math.sin(F.h), -Math.cos(F.h)), back = Math.atan2(-d.y, -d.x), u = 54 / R;
+  const at = (k, o) => Object.assign({ x: c.x + Math.cos(back + k * u) * R, y: c.y + Math.sin(back + k * u) * R, r: CHIP_R }, o);
+  return spreadChips([
+    at(-0.5, { id: 'flat', label: 'Straight' }),
+    at(0.5, { id: 'lob', label: 'Tipped up' }),
+    at(2.05, { id: 'fire', label: 'Fire!', r: CHIP_R + 5 }),
+  ], 56);
+}
+
+/** Obstacles the cross chip keeps clear of: this mode's chips and drag handles. */
+function chipObstacles() {
+  const out = [...moveChipLayout(), ...slotChipLayout(), ...powerChipLayout(), ...evasiveChipLayout()];
+  if (UI.mode === 'move' && UI.move && UI.move.plan && !UI.move.lockHeading) out.push(Object.assign({ r: 26 }, moveHandleScreen(UI.move)));
+  if (UI.mode === 'fire' && UI.fire && UI.fire.free && UI.fire.slot) { const k = aimHandleScreen(UI.fire); out.push({ x: k.x, y: k.y, r: 26 }); }
+  return out;
+}
+
+/**
+ * The cross chip: steps back or cancels, right beside the controls it
+ * belongs to. It sits astern of the ship (as it was before this turn, so it
+ * does not swing about while you steer), away from anything else.
+ */
+function cancelChipLayout() {
+  if (!G || G.phase !== 'play' || UI.busy || !isMyTurn() || !UI.mode) return [];
+  const kind = stepBackKind();
+  if (!kind) return [];
+  const label = kind === 'back' ? 'Back' : 'Cancel';
+  const ship = UI.mode === 'move' ? UI.move.ship : UI.mode === 'fire' ? UI.fire.ship : UI.mode === 'evasive' ? UI.evasive.ship : null;
+  // Coins and Return from the Deep have no ship yet: bottom left of the table.
+  if (!ship) return [{ id: 'cancel', label, r: CHIP_R, x: CHIP_R + 14, y: canvasH - CHIP_R - 30 }];
+  const hub = UI.mode === 'fire' && UI.fire.source === 'island' ? UI.fire.island : ship, c = w2s(hub.x, hub.y);
+  const others = chipObstacles();
+  const R0 = Math.max(w2r(hub === ship ? ship.len * 0.6 : hub.r + 1.5) + 44, 76);
+  const d = sdir(hub.x, hub.y, Math.sin(ship.h), -Math.cos(ship.h)), a0 = Math.atan2(-d.y, -d.x);
+  const clear = p => p.x > CHIP_R + 3 && p.x < canvasW - CHIP_R - 3 && p.y > CHIP_R + 3 && p.y < canvasH - CHIP_R - 18
+    && others.every(o => Math.hypot(o.x - p.x, o.y - p.y) >= o.r + CHIP_R + 16);
+  for (const R of [R0, R0 + 50, R0 + 100]) {
+    for (let i = 0; i < 18; i++) {
+      const a = a0 + (i % 2 ? 1 : -1) * Math.ceil(i / 2) * (Math.PI / 9);
+      const p = { x: c.x + Math.cos(a) * R, y: c.y + Math.sin(a) * R };
+      if (clear(p)) return [{ id: 'cancel', label, r: CHIP_R, x: p.x, y: p.y }];
+    }
+  }
+  return [{ id: 'cancel', label, r: CHIP_R, x: CHIP_R + 14, y: canvasH - CHIP_R - 30 }];
+}
+
+// Chips that commit something (sail, fire, slide) wait a moment after they
+// appear, so the second half of a quick double tap cannot set one off.
+const ARM_MS = 350;
+function arm() { UI.armAt = performance.now() + ARM_MS; }
+function armed() { return performance.now() >= (UI.armAt || 0); }
+
+/** The on-canvas chip under a screen point, with what tapping it does. */
+function controlChipAt(sp) {
+  let ch;
+  if ((ch = chipAt(cancelChipLayout(), sp))) return { ch, run: stepBack };
+  if (UI.ring && (ch = chipAt(ringLayout(), sp))) return { ch, run: () => runRingItem(ch) };
+  if ((ch = chipAt(moveChipLayout(), sp))) return { ch, run: () => { if (armed()) sailClicks(ch.k); } };
+  if ((ch = chipAt(slotChipLayout(), sp))) return { ch, run: () => chooseSlot(ch.idx) };
+  if ((ch = chipAt(powerChipLayout(), sp))) return { ch, run: () => { if (ch.id !== 'fire') setElev(ch.id); else if (armed()) releaseShot(); } };
+  if ((ch = chipAt(evasiveChipLayout(), sp))) return { ch, run: () => { if (armed()) chooseEvasive(ch.side); } };
+  return null;
+}
+
 /** Keep chips on the canvas and at least `gap` px apart (after clamping at an edge). */
 function spreadChips(arr, gap = 50) {
   const cl = c => { c.x = clamp(c.x, CHIP_R + 3, canvasW - CHIP_R - 3); c.y = clamp(c.y, CHIP_R + 3, canvasH - CHIP_R - 18); };
@@ -921,6 +1081,7 @@ function startMove(ship, kind) {
   UI.mode = 'move';
   // h: what the preview shows; hc: the committed heading Sail uses.
   UI.move = { ship, kind, h: ship.h, hc: ship.h, locked: false, clicks: ship.moveCount, lockHeading: kind === 'sail', plan: null };
+  arm();
   replanMove();
   refresh();
 }
@@ -987,6 +1148,7 @@ function chooseSlot(idx) {
 // straight out or tipped up. Pick one, then fire.
 function startPower() {
   UI.fire.stage = 'power';
+  arm();
 }
 
 function setElev(elev) {
@@ -1090,6 +1252,8 @@ function shipActions(ship) {
 async function doShipAction(act) {
   const ship = UI.sel;
   if (!ship || !canInteract()) return;
+  // A kept panel button may hold an island from an older copy of the state.
+  if (act.t) act = Object.assign({}, act, { t: G.terrain[act.t.id] || act.t });
   switch (act.id) {
     case 'steer': startMove(ship, 'steer'); return;
     case 'sail': startMove(ship, 'sail'); return;
@@ -1151,6 +1315,7 @@ async function playCoin(id, target) {
     UI.sel = target;
     UI.mode = 'evasive';
     UI.evasive = Object.assign({ ship: target }, evasivePlans(target));
+    arm();
     refresh();
     return;
   }
@@ -1235,8 +1400,12 @@ function buildPanel(p, el) {
   const active = G.active === p && G.phase !== 'over';
   el.classList.toggle('active', active);
   el.classList.remove('scoreboard');
+  // A computer's panel never has buttons, so it keeps a shorter fixed size.
+  el.classList.toggle('compact', !isOnline() && !!aiControlled[p]);
   el.style.setProperty('--pc', colorOf(p).main);
   el.style.setProperty('--pcd', colorOf(p).dark);
+  const out = el;
+  el = document.createElement('div');
   const sc = G.phase === 'play' || G.phase === 'over' ? scoreBreakdown()[p] : null;
   const who = isOnline() ? `${seatName(p)} (you)` : aiControlled[p] ? (setupChoice.solo && p === 2 ? 'Computer' : `P${p} (AI)`) : `Player ${p}`;
   el.innerHTML = `
@@ -1256,6 +1425,17 @@ function buildPanel(p, el) {
   else if (G.phase === 'play') prompt.textContent = isOnline() ? `Waiting for ${seatName(G.active)}.` : 'Waiting.';
   else if (G.phase !== 'over') prompt.textContent = 'Waiting.';
   if (!G.players[p].ships.length && G.phase === 'play') prompt.textContent = 'Your fleet is gone. You can keep watching.';
+  commitPanel(out, el);
+}
+
+/**
+ * Swap a freshly built panel in only if it looks different. Most refreshes
+ * change nothing a player can see, and on a slow phone rebuilding the DOM
+ * (and restyling it) every time is the expensive part.
+ */
+function commitPanel(el, fresh) {
+  if (el.innerHTML === fresh.innerHTML) return;
+  el.replaceChildren(...fresh.childNodes);
 }
 
 // Scores (rulebook v0.6): islands x2, prize fittings x1, prize hulls x2,
@@ -1268,7 +1448,7 @@ function scoreMeta(sc) {
 }
 
 function buildSpectatorPanel(el) {
-  el.classList.remove('active', 'scoreboard');
+  el.classList.remove('active', 'scoreboard', 'compact');
   el.style.setProperty('--pc', '#6b4c30'); el.style.setProperty('--pcd', '#3c2415');
   el.innerHTML = `<div class="pHead"><span class="pWho">Watching</span><span class="pFaction">${esc(NET.room ? NET.room.name : '')}</span><span class="pTimer" id="turnTimer"></span></div>
     <div class="pBar"><div class="prompt">${G.phase === 'play' ? `${esc(seatName(G.active))} is playing.` : ''}</div></div>`;
@@ -1276,7 +1456,7 @@ function buildSpectatorPanel(el) {
 }
 
 function buildScoreboard(el) {
-  el.classList.add('scoreboard'); el.classList.remove('active');
+  el.classList.add('scoreboard'); el.classList.remove('active', 'compact');
   el.style.setProperty('--pc', colorOf(G.active).main);
   const sc = scoreBreakdown();
   el.innerHTML = `<div class="sbRows">${G.order.map(p => {
@@ -1351,14 +1531,14 @@ function fillBar(p, prompt, acts) {
     else if (F.stage === 'dir') {
       say(F.locked ? `Aim set. Press Ready to fire, or drag the handle to change it.` : 'Drag the handle, or move the mouse and click, to aim the turret. The hull does not turn.');
     } else say(F.elev === 'lob'
-      ? 'Tipped up: sails over nearby hulls and comes down about 38 cm out. The cannon sprays a few degrees either way. Fire when ready (Space).'
-      : 'Straight out: skips and skids along the table into the first thing in line. The cannon sprays a few degrees either way. Fire when ready (Space).');
+      ? 'Tipped up: sails over nearby hulls and comes down about 38 cm out, a few degrees either way. Tap Fire when ready.'
+      : 'Straight out: skips and skids into the first thing in line, a few degrees either way. Tap Fire when ready.');
     if (F.stage === 'dir') acts.appendChild(btn('Ready to fire', lockAim, { cls: 'go', act: 'aim' }));
     if (F.stage === 'power' && F.free) acts.appendChild(btn('Adjust aim', unlockAim, { act: 'adjust' }));
     if (F.stage === 'power') {
       acts.appendChild(btn('Straight out', () => setElev('flat'), { cls: F.elev === 'flat' ? 'on' : '', act: 'flat' }));
       acts.appendChild(btn('Tipped up', () => setElev('lob'), { cls: F.elev === 'lob' ? 'on' : '', act: 'lob' }));
-      acts.appendChild(btn('Fire!', releaseShot, { cls: 'go fireBtn', act: 'fire' }));
+      acts.appendChild(btn('Fire!', () => { if (armed()) releaseShot(); }, { cls: 'go fireBtn', act: 'fire' }));
     }
     if (F.ship.pending === 'shot2') acts.appendChild(btn('Skip shot', skipSecond, { act: 'skip' }));
     else acts.appendChild(btn('Cancel', () => { cancelMode(); refresh(); }, { act: 'cancel' }));

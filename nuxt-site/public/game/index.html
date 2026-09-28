@@ -20,7 +20,7 @@
     <div class="titleBtns">
       <button id="btnSolo" onclick="startSolo()">Play the computer</button>
       <button id="btnHotseat" onclick="startHotSeat()">Two players, one screen</button>
-      <button id="btnOnline" onclick="showOnline()">Play online</button>
+      <button id="btnOnline" onclick="autoFullscreen(); showOnline()">Play online</button>
       <button class="minor" onclick="showHelp()">How to play</button>
       <button class="minor" onclick="toggleFullscreen()">Fullscreen</button>
     </div>
@@ -72,7 +72,7 @@
       <div id="turnBanner"></div>
       <div id="toast"></div>
       <div id="netStatus"></div>
-      <div id="camBtns"><button onclick="camZoomAt(canvasW/2, canvasH/2, 1.3)" title="Zoom in" aria-label="Zoom in">+</button><button onclick="camZoomAt(canvasW/2, canvasH/2, 0.77)" title="Zoom out" aria-label="Zoom out">&minus;</button><button onclick="camReset()" title="Fit table" aria-label="Fit table">&#9711;</button></div>
+      <div id="camBtns"><button onclick="camZoomAt(canvasW/2, canvasH/2, 1.3)" title="Zoom in" aria-label="Zoom in">+</button><button onclick="camZoomAt(canvasW/2, canvasH/2, 0.77)" title="Zoom out" aria-label="Zoom out">&minus;</button><button onclick="camReset()" title="Fit table" aria-label="Fit table">&#9711;</button><button id="fsBtn" onclick="toggleFullscreen(true)" title="Fullscreen" aria-label="Fullscreen" hidden><svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path class="fsIn" d="M2 6V2h4M12 2h4v4M16 12v4h-4M6 16H2v-4"/><path class="fsOut" d="M6 2v4H2M16 6h-4V2M12 16v-4h4M2 12h4v4" style="display:none"/></svg></button></div>
     </div>
     <div id="panel1" class="panel"></div>
   </div>
@@ -133,7 +133,7 @@
       <p>Up to seven crews on a round table, one turn each in seat order. The server checks every move and rolls every shot. If you drop out, reopen the link and you get your seat back.</p>
 
       <h3>Controls</h3>
-      <p>Everything happens on the table. Tap a ship to open its ring of actions and coins. For Steer, drag the handle (or move the mouse and click) to set the heading, then tap a numbered chip to sail that many clicks. For Fire, tap a slot chip, then choose Straight out or Tipped up (arrow keys up and down) and fire. Like the printed cannons, there's no power setting. Straight out skips and skids into the first thing in line, tipped up sails over nearby hulls and comes down about 38 cm out, and every shot sprays a few degrees either way. After a bounce or two the tapered ball pretty much goes where it likes, skidding and curling to a stop. Straight out carries 30 to 45 cm, and tipped up 50 to 70. The Industry turret has its own aiming handle. Tap water or press Esc to close or step back. Pinch or use the wheel to zoom, drag empty water to pan. Right-drag, twist two fingers, or press Q and E to turn the view; the last camera button (or T) looks straight down. The camera follows the action, which you can turn off in the menu. Keys: arrows turn, 1 to 4 sail that many clicks, Enter sails the full count, Space fires. The panel has every action too.</p>
+      <p>Everything happens on the table. Tap a ship to open its ring of actions and coins. For Steer, drag the handle (or move the mouse and click) to set the heading, then tap a numbered chip to sail that many clicks. For Fire, tap a slot chip, then choose Straight out or Tipped up (arrow keys up and down) and fire. Like the printed cannons, there's no power setting. Straight out skips and skids into the first thing in line, tipped up sails over nearby hulls and comes down about 38 cm out, and every shot sprays a few degrees either way. After a bounce or two the tapered ball pretty much goes where it likes, skidding and curling to a stop. Straight out carries 30 to 45 cm, and tipped up 50 to 70. The Industry turret has its own aiming handle. Every step happens when you lift your finger, so a drag always pans instead, and a stray tap on the water never fires or sails. Tap Fire on the table to shoot. The cross chip beside the controls (or Esc) steps back one stage or cancels; tap water to close a ring. Pinch or use the wheel to zoom, drag empty water to pan. Right-drag, twist two fingers, or press Q and E to turn the view; the last camera button (or T) looks straight down. The camera follows the action and zooms in on the ship you pick. The magnifier button (or the menu) keeps the zoom where you left it, which helps when aiming across the table, and the menu turns following off altogether. The corner button goes fullscreen. Keys: arrows turn, 1 to 4 sail that many clicks, Enter sails the full count, Space fires. The panel has every action too.</p>
       <button onclick="hideHelp()">Got it</button>
     </div>
   </div>

@@ -19,7 +19,8 @@
 }
 
 * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-html, body { width: 100%; height: 100%; overflow: hidden; background: var(--deck); font-family: var(--body); color: var(--ink); }
+html, body { width: 100%; height: 100%; overflow: hidden; background: var(--deck); font-family: var(--body); color: var(--ink);
+  overscroll-behavior: none; }
 #app { position: fixed; inset: 0; overflow: hidden; }
 button { font: inherit; color: inherit; touch-action: manipulation; }
 b, strong { color: var(--heading); }
@@ -82,7 +83,7 @@ b, strong { color: var(--heading); }
 /* Game layout */
 #game { position: absolute; inset: 0; display: none; flex-direction: column; background: var(--deck); }
 #game.landscape { flex-direction: row; }
-#boardWrap { position: relative; flex: 1 1 auto; min-height: 0; min-width: 0; }
+#boardWrap { position: relative; flex: 1 1 auto; min-height: 0; min-width: 0; contain: strict; }
 #boardCanvas { position: absolute; left: 0; top: 0; display: block; touch-action: none; cursor: crosshair;
   -webkit-user-select: none; user-select: none; }
 /* The 3D table (view3d.js) draws underneath; the board canvas becomes a clear overlay for the controls. */
@@ -93,7 +94,7 @@ b, strong { color: var(--heading); }
 
 .panel { flex: 0 0 auto; display: flex; flex-direction: column; gap: 5px; padding: 6px 9px;
   background: var(--paper) url('parchment.jpg') center / cover; position: relative; z-index: 5;
-  border: 0 solid var(--box); color: var(--ink); }
+  border: 0 solid var(--box); color: var(--ink); contain: strict; touch-action: pan-x pan-y; }
 #panel1 { border-top-width: 2px; padding-bottom: max(6px, env(safe-area-inset-bottom)); }
 #panel2 { border-bottom-width: 2px; padding-top: max(6px, env(safe-area-inset-top)); }
 #game.flipTop #panel2 { transform: rotate(180deg); border-bottom-width: 0; border-top-width: 2px; }
@@ -102,12 +103,12 @@ b, strong { color: var(--heading); }
 #game.landscape #panel2 { border-right-width: 2px; }
 .panel:not(.active) { filter: saturate(.75) brightness(.93); }
 
-.pHead { display: flex; align-items: center; gap: 7px; flex-wrap: wrap; min-height: 30px;
+.pHead { display: flex; align-items: center; gap: 7px; flex-wrap: wrap; min-height: 32px;
   padding-bottom: 4px; border-bottom: 1px solid var(--rule); }
 .pWho { font-weight: 700; text-transform: uppercase; letter-spacing: .09em; color: var(--pcd); font-size: .88rem; }
 .pFaction { font-size: .92rem; color: var(--ink-soft); font-style: italic; }
 .pScore { font-weight: 700; color: var(--crimson); font-size: .95rem; }
-.pMeta { font-size: .82rem; color: var(--ink-faint); }
+.pMeta { font-size: .82rem; color: var(--ink-faint); min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .menuBtn { margin-left: auto; background: var(--card); border: 1px solid var(--box); border-radius: 3px;
   width: 38px; height: 36px; cursor: pointer; font-size: 1.05rem; color: var(--brown); }
 .panel.active .pHead::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; background: var(--pc); }
@@ -117,7 +118,7 @@ b, strong { color: var(--heading); }
 #game.landscape .coinTray { flex-wrap: wrap; }
 .coin { position: relative; flex: 0 0 auto; width: 46px; min-height: 52px; cursor: pointer; background: none; border: 0;
   display: flex; flex-direction: column; align-items: center; justify-content: flex-start; gap: 1px; color: var(--ink-soft); }
-.coin img { width: 38px; height: 38px; display: block; filter: drop-shadow(0 1px 1px rgba(60,36,21,.45)); }
+.coin img { width: 38px; height: 38px; display: block; pointer-events: none; -webkit-user-drag: none; filter: drop-shadow(0 1px 1px rgba(60,36,21,.45)); }
 .coin .cn { font-size: .62rem; line-height: 1; font-weight: 700; white-space: nowrap; text-transform: uppercase; letter-spacing: .02em; }
 .coin .cc { position: absolute; top: -2px; right: -1px; min-width: 18px; height: 18px; border-radius: 9px; padding: 0 4px;
   background: var(--brown); color: var(--cream); font-size: .72rem; font-weight: 700; line-height: 18px; text-align: center; }
@@ -126,12 +127,13 @@ b, strong { color: var(--heading); }
 .coin.sel img { outline: 2px solid var(--crimson); outline-offset: 1px; border-radius: 50%; }
 
 .pBar { display: flex; flex-direction: column; gap: 5px; }
-.prompt { font-size: .98rem; line-height: 1.28; min-height: 1.28em; color: var(--ink); }
-.panel.active .prompt { border: 1px solid var(--box); border-left: 3px solid var(--crimson); border-radius: 2px;
-  background: rgba(251,244,227,.7); padding: 4px 9px; }
+/* The prompt keeps the same box whether or not the panel is active. */
+.prompt { font-size: .98rem; line-height: 1.28; min-height: 1.28em; color: var(--ink);
+  border: 1px solid transparent; border-left-width: 3px; border-radius: 2px; padding: 4px 9px; }
+.panel.active .prompt { border-color: var(--box); border-left-color: var(--crimson); background: rgba(251,244,227,.7); }
 .acts { display: flex; gap: 5px; flex-wrap: wrap; }
 .acts:empty { display: none; }
-.actBtn { font-size: .74rem; padding: 0 11px; }
+.actBtn { font-size: .74rem; padding: 0 11px; flex: 0 0 auto; white-space: nowrap; }
 .actBtn.gold { background: var(--gold); color: var(--cream); border-color: #7a5c10; animation: pulse 1.5s ease-in-out infinite; }
 .actBtn.on { background: var(--brown); color: var(--cream); }
 .actBtn.dim { opacity: .45; }
@@ -214,11 +216,20 @@ b, strong { color: var(--heading); }
 .swatch:disabled { opacity: .35; cursor: not-allowed; }
 #netStatus { position: absolute; top: 8px; left: 50%; transform: translateX(-50%); z-index: 7; display: none;
   background: var(--crimson); color: var(--cream); padding: 4px 12px; border-radius: 3px; font-weight: 700; }
-#camBtns { position: absolute; right: 8px; top: 8px; z-index: 6; display: flex; flex-direction: column; gap: 4px; }
-#camBtns button { width: 38px; height: 38px; border-radius: 3px; border: 1px solid var(--box); background: rgba(251,244,227,.9); color: var(--brown); font-size: 1.1rem; font-weight: 700; cursor: pointer; }
+/* Camera buttons stack down the right edge and wrap into a second column
+   on a short board, so they never push anything else about. */
+#camBtns { position: absolute; right: 8px; top: 8px; bottom: 8px; z-index: 6; display: grid; gap: 4px;
+  grid-auto-flow: column; grid-template-rows: repeat(auto-fill, 38px); grid-auto-columns: 38px; direction: rtl;
+  pointer-events: none; touch-action: none; }
+#camBtns button { width: 38px; height: 38px; border-radius: 3px; border: 1px solid var(--box); background: rgba(251,244,227,.9); color: var(--brown);
+  font-size: 1.1rem; font-weight: 700; cursor: pointer; pointer-events: auto; direction: ltr; display: flex; align-items: center; justify-content: center; }
+#camBtns button svg { width: 18px; height: 18px; display: block; }
+#camBtns button.on { background: var(--brown); color: var(--cream); }
+#camBtns button[hidden] { display: none; }
 .pTimer { font-weight: 700; color: var(--brown); font-variant-numeric: tabular-nums; }
 .pTimer.low { color: var(--crimson); }
 .panel.scoreboard { padding: 4px 8px; }
+#game .panel.scoreboard .sbRows { flex: 1 1 0; overflow-y: auto; min-height: 0; align-content: flex-start; }
 .sbRows { display: flex; flex-wrap: wrap; gap: 3px 6px; }
 #game.landscape .sbRows { flex-direction: column; flex-wrap: nowrap; }
 .sbRow { display: flex; align-items: center; gap: 5px; flex-wrap: wrap; padding: 3px 7px; border: 1px solid transparent; border-left: 3px solid var(--pc); border-radius: 2px; font-size: .85rem; }
@@ -233,3 +244,30 @@ b, strong { color: var(--heading); }
 #passScreen { z-index: 55; background: rgba(30,22,16,.92); }
 .passBox { text-align: center; }
 .passBox p { margin: 6px 0 12px; }
+
+/* Portrait game: every row of a panel has a fixed height, so the panels
+   (and the board between them) keep the same size whatever mode you are in.
+   Long prompts scroll inside their box and buttons scroll sideways. */
+#game { --rowHead: 32px; --rowTray: 54px; --rowPrompt: 48px; --rowPromptC: 28px; --rowActs: 40px; --pGap: 5px;
+  --pBody: calc(var(--rowHead) + var(--rowTray) + var(--rowPrompt) + var(--rowActs) + 3 * var(--pGap));
+  --pBodyC: calc(var(--rowHead) + var(--rowTray) + var(--rowPromptC) + 2 * var(--pGap));
+  --pBodySb: 58px;
+  -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
+#game:not(.landscape) .panel { overflow: hidden; gap: var(--pGap); }
+#game:not(.landscape) #panel1 { height: calc(var(--pBody) + 8px + max(6px, env(safe-area-inset-bottom))); }
+#game:not(.landscape) #panel2 { height: calc(var(--pBody) + 8px + max(6px, env(safe-area-inset-top))); }
+#game:not(.landscape) #panel1.compact { height: calc(var(--pBodyC) + 8px + max(6px, env(safe-area-inset-bottom))); }
+#game:not(.landscape) #panel2.compact { height: calc(var(--pBodyC) + 8px + max(6px, env(safe-area-inset-top))); }
+#game:not(.landscape) #panel2.scoreboard { height: calc(var(--pBodySb) + 6px + max(6px, env(safe-area-inset-top))); }
+#game:not(.landscape) .pHead { flex: 0 0 var(--rowHead); height: var(--rowHead); min-height: 0; flex-wrap: nowrap; overflow: hidden; white-space: nowrap; }
+#game:not(.landscape) .pHead > * { flex-shrink: 0; }
+#game:not(.landscape) .pHead > .pMeta { flex-shrink: 1; }
+#game:not(.landscape) .coinTray, #game:not(.landscape) .coinTray:empty { display: flex; flex: 0 0 var(--rowTray); height: var(--rowTray); touch-action: pan-x; }
+#game:not(.landscape) .pBar { flex: 1 1 0; min-height: 0; gap: var(--pGap); }
+#game:not(.landscape) .prompt { flex: 0 0 var(--rowPrompt); height: var(--rowPrompt); min-height: 0; overflow-y: auto;
+  font-size: .92rem; line-height: 1.25; scrollbar-width: none; }
+#game:not(.landscape) .acts, #game:not(.landscape) .acts:empty { display: flex; flex: 0 0 var(--rowActs); height: var(--rowActs);
+  flex-wrap: nowrap; align-items: center; overflow-x: auto; overflow-y: hidden; scrollbar-width: none; touch-action: pan-x; }
+#game:not(.landscape) .panel.compact .prompt { flex-basis: var(--rowPromptC); height: var(--rowPromptC); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+#game:not(.landscape) .panel.compact .acts { display: none; }
+#game .prompt::-webkit-scrollbar, #game .acts::-webkit-scrollbar, #game .coinTray::-webkit-scrollbar { display: none; }
