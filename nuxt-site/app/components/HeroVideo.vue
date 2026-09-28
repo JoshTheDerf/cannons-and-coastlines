@@ -54,7 +54,17 @@ onMounted(() => {
   position: absolute;
   inset: 0;
   background:
-    radial-gradient(70% 60% at 50% 50%, rgba(10, 8, 6, 0.45) 0%, rgba(10, 8, 6, 0.15) 75%),
-    linear-gradient(180deg, rgba(10, 8, 6, 0.2) 0%, transparent 30%, rgba(10, 8, 6, 0.55) 100%);
+    radial-gradient(48% 55% at 50% 45%, rgba(12, 9, 6, 0.62) 0%, rgba(12, 9, 6, 0.38) 60%, rgba(12, 9, 6, 0.1) 100%),
+    linear-gradient(180deg, rgba(12, 9, 6, 0.25) 0%, transparent 25%, transparent 70%, rgba(12, 9, 6, 0.5) 100%);
+}
+/* On a phone the copy covers nearly the whole frame, so the scrim has to
+   hold behind all of it: white sails and bright sky pass right under the
+   text. */
+@media (max-width: 767px) {
+  .hero-video::after {
+    background:
+      radial-gradient(90% 60% at 50% 45%, rgba(12, 9, 6, 0.6) 0%, rgba(12, 9, 6, 0.45) 100%),
+      linear-gradient(180deg, rgba(12, 9, 6, 0.2) 0%, transparent 30%, rgba(12, 9, 6, 0.35) 100%);
+  }
 }
 </style>

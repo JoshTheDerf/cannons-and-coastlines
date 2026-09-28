@@ -215,7 +215,20 @@ const actionLetters = ['A', 'B', 'C']
 </template>
 
 <style scoped>
-.hero-copy { text-shadow: 0 2px 10px rgba(0, 0, 0, 0.45); }
+/* The hero copy sits on a moving video: a tight shadow for edge definition
+   plus a wide soft one, secondary text nearly full strength, and the ghost
+   button filled so its label never lands on bright sail. */
+.hero-copy {
+  --color-ink-soft: rgba(246, 237, 217, 0.94);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.85), 0 2px 18px rgba(0, 0, 0, 0.6);
+}
+.hero-copy :deep(a.btn-ink[data-slot="base"]) {
+  background: rgba(18, 13, 9, 0.5);
+  border-color: rgba(222, 184, 104, 0.7);
+  -webkit-backdrop-filter: blur(4px);
+  backdrop-filter: blur(4px);
+}
+.hero-copy :deep(a.btn-ink[data-slot="base"]:hover) { background: rgba(18, 13, 9, 0.7); }
 
 /* Numbered rule steps: number, text, and an optional aside (table/photo). */
 .step {
