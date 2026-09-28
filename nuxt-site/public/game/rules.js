@@ -426,10 +426,9 @@ ACTIONS.revive = (p, a) => {
 // ─── Turn end and victory ─────────────────────────────
 
 ACTIONS.declare = p => {
-  need(canDeclareVictory(p), `You need ${VICTORY_POINTS} points and at least as many as everyone else, at the start of your turn.`);
-  const s = scoreBreakdown();
+  need(canDeclareVictory(p), `You need ${VICTORY_POINTS} points and at least as many as everyone else when your turn begins.`);
   G.phase = 'over'; G.winner = p;
-  G.endReason = `${seatName(p)} declared victory with ${s[p].total} points.`;
+  G.endReason = `${seatName(p)} declared victory with ${G.turnStartTotals[p]} points.`;
 };
 
 /** Every ship that did not finish its turns still sails one click per turn left. */

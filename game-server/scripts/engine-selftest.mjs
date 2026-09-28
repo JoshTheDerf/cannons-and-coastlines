@@ -215,6 +215,14 @@ for (const n of [2, 3, 5, 7]) {
   ok(engine.applyHit(st, 2) === 'stone', 'Stone Hulls shrug off the first hit at sea');
   Object.assign(st, { x: 66 + 6 + st.wid / 2 + 0.1, y: 66, h: 0 }); st.stoneUsed = false;
   ok(engine.applyHit(st, 2) === 'fitting', 'a Stone ship touching an island takes the hit');
+  // Victory counts the points held when the turn began, so points won
+  // mid-turn can only be claimed a round later.
+  engine.newGame({ seats: [{ faction: 'corsairs', color: 0 }, { faction: 'queens_fleet', color: 1 }], setup: 'quick', table: 'rect' });
+  const V = engine.G;
+  V.prizes = (V.prizes || []).concat(Array.from({ length: 8 }, (_, i) => ({ p: 1, ship: 'x' + i, kind: 'hull' })));
+  ok(engine.scoreBreakdown()[1].total >= 60 && !engine.act(1, { t: 'declare' }).ok, 'points reached mid-turn cannot be declared this turn');
+  engine.act(1, { t: 'endTurn' }); engine.act(2, { t: 'endTurn' });
+  ok(engine.G.active === 1 && engine.act(1, { t: 'declare' }).ok && engine.G.winner === 1, 'holding 60 at the start of the next turn, victory can be declared');
   // Cannon holes: the engine's (constants.js holes) are the hulls' sockets
   // in shared/data/ship-assemblies.json, measured from the hull's centre.
   const asm = JSON.parse(readFileSync(new URL('../../nuxt-site/shared/data/ship-assemblies.json', import.meta.url), 'utf8'));

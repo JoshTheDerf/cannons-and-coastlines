@@ -530,7 +530,7 @@ Each player contributes 20 coins to the bag at setup: 5 Brace · 2 Full Sail · 
 The game ends in one of three ways:
 
 - *Last fleet afloat.* Only one player still has ships on the table. That player wins.
-- *Declared victory.* At the start of your turn, declare victory if you believe you have *60 or more points*. Tally all players' scores. If yours is still at least 60 and is higher than or tied with the next-highest, you win.
+- *Declared victory.* At the start of your turn, before you spend any coins, declare victory if you believe you have *60 or more points*. Tally all players' scores. If yours is at least 60 and is higher than or tied with the next-highest, you win. Points you earn during your turn only count from the start of your next one, so everyone gets a round to answer.
 - *Stalemate.* Every island is under a flag and no island changed hands during the previous two rounds. Proceed to scoring. (optional)
 
 == Scoring
@@ -820,7 +820,7 @@ Every ship has a wheel built into the stern. Two details matter:
   contrast-box("Victory Points")[
     *8* per island held · *4* per prize fitting · *8* per prize hull · *1* per coin · *+8* most ships · *+8* most islands.
 
-    _Declare Victory at start of turn with ≥ 60 points._
+    _Declare Victory at start of turn, before spending coins, with ≥ 60 points._
   ],
 
   contrast-box("Hit Resolution")[

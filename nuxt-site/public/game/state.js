@@ -491,11 +491,14 @@ function scoreBreakdown() {
   return out;
 }
 
+// Victory counts the points held when the turn began: whatever a player
+// earns during their turn can only be claimed on their next one.
 function canDeclareVictory(p) {
   if (G.phase !== 'play' || G.active !== p || !G.coinPhase) return false;
-  const s = scoreBreakdown();
-  const best = Math.max(...opponents(p).map(q => s[q].total));
-  return s[p].total >= VICTORY_POINTS && s[p].total >= best;
+  const s = G.turnStartTotals;
+  if (!s || s[p] == null) return false;
+  const best = Math.max(...opponents(p).map(q => s[q] ?? 0));
+  return s[p] >= VICTORY_POINTS && s[p] >= best;
 }
 
 // ─── Turn flow ────────────────────────────────────────
@@ -513,6 +516,8 @@ function beginTurn() {
   for (const s of allShips()) s.stoneUsed = false;
   G.turnStarted = true;
   G.collected = [];
+  const sc = scoreBreakdown();
+  G.turnStartTotals = Object.fromEntries(G.order.map(q => [q, sc[q].total]));
   checkStalemate();
 }
 
