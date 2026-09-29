@@ -41,7 +41,7 @@ useSeoMeta({
         <div class="relative w-full overflow-hidden rounded-sm bg-black border border-ink/25 shadow-2xl" style="aspect-ratio: 16 / 9;">
           <iframe
             :src="embedUrl"
-            title="Cannons & Coastlines: Playtest #2, live on Twitch"
+            title="Cannons & Coastlines: Playtest #2 on Twitch"
             frameborder="0"
             allow="autoplay; fullscreen"
             allowfullscreen
@@ -50,7 +50,7 @@ useSeoMeta({
         </div>
         <p class="mt-4 font-serif text-sm text-ink-soft text-center">
           Stream not loading? <a :href="channelUrl" target="_blank" rel="noopener" class="underline text-[color:var(--gold)]">Watch it on Twitch</a>.
-          The first playtest's recording is <NuxtLink to="/live" class="underline text-[color:var(--gold)]">here</NuxtLink>.
+          You can also watch the <NuxtLink to="/live" class="underline text-[color:var(--gold)]">first playtest's recording</NuxtLink>.
         </p>
       </div>
     </section>
@@ -64,8 +64,8 @@ useSeoMeta({
             <RichText v-for="(item, i) in p.contents.rules" :key="i" tag="li" :text="item" />
           </ul>
           <p class="mt-6 font-serif text-sm text-ink-soft">
-            Read the <NuxtLink to="/rulebook/pdf/rulebook.pdf" target="_blank" class="underline text-[color:var(--gold)]">v0.6 rulebook</NuxtLink>,
-            or <a href="#changes" class="underline text-[color:var(--gold)]">every change, release by release</a>.
+            The full rules are in the <NuxtLink to="/rulebook/pdf/rulebook.pdf" target="_blank" class="underline text-[color:var(--gold)]">v0.6 rulebook</NuxtLink>,
+            and <a href="#changes" class="underline text-[color:var(--gold)]">every change is listed below</a>, release by release.
           </p>
         </div>
 

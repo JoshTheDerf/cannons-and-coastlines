@@ -12,7 +12,7 @@ meta:
 
 hero:
   # A link above the wordmark for an event; delete to hide it.
-  live: { label: 'Playtest #2 is live on Twitch today', to: /playtest-2 }
+  live: { label: 'We''ll be streaming playtest #2 on Twitch this afternoon', to: /playtest-2 }
   wordmark: /assets/images/wordmark-sm.webp
   tagline: A tabletop game of naval conquest
   description: >-
