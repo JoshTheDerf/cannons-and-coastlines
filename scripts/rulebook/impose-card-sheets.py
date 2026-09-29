@@ -17,6 +17,10 @@ sheet.
 
 Usage:
     impose-card-sheets.py <pdf_dir> <output.pdf>
+    impose-card-sheets.py --twin <card.pdf> <output.pdf>
+
+--twin puts two copies of one card on a single sheet, same geometry (used
+for the scoring card).
 """
 from __future__ import annotations
 
@@ -49,44 +53,55 @@ def card_page(pdf_dir: Path, faction: str):
     return PdfReader(str(pdf_dir / f"faction-card-{faction}.pdf")).pages[0]
 
 
-def main(pdf_dir: str, out_path: str) -> None:
-    pdf_dir_p = Path(pdf_dir)
-    writer = PdfWriter()
-
+def add_sheet(writer: PdfWriter, top, bottom) -> None:
+    """One letter sheet: `top` and `bottom` card pages, or `top` alone,
+    vertically centered, when `bottom` is None."""
     side_margin = (PAGE_W - CARD_W) / 2
+    sheet = writer.add_blank_page(width=PAGE_W, height=PAGE_H)
 
-    for top, bottom in PAIRS:
-        sheet = writer.add_blank_page(width=PAGE_W, height=PAGE_H)
+    if bottom is None:
+        y = (PAGE_H - CARD_H) / 2
+        sheet.merge_transformed_page(top, Transformation().translate(side_margin, y))
+    else:
+        v_margin = (PAGE_H - 2 * CARD_H - GAP) / 2
+        y_top = PAGE_H - v_margin - CARD_H
+        y_bottom = v_margin
+        sheet.merge_transformed_page(top, Transformation().translate(side_margin, y_top))
+        sheet.merge_transformed_page(bottom, Transformation().translate(side_margin, y_bottom))
 
-        if bottom is None:
-            # Solo card, vertically centered.
-            y = (PAGE_H - CARD_H) / 2
-            sheet.merge_transformed_page(
-                card_page(pdf_dir_p, top),
-                Transformation().translate(side_margin, y),
-            )
-        else:
-            v_margin = (PAGE_H - 2 * CARD_H - GAP) / 2
-            y_top = PAGE_H - v_margin - CARD_H
-            y_bottom = v_margin
-            sheet.merge_transformed_page(
-                card_page(pdf_dir_p, top),
-                Transformation().translate(side_margin, y_top),
-            )
-            sheet.merge_transformed_page(
-                card_page(pdf_dir_p, bottom),
-                Transformation().translate(side_margin, y_bottom),
-            )
+    sheet.mediabox = RectangleObject((0, 0, PAGE_W, PAGE_H))
 
-        sheet.mediabox = RectangleObject((0, 0, PAGE_W, PAGE_H))
 
+def write(writer: PdfWriter, out_path: str) -> None:
     writer.compress_identical_objects()
     with open(out_path, "wb") as f:
         writer.write(f)
 
 
+def main(pdf_dir: str, out_path: str) -> None:
+    pdf_dir_p = Path(pdf_dir)
+    writer = PdfWriter()
+    for top, bottom in PAIRS:
+        add_sheet(
+            writer,
+            card_page(pdf_dir_p, top),
+            card_page(pdf_dir_p, bottom) if bottom else None,
+        )
+    write(writer, out_path)
+
+
+def twin(card_pdf: str, out_path: str) -> None:
+    writer = PdfWriter()
+    # Two readers, so each placement merges its own copy of the page.
+    add_sheet(writer, PdfReader(card_pdf).pages[0], PdfReader(card_pdf).pages[0])
+    write(writer, out_path)
+
+
 if __name__ == "__main__":
-    if len(sys.argv) != 3:
+    if len(sys.argv) == 4 and sys.argv[1] == "--twin":
+        twin(sys.argv[2], sys.argv[3])
+    elif len(sys.argv) == 3:
+        main(sys.argv[1], sys.argv[2])
+    else:
         print(__doc__)
         sys.exit(2)
-    main(sys.argv[1], sys.argv[2])

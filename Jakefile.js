@@ -34,6 +34,7 @@ const TASKS = {
     'booklet':     ['Build the imposed rulebook booklet PDF', 'scripts/rulebook/build-booklet.sh', ['rulebook']],
     'cards':       ['Build the seven faction cards (PDF + 300dpi PNG)', 'scripts/rulebook/build-cards.sh'],
     'card-sheets': ['Build the two-up faction-card print sheet', 'scripts/rulebook/build-card-sheets.sh', ['cards']],
+    'scoring-card': ['Build the standalone scoring reference card (PDF + 300dpi PNG)', 'scripts/rulebook/build-scoring-card.sh'],
     'versatile-admiral':         ['Build "The Versatile Admiral" addon rulebook', 'scripts/rulebook/build-versatile-admiral.sh'],
     'versatile-admiral-booklet': ['Build the imposed Versatile Admiral booklet', 'scripts/rulebook/build-versatile-admiral-booklet.sh', ['versatile-admiral']],
     'letter':      ['Build the welcome letter PDF that ships in the box', 'scripts/rulebook/build-letter.sh'],
@@ -60,7 +61,7 @@ for (const [name, [description, script, deps = []]] of Object.entries(TASKS)) {
 
 desc('Full build: STL zip, rulebook + booklet, cards + sheets, addon rulebook, then the site');
 task('default', [
-    'stl', 'rulebook', 'booklet', 'trade-winds', 'cards', 'card-sheets',
+    'stl', 'rulebook', 'booklet', 'trade-winds', 'cards', 'card-sheets', 'scoring-card',
     'versatile-admiral', 'versatile-admiral-booklet', 'site',
 ], () => {
     console.log('\nAll build steps complete.');

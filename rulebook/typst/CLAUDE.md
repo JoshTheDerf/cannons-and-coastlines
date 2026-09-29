@@ -12,6 +12,7 @@ jake: `npx jake -T` lists every step. This directory holds sources only.
 - `versatile-admiral.typ` — "The Versatile Admiral" addon rulebook, same page geometry as `rulebook.typ`.
 - `card.typ` — faction card template: page setup, parchment background, banner, stat grid, ability box. Edit this for **layout/styling**.
 - `factions.typ` — data-only dictionary of all seven factions, dispatches on `--input faction=<id>`. Edit this for **faction content**.
+- `scoring-card.typ` — standalone 6×4 scoring card: a count-to-points table (1–10 of each item along the top, points in the row). Reuses `card.typ`'s page, parchment and frame. Neutral brown by default; `--input faction=<id>` takes that faction's accent and ornament, ready for when it becomes the faction-card back. `--input blank=1` swaps the point values for write-in squares (playtest sheet). Its point values copy the rulebook's Scoring table, so change both together. Build: `npx jake scoring-card`.
 - `fonts/` — vendored Pirata One + Oswald + Crimson Text (hermetic build). Don't rely on system fonts.
 
 Imposition lives with the build scripts, not here: `scripts/rulebook/impose-booklet.py` is a pypdf script that imposes `rulebook.pdf` two-up on landscape US-letter in saddle-stitch signature order (print double-sided, flip on short edge, stack, fold, staple → spine-on-left half-letter booklet). It replaced an earlier bookletic+SVG approach that re-emitted every parchment background per page and inflated the booklet PDF ~15x. `scripts/rulebook/impose-card-sheets.py` does the same job for the two-up faction-card sheet.
@@ -24,6 +25,7 @@ npx jake rulebook       # scripts/rulebook/build-rulebook.sh — PDF + per-page 
 npx jake booklet        # imposed booklet PDF (depends on the rulebook PDF)
 npx jake cards          # the seven faction cards
 npx jake card-sheets    # two-up print sheet (depends on cards)
+npx jake scoring-card   # standalone scoring reference card
 npx jake versatile-admiral[-booklet]
 npx jake trade-winds    # the rulebook's Trade Winds page alone, as a handout
 ```
