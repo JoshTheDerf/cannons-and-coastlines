@@ -1,92 +1,87 @@
-// Start a Stripe Checkout Session for a paid STL set.
+// Start a Stripe Checkout Session for one or more paid STL sets.
 //
-// Talks to Stripe's REST API with fetch rather than the stripe SDK: the SDK
-// pulls in Node built-ins that need shimming on Workers, and the two calls we
-// make here are form-encoded one-liners. Same reason the webhook verifies
-// signatures with WebCrypto directly.
+//   POST /api/checkout  { setIds: ['treasure-fleet-set', ...], from?: '/shop' }
 //
-// The price is never taken from the client. The client names a set; the price
-// id comes from server/data/sets.json. Otherwise anyone could POST their own
-// amount and buy a fleet for a cent.
+// The price is never taken from the client. The client names sets; each line
+// item is built from priceUsd in server/data/sets.json. Otherwise anyone could
+// POST their own amount and buy a fleet for a cent.
+//
+// Before the session exists we mint an order key and put the order page URL
+// in the payment description. Stripe prints that description in the receipt
+// email, which is how a buyer gets their download link without this site
+// sending any mail of its own.
 
+import { createOrder, newOrderKey, useDb } from '~~/server/utils/entitlement'
 import { findSet, isPurchasable } from '~~/server/utils/sets'
-import { products } from '~~/server/utils/shopMock'
+import { stripeApi } from '~~/server/utils/stripe'
 
-type Body = { setId?: string, email?: string }
+type Body = { setIds?: unknown, setId?: unknown, from?: unknown }
 
 export default defineEventHandler(async (event) => {
-  const { setId, email } = await readBody<Body>(event)
+  const body = await readBody<Body>(event)
+  const requested = Array.isArray(body?.setIds) ? body.setIds : body?.setId ? [body.setId] : []
+  const ids = [...new Set(requested.filter((x): x is string => typeof x === 'string'))]
 
-  if (!setId) {
-    throw createError({ statusCode: 400, statusMessage: 'setId is required' })
+  if (ids.length === 0 || ids.length > 20) {
+    throw createError({ statusCode: 400, statusMessage: 'setIds is required' })
   }
 
-  const set = findSet(setId)
-  if (!set) {
-    throw createError({ statusCode: 404, statusMessage: 'Unknown set' })
-  }
-
-  // Covers every not-for-sale case in one check: free sets, sets still flagged
-  // coming-soon for the drip-feed, and sets whose Stripe price or amount has
-  // not been filled in yet.
-  if (!isPurchasable(set)) {
-    throw createError({ statusCode: 409, statusMessage: `${set.title} is not available for purchase` })
-  }
-
-  const secret = (event.context.cloudflare?.env as Record<string, string> | undefined)?.STRIPE_SECRET_KEY
-  if (!secret) {
-    throw createError({ statusCode: 500, statusMessage: 'STRIPE_SECRET_KEY is not configured' })
-  }
-
-  // Every purchasable set is sold through exactly one store page. If that
-  // link is missing the buyer would be returned to a 404 after paying, so
-  // refuse before taking money rather than after.
-  const handle = products.find(p => p.setId === set.id)?.handle
-  if (!handle) {
-    console.error('[checkout] no store page sells set', set.id)
-    throw createError({ statusCode: 500, statusMessage: 'This set has no store page' })
-  }
+  const chosen = ids.map((id) => {
+    const set = findSet(id)
+    if (!set) throw createError({ statusCode: 404, statusMessage: 'Unknown set' })
+    // Covers every not-for-sale case in one check: free sets, sets still
+    // flagged coming-soon for the drip-feed, and sets with no price yet.
+    if (!isPurchasable(set)) {
+      throw createError({ statusCode: 409, statusMessage: `${set.title} is not available for purchase` })
+    }
+    return set
+  })
 
   const origin = getRequestURL(event).origin
+  // Back to the page the buyer came from if they cancel. Only a path on this
+  // site, so the parameter cannot be used to bounce people elsewhere.
+  const from = typeof body?.from === 'string' && /^\/[\w\-/]*$/.test(body.from) ? body.from : '/shop'
+
+  const db = await useDb(event)
+  const orderKey = newOrderKey()
+  const orderUrl = `${origin}/shop/order/${orderKey}`
+  const names = chosen.map(s => s.title).join(', ')
 
   const form = new URLSearchParams({
-    mode: 'payment',
-    'line_items[0][price]': set.stripePriceId!,
-    'line_items[0][quantity]': '1',
-    // Back to the faction's store page, on its Digital tab. A set is reached
-    // through the product that sells it, so the URL is the product handle
-    // rather than the set id.
-    success_url: `${origin}/shop/${handle}?purchased=1`,
-    cancel_url: `${origin}/shop/${handle}`,
-    // Read back by the webhook; safer than parsing the set out of line items.
-    'metadata[set_id]': set.id,
-    'payment_intent_data[metadata][set_id]': set.id
+    'mode': 'payment',
+    'success_url': orderUrl,
+    'cancel_url': `${origin}${from}`,
+    // Read back by the webhook and the order page.
+    'metadata[order_key]': orderKey,
+    'metadata[set_ids]': ids.join(','),
+    // Copied onto the PaymentIntent (and its charge), so refunds and disputes
+    // can be traced back to the order.
+    'payment_intent_data[metadata][order_key]': orderKey,
+    'payment_intent_data[metadata][set_ids]': ids.join(','),
+    // Shown in the Stripe receipt email and dashboard.
+    'payment_intent_data[description]': `Cannons & Coastlines STL files: ${names}. Download them at ${orderUrl}`,
+    'custom_text[submit][message]': 'Your download link opens right after payment, and it is in your receipt email too.',
+    'allow_promotion_codes': 'true'
   })
 
-  // The buyer's email is the identity an entitlement is keyed to, so it has to
-  // come back on the completed session. When the page did not supply one,
-  // Stripe collects it, which keeps us out of validating addresses ourselves.
-  if (email) form.set('customer_email', email)
-
-  const res = await fetch('https://api.stripe.com/v1/checkout/sessions', {
-    method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${secret}`,
-      'Content-Type': 'application/x-www-form-urlencoded',
-      // Stripe dedupes retries of the same logical request. Scoped per set per
-      // minute so a double-clicked button does not open two sessions.
-      'Idempotency-Key': `checkout:${set.id}:${Math.floor(Date.now() / 60000)}`
-    },
-    body: form
+  chosen.forEach((set, i) => {
+    form.set(`line_items[${i}][quantity]`, '1')
+    form.set(`line_items[${i}][price_data][currency]`, 'usd')
+    form.set(`line_items[${i}][price_data][unit_amount]`, String(Math.round(set.priceUsd! * 100)))
+    form.set(`line_items[${i}][price_data][product_data][name]`, `${set.title} STL files`)
+    form.set(`line_items[${i}][price_data][product_data][description]`,
+      set.earlyBird ? 'Printable 3D model files, personal license. Early bird price.' : 'Printable 3D model files, personal license.')
+    form.set(`line_items[${i}][price_data][product_data][images][0]`, `${origin}${set.images.preview.split('?')[0]}`)
+    form.set(`line_items[${i}][price_data][product_data][metadata][set_id]`, set.id)
   })
 
-  if (!res.ok) {
-    // Stripe's error body can name the account and price; log it server-side
-    // and hand the client something generic.
-    console.error('[checkout] Stripe rejected the session', res.status, await res.text())
-    throw createError({ statusCode: 502, statusMessage: 'Could not start checkout' })
-  }
+  const session = await stripeApi<{ id: string, url: string }>(event, 'checkout/sessions', {
+    form,
+    // One key per order, so a retried request cannot open a second session
+    // for the same order.
+    idempotencyKey: `checkout:${orderKey}`
+  })
 
-  const session = await res.json<{ id: string, url: string }>()
-  return { id: session.id, url: session.url }
+  await createOrder(db, orderKey, session.id, ids)
+  return { url: session.url }
 })

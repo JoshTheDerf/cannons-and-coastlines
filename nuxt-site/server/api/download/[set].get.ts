@@ -1,10 +1,11 @@
 // Serve a paid STL set to someone who owns it.
 //
-//   GET /api/download/<set-id>?token=<download token>
+//   GET /api/download/<set-id>?order=<order key>
 //
-// The token comes from /api/download-link, which mints one for an address
-// holding an entitlement. This route never accepts a bare email: an email is
-// guessable, a 256-bit token is not.
+// The order key is the buyer's download link (/shop/order/<key>, see
+// server/utils/entitlement.ts). The order page links here once Stripe has
+// confirmed the payment. This route never accepts a bare email: an email is
+// guessable, a 128-bit order key is not.
 //
 // The file is streamed from R2 through the Worker rather than redirecting to a
 // bucket URL. The bucket stays private with no public hostname, which is the
@@ -16,14 +17,14 @@
 //   GET /api/download/<set-id>?share=<PAID_SHARE_TOKEN>
 //
 // While the Worker secret PAID_SHARE_TOKEN is set, a matching `share` value
-// skips the release flag, the download token and the entitlement check, so
+// skips the release flag, the order link and the entitlement check, so
 // playtesters can grab any paid set before it is on sale. It is one shared
 // secret for every set, so treat a link as leaked once it leaves the group.
 // Revoke by deleting the secret (`wrangler secret delete PAID_SHARE_TOKEN`);
 // with it unset the parameter is ignored and nothing below changes.
 
 import type { H3Event } from 'h3'
-import { consumeDownloadToken, hasEntitlement, useDb } from '~~/server/utils/entitlement'
+import { findOrder, hasEntitlement, isOrderKey, useDb } from '~~/server/utils/entitlement'
 import { findSet, isDownloadable, r2ZipKey } from '~~/server/utils/sets'
 
 // Constant-time, so response timing cannot be used to guess the secret a
@@ -40,7 +41,7 @@ function sameSecret(given: string, expected: string): boolean {
 export default defineEventHandler(async (event) => {
   const setId = getRouterParam(event, 'set')!
   const query = getQuery(event)
-  const token = query.token as string | undefined
+  const orderKey = query.order
   const share = query.share as string | undefined
   const env = event.context.cloudflare?.env as Record<string, unknown> | undefined
 
@@ -59,7 +60,7 @@ export default defineEventHandler(async (event) => {
   const shared = Boolean(shareToken && share && sameSecret(share, shareToken))
 
   if (!shared) {
-    await requirePurchase(event, set, token)
+    await requirePurchase(event, set, orderKey)
   }
 
   const bucket = env?.PAID_SETS as R2Bucket | undefined
@@ -89,41 +90,30 @@ export default defineEventHandler(async (event) => {
   return object.body
 })
 
-// The normal path: a released set, a single-use download token, and a live
-// purchase behind it. Throws on any failure.
-async function requirePurchase(event: H3Event, set: NonNullable<ReturnType<typeof findSet>>, token: string | undefined) {
+// The normal path: a released set, a paid order that includes it, and a live
+// entitlement behind it. Throws on any failure.
+async function requirePurchase(event: H3Event, set: NonNullable<ReturnType<typeof findSet>>, orderKey: unknown) {
   // The drip-feed flag wins over any entitlement: pulling a set back to
   // coming-soon stops serving it to everyone, including prior buyers.
   if (!isDownloadable(set)) {
     throw createError({ statusCode: 409, statusMessage: `${set.title} is not released yet` })
   }
 
-  if (!token) {
-    throw createError({ statusCode: 401, statusMessage: 'A download token is required' })
+  if (!isOrderKey(orderKey)) {
+    throw createError({ statusCode: 401, statusMessage: 'A download link is required' })
   }
 
-  const db = useDb(event)
-
-  // Single-use: consuming marks the token spent, so a leaked link in a
-  // forwarded email cannot be replayed.
-  const check = await consumeDownloadToken(db, token)
-  if (!check.ok) {
-    const message = check.reason === 'expired'
-      ? 'This download link has expired. Request a new one.'
-      : check.reason === 'used'
-        ? 'This download link has already been used. Request a new one.'
-        : 'Invalid download link.'
-    throw createError({ statusCode: 403, statusMessage: message })
+  const db = await useDb(event)
+  const order = await findOrder(db, orderKey)
+  // email is filled in only once the order page or the webhook has seen the
+  // payment confirmed by Stripe; before that the order grants nothing.
+  if (!order || !order.email || !order.setIds.includes(set.id)) {
+    throw createError({ statusCode: 403, statusMessage: 'Invalid download link' })
   }
 
-  // The token is bound to one set; a token for set A must not open set B.
-  if (check.setId !== set.id) {
-    throw createError({ statusCode: 403, statusMessage: 'This link is for a different set' })
-  }
-
-  // Re-check the entitlement at download time rather than trusting the token
-  // alone, so a refund between minting and use denies access.
-  if (!(await hasEntitlement(db, check.email, set.id))) {
+  // The entitlement is what a refund or dispute revokes, so check it on every
+  // download rather than trusting the order row alone.
+  if (!(await hasEntitlement(db, order.email, set.id))) {
     throw createError({ statusCode: 403, statusMessage: 'No active purchase found for this set' })
   }
 }

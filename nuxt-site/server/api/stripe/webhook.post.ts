@@ -1,20 +1,25 @@
-// Stripe webhook: turns a completed payment into an entitlement row.
+// Stripe webhook: records completed orders and revokes refunded or disputed
+// ones.
 //
-// This endpoint is the only thing that grants access, so it verifies the
-// Stripe-Signature header before trusting a single field. Signature checking
+// The order page grants access too (it asks Stripe directly), so this is the
+// backstop for a buyer who closes the tab before the redirect, and the only
+// thing that revokes. It verifies the Stripe-Signature header before trusting
+// a single field. Signature checking
 // is done with WebCrypto rather than stripe.webhooks.constructEvent because
 // the SDK's sync verification needs Node crypto, which Workers lack.
 //
 // Setup:
 //   1. stripe listen / dashboard -> add endpoint https://<site>/api/stripe/webhook
-//   2. subscribe to: checkout.session.completed, charge.refunded,
+//   2. subscribe to: checkout.session.completed,
+//      checkout.session.async_payment_succeeded, charge.refunded,
 //      charge.dispute.created
 //   3. npx wrangler secret put STRIPE_WEBHOOK_SECRET   (the whsec_... value)
 
+import type { H3Event } from 'h3'
 import {
-  claimStripeEvent, grantEntitlement, revokeEntitlement, useDb
+  claimStripeEvent, findOrder, isOrderKey, revokeEntitlement, useDb
 } from '~~/server/utils/entitlement'
-import { findSet } from '~~/server/utils/sets'
+import { confirmOrder, stripeApi } from '~~/server/utils/stripe'
 
 /** Stripe signs `${timestamp}.${rawBody}`; tolerate 5 minutes of clock skew. */
 const TOLERANCE_SECONDS = 300
@@ -77,7 +82,7 @@ export default defineEventHandler(async (event) => {
     data: { object: Record<string, any> }
   }
 
-  const db = useDb(event)
+  const db = await useDb(event)
 
   // Stripe delivers at least once. Claim the event id first; if we have
   // already handled it, acknowledge and do nothing.
@@ -85,53 +90,57 @@ export default defineEventHandler(async (event) => {
     return { received: true, duplicate: true }
   }
 
+  try {
+    await handle(event, db, stripeEvent)
+  } catch (e) {
+    // Let Stripe's retry through: un-claim, then fail the delivery.
+    await db.prepare('DELETE FROM cc_stripe_events WHERE event_id = ?').bind(stripeEvent.id).run()
+    throw e
+  }
+  return { received: true }
+})
+
+async function handle(event: H3Event, db: D1Database, stripeEvent: { type: string, data: { object: Record<string, any> } }) {
   const obj = stripeEvent.data.object
 
   switch (stripeEvent.type) {
-    case 'checkout.session.completed': {
-      // A session can complete while payment is still pending (some methods
-      // settle asynchronously). Only a paid session grants access.
-      if (obj.payment_status !== 'paid') {
-        console.warn('[stripe] session completed but unpaid', obj.id, obj.payment_status)
+    case 'checkout.session.completed':
+    case 'checkout.session.async_payment_succeeded': {
+      const order = await orderFor(db, obj.metadata?.order_key)
+      if (!order) {
+        console.error('[stripe] session has no known order', obj.id)
         break
       }
-
-      const email: string | undefined =
-        obj.customer_details?.email ?? obj.customer_email
-      const setId: string | undefined = obj.metadata?.set_id
-
-      if (!email || !setId) {
-        console.error('[stripe] session missing email or set_id', obj.id)
-        break
-      }
-      if (!findSet(setId)) {
-        console.error('[stripe] session names an unknown set', obj.id, setId)
-        break
-      }
-
-      await grantEntitlement(db, {
-        email,
-        setId,
-        stripeSession: obj.id,
-        stripePayment: obj.payment_intent,
-        amountCents: obj.amount_total
-      })
-      console.info('[stripe] granted', setId, 'to', email)
+      // Same path as the order page: ask Stripe for the settled state rather
+      // than trusting this payload, then grant.
+      const { state, email } = await confirmOrder(event, db, order)
+      console.info('[stripe] order', state, order.setIds.join(','), email ?? '')
       break
     }
 
     case 'charge.refunded':
     case 'charge.dispute.created': {
-      // Pull the set from the payment intent metadata we set at checkout.
-      const email: string | undefined = obj.billing_details?.email ?? obj.receipt_email
-      const setId: string | undefined = obj.metadata?.set_id
-      if (email && setId) {
-        await revokeEntitlement(db, email, setId)
-        console.info('[stripe] revoked', setId, 'from', email, 'via', stripeEvent.type)
-      } else {
-        // Worth a human look: the money moved but we could not match a row.
-        console.error('[stripe] could not match refund/dispute to an entitlement', obj.id)
+      // A refund event carries the charge; a dispute carries its own object
+      // pointing at one. Either way the order key is in the PaymentIntent's
+      // metadata, set at checkout.
+      const paymentIntent: string | undefined = obj.payment_intent
+      if (stripeEvent.type === 'charge.refunded' && !obj.refunded) {
+        // Partial refund: which set it was for is a judgement call, so leave
+        // access alone and flag it.
+        console.warn('[stripe] partial refund, access unchanged', obj.id)
+        break
       }
+      const intent = paymentIntent
+        ? await stripeApi<{ metadata?: Record<string, string> }>(event, `payment_intents/${encodeURIComponent(paymentIntent)}`)
+        : null
+      const order = await orderFor(db, intent?.metadata?.order_key)
+      if (!order?.email) {
+        // Worth a human look: the money moved but we could not match a row.
+        console.error('[stripe] could not match refund/dispute to an order', obj.id)
+        break
+      }
+      for (const setId of order.setIds) await revokeEntitlement(db, order.email, setId)
+      console.info('[stripe] revoked', order.setIds.join(','), 'from', order.email, 'via', stripeEvent.type)
       break
     }
 
@@ -140,6 +149,8 @@ export default defineEventHandler(async (event) => {
       // retrying events we deliberately ignore.
       break
   }
+}
 
-  return { received: true }
-})
+async function orderFor(db: D1Database, key: unknown) {
+  return isOrderKey(key) ? findOrder(db, key) : null
+}

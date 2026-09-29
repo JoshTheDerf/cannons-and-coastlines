@@ -145,7 +145,7 @@ if (( published )) && [[ -z "$DRY_RUN" ]]; then
     cat <<'EOF'
 
 To put a published set on sale, in nuxt-site/server/data/sets.json:
-  1. set "stripePriceId" to the Stripe Price id and "priceUsd" to the amount
+  1. set "priceUsd" to the amount (checkout builds the Stripe line item)
   2. flip "status" to "available"
 Until both are done the set stays "Coming Soon" and both /api/checkout and
 /api/download refuse it. That is the drip-feed switch — one set at a time.

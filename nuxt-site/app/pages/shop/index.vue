@@ -10,7 +10,7 @@ onMounted(() => { if (!cart.value) loadCart() })
 
 useSeoMeta({
   title: 'Shop',
-  description: 'Printed Cannons & Coastlines fleet kits, made to order in Georgia, and STL files for every fleet.'
+  description: 'STL files for every Cannons & Coastlines fleet. The base game is free, and the five add-on fleets are $5 each at the early-bird price.'
 })
 
 // One filter row instead of separate pages: most people arrive wanting one
@@ -41,6 +41,28 @@ const visible = (p: ShopProductCard) =>
   || (filter.value === 'kits' && p.kind === 'faction')
   || (filter.value === 'files' && !!p.setId)
 
+// Every add-on fleet in one checkout. Stripe takes several line items, so
+// this is the same checkout with more set ids, not a separate product.
+const paidSets = computed(() => (setsData.value?.all ?? []).filter(s => s.purchasable))
+const bundleTotal = computed(() => paidSets.value.reduce((n, s) => n + (s.priceUsd ?? 0), 0))
+const earlyBird = computed(() => paidSets.value.some(s => s.earlyBird))
+const buyingAll = ref(false)
+const buyAllError = ref('')
+async function buyAll() {
+  buyingAll.value = true
+  buyAllError.value = ''
+  try {
+    const { url } = await $fetch<{ url: string }>('/api/checkout', {
+      method: 'POST',
+      body: { setIds: paidSets.value.map(s => s.id), from: '/shop' }
+    })
+    await navigateTo(url, { external: true })
+  } catch (e: any) {
+    buyAllError.value = e?.data?.statusMessage ?? 'Could not start checkout. Please try again.'
+    buyingAll.value = false
+  }
+}
+
 const base = computed(() => (products.value ?? []).filter(p => p.group === 'base' && visible(p)))
 const addons = computed(() => (products.value ?? []).filter(p => p.group === 'addon' && visible(p)))
 </script>
@@ -51,24 +73,25 @@ const addons = computed(() => (products.value ?? []).filter(p => p.group === 'ad
       <div class="container mx-auto px-4 py-10 md:py-14 grid md:grid-cols-[1.2fr_1fr] gap-8 items-center">
         <div>
           <p class="font-display uppercase tracking-[0.25em] text-[color:var(--gold)] text-sm mb-2">The Shop</p>
-          <h1 class="font-display text-4xl md:text-5xl text-[color:var(--heading)]">Printed fleets and STL files</h1>
+          <h1 class="font-display text-4xl md:text-5xl text-[color:var(--heading)]">STL files for every fleet</h1>
           <p class="mt-4 text-ink-soft max-w-xl">
-            Every fleet comes as a printed kit we make to order at our home in Georgia, or as STL
-            files you print yourself. The base game's files are free.
+            Print the fleets yourself. The base game's files are free, and each add-on fleet is
+            <b class="text-ink">{{ formatPrice(paidSets[0]?.priceUsd ?? null) }}</b><template v-if="earlyBird"> at the early-bird price</template>.
+            Printed kits, made to order at our home in Georgia, are coming soon.
           </p>
         </div>
         <ul class="hidden sm:grid grid-cols-2 gap-3 text-sm">
           <li class="card-parchment p-3 flex gap-2 items-start">
-            <UIcon name="i-lucide-hammer" class="size-5 text-[color:var(--gold)] shrink-0" />
-            <span><b class="text-ink">Made to order</b><br><span class="text-ink-soft">About two weeks</span></span>
-          </li>
-          <li class="card-parchment p-3 flex gap-2 items-start">
-            <UIcon name="i-lucide-truck" class="size-5 text-[color:var(--gold)] shrink-0" />
-            <span><b class="text-ink">US shipping</b><br><span class="text-ink-soft">Packed by hand</span></span>
-          </li>
-          <li class="card-parchment p-3 flex gap-2 items-start">
             <UIcon name="i-lucide-download" class="size-5 text-[color:var(--gold)] shrink-0" />
-            <span><b class="text-ink">Instant files</b><br><span class="text-ink-soft">Emailed download link</span></span>
+            <span><b class="text-ink">Instant files</b><br><span class="text-ink-soft">Right after checkout</span></span>
+          </li>
+          <li class="card-parchment p-3 flex gap-2 items-start">
+            <UIcon name="i-lucide-printer" class="size-5 text-[color:var(--gold)] shrink-0" />
+            <span><b class="text-ink">Print all you like</b><br><span class="text-ink-soft">For your own table</span></span>
+          </li>
+          <li class="card-parchment p-3 flex gap-2 items-start">
+            <UIcon name="i-lucide-lock" class="size-5 text-[color:var(--gold)] shrink-0" />
+            <span><b class="text-ink">Secure checkout</b><br><span class="text-ink-soft">Payments by Stripe</span></span>
           </li>
           <li class="card-parchment p-3 flex gap-2 items-start">
             <UIcon name="i-lucide-refresh-cw" class="size-5 text-[color:var(--gold)] shrink-0" />
@@ -115,6 +138,19 @@ const addons = computed(() => (products.value ?? []).filter(p => p.group === 'ad
         <div class="flex items-baseline justify-between gap-4">
           <h2 class="font-display text-2xl text-[color:var(--heading)]">Add-on fleets</h2>
           <p class="text-sm text-ink-soft hidden sm:block">In playtesting now. Each one plays with the free base set.</p>
+        </div>
+        <div v-if="paidSets.length > 1" class="mt-5 card-parchment p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center gap-4">
+          <div class="flex-1">
+            <p class="font-display text-lg text-ink">
+              All {{ paidSets.length }} add-on fleets
+              <span v-if="earlyBird" class="stamp stamp-gold ml-2 align-middle">Early bird price</span>
+            </p>
+            <p class="text-sm text-ink-soft">{{ paidSets.map(s => s.title).join(', ') }}. One checkout, and every fleet's files on one download page.</p>
+            <p v-if="buyAllError" class="mt-1 text-sm text-error-500">{{ buyAllError }}</p>
+          </div>
+          <UButton color="primary" size="lg" icon="i-lucide-download" :loading="buyingAll" class="justify-center" @click="buyAll">
+            Buy all {{ paidSets.length }} · {{ formatPrice(bundleTotal) }}
+          </UButton>
         </div>
         <div class="mt-5 grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
           <ShopProductTile

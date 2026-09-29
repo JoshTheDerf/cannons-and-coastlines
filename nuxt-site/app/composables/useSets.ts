@@ -23,6 +23,7 @@ export type FleetSet = {
   status: 'coming-soon' | 'available'
   purchasable: boolean
   priceUsd: number | null
+  earlyBird: boolean
   images: { preview: string, large: string }
   factionCard: string
   freeDownloadUrl: string | null

@@ -21,9 +21,10 @@ export type StlSet = {
   sourceDir: string
   /** Static URL for free sets; null for paid ones, which never have one. */
   freeDownloadUrl: string | null
-  /** Stripe Price id. Null until the set is ready to sell. */
-  stripePriceId: string | null
+  /** Whole-dollar price; checkout builds the Stripe line item from it. */
   priceUsd: number | null
+  /** Label the price as an early-bird price in the shop. */
+  earlyBird?: boolean
   images: { preview: string, large: string }
   factionCard: string
 }
@@ -41,8 +42,8 @@ export const findSet = (id: string): StlSet | undefined =>
 export function isPurchasable(set: StlSet): boolean {
   return set.paid
     && set.status === 'available'
-    && !!set.stripePriceId
     && typeof set.priceUsd === 'number'
+    && set.priceUsd > 0
 }
 
 /**

@@ -7,9 +7,9 @@
 // `status` in server/data/sets.json changes the site without touching a
 // component or redeploying content.
 //
-// Only fields safe for anyone to see. sourceDir and stripePriceId stay server-
-// side: one is a local path, the other belongs in checkout requests we build
-// ourselves, never in a page a customer could tamper with.
+// Only fields safe for anyone to see. sourceDir stays server-side:
+// it is a local path. The price shown here is for display only; checkout
+// re-reads it from the manifest rather than trusting what a page sends.
 
 import { isPurchasable, sets } from '~~/server/utils/sets'
 
@@ -22,6 +22,7 @@ export default defineEventHandler(() => ({
     status: set.status,
     purchasable: isPurchasable(set),
     priceUsd: set.priceUsd,
+    earlyBird: !!set.earlyBird,
     images: set.images,
     factionCard: set.factionCard,
     // Present only for free sets; paid sets are reachable only through

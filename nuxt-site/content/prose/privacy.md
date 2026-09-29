@@ -1,18 +1,23 @@
 ---
 title: Privacy Policy
-description: Privacy policy for Cannons & Coastlines mailing list.
-updated: April 24, 2026
+description: Privacy policy for the Cannons & Coastlines mailing list and shop.
+updated: September 29, 2026
 ---
 
 # Privacy Policy
 
-_Last updated: April 24, 2026_
+_Last updated: September 29, 2026_
 
 ## What we collect
 
 When you subscribe to our mailing list, we collect the email address you
 provide. That's it. We don't use analytics or advertising cookies on this
 website.
+
+When you buy files in the shop, we keep the email address you paid with,
+which sets you bought, and the Stripe payment reference, so your download
+link keeps working and we can help if something goes wrong. We never see or
+store your card details.
 
 ## How we use it
 
@@ -28,10 +33,17 @@ you subscribe.
 ## Third-party services
 
 Email delivery is handled by [Kit](https://kit.com) (formerly ConvertKit),
-acting as our data processor. When you subscribe, your email address is
+acting as our data processor. Purchase records are kept for as long as you might need to
+re-download your files, and as long as tax and accounting rules require. When you subscribe, your email address is
 stored on Kit's servers in the United States. Kit may use cookies or tracking
 pixels to measure email opens and link clicks. Kit's privacy policy is
 available at [kit.com/privacy](https://kit.com/privacy).
+
+Payments are handled by [Stripe](https://stripe.com). Stripe collects your
+payment details and email address to process the payment and send your
+receipt. Stripe's privacy policy is available at
+[stripe.com/privacy](https://stripe.com/privacy). Buying files does not add
+you to the mailing list.
 
 ## Data retention
 

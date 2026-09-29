@@ -44,7 +44,7 @@ const moreFleets = computed(() =>
 
 // ── The two ways to buy ────────────────────────────────────────────────
 // A printed kit (Shopify variants, colors, shipping) and the STL files
-// (server/data/sets.json, Stripe, an emailed download). Either can be
+// (server/data/sets.json, Stripe, a download page). Either can be
 // unavailable (add-on kits aren't boxed yet, and unreleased files are Coming
 // Soon), so both are always described and only the buyable one is primary.
 const digital = computed(() => setsData.value?.all.find(s => s.id === product.value?.setId) ?? null)
@@ -52,9 +52,8 @@ const hasKit = computed(() => product.value!.kitStatus !== 'none')
 const kitBuyable = computed(() => product.value!.kitStatus === 'available' && product.value!.variants.length > 0)
 const filesBuyable = computed(() => !!digital.value && (!digital.value.paid || digital.value.purchasable))
 
-const justPurchased = computed(() => route.query.purchased === '1')
 const format = ref<'kit' | 'files'>(
-  justPurchased.value || route.query.format === 'files' || !hasKit.value || (!kitBuyable.value && filesBuyable.value)
+  route.query.format === 'files' || !hasKit.value || (!kitBuyable.value && filesBuyable.value)
     ? 'files' : 'kit'
 )
 
@@ -94,35 +93,19 @@ async function buyNow() {
   await navigateTo('/shop/cart')
 }
 
-// Stripe returns the buyer here with ?purchased=1. The entitlement is granted
-// by the webhook, not the redirect, so promise an email rather than a file.
+// Stripe sends the buyer on to their order page (/shop/order/<key>), which
+// holds the downloads; cancelling comes back here.
 const buyingFiles = ref(false)
 const filesError = ref('')
 async function buyFiles() {
   buyingFiles.value = true
   filesError.value = ''
   try {
-    const { url } = await $fetch<{ url: string }>('/api/checkout', { method: 'POST', body: { setId: digital.value!.id } })
+    const { url } = await $fetch<{ url: string }>('/api/checkout', { method: 'POST', body: { setIds: [digital.value!.id], from: route.path } })
     await navigateTo(url, { external: true })
   } catch (e: any) {
     filesError.value = e?.data?.statusMessage ?? 'Could not start checkout. Please try again.'
     buyingFiles.value = false
-  }
-}
-
-const email = ref('')
-const sending = ref(false)
-const sendMessage = ref('')
-async function resend() {
-  sending.value = true
-  sendMessage.value = ''
-  try {
-    const res = await $fetch<{ message: string }>('/api/download-link', { method: 'POST', body: { setId: digital.value!.id, email: email.value } })
-    sendMessage.value = res.message
-  } catch (e: any) {
-    sendMessage.value = e?.data?.statusMessage ?? 'Something went wrong. Please try again.'
-  } finally {
-    sending.value = false
   }
 }
 
@@ -254,11 +237,6 @@ const kitContents = computed((): Row[] => {
           </div>
         </div>
 
-        <div v-if="justPurchased" class="rounded-xl border border-success-400/30 bg-success-500/15 p-4 text-sm text-ink">
-          <p class="font-semibold">Payment received. Thank you.</p>
-          <p class="text-ink-soft mt-1">Your download link is on its way to the email you paid with. If it hasn't arrived in a few minutes, request another one below.</p>
-        </div>
-
         <!-- Format choice: both options are always visible and priced. -->
         <div v-if="hasKit && digital" class="grid grid-cols-2 gap-3" role="radiogroup" aria-label="How do you want it?">
           <button
@@ -341,7 +319,7 @@ const kitContents = computed((): Row[] => {
           <div v-else class="rounded-xl border border-[color:var(--rule)] bg-[color:var(--paper-card)] p-5">
             <span class="stamp stamp-gold">Printed kit coming soon</span>
             <p class="mt-3 text-sm text-ink-soft">
-              We're still playtesting this fleet before we box it.
+              {{ product.group === 'base' ? "We're not taking orders for printed kits quite yet." : "We're still playtesting this fleet before we box it." }}
               <NuxtLink to="/#files" class="text-[color:var(--gold)] hover:underline">The mailing list</NuxtLink>
               hears first when it's ready.
             </p>
@@ -360,8 +338,11 @@ const kitContents = computed((): Row[] => {
           </div>
 
           <div v-else-if="digital.purchasable" class="rounded-xl border border-[color:var(--rule)] bg-[color:var(--paper-card)] p-5">
-            <p class="font-display text-2xl text-ink">{{ formatPrice(digital.priceUsd) }}</p>
-            <p class="mt-1 text-sm text-ink-soft">Buy once and print as many as you like. Re-downloads are free when the models change.</p>
+            <div class="flex items-center gap-3">
+              <p class="font-display text-2xl text-ink">{{ formatPrice(digital.priceUsd) }}</p>
+              <span v-if="digital.earlyBird" class="stamp stamp-gold">Early bird price</span>
+            </div>
+            <p class="mt-1 text-sm text-ink-soft">Buy once and print as many as you like. You download right after checkout, and re-downloads are free when the models change.</p>
             <UButton class="mt-4" size="xl" color="primary" icon="i-lucide-download" block :loading="buyingFiles" @click="buyFiles">
               Buy the files
             </UButton>
@@ -369,14 +350,11 @@ const kitContents = computed((): Row[] => {
             <p class="mt-2 text-xs text-ink-faint">
               For your own prints only. See the <NuxtLink to="/terms#paid-models-add-on-fleets" class="underline">license</NuxtLink>.
             </p>
-            <div class="mt-5 pt-4 border-t border-[color:var(--rule)]/70">
-              <p class="text-sm text-ink-soft">Already bought this?</p>
-              <form class="mt-2 flex flex-col sm:flex-row gap-2" @submit.prevent="resend">
-                <UInput v-model="email" type="email" required placeholder="you@example.com" class="flex-1" />
-                <UButton type="submit" color="neutral" variant="outline" :loading="sending">Send link</UButton>
-              </form>
-              <p v-if="sendMessage" class="mt-2 text-sm text-ink-soft">{{ sendMessage }}</p>
-            </div>
+            <p class="mt-5 pt-4 border-t border-[color:var(--rule)]/70 text-sm text-ink-soft">
+              Already bought this? Your download link is in your Stripe receipt email. Lost it? Email
+              <a href="mailto:josh@thederf.com" class="underline text-[color:var(--gold)]">josh@thederf.com</a>
+              with the address you paid with.
+            </p>
           </div>
 
           <div v-else class="rounded-xl border border-[color:var(--rule)] bg-[color:var(--paper-card)] p-5">

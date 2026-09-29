@@ -202,8 +202,9 @@ fleets:
       card: /rulebook/pdf/faction-card-corsairs.pdf
   addonsTitle: Add-on fleets
   addonsLead: >-
-    Five more fleets are in playtesting. They'll be paid add-ons, which is how
-    we fund the rest of the work. The faction cards are free to look at.
+    Five more fleets are in playtesting. They're paid add-ons, $5 each in the
+    shop at the early-bird price, which is how we fund the rest of the work.
+    The faction cards are free to look at.
   addons:
     - name: Treasure Fleet
       image: /assets/ships/ship-preview-treasure-fleet-sm.webp

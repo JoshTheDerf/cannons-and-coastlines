@@ -26,9 +26,9 @@
     //   npx wrangler d1 create cannons-and-coastlines-content
     // then paste the printed database_id below.
     //
-    // The same database also holds the paid-set entitlement tables (cc_*),
-    // applied from nuxt-site/server/db/0001_entitlements.sql. @nuxt/content
-    // manages its own tables and ignores ours.
+    // The same database also holds the shop's order and entitlement tables
+    // (cc_*), which the Worker creates itself from nuxt-site/server/db/schema.ts.
+    // @nuxt/content manages its own tables and ignores ours.
     "d1_databases": [
         {
             "binding": "DB",
@@ -50,7 +50,7 @@
         }
     ]
     // Secrets (never in this file — set with `npx wrangler secret put <NAME>`):
-    //   STRIPE_SECRET_KEY      server/api/checkout.post.ts
+    //   STRIPE_SECRET_KEY      server/utils/stripe.ts (sk_live_... or a sandbox sk_test_...)
     //   STRIPE_WEBHOOK_SECRET  server/api/stripe/webhook.post.ts (whsec_...)
     //   PAID_SHARE_TOKEN       server/api/download/[set].get.ts — TEMPORARY
     //                          ?share= links for paid sets; delete to revoke

@@ -51,6 +51,15 @@ export type Product = {
   pairings: { with: string, title: string, blurb: string }[]
 }
 
+/**
+ * Printed kits can't be ordered yet: the cart is this mock and checkout is a
+ * stub page, not Shopify. While false, the base fleets' kits show as Coming
+ * Soon (prices and colors stay here, ready). Flip to true once a real
+ * checkout is wired, and uncomment the cart button in SiteNav.vue.
+ */
+const KITS_ON_SALE = false
+const baseKitStatus: Product['kitStatus'] = KITS_ON_SALE ? 'available' : 'coming-soon'
+
 const usd = (n: number): Money => ({ amount: n.toFixed(2), currencyCode: 'USD' })
 
 type ColorOption = { name: string, swatch: string }
@@ -124,7 +133,7 @@ export const products: Product[] = [
     ],
     options: [{ id: 'gid://shopify/ProductOption/queens-color', name: 'Color', values: queensColors.map(c => c.name) }],
     variants: buildVariants('queens', 65, queensColors),
-    kitStatus: 'available',
+    kitStatus: baseKitStatus,
     includes: [
       { icon: 'i-lucide-ship', title: 'Three frigates', items: [
         'Three hulls with masts, sails and cargo fitted',
@@ -171,7 +180,7 @@ export const products: Product[] = [
     ],
     options: [{ id: 'gid://shopify/ProductOption/corsairs-color', name: 'Color', values: corsairsColors.map(c => c.name) }],
     variants: buildVariants('corsairs', 60, corsairsColors),
-    kitStatus: 'available',
+    kitStatus: baseKitStatus,
     includes: [
       { icon: 'i-lucide-ship', title: 'Three sloops', items: [
         'Three hulls with masts, sails and cargo fitted',
