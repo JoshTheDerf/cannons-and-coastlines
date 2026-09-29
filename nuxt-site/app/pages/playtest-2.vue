@@ -75,8 +75,8 @@ useSeoMeta({
           <ul class="mt-6 space-y-3 font-serif text-ink-soft list-disc pl-5">
             <RichText v-for="(item, i) in p.contents.kit" :key="i" tag="li" :text="item" />
           </ul>
-          <div class="mt-8 grid grid-cols-2 md:grid-cols-4 gap-4">
-            <figure v-for="s in p.contents.ships" :key="s.name" class="text-center">
+          <div class="mt-8 flex flex-wrap justify-center gap-x-4 gap-y-6">
+            <figure v-for="s in p.contents.ships" :key="s.name" class="text-center w-[calc(50%-0.5rem)] md:w-[calc(25%-0.75rem)]">
               <img :src="s.image" :alt="s.name" loading="lazy" class="w-full aspect-[4/3] object-contain">
               <figcaption class="mt-1 font-display text-ink">{{ s.name }}</figcaption>
             </figure>

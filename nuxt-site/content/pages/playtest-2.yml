@@ -1,4 +1,4 @@
-# Playtest #2 (/playtest-2), streamed live on Twitch.
+# Playtest #2 (/playtest-2), streaming live on Twitch.
 # The first playtest (rulebook v0.3) is on /live. "rules" sums up what
 # changed from v0.3 to v0.6; the full notes are the changelog in home.yml.
 # Items are RichText.
@@ -34,11 +34,14 @@ contents:
   kitLead: >-
     Most of the pieces on the table are new since last time, too.
   kit:
-    - '**Finished ship designs.** The Queen''s Fleet and the Corsairs have new hulls, masts, cargo and wheels, and the Stone Fleet and the Islanders have new sails.'
+    - '**Finished ship designs.** All seven fleets are on their finished designs (below). The Queen''s Fleet and the Corsairs have new hulls, masts, cargo and wheels, and the Stone Fleet and the Islanders have new sails.'
     - '**Updated cannons.** Both the cannon and its barrel are new.'
     - '**New islands and coins.** The island stands on its own now and has six cannon slots, and the coins have engraved designs on top.'
   ships:
-    - { name: Queen's Fleet, image: /assets/ships/ship-preview-queen-fleet-large-sm.webp?v=0.5 }
-    - { name: Corsairs, image: /assets/ships/ship-preview-corsairs-sm.webp?v=0.5 }
+    - { name: "Queen's Fleet", image: "/assets/ships/ship-preview-queen-fleet-large-sm.webp?v=0.5" }
+    - { name: Corsairs, image: "/assets/ships/ship-preview-corsairs-sm.webp?v=0.5" }
+    - { name: Treasure Fleet, image: /assets/ships/ship-preview-treasure-fleet-sm.webp }
     - { name: Stone Fleet, image: /assets/ships/ship-preview-stone-fleet-sm.webp }
+    - { name: Shadow Fleet, image: "/assets/ships/ship-preview-shadow-fleet-sm.webp?v=2" }
+    - { name: The Industry, image: /assets/ships/ship-preview-industry-sm.webp }
     - { name: The Islanders, image: /assets/ships/ship-preview-islanders-sm.webp }
