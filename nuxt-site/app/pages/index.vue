@@ -25,6 +25,9 @@ const actionLetters = ['A', 'B', 'C']
       <HeroVideo />
       <div class="relative z-10 max-w-2xl mx-auto hero-copy">
         <h1 class="sr-only">Cannons &amp; Coastlines</h1>
+        <NuxtLink v-if="p.hero.live" :to="p.hero.live.to" class="hero-live stamp mb-6">
+          <span class="live-dot" aria-hidden="true" /> {{ p.hero.live.label }} <UIcon name="i-lucide-arrow-right" class="size-4" />
+        </NuxtLink>
         <img :src="p.hero.wordmark" alt="" class="mx-auto max-w-xl w-full" style="filter: drop-shadow(0 2px 12px rgba(0,0,0,0.45));">
         <p class="mt-3 font-display uppercase tracking-[0.2em] text-ink-soft text-sm md:text-base">{{ p.hero.tagline }}</p>
         <p class="mt-6 font-serif text-xl md:text-2xl text-ink leading-snug">{{ p.hero.description }}</p>
@@ -229,6 +232,23 @@ const actionLetters = ['A', 'B', 'C']
   backdrop-filter: blur(4px);
 }
 .hero-copy :deep(a.btn-ink[data-slot="base"]:hover) { background: rgba(18, 13, 9, 0.7); }
+
+/* The event link above the wordmark: a filled stamp with a pulsing dot. */
+.hero-copy .hero-live {
+  color: var(--gold-bright);
+  background: rgba(18, 13, 9, 0.55);
+  -webkit-backdrop-filter: blur(4px);
+  backdrop-filter: blur(4px);
+  text-shadow: none;
+}
+.hero-copy .hero-live:hover { background: rgba(18, 13, 9, 0.75); }
+.live-dot {
+  width: 0.55em; height: 0.55em; border-radius: 50%;
+  background: #e0453a;
+  animation: live-pulse 1.6s ease-in-out infinite;
+}
+@keyframes live-pulse { 50% { opacity: 0.35; } }
+@media (prefers-reduced-motion: reduce) { .live-dot { animation: none; } }
 
 /* Numbered rule steps: number, text, and an optional aside (table/photo). */
 .step {

@@ -1,0 +1,43 @@
+# Playtest #2 (/playtest-2), streamed live on Twitch.
+# The first playtest (rulebook v0.3) is on /live. "rules" sums up what
+# changed from v0.3 to v0.6; the full notes are the changelog in home.yml.
+# Items are RichText.
+
+meta:
+  title: Playtest #2, Live
+  description: >-
+    The second full playtest of Cannons & Coastlines, streamed live on
+    Twitch. Rulebook v0.6, the final ship designs and the new cannons.
+
+hero:
+  stamp: Live today
+  title: 'Playtest #2'
+  lead: >-
+    Our second full playtest, streamed on Twitch this afternoon. It's the
+    first game on rulebook v0.6 (the first playtest was on v0.3), with the
+    finished ship designs and the new cannons.
+
+contents:
+  rulesTitle: What's different since the first playtest
+  rulesLead: >-
+    The rules have changed a lot since v0.3, mostly from what we saw at the
+    table in the first game.
+  rules:
+    - '**Ships are always underway.** Each ship takes one action (steer, fire, or use an island), then sails forward at least one click. An island is the only place a ship can hold still.'
+    - '**You win by fighting.** Parking at an island no longer wins. Points come from islands you hold, the prizes you take off enemy ships and coins you haven''t spent. Declare victory at 60.'
+    - '**Keep what you shoot off.** Every fitting you knock off an enemy ship is yours, and so is the hull of every ship you sink or capture.'
+    - '**Cannons need a crew.** A cannon only fires when one of your ships is touching it and spends its action. Held islands don''t shoot on their own, and ricochets onto a second ship don''t count.'
+    - '**A new coin bag.** Full Sail is in, Signal Flags are out, and you can spend coins between ships as well as at the start of your turn. Your ship nearest each of your islands collects there, even from out at sea.'
+    - '**Faster, rebalanced fleets.** Most fleets gained a click of movement. The Corsairs are down to three sloops, the Islanders to one fitting, and the Treasure Fleet gets a third junk.'
+  kitTitle: New ships and cannons
+  kitLead: >-
+    The pieces on the table are new too.
+  kit:
+    - '**The finished ship designs.** New hulls, masts, cargo and wheels for the Queen''s Fleet and the Corsairs, and new sails for the Stone Fleet and the Islanders.'
+    - '**Updated cannons.** A new cannon and barrel.'
+    - '**New islands and coins.** A freestanding island with six cannon slots, and coins with engraved designs on top.'
+  ships:
+    - { name: Queen's Fleet, image: /assets/ships/ship-preview-queen-fleet-large-sm.webp?v=0.5 }
+    - { name: Corsairs, image: /assets/ships/ship-preview-corsairs-sm.webp?v=0.5 }
+    - { name: Stone Fleet, image: /assets/ships/ship-preview-stone-fleet-sm.webp }
+    - { name: The Islanders, image: /assets/ships/ship-preview-islanders-sm.webp }

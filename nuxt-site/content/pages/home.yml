@@ -11,6 +11,8 @@ meta:
     for treasure.
 
 hero:
+  # A link above the wordmark for an event; delete to hide it.
+  live: { label: 'Playtest #2 is live on Twitch today', to: /playtest-2 }
   wordmark: /assets/images/wordmark-sm.webp
   tagline: A tabletop game of naval conquest
   description: >-
@@ -137,7 +139,7 @@ howToPlay:
         - { image: /assets/images/coins/coin-repair-crew.webp, name: Repair Crew, body: Put a fitting back on one of your ships. }
         - { image: /assets/images/coins/coin-boarding-party.webp, name: Boarding Party, body: Knock a fitting off an enemy ship you're touching. }
         - { image: /assets/images/coins/coin-brace-for-impact.webp, name: Brace for Impact, body: The next hit on that ship does nothing. }
-        - { image: /assets/images/coins/coin-full-sail.webp, name: Full Sail, body: One ship steers and sails twice, but doesn't fire. }
+        - { image: /assets/images/coins/coin-full-sail.webp, name: Full Sail, body: "One ship steers and sails twice, but doesn't fire." }
         - { image: /assets/images/coins/coin-evasive-maneuver.webp, name: Evasive Maneuvers, body: One ship slides one ship-width sideways. }
       note: >-
         Boarding Party and Repair Crew together, while touching a dead enemy
