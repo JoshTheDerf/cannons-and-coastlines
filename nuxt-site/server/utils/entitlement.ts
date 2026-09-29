@@ -6,8 +6,14 @@
 // the receipt email (it is the payment's description), so the link is what a
 // buyer holds. Once Stripe confirms the payment, each set in the order becomes
 // a row in cc_entitlements keyed by the buyer's email, and the download route
-// serves a set only while that row is live, so a refund or dispute (which the
-// webhook turns into revoked_at) shuts the link off.
+// serves a set only while that row is live.
+//
+// Access is perpetual. An entitlement is to a set, never to a version, so a
+// buyer always downloads the current files; nothing expires; and pulling a set
+// from sale does not pull it from people who bought it. The only thing that
+// ends access is the payment itself being reversed: a refund, or a dispute
+// that has not been won. That is tracked per order, so reversing one order
+// never takes away a set the same buyer paid for in another.
 //
 // Tables live in server/db/schema.ts.
 
@@ -85,8 +91,8 @@ export async function grantEntitlement(db: D1Database, opts: {
     .run()
 }
 
-/** Revoke on refund or dispute. Keeps the row for the audit trail. */
-export async function revokeEntitlement(db: D1Database, email: string, setId: string): Promise<void> {
+/** Revoke one set. Keeps the row for the audit trail. Use revokeOrder. */
+async function revokeEntitlement(db: D1Database, email: string, setId: string): Promise<void> {
   await db
     .prepare("UPDATE cc_entitlements SET revoked_at = datetime('now') WHERE email = ? AND set_id = ?")
     .bind(normalizeEmail(email), setId)
@@ -115,6 +121,8 @@ export type Order = {
   setIds: string[]
   email: string | null
   paidAt: string | null
+  /** Refunded, or disputed and not won. */
+  revokedAt: string | null
 }
 
 /**
@@ -136,19 +144,26 @@ export async function createOrder(db: D1Database, orderKey: string, sessionId: s
     .run()
 }
 
-type OrderRow = { order_key: string, session_id: string, set_ids: string, email: string | null, paid_at: string | null }
+type OrderRow = {
+  order_key: string, session_id: string, set_ids: string, email: string | null, paid_at: string | null, revoked_at: string | null
+}
+
+const ORDER_SELECT = `
+  SELECT o.order_key, o.session_id, o.set_ids, o.email, o.paid_at, r.revoked_at
+  FROM cc_orders o LEFT JOIN cc_order_revocations r ON r.order_key = o.order_key`
 
 const toOrder = (row: OrderRow): Order => ({
   orderKey: row.order_key,
   sessionId: row.session_id,
   setIds: row.set_ids.split(',').filter(Boolean),
   email: row.email,
-  paidAt: row.paid_at
+  paidAt: row.paid_at,
+  revokedAt: row.revoked_at
 })
 
 export async function findOrder(db: D1Database, orderKey: string): Promise<Order | null> {
   const row = await db
-    .prepare('SELECT order_key, session_id, set_ids, email, paid_at FROM cc_orders WHERE order_key = ?')
+    .prepare(`${ORDER_SELECT} WHERE o.order_key = ?`)
     .bind(orderKey)
     .first<OrderRow>()
   return row ? toOrder(row) : null
@@ -160,4 +175,32 @@ export async function markOrderPaid(db: D1Database, orderKey: string, email: str
     .prepare("UPDATE cc_orders SET email = ?, paid_at = COALESCE(paid_at, datetime('now')) WHERE order_key = ?")
     .bind(normalizeEmail(email), orderKey)
     .run()
+}
+
+/**
+ * A payment was reversed (refund, or a dispute not won): mark the order and
+ * revoke its sets, except any the buyer also paid for in another order that
+ * still stands.
+ */
+export async function revokeOrder(db: D1Database, order: Order, reason: string): Promise<void> {
+  await db
+    .prepare('INSERT OR IGNORE INTO cc_order_revocations (order_key, reason) VALUES (?, ?)')
+    .bind(order.orderKey, reason)
+    .run()
+  if (!order.email) return
+
+  const { results } = await db
+    .prepare(`${ORDER_SELECT} WHERE o.email = ? AND o.paid_at IS NOT NULL AND r.order_key IS NULL AND o.order_key != ?`)
+    .bind(order.email, order.orderKey)
+    .all<OrderRow>()
+  const stillOwned = new Set(results.flatMap(row => toOrder(row).setIds))
+
+  for (const setId of order.setIds) {
+    if (!stillOwned.has(setId)) await revokeEntitlement(db, order.email, setId)
+  }
+}
+
+/** A dispute was won: the order stands again. The caller re-grants. */
+export async function restoreOrder(db: D1Database, orderKey: string): Promise<void> {
+  await db.prepare('DELETE FROM cc_order_revocations WHERE order_key = ?').bind(orderKey).run()
 }

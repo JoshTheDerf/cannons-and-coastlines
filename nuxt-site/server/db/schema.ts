@@ -60,5 +60,17 @@ export const SCHEMA: string[] = [
   )`,
 
   `CREATE INDEX IF NOT EXISTS cc_orders_session
-    ON cc_orders (session_id)`
+    ON cc_orders (session_id)`,
+
+  `CREATE INDEX IF NOT EXISTS cc_orders_email
+    ON cc_orders (email)`,
+
+  // Orders refunded, or disputed and not (yet) won. A table of its own rather
+  // than a column on cc_orders so it could be added to a live database with
+  // IF NOT EXISTS. Deleting a row (a won dispute) restores the order.
+  `CREATE TABLE IF NOT EXISTS cc_order_revocations (
+    order_key  TEXT PRIMARY KEY,
+    reason     TEXT NOT NULL,
+    revoked_at TEXT NOT NULL DEFAULT (datetime('now'))
+  )`
 ]

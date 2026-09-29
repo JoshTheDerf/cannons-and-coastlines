@@ -5,7 +5,9 @@
 // webhook verifies signatures with WebCrypto directly.
 
 import type { H3Event } from 'h3'
-import { grantEntitlement, markOrderPaid, type Order } from '~~/server/utils/entitlement'
+import {
+  grantEntitlement, markOrderPaid, normalizeEmail, restoreOrder, revokeOrder, type Order
+} from '~~/server/utils/entitlement'
 import { findSet } from '~~/server/utils/sets'
 
 export function stripeSecret(event: H3Event): string {
@@ -42,7 +44,8 @@ export async function stripeApi<T>(
   return res.json<T>()
 }
 
-type Charge = { refunded: boolean, disputed: boolean }
+type Dispute = { status: string }
+type Charge = { refunded: boolean, dispute: Dispute | string | null }
 
 type CheckoutSession = {
   id: string
@@ -56,16 +59,43 @@ type CheckoutSession = {
 export type OrderState = 'paid' | 'pending' | 'expired' | 'refunded'
 
 /**
- * Ask Stripe where an order stands and, if it is paid and not refunded,
- * record the purchase. Stripe is asked every time rather than trusting a
- * paid_at we stored earlier, so a refund or dispute shows up here even if the
- * webhook that should have revoked it never arrived.
+ * Has this payment been reversed? A full refund, or a dispute that has not
+ * gone our way. A won dispute (or a closed inquiry) leaves the sale standing,
+ * which is why this reads the dispute's status rather than charge.disputed,
+ * which stays true forever once a dispute was opened.
+ */
+export function isReversed(charge: Charge | null | undefined): boolean {
+  if (!charge) return false
+  if (charge.refunded) return true
+  const dispute = charge.dispute
+  if (!dispute) return false
+  const status = typeof dispute === 'string' ? 'unknown' : dispute.status
+  return status !== 'won' && status !== 'warning_closed'
+}
+
+/**
+ * Ask Stripe where an order stands and bring our records in line: grant its
+ * sets if it is paid and stands, revoke them if the payment was reversed.
+ * Stripe is asked every time, so a refund or a won dispute shows up here even
+ * if the webhook that should have carried it never arrived.
+ *
+ * Once an order has been paid, a buyer must never be locked out because
+ * Stripe is unreachable: if the call fails, our own record answers.
  */
 export async function confirmOrder(event: H3Event, db: D1Database, order: Order): Promise<{ state: OrderState, email: string | null }> {
-  const session = await stripeApi<CheckoutSession>(
-    event,
-    `checkout/sessions/${encodeURIComponent(order.sessionId)}?expand[]=payment_intent.latest_charge`
-  )
+  let session: CheckoutSession
+  try {
+    session = await stripeApi<CheckoutSession>(
+      event,
+      `checkout/sessions/${encodeURIComponent(order.sessionId)}?expand[]=payment_intent.latest_charge.dispute`
+    )
+  } catch (e) {
+    if (order.paidAt && order.email) {
+      console.warn('[stripe] session lookup failed, answering from our records', order.orderKey)
+      return { state: order.revokedAt ? 'refunded' : 'paid', email: order.email }
+    }
+    throw e
+  }
 
   if (session.status === 'expired') return { state: 'expired', email: null }
 
@@ -76,10 +106,15 @@ export async function confirmOrder(event: H3Event, db: D1Database, order: Order)
   const email = session.customer_details?.email ?? null
   if (!settled || !email) return { state: 'pending', email: null }
 
-  const charge = session.payment_intent?.latest_charge
-  if (charge && (charge.refunded || charge.disputed)) return { state: 'refunded', email }
-
   await markOrderPaid(db, order.orderKey, email)
+  const paid: Order = { ...order, email: normalizeEmail(email), paidAt: order.paidAt ?? 'now' }
+
+  if (isReversed(session.payment_intent?.latest_charge)) {
+    await revokeOrder(db, paid, 'refund or dispute')
+    return { state: 'refunded', email }
+  }
+
+  if (order.revokedAt) await restoreOrder(db, order.orderKey)
   for (const setId of order.setIds) {
     if (!findSet(setId)) continue
     await grantEntitlement(db, {

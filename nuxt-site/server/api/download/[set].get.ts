@@ -25,7 +25,7 @@
 
 import type { H3Event } from 'h3'
 import { findOrder, hasEntitlement, isOrderKey, useDb } from '~~/server/utils/entitlement'
-import { findSet, isDownloadable, r2ZipKey } from '~~/server/utils/sets'
+import { findSet, r2ZipKey } from '~~/server/utils/sets'
 
 // Constant-time, so response timing cannot be used to guess the secret a
 // character at a time.
@@ -90,15 +90,12 @@ export default defineEventHandler(async (event) => {
   return object.body
 })
 
-// The normal path: a released set, a paid order that includes it, and a live
-// entitlement behind it. Throws on any failure.
+// The normal path: a paid order that includes the set, not reversed, and a
+// live entitlement behind it. Throws on any failure. Deliberately no release
+// check: taking a set off sale stops new sales, never downloads for people
+// who bought it (access is perpetual; see server/utils/entitlement.ts). A set
+// that was never released cannot have buyers, since checkout refuses it.
 async function requirePurchase(event: H3Event, set: NonNullable<ReturnType<typeof findSet>>, orderKey: unknown) {
-  // The drip-feed flag wins over any entitlement: pulling a set back to
-  // coming-soon stops serving it to everyone, including prior buyers.
-  if (!isDownloadable(set)) {
-    throw createError({ statusCode: 409, statusMessage: `${set.title} is not released yet` })
-  }
-
   if (!isOrderKey(orderKey)) {
     throw createError({ statusCode: 401, statusMessage: 'A download link is required' })
   }
@@ -107,7 +104,7 @@ async function requirePurchase(event: H3Event, set: NonNullable<ReturnType<typeo
   const order = await findOrder(db, orderKey)
   // email is filled in only once the order page or the webhook has seen the
   // payment confirmed by Stripe; before that the order grants nothing.
-  if (!order || !order.email || !order.setIds.includes(set.id)) {
+  if (!order || !order.email || order.revokedAt || !order.setIds.includes(set.id)) {
     throw createError({ statusCode: 403, statusMessage: 'Invalid download link' })
   }
 

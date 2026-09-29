@@ -46,16 +46,6 @@ export function isPurchasable(set: StlSet): boolean {
     && set.priceUsd > 0
 }
 
-/**
- * Whether a download may ever be served for this set, entitlement aside.
- * A 'coming-soon' set refuses even for someone holding an entitlement row,
- * which is what makes the drip-feed flag authoritative: un-flipping a set
- * pulls it back from everyone.
- */
-export function isDownloadable(set: StlSet): boolean {
-  return set.status === 'available'
-}
-
 /** R2 key prefix for a set's current version, e.g. "treasure-fleet-set/v1/". */
 export const r2Prefix = (set: StlSet): string => `${set.id}/v${set.version}/`
 

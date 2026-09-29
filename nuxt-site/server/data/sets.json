@@ -14,8 +14,8 @@
     "publicly by the Nuxt site, so a paid model placed there ships to anyone.",
     "",
     "DRIP-FEED RELEASE: `status` is the flag. 'coming-soon' renders the faction",
-    "card as it looks today and makes /api/checkout and /api/download refuse the",
-    "set outright. Flipping one set to 'available' is the entire release action",
+    "card as it looks today and makes /api/checkout refuse the set. It never",
+    "pulls files from people who already bought them: purchases are perpetual. Flipping one set to 'available' is the entire release action",
     "- no code change - but do it only after publish-paid-sets.sh has pushed",
     "that set's files to R2 and priceUsd below is filled in. Checkout builds",
     "the Stripe line item from priceUsd, so there is no Price to create.",
@@ -23,7 +23,10 @@
     "",
     "`version` is the R2 path segment. Bump it when you re-publish changed STLs;",
     "old buyers keep working because entitlements are per-set, not per-version,",
-    "and the download route always resolves to the current version."
+    "and the download route always resolves to the current version.",
+    "",
+    "NEVER remove or rename a paid set's `id` once it has sold: purchases are",
+    "recorded against it, and a buyer's download link names it."
   ],
   "sets": [
     {

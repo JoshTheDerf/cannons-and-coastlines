@@ -12,12 +12,12 @@
 //   1. stripe listen / dashboard -> add endpoint https://<site>/api/stripe/webhook
 //   2. subscribe to: checkout.session.completed,
 //      checkout.session.async_payment_succeeded, charge.refunded,
-//      charge.dispute.created
+//      charge.dispute.created, charge.dispute.closed
 //   3. npx wrangler secret put STRIPE_WEBHOOK_SECRET   (the whsec_... value)
 
 import type { H3Event } from 'h3'
 import {
-  claimStripeEvent, findOrder, isOrderKey, revokeEntitlement, useDb
+  claimStripeEvent, findOrder, isOrderKey, useDb
 } from '~~/server/utils/entitlement'
 import { confirmOrder, stripeApi } from '~~/server/utils/stripe'
 
@@ -119,28 +119,25 @@ async function handle(event: H3Event, db: D1Database, stripeEvent: { type: strin
     }
 
     case 'charge.refunded':
-    case 'charge.dispute.created': {
+    case 'charge.dispute.created':
+    case 'charge.dispute.closed': {
       // A refund event carries the charge; a dispute carries its own object
       // pointing at one. Either way the order key is in the PaymentIntent's
-      // metadata, set at checkout.
+      // metadata, set at checkout. confirmOrder then reads the settled state
+      // from Stripe: a full refund or open/lost dispute revokes, a won dispute
+      // restores, and a partial refund leaves access alone.
       const paymentIntent: string | undefined = obj.payment_intent
-      if (stripeEvent.type === 'charge.refunded' && !obj.refunded) {
-        // Partial refund: which set it was for is a judgement call, so leave
-        // access alone and flag it.
-        console.warn('[stripe] partial refund, access unchanged', obj.id)
-        break
-      }
       const intent = paymentIntent
         ? await stripeApi<{ metadata?: Record<string, string> }>(event, `payment_intents/${encodeURIComponent(paymentIntent)}`)
         : null
       const order = await orderFor(db, intent?.metadata?.order_key)
-      if (!order?.email) {
+      if (!order) {
         // Worth a human look: the money moved but we could not match a row.
         console.error('[stripe] could not match refund/dispute to an order', obj.id)
         break
       }
-      for (const setId of order.setIds) await revokeEntitlement(db, order.email, setId)
-      console.info('[stripe] revoked', order.setIds.join(','), 'from', order.email, 'via', stripeEvent.type)
+      const { state } = await confirmOrder(event, db, order)
+      console.info('[stripe]', stripeEvent.type, 'order now', state, order.setIds.join(','), order.email ?? '')
       break
     }
 
