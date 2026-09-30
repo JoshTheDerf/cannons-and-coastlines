@@ -6,10 +6,10 @@ const { data: page } = await useAsyncData('home', () =>
 if (!page.value) throw createError({ statusCode: 404, statusMessage: 'Home content missing' })
 
 useSeoMeta({
-  title: page.value.meta?.title,
-  description: page.value.meta?.description,
-  ogTitle: page.value.meta?.title,
-  ogDescription: page.value.meta?.description,
+  title: page.value.seo?.title,
+  description: page.value.seo?.description,
+  ogTitle: page.value.seo?.title,
+  ogDescription: page.value.seo?.description,
   ogImage: 'https://cannonsandcoastlines.com/assets/photos/playtest-2/table-wide.jpg',
   twitterCard: 'summary_large_image'
 })

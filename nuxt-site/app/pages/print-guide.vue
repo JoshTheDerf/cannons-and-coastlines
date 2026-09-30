@@ -14,8 +14,8 @@ const { data: parts } = await useAsyncData('parts', () =>
 if (!page.value) throw createError({ statusCode: 404, statusMessage: 'Print guide content missing' })
 
 useSeoMeta({
-  title: page.value.meta?.title,
-  description: page.value.meta?.description
+  title: page.value.seo?.title,
+  description: page.value.seo?.description
 })
 
 const p = computed(() => page.value!)

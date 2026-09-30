@@ -8,7 +8,7 @@
 # Printing facts only. This text ships inside the downloads, so no faction
 # backstory here. `**bold**` works in every text field.
 
-meta:
+seo:
   title: Print Guide
   description: >-
     Slicer settings and filament colors for every Cannons & Coastlines fleet,

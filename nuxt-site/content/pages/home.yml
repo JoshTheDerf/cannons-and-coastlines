@@ -3,7 +3,7 @@
 # The "howToPlay" section follows the rulebook (rulebook/typst/rulebook.typ).
 # Keep it in step when the rules change.
 
-meta:
+seo:
   title: Cannons & Coastlines | A Tabletop Game of Naval Conquest
   description: >-
     A 3D-printable tabletop naval game for 2 to 20 players. Ships roll

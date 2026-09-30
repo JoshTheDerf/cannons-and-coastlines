@@ -4,7 +4,7 @@
 # assets/images/tools/ and were captured from the public Cannons and Coastlines
 # workspace, signed out. `**bold**` and [links](url) work in text fields.
 
-meta:
+seo:
   title: Made with CubbyCAD
   description: >-
     The Cannons & Coastlines ships and parts are modeled in CubbyCAD, a browser

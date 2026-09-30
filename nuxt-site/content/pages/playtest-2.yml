@@ -4,7 +4,7 @@
 # changed from v0.3 to v0.6; the full notes are the changelog in home.yml.
 # Items are RichText.
 
-meta:
+seo:
   title: 'Playtest #2 Recap'
   description: >-
     The recording of the second full playtest of Cannons & Coastlines: two

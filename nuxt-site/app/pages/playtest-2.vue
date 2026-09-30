@@ -17,10 +17,10 @@ const videoId = '5YRH92ho2SM'
 const recordingEmbedUrl = `https://www.youtube.com/embed/${videoId}`
 
 useSeoMeta({
-  title: p.value.meta?.title,
-  description: p.value.meta?.description,
-  ogTitle: p.value.meta?.title,
-  ogDescription: p.value.meta?.description
+  title: p.value.seo?.title,
+  description: p.value.seo?.description,
+  ogTitle: p.value.seo?.title,
+  ogDescription: p.value.seo?.description
 })
 </script>
 

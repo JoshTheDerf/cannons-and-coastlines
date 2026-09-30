@@ -36,7 +36,7 @@ export default defineContentConfig({
       type: 'data',
       source: 'pages/*.yml',
       schema: z.object({
-        meta: z.object({ title: z.string(), description: z.string() }).optional(),
+        seo: z.object({ title: z.string(), description: z.string() }).optional(),
         hero: z.record(z.any()).optional(),
         intro: z.record(z.any()).optional(),
         howToPlay: z.record(z.any()).optional(),

@@ -2,7 +2,7 @@
 # What each piece is, how it goes together, how to print it, how many to print.
 # Keep this in step with "The Parts" and "The Print List" in rulebook/typst/rulebook.typ.
 
-meta:
+seo:
   title: The Parts
   description: >-
     What each piece in the Cannons & Coastlines base set does, how it goes
