@@ -21,7 +21,7 @@
 //   GET /api/download/<set-id>?share=<PAID_SHARE_TOKEN>
 //
 // While the Worker secret PAID_SHARE_TOKEN is set, a matching `share` value
-// skips the release flag, the order link and the entitlement check, so
+// skips the order link and the entitlement check, so
 // playtesters can grab any paid set before it is on sale. It is one shared
 // secret for every set, so treat a link as leaked once it leaves the group.
 // Revoke by deleting the secret (`wrangler secret delete PAID_SHARE_TOKEN`);

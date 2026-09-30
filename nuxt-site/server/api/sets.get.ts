@@ -25,7 +25,7 @@ export default defineEventHandler(() => ({
     earlyBird: !!set.earlyBird,
     images: set.images,
     // Present only for free sets; paid sets are reachable only through
-    // /api/download-link and an entitlement.
+    // /api/download/<set> with an order key (or the share token).
     freeDownloadUrl: set.freeDownloadUrl
   }))
 }))
