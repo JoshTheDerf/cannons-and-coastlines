@@ -108,7 +108,6 @@ const tools = computed(() => (p.value.tools?.items ?? []) as Tool[])
         <p class="font-serif lead text-ink-soft">{{ p.cta.text }}</p>
         <div class="mt-6 flex flex-wrap gap-3 justify-center">
           <UButton to="/print-guide" icon="i-lucide-printer" color="primary">Print guide</UButton>
-          <UButton to="/parts" icon="i-lucide-puzzle" variant="ghost" color="neutral" class="btn-ink">The parts</UButton>
         </div>
       </div>
     </section>

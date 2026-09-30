@@ -57,6 +57,7 @@ export default defineContentConfig({
         gallery: z.record(z.any()).optional(),
         assembly: z.record(z.any()).optional(),
         printing: z.record(z.any()).optional(),
+        pieces: z.record(z.any()).optional(),
         quantities: z.record(z.any()).optional(),
         tools: z.record(z.any()).optional(),
         // print-lists.yml

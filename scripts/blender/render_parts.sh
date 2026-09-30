@@ -13,7 +13,7 @@
 #
 #   - the rulebook and faction-card Typst sources, via
 #     rulebook/typst/card.typ's `renders` constant
-#   - the site's parts page, content/pages/parts.yml
+#   - the site's print guide, content/pages/print-guide.yml `pieces`
 #
 # THIS IS NOT THE SHIP-PREVIEW PASS. Both render the same hulls, and they are
 # deliberately different pictures:
@@ -22,7 +22,7 @@
 #   camera     ortho, 55 deg elevation      perspective 85mm, 18 deg elevation
 #   canvas     800x800 square               1408x768 landscape
 #   reads as   a piece on the print bed     a product photo of a finished ship
-#   lands on   parchment / parts page       the site's near-black faction card
+#   lands on   parchment / print guide      the site's near-black faction card
 #
 # That last row is why --material-variant matters: a near-black hull needs a
 # lift to read on the dark card and must NOT have it on parchment. This pass
