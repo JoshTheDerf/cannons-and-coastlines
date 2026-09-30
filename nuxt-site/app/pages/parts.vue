@@ -65,7 +65,7 @@ const p = computed(() => page.value!)
     </section>
 
     <!-- Assembly -->
-    <section class="py-16 px-4 band-parchment">
+    <section id="assembly" class="py-16 px-4 band-parchment scroll-mt-20">
       <div class="container mx-auto">
         <SectionHeader :title="p.assembly.title" :description="p.assembly.lead" align="left" size="sm" />
         <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-5">

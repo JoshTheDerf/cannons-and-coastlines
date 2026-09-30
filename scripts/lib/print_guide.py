@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
-"""Render the PRINTING.md that goes inside the STL zips.
+"""Render the PRINTING.md that goes inside the STL zips, and check a zip's files.
 
-The words live in nuxt-site/content/pages/print-guide.yml (the /print-guide
-page reads the same file) and the assembly steps in the `assembly` block of
-nuxt-site/content/pages/parts.yml. This only lays them out as Markdown, so the
-site and the zips can't drift apart.
+The words live in nuxt-site/content/pages/print-lists.yml (what to print),
+print-guide.yml (settings and colors) and the `assembly` block of parts.yml.
+The /print-list and /print-guide pages and PRINTING.pdf
+(rulebook/typst/print-list.typ) read the same files. This only lays them out
+as Markdown, so the site and the zips can't drift apart.
 
     print_guide.py set <set-id> [<dir>]      standalone guide for one set's zip
     print_guide.py bundle-top <folder>=<set-id>...
@@ -12,9 +13,12 @@ site and the zips can't drift apart.
     print_guide.py bundle-fleet <set-id> [<dir>]
                                             one bundle folder's guide; points
                                             up to the top-level one
+    print_guide.py check <set-id> <dir>     fail if the print list names a file
+                                            <dir> lacks; warn about model files
+                                            in <dir> that no list mentions
 
-<dir> is the folder the zip is built from; its .stl/.svg/.3mf names are listed
-under "Files". Output goes to stdout.
+<dir> is the folder the zip is built from (only `check` reads it). Output goes
+to stdout.
 
 Needs PyYAML. print_guide() in scripts/lib/common.sh runs this through uv when
 the system python3 does not have it.
@@ -30,10 +34,6 @@ REPO_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 PAGES = os.path.join(REPO_ROOT, "nuxt-site", "content", "pages")
 SITE = "https://cannonsandcoastlines.com"
 
-# Mirrors the fleet rows on nuxt-site/app/pages/print-guide.vue.
-RIGGING_DEFAULT = "Brown masts, white sails"
-RIGGING_MATCH = "Same color as the hull"
-
 
 def load(name):
     with open(os.path.join(PAGES, name), encoding="utf-8") as f:
@@ -42,6 +42,8 @@ def load(name):
 
 GUIDE = load("print-guide.yml")
 PARTS = load("parts.yml")
+LISTS = load("print-lists.yml")
+BASE_SET = LISTS["base"]["set"]
 
 
 def text(s):
@@ -56,15 +58,21 @@ def fleets_for(set_id):
     return fleets
 
 
-def fleet_rows(f):
-    rows = []
-    if f.get("hull"):
-        rows.append(("Hull", f["hull"]))
-    rows.append(("Masts and sails", RIGGING_MATCH if f.get("matchRigging") else RIGGING_DEFAULT))
-    rows.extend((p, c) for p, c in f.get("parts", []))
-    rows.append(("Supports", "On" if f.get("supports") else "Off"))
-    rows.append(("Material", "PLA or PETG" if f.get("petg") else "PLA"))
-    return rows
+def list_for(fleet_id):
+    for lf in LISTS["fleets"]["items"]:
+        if lf["id"] == fleet_id:
+            return lf
+    sys.exit(f"error: print-lists.yml has no fleet {fleet_id}")
+
+
+def color_of(key, f=None):
+    """Mirrors color-of() in rulebook/typst/print-list.typ."""
+    if key == "hull" or (f and f.get("matchRigging") and key in ("masts", "sails")):
+        return f["hull"]
+    for r in GUIDE["colors"]["rows"]:
+        if r["id"] == key:
+            return r["color"]
+    sys.exit(f"error: print-guide.yml colors has no id {key}")
 
 
 def table(header, rows):
@@ -73,30 +81,63 @@ def table(header, rows):
     return "\n".join(out)
 
 
+def parts_md(items, lf=None, gf=None, mark_base=False):
+    out = ["| Part | File | Qty | Color | Supports | Notes |", "| --- | --- | --- | --- | --- | --- |"]
+    for it in items:
+        qty = it["each"] * lf["ships"] if "each" in it else it["qty"]
+        name = text(it["part"])
+        file = it["file"] + (" from the base set" if mark_base and it.get("base") else "")
+        supports = "Yes" if it.get("supports") else "No"
+        note = text(it.get("note", ""))
+        out.append(f"| {name} | {file} | {qty} | {text(color_of(it['color'], gf))} | {supports} | {note} |")
+    return "\n".join(out)
+
+
 def settings_md():
-    s, c = GUIDE["settings"], GUIDE["colors"]
+    """Settings and tips. Colors are in each list; supports are a column there."""
+    s = GUIDE["settings"]
+    rows = [r for r in s["rows"] if r[0] != "Supports"]
+    tips = [text(t) for t in LISTS["tips"]]
     return "\n\n".join([
-        f"## {s['title']}",
-        table(("Setting", "Value"), s["rows"]),
-        text(s["baseSet"]),
-        f"## {c['title']}",
-        table(("Part", "Color"), c["rows"]),
-        text(c["note"]),
+        "## Printing",
+        table(("Setting", "Value"), rows),
+        "\n".join(f"- {t}" for t in tips),
     ])
 
 
 def fleet_md(f):
-    return "\n\n".join([
+    lf = list_for(f["id"])
+    paid = f["set"] != BASE_SET
+    out = [
         f"## {f['name']}",
-        table(("Setting", "Value"), fleet_rows(f)),
-        f"Online: {SITE}/print-guide#{f['id']}",
+        f"{lf['ships']} {lf['shipType']} with {lf['fittings']}.",
+        parts_md(lf["parts"], lf, f, mark_base=paid),
+    ]
+    if paid:
+        out.append(f"{text(LISTS['base']['body'])} Get it at {SITE}/print-list/{BASE_SET}")
+    return "\n\n".join(out)
+
+
+def general_md():
+    g = LISTS["general"]
+    return "\n\n".join([
+        f"## {g['title']}",
+        f"### {g['perPlayer']['title']}",
+        parts_md(g["perPlayer"]["parts"]),
+        f"### {g['perTable']['title']}",
+        parts_md(g["perTable"]["parts"]),
     ])
+
+
+def kit_md():
+    k = LISTS["kit"]
+    return "\n\n".join([f"## {k['title']}", *(text(p) for p in k["body"])])
 
 
 def assembly_md():
     a = PARTS["assembly"]
     out = [f"## {a['title']}", text(a["lead"])]
-    for card in a["cards"]:
+    for card in (c for t in LISTS["assemblyCards"] for c in a["cards"] if c["title"] == t):
         out.append(f"### {card['title']}")
         if card.get("items"):
             mark = (lambda i: f"{i + 1}.") if card.get("ordered") else (lambda i: "-")
@@ -105,13 +146,6 @@ def assembly_md():
             out.append(text(card["body"]))
     out.append(f"Every piece, with pictures: {SITE}/parts")
     return "\n\n".join(out)
-
-
-def files_md(directory):
-    if not directory:
-        return None
-    names = sorted(n for n in os.listdir(directory) if n.lower().endswith((".stl", ".svg", ".3mf")))
-    return "## Files\n\n" + "\n".join(f"- {n}" for n in names)
 
 
 def fleet_names(fleets):
@@ -126,12 +160,14 @@ def emit(parts):
 def cmd_set(set_id, directory=None):
     fleets = fleets_for(set_id)
     emit([
-        f"# Print guide: {fleet_names(fleets)}",
-        f"The settings and colors for the files in this download. The online version is at {SITE}/print-guide.",
-        settings_md(),
+        f"# {fleet_names(fleets)} print list",
+        "What to print from this download, and how. PRINTING.pdf has the same, with pictures. "
+        f"Online: {SITE}/print-list/{set_id}",
         *[fleet_md(f) for f in fleets],
-        files_md(directory),
+        general_md() if set_id == BASE_SET else None,
+        settings_md(),
         assembly_md(),
+        kit_md(),
     ])
 
 
@@ -141,26 +177,55 @@ def cmd_bundle_top(*pairs):
         folder, _, set_id = pair.partition("=")
         index.append(f"- `{folder}/`: {fleet_names(fleets_for(set_id))}")
     emit([
-        "# Print guide: every fleet",
-        "One folder per fleet, each with its own PRINTING.md for the hull colors and supports. "
-        f"The settings, part colors and assembly steps below apply to all of them. The online version is at {SITE}/print-guide.",
+        "# All fleets print list",
+        "One folder per fleet, each with its own PRINTING.md listing what to print from it. "
+        "PRINTING.pdf, next to this file, has every fleet's print list with pictures. "
+        f"The settings, part colors and assembly steps below apply to all of them. Online: {SITE}/print-list/all-fleets",
         "## Folders\n\n" + "\n".join(index),
+        general_md(),
         settings_md(),
         assembly_md(),
+        kit_md(),
     ])
 
 
 def cmd_bundle_fleet(set_id, directory=None):
     fleets = fleets_for(set_id)
     emit([
-        f"# Print guide: {fleet_names(fleets)}",
-        "The slicer settings, part colors and assembly steps for every fleet are in ../PRINTING.md. This is what's different for this folder.",
+        f"# {fleet_names(fleets)} print list",
+        "The slicer settings, part colors and assembly steps for every fleet are in ../PRINTING.md "
+        "and ../PRINTING.pdf. This is what to print from this folder.",
         *[fleet_md(f) for f in fleets],
-        files_md(directory),
+        general_md() if set_id == BASE_SET else None,
     ])
 
 
-COMMANDS = {"set": cmd_set, "bundle-top": cmd_bundle_top, "bundle-fleet": cmd_bundle_fleet}
+def cmd_check(set_id, directory):
+    """The print list and the folder must agree about which files ship."""
+    listed = set()
+    for f in fleets_for(set_id):
+        for it in list_for(f["id"])["parts"]:
+            # A paid fleet's base-set parts ship in the base set, not here.
+            if set_id == BASE_SET or not it.get("base"):
+                listed |= set(it.get("files") or [it["file"]])
+    if set_id == BASE_SET:
+        # Parts the add-on fleets borrow (the Stone Fleet's barrels) ship here.
+        for lf in LISTS["fleets"]["items"]:
+            listed |= {it["file"] for it in lf["parts"] if it.get("base")}
+        for sec in ("perPlayer", "perTable"):
+            for it in LISTS["general"][sec]["parts"]:
+                listed |= set(it.get("files") or [it["file"]])
+        listed |= set(LISTS.get("extras", []))
+    present = {n for n in os.listdir(directory) if n.lower().endswith((".stl", ".3mf"))}
+    missing = sorted(listed - present - set(LISTS.get("extras", [])))
+    if missing:
+        sys.exit(f"error: print-lists.yml lists files that {directory} doesn't have: {', '.join(missing)}")
+    for n in sorted(present - listed):
+        print(f"warning: {set_id}: {n} ships in the zip but no print list mentions it "
+              "(nuxt-site/content/pages/print-lists.yml)", file=sys.stderr)
+
+
+COMMANDS = {"set": cmd_set, "bundle-top": cmd_bundle_top, "bundle-fleet": cmd_bundle_fleet, "check": cmd_check}
 
 if __name__ == "__main__":
     if len(sys.argv) < 3 or sys.argv[1] not in COMMANDS:

@@ -580,7 +580,7 @@
     },
     "treasure-fleet": {
       "title": "Treasure Fleet",
-      "kitShips": 2,
+      "kitShips": 3,
       "atmosphere": "sunrise",
       "gleam": {
         "$comment": "The gilding catches the light: a sheen sweeps along the hull every few seconds and small glints twinkle, on every part in the hull's filament.",

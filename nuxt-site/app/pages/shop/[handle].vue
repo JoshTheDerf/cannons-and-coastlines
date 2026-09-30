@@ -331,7 +331,7 @@ const kitContents = computed((): Row[] => {
           <div v-if="!digital.paid" class="rounded-xl border border-[color:var(--rule)] bg-[color:var(--paper-card)] p-5">
             <p class="font-display text-2xl text-ink">Free</p>
             <p class="mt-1 text-sm text-ink-soft">Part of the free base set: both base fleets, terrain and coins. Licensed CC BY-NC-SA.</p>
-            <UButton v-if="digital.freeDownloadUrl" :to="digital.freeDownloadUrl" class="mt-4" size="xl" color="primary" icon="i-lucide-download" block>
+            <UButton v-if="digital.freeDownloadUrl" :to="`/print-list/${digital.id}`" class="mt-4" size="xl" color="primary" icon="i-lucide-download" block>
               Download the STLs
             </UButton>
             <NuxtLink to="/parts" class="mt-3 inline-block text-sm text-[color:var(--gold)] hover:underline">What's in the pack and how to print it →</NuxtLink>

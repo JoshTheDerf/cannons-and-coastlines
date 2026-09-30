@@ -92,7 +92,7 @@ gallery:
     - render: /assets/images/renders/cannonball.png?v=3
       name: Cannonball
       desc: Goes in the muzzle. They're really easy to lose.
-      color: Something bright, since neon green or orange is a lot easier to find under the couch. **TPU** bounces less.
+      color: Something bright in PLA, since neon green or orange is a lot easier to find under the couch.
     - render: /assets/images/renders/movement-wheel.png?v=0.5
       name: Movement Wheel
       desc: Lives in the stern. One full turn is one *click* of movement. The flat spot parks the ship.
@@ -178,8 +178,7 @@ printing:
     - icon: i-lucide-circle-dot
       title: Cannonballs
       body: >-
-        **TPU** with three walls and no infill bounces far less than PLA.
-        Coarser layers shoot harder and less predictably.
+        PLA works best. Coarser layers shoot harder and less predictably.
     - icon: i-lucide-anchor
       title: Masts
       body: Print them lying flat, short masts too.
@@ -206,7 +205,7 @@ quantities:
     - [Cannons, 3–4, You can get by with one, but spares are nice when one wears out.]
     - [Cannonballs, '10', You will lose some. (Check under the couch.)]
     - [Movement wheel, 1 per ship, Fit once with its rubber band. Hard to get back out.]
-    - [Islands, 2–3, Print **islands**, or use **island toppers** on household objects.]
+    - [Islands, 1–2, Print **islands**, or use **island toppers** on household objects.]
     - [Rocks and reefs, 2–4, Optional. They block ships and cannonballs.]
     - [Fit test, 1, Print it before anything else.]
     - [Coins, 1 set of 20, 5 Brace · 2 Full Sail · 2 Evasive · 5 Gunner · 4 Repair · 2 Boarding]

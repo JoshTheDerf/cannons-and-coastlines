@@ -1,0 +1,209 @@
+# Print lists: /print-list/<set-id> on the site, and the PRINTING.pdf (plus
+# PRINTING.md) inside every STL zip.
+#
+# One source for all of them:
+#   - the page             nuxt-site/app/pages/print-list/[set].vue
+#   - the PDF              rulebook/typst/print-list.typ (npx jake print-lists)
+#   - the Markdown         scripts/lib/print_guide.py
+# Colors and settings come from print-guide.yml, assembly steps from
+# parts.yml. Rebuild the zips after editing (see print-guide.yml).
+#
+# Printing facts only, no faction backstory: this ships inside the downloads.
+# Keep it short. A list plus its printing notes fits on two PDF pages; the
+# PDF build doesn't check that, so look at it. `**bold**` and `*italic*`
+# work in every text field.
+#
+# HOW THE COUNTS ARE WORKED OUT
+#   ships     the faction card (rulebook/typst/factions.typ).
+#   each      how many go on one ship. Masts, cargo and barrels are the
+#             fittings on the faction card, split by the sockets on each hull
+#             in nuxt-site/shared/data/ship-assemblies.json. A sail goes on
+#             every mast. One wheel per ship.
+#   qty       a fixed count for the whole fleet or table. Cannons (4) and
+#             cannonballs (10) follow the rulebook's Print List.
+#   color     an id from print-guide.yml `colors.rows`, or `hull` for the
+#             fleet's hull color. `masts` and `sails` become the hull color
+#             for a fleet with `matchRigging` in print-guide.yml.
+#   base      the file comes from the free base set, not this fleet's zip.
+#   supports  print with supports (default off).
+#   files     the real file names, when `file` is a label for several.
+#   render    image stem under assets/images/renders/, when it isn't the
+#             file's own name.
+
+meta:
+  title: Print Lists
+  description: >-
+    What to print for each Cannons & Coastlines fleet: every STL, how many
+    copies, what color and whether it needs supports.
+
+hero:
+  title: Print List
+  intro: Every file to print, how many copies, what color and whether it needs supports.
+
+# How a paid fleet's list points at the free files it needs.
+base:
+  set: base-set
+  body: The parts marked "from the base set" come with the free base set download.
+
+fleets:
+  items:
+    - id: queens-fleet
+      set: base-set
+      ships: 3
+      shipType: frigates
+      fittings: 4 fittings each (2 masts, 2 cargo)
+      parts:
+        - { part: Hull, file: ship-queens-fleet.stl, each: 1, color: hull }
+        - { part: Mast, file: mast.stl, each: 2, color: masts, base: true }
+        - { part: Sail, file: sail.stl, each: 2, color: sails, base: true }
+        - { part: Cargo, file: cargo.stl, each: 2, color: cargo, base: true }
+        - { part: Movement wheel, file: movement-wheel.stl, each: 1, color: wheels, base: true }
+        - { part: Cannon, file: cannon.stl, qty: 4, color: cannons, base: true }
+        - { part: Cannonball, file: cannonball.stl, qty: 10, color: cannonballs, base: true }
+
+    - id: corsairs
+      set: base-set
+      ships: 3
+      shipType: sloops
+      fittings: 3 fittings each (2 masts, 1 cargo)
+      parts:
+        - { part: Hull, file: ship-corsair.stl, each: 1, color: hull }
+        - { part: Mast, file: mast.stl, each: 2, color: masts, base: true }
+        - { part: Torn sail, file: sail-damaged.stl, each: 2, color: sails, base: true, note: Or sail.stl. }
+        - { part: Cargo, file: cargo.stl, each: 1, color: cargo, base: true }
+        - { part: Movement wheel, file: movement-wheel.stl, each: 1, color: wheels, base: true }
+        - { part: Cannon, file: cannon.stl, qty: 4, color: cannons, base: true }
+        - { part: Cannonball, file: cannonball.stl, qty: 10, color: cannonballs, base: true }
+
+    - id: treasure-fleet
+      set: treasure-fleet-set
+      ships: 3
+      shipType: junks
+      fittings: 3 fittings each (2 masts, 1 cargo)
+      parts:
+        - { part: Hull, file: ship-treasure-fleet.stl, each: 1, color: hull, supports: true }
+        - { part: Sail, file: sail-treasure-fleet.stl, each: 2, color: sails }
+        - { part: Mast, file: mast.stl, each: 2, color: masts, base: true }
+        - { part: Cargo, file: cargo.stl, each: 1, color: cargo, base: true }
+        - { part: Movement wheel, file: movement-wheel.stl, each: 1, color: wheels, base: true }
+        - { part: Cannon, file: cannon.stl, qty: 4, color: cannons, base: true }
+        - { part: Cannonball, file: cannonball.stl, qty: 10, color: cannonballs, base: true }
+
+    - id: stone-fleet
+      set: stone-fleet-set
+      ships: 3
+      shipType: barges
+      fittings: 4 fittings each (2 masts, 2 barrels)
+      parts:
+        - { part: Hull, file: ship-stone-fleet.stl, each: 1, color: hull }
+        - { part: Sail, file: sail-stone-fleet.stl, each: 2, color: sails }
+        - { part: Mast, file: mast.stl, each: 2, color: masts, base: true }
+        - { part: Barrel, file: barrel.stl, each: 2, color: cargo, base: true }
+        - { part: Movement wheel, file: movement-wheel.stl, each: 1, color: wheels, base: true }
+        - { part: Cannon, file: cannon.stl, qty: 4, color: cannons, base: true }
+        - { part: Cannonball, file: cannonball.stl, qty: 10, color: cannonballs, base: true }
+
+    - id: shadow-fleet
+      set: shadow-fleet-set
+      ships: 3
+      shipType: galleons
+      fittings: 3 fittings each (2 masts, 1 cargo)
+      parts:
+        - { part: Hull, file: ship-shadow-fleet.stl, each: 1, color: hull, supports: true, note: PLA or PETG. }
+        - { part: Torn sail, file: sail-damaged.stl, each: 2, color: sails }
+        - { part: Mast, file: mast.stl, each: 2, color: masts, base: true }
+        - { part: Cargo, file: cargo.stl, each: 1, color: cargo, base: true }
+        - { part: Movement wheel, file: movement-wheel.stl, each: 1, color: wheels, base: true }
+        - { part: Cannon, file: cannon.stl, qty: 4, color: cannons, base: true }
+        - { part: Cannonball, file: cannonball.stl, qty: 10, color: cannonballs, base: true }
+
+    - id: industry
+      set: industry-set
+      ships: 3
+      shipType: warships
+      fittings: 3 fittings each (turret, smokestack, cargo)
+      parts:
+        - { part: Hull, file: ship-industry.stl, each: 1, color: hull }
+        - { part: Turret, file: industry-turret.stl, each: 1, color: hull, note: The second cannon slot is on top. }
+        - { part: Smokestack, file: industry-smokestack.stl, each: 1, color: hull }
+        - { part: Cargo, file: cargo.stl, each: 1, color: cargo, base: true }
+        - { part: Movement wheel, file: movement-wheel.stl, each: 1, color: wheels, base: true }
+        - { part: Cannon, file: cannon.stl, qty: 4, color: cannons, base: true }
+        - { part: Cannonball, file: cannonball.stl, qty: 10, color: cannonballs, base: true }
+
+    - id: islanders
+      set: islander-set
+      ships: 5
+      shipType: catamarans
+      fittings: 1 fitting each (a short mast)
+      parts:
+        - { part: Hull, file: ship-islander.stl, each: 1, color: hull }
+        - { part: Sail, file: sail-islanders.stl, each: 1, color: sails }
+        - { part: Short mast, file: mast-short.stl, each: 1, color: masts, base: true }
+        - { part: Movement wheel, file: movement-wheel.stl, each: 1, color: wheels, base: true }
+        - { part: Cannon, file: cannon.stl, qty: 4, color: cannons, base: true }
+        - { part: Cannonball, file: cannonball.stl, qty: 10, color: cannonballs, base: true }
+
+# The shared pieces, all in the free base set.
+general:
+  title: Islands, coins and terrain
+  perPlayer:
+    title: Per player
+    parts:
+      - part: Coins
+        file: coin-*.stl
+        files: [coin-brace-for-impact.stl, coin-full-sail.stl, coin-evasive-maneuver.stl, coin-skilled-gunner.stl, coin-repair-crew.stl, coin-boarding-party.stl]
+        render: coin-skilled-gunner
+        qty: 20
+        color: coins
+        note: 5 Brace for Impact, 2 Full Sail, 2 Evasive Maneuvers, 5 Skilled Gunner, 4 Repair Crew, 2 Boarding Party.
+      - { part: Island, file: island.stl, qty: 1–2, color: islands, note: Or island-topper.stl on a box or a mug. }
+      - { part: Short mast, file: mast-short.stl, qty: 1–2, color: masts, note: One per island, for its flag. }
+  perTable:
+    title: Per table
+    parts:
+      - { part: Rock, file: rock1.stl, qty: 2–6, color: rocks, note: 'With three or more players, 2 per fleet.' }
+      - { part: Reef, file: reef.stl, qty: 0–2, color: reefs }
+      - part: Wind dial
+        file: wind-dial-*.stl
+        files: [wind-dial-base.stl, wind-dial-vane.stl, wind-dial-washer.stl, wind-dial-cap.stl]
+        render: wind-dial
+        qty: 1 each
+        color: dial
+        note: For the optional Trade Winds rule. A steel M8 washer spins better.
+      - { part: Fit test, file: ship-tolerance-test.stl, qty: 1, color: fit-test, note: Print it first. }
+
+# Other base-set files no row above counts. The zip check
+# (print_guide.py check) accepts them without a warning.
+extras: [island-topper.stl]
+
+# What a full game needs, from the rulebook's Setup. One paragraph each.
+kit:
+  title: What a game needs
+  body:
+    - >-
+      Each player brings a fleet printed from its list, 20 coins, one or two
+      islands with a short mast each, the faction card and some paper flags.
+    - >-
+      The table needs 2 to 6 rocks and reefs. With three or more players, put
+      a rock at each end of every fleet's line. Add the wind dial if you play
+      Trade Winds. A 6 ft round table or a 6 or 8 ft folding table works well.
+    - >-
+      You also need a thin rubber band for every wheel and a cloth bag for
+      the coins.
+
+# Printing notes for every list, after print-guide.yml's settings.
+tips:
+  - Lay each cannon so the flex arm's layers run across the bend, and print a spare or two.
+  - Print masts lying flat.
+
+# The assembly cards from parts.yml that the PDF prints, by title. The coin
+# and fit-test cards are left out: the lists above already cover them.
+assemblyCards: [The ship (once), Fittings (every game), Cannons, Flags and islands]
+
+# The all-fleets zip (bundles in nuxt-site/server/data/sets.json).
+bundle:
+  title: All fleets
+  intro: >-
+    There's a folder for each fleet. The base-set folder also has the parts
+    the add-on fleets borrow, and the islands, coins and terrain.

@@ -1,9 +1,12 @@
-# Print guide page (/print-guide), and the PRINTING.md inside every STL zip.
+# Print guide page (/print-guide), and the printing half of the PRINTING.pdf
+# and PRINTING.md inside every STL zip.
 #
-# One source for both: scripts/lib/print_guide.py renders the zip copy from
-# this file (plus the assembly cards in parts.yml). After editing, rebuild the
-# zips: `npx jake stl` for the free base set, `npx jake publish-sets` for the
-# paid sets and the all-fleets bundle.
+# One source for all of them: rulebook/typst/print-list.typ (the PDF) and
+# scripts/lib/print_guide.py (the Markdown) read this file, plus the print
+# lists in print-lists.yml and the assembly cards in parts.yml. After editing,
+# rebuild: `npx jake print-lists` for the PDFs the site links, `npx jake stl`
+# for the free base set zip, `npx jake publish-sets` for the paid sets and the
+# all-fleets bundle.
 #
 # Printing facts only. This text ships inside the downloads, so no faction
 # backstory here. `**bold**` works in every text field.
@@ -37,12 +40,21 @@ settings:
 colors:
   title: Colors by part
   lead: Hull colors are listed under each fleet.
-  # [part, color]
+  # id: the key the print lists (print-lists.yml) look a color up by.
   rows:
-    - [Masts and cargo, Brown]
-    - [Industry turrets and smokestacks, Rust brown or steel blue]
-    - [Cannons, Black]
-    - [Sails, White]
+    - { id: masts, part: Masts, color: Brown }
+    - { id: cargo, part: Cargo and barrels, color: Brown }
+    - { id: sails, part: Sails, color: White }
+    - { id: industry, part: Industry turrets and smokestacks, color: Rust brown or steel blue }
+    - { id: cannons, part: Cannons, color: Black }
+    - { id: cannonballs, part: Cannonballs, color: 'Something bright, like neon green or orange' }
+    - { id: wheels, part: Movement wheels, color: Any }
+    - { id: coins, part: Coins, color: Gold }
+    - { id: islands, part: Islands and island toppers, color: 'Green, sand or grey' }
+    - { id: rocks, part: Rocks, color: Grey }
+    - { id: reefs, part: Reefs, color: Pale pink }
+    - { id: dial, part: Wind dial, color: Any }
+    - { id: fit-test, part: Fit test, color: Anything }
   note: >-
     The Corsairs and the Shadow Fleet are the exceptions. Print their masts and
     sails in the same color as the hull.
