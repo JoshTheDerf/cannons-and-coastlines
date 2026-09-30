@@ -2,19 +2,21 @@
 // Buying one add-on fleet's STL files. Renders nothing for a fleet that
 // isn't on sale (the free base fleets, or a set still coming soon).
 //
-//   <FilesButtons fleet="Stone Fleet" />            "STL files, $5" (the fleet page) + Add to cart
+//   <FilesButtons fleet="Stone Fleet" />            one button, "Add to cart · $5"
 //   <FilesButtons fleet="stone-fleet" buy-now />    Add to cart + Buy now, side by side
 //
-// `fleet` is a name, shop handle or set id (see ADDON_FLEETS). Leave the
-// price link out with :shop-link="false" on the fleet page itself.
+// `fleet` is a name, shop handle or set id (see ADDON_FLEETS). The price is
+// on the button in the single-button form. The buy-now form sits next to the
+// price on the fleet page and shop tile, so it leaves it off.
 const props = withDefaults(defineProps<{
   fleet: string
   buyNow?: boolean
+  /** No longer used (the price is on the button now). Kept so older callers don't break. */
   shopLink?: boolean
   size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl'
   block?: boolean
   ownedNote?: boolean
-}>(), { buyNow: false, shopLink: true, size: 'sm', block: false, ownedNote: false })
+}>(), { buyNow: false, shopLink: false, size: 'sm', block: false, ownedNote: false })
 
 const route = useRoute()
 const { data: setsData } = await useFleetSets()
@@ -24,6 +26,13 @@ const f = computed(() => findAddonFleet(props.fleet))
 const set = computed(() => setsData.value?.all.find(s => s.id === f.value?.setId && s.purchasable) ?? null)
 const inCart = computed(() => !!set.value && cart.has(set.value.id))
 const owned = computed(() => !!set.value && cart.owned.value.includes(set.value.id))
+// The site's button CSS gives every UButton one size, so xs and sm get the
+// compact one to fit in a narrow card.
+const compact = computed(() => props.size === 'xs' || props.size === 'sm')
+const cartLabel = computed(() => {
+  if (inCart.value) return 'In cart'
+  return props.buyNow || !set.value ? 'Add to cart' : `Add to cart · ${formatPrice(set.value.priceUsd)}`
+})
 
 function addToCart() {
   if (!set.value) return
@@ -47,10 +56,7 @@ async function buy() {
 </script>
 
 <template>
-  <div v-if="set && f" :class="block ? 'grid gap-2' : 'flex flex-wrap items-center gap-x-3 gap-y-2'">
-    <NuxtLink v-if="shopLink && !buyNow" :to="`/shop/${f.handle}`" class="text-sm font-semibold text-[color:var(--gold)] hover:underline whitespace-nowrap">
-      STL files, {{ formatPrice(set.priceUsd) }}
-    </NuxtLink>
+  <div v-if="set && f" :class="block || buyNow ? 'grid gap-2' : 'flex flex-wrap items-center gap-2'">
     <div :class="buyNow ? 'grid grid-cols-2 gap-2' : 'contents'">
       <UButton
         :color="buyNow ? 'neutral' : 'primary'"
@@ -59,11 +65,12 @@ async function buy() {
         :icon="inCart ? 'i-lucide-check' : 'i-lucide-shopping-cart'"
         :block="block || buyNow"
         class="justify-center whitespace-nowrap"
+        :class="{ 'btn-compact': compact }"
         @click="inCart ? (cart.open.value = true) : addToCart()"
       >
-        {{ inCart ? 'In cart' : 'Add to cart' }}
+        {{ cartLabel }}
       </UButton>
-      <UButton v-if="buyNow" color="primary" :size="size" icon="i-lucide-download" block class="justify-center whitespace-nowrap" :loading="buying" @click="buy">
+      <UButton v-if="buyNow" color="primary" :size="size" icon="i-lucide-download" block class="justify-center whitespace-nowrap" :class="{ 'btn-compact': compact }" :loading="buying" @click="buy">
         Buy now
       </UButton>
     </div>

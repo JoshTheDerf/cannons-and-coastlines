@@ -115,27 +115,30 @@ const sections = [
     <section id="fleets" class="py-16 px-4 scroll-mt-20">
       <div class="container mx-auto">
         <SectionHeader :title="p.fleets.title" :description="p.fleets.lead" align="left" size="sm" />
-        <div class="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+        <div class="grid sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-5">
           <div
             v-for="f in (p.fleets.items as GuideFleet[])"
             :id="f.id"
             :key="f.id"
-            class="card-parchment p-5 scroll-mt-24"
+            class="card-parchment p-5 scroll-mt-24 flex flex-col"
           >
             <div v-if="hullFor(f.id)" class="aspect-video rounded-sm flex items-center justify-center mb-4 overflow-hidden border border-[#3a2f22]/25 bg-[#e3d4b6]">
               <img :src="hullFor(f.id)" :alt="`${f.name} hull`" loading="lazy" class="max-h-full max-w-full object-contain">
             </div>
             <h3 class="font-display text-lg"><NuxtLink :to="fleetPage(f)" class="hover:text-[color:var(--heading)]">{{ f.name }}</NuxtLink></h3>
             <hr class="rule-gold mt-3">
-            <dl class="mt-3 text-sm grid gap-2">
-              <div v-for="[label, value] in rows(f)" :key="label">
-                <dt class="stamp text-[#7a5316]">{{ label }}</dt>
-                <dd class="muted mt-0.5"><RichText :text="value" /></dd>
-              </div>
+            <!-- Label left, value right. A long label (Turrets and smokestacks) wraps in its column. -->
+            <dl class="mt-3 grid grid-cols-[5.5rem_1fr] gap-x-3 gap-y-1.5 text-sm font-serif">
+              <template v-for="[label, value] in rows(f)" :key="label">
+                <dt class="text-ink-faint leading-snug">{{ label }}</dt>
+                <dd class="text-ink leading-snug"><RichText :text="value" /></dd>
+              </template>
             </dl>
-            <div class="mt-4 flex flex-wrap items-center gap-x-4 gap-y-2 text-sm">
-              <NuxtLink :to="`/print-list/${f.set}`" class="text-[color:var(--gold)] hover:underline">{{ findAddonFleet(f.id) ? 'Print list' : 'Print list and free download' }}</NuxtLink>
-              <FilesButtons v-if="findAddonFleet(f.id)" :fleet="f.id" />
+            <div class="mt-auto pt-4 flex items-center justify-between gap-3 text-sm">
+              <NuxtLink :to="`/print-list/${f.set}`" class="font-semibold whitespace-nowrap hover:underline">
+                {{ findAddonFleet(f.id) ? 'Print list' : 'Print list and free files' }}
+              </NuxtLink>
+              <FilesButtons v-if="findAddonFleet(f.id)" :fleet="f.id" size="sm" />
             </div>
           </div>
         </div>

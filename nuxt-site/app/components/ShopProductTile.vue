@@ -58,7 +58,6 @@ const soon = (label: string | null) => label === 'Coming soon'
         v-if="product.group === 'addon'"
         :fleet="product.handle"
         buy-now
-        :shop-link="false"
         class="relative z-10 mt-3"
       />
     </div>

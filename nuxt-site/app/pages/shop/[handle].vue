@@ -336,7 +336,7 @@ const kitContents = computed((): Row[] => {
               <span v-if="digital.earlyBird" class="stamp stamp-gold">Early bird price</span>
             </div>
             <p class="mt-1 text-sm text-ink-soft">Buy once and print as many as you like. You download right after checkout, and re-downloads are free when the models change.</p>
-            <FilesButtons :fleet="product.handle" buy-now :shop-link="false" owned-note size="xl" block class="mt-4" />
+            <FilesButtons :fleet="product.handle" buy-now owned-note size="xl" block class="mt-4" />
             <p class="mt-2 text-xs text-ink-faint">
               For your own prints only. See the <NuxtLink to="/terms#paid-models-add-on-fleets" class="underline">license</NuxtLink>.
             </p>
