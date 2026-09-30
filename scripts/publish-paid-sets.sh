@@ -8,7 +8,7 @@
 # R2 is the only place these files are served from. They are deliberately
 # absent from git (see the paid-set block in .gitignore): a committed binary is
 # recoverable from every clone forever, so the local folders under
-# assets/stls/<set>/ are a staging area, not storage.
+# paid-sets/<set>/ are a staging area, not storage.
 #
 # What gets uploaded, per set:
 #   <set-id>/v<version>/<set-id>-v<version>.zip   the zip buyers download
@@ -95,13 +95,28 @@ done
 
 echo
 echo "Done: $published zip(s) published."
-if (( published )) && [[ -z "$DRY_RUN" ]]; then
-    cat <<'EOF'
 
-To put a published set on sale, in nuxt-site/server/data/sets.json:
+# The sets just published that the shop doesn't sell yet (isPurchasable in
+# nuxt-site/server/utils/sets.ts). A set already on sale needs no reminder,
+# and a bundle is never sold on its own.
+not_on_sale=()
+for zip_path in "${zips[@]}"; do
+    id="${zip_path#"$OUT"/}"
+    id="${id%%/*}"
+    if jq -e --arg id "$id" \
+        '.sets[] | select(.id == $id and .paid and (.status != "available" or (.priceUsd // 0) <= 0))' \
+        "$MANIFEST" >/dev/null; then
+        not_on_sale+=("$id")
+    fi
+done
+if (( ${#not_on_sale[@]} )) && [[ -z "$DRY_RUN" ]]; then
+    cat <<EOF
+
+Not on sale yet: ${not_on_sale[*]}
+To put one on sale, in nuxt-site/server/data/sets.json:
   1. set "priceUsd" to the amount (checkout builds the Stripe line item)
   2. flip "status" to "available"
-Until both are done the set stays "Coming Soon" and both /api/checkout and
-/api/download refuse it. That is the drip-feed switch — one set at a time.
+Until both are done the set shows as Coming Soon and /api/checkout refuses
+it. Downloads don't check this, so existing orders and share links still work.
 EOF
 fi
