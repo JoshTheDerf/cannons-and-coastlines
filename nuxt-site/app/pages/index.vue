@@ -5,6 +5,9 @@ const { data: page } = await useAsyncData('home', () =>
 
 if (!page.value) throw createError({ statusCode: 404, statusMessage: 'Home content missing' })
 
+// The home title already leads with the name, so skip the site-wide suffix.
+useHead({ titleTemplate: '%s' })
+
 useSeoMeta({
   title: page.value.seo?.title,
   description: page.value.seo?.description,
