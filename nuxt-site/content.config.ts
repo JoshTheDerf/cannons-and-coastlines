@@ -58,6 +58,7 @@ export default defineContentConfig({
         assembly: z.record(z.any()).optional(),
         printing: z.record(z.any()).optional(),
         quantities: z.record(z.any()).optional(),
+        tools: z.record(z.any()).optional(),
         cta: z.record(z.any()).optional()
       })
     }),
