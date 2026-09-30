@@ -537,14 +537,14 @@ Every printed piece in the base set, with what it does and recommended print col
 
 = The Print List
 
-A *faction set* is one complete print run for one player: their fleet plus a fair share of shared terrain and coins. The only non-printed parts are the draw bag (any small cloth pouch) and the wheel rubber bands. Print at *0.12–0.20mm* layer height (*0.16mm* recommended), *15%* infill. Print the *fit test* first to check that masts, cargo and cannons seat.
+A *faction set* is one complete print run for one player: their fleet plus a fair share of shared terrain and coins. The only non-printed parts are the draw bag (any small cloth pouch) and the wheel rubber bands. Print in *PLA* at *0.12–0.20mm* layer height (*0.16mm* recommended) with *Z contouring* on, *4 walls* and *10%* or more infill. Print the *fit test* first to check that masts, cargo and cannons seat.
 
 == Per Faction Set
 
 #tight(table(
   columns: (0.6fr, 0.7fr, 1.7fr),
   table.header[Piece][Quantity][Notes],
-  [Ships], [3–5],     [Some ship models may print better with supports enabled.],
+  [Ships], [3–5],     [Only the Shadow Fleet and Treasure Fleet need supports.],
   [Masts],             [1 per ship + 1 per island],  [*Short Masts* go on islands and Islander ships. Print spares.],
   [Cargo and barrels], [Varies by ship],             [Enough to fill your ships' fitting slots.],
   [Sails],                [1 per mast], [Decorate to customize your fleet.],
@@ -573,7 +573,7 @@ Every ship has a wheel built into the stern. Two details matter:
 
 == Print Tips
 
-- Print everything in *PLA* or *PETG* unless noted. It's rigid enough for the cannon mechanism and cheap enough to replace when pieces wear out.
+- Print everything in *PLA*. It's rigid enough for the cannon mechanism and cheap enough to replace when pieces wear out. The one exception is the Shadow Fleet, whose hulls can be translucent *PETG*.
 - Print cannonballs in *PLA*. Coarser layer heights make them shoot harder and less predictably.
 - Use your slicer's *auto-orient* for every part.
 - Print a few spare cannons per player. The snap mechanism loses tension after hundreds of shots. Swapping in a fresh cannon restores the original feel without reprinting the whole fleet.
