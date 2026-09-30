@@ -9,7 +9,7 @@
 // PRINTING.pdf and PRINTING.md are built from. Hull pictures come from
 // shared/data/fleets.json.
 import { findFleet, fleetPage } from '#shared/utils/fleets'
-import { BASE_SET_ID, printListPath, usePrintList } from '~/composables/usePrintList'
+import { BASE_SET_ID, printListPath, usePrintList, type GuideFleet } from '~/composables/usePrintList'
 
 const pl = await usePrintList(BASE_SET_ID)
 const { L, G, orderKey, share, downloadUrl, pdfUrl, versions } = pl
@@ -22,10 +22,6 @@ useSeoMeta({
   referrer: 'no-referrer'
 })
 
-type GuideFleet = {
-  id: string, name: string, set: string, hull?: string, matchRigging?: boolean
-  supports?: boolean, parts?: [string, string][]
-}
 const addonFleets = (G.fleets.items as GuideFleet[]).filter(f => f.set !== BASE_SET_ID)
 
 function rows(f: GuideFleet): [string, string][] {

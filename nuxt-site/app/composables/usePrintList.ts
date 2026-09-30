@@ -18,7 +18,11 @@ export type PrintPart = {
   base?: boolean, supports?: boolean, note?: string, render?: string
 }
 export type ListFleet = { id: string, set: string, ships: number, shipType: string, fittings: string, parts: PrintPart[] }
-type GuideFleet = { id: string, name: string, set: string, hull: string, matchRigging?: boolean, supports?: boolean }
+/** A fleet in print-guide.yml `fleets.items`. */
+export type GuideFleet = {
+  id: string, name: string, set: string, hull?: string, matchRigging?: boolean
+  supports?: boolean, parts?: [string, string][]
+}
 type ColorRow = { id: string, part: string, color: string }
 type SetEntry = { id: string, title: string, paid: boolean, version: string, freeDownloadUrl: string | null }
 type BundleEntry = { id: string, title: string, zipBaseName: string, includes: { set: string, folder: string }[] }
@@ -66,12 +70,13 @@ export async function usePrintList(id: string) {
   const fleets = (L.fleets.items as ListFleet[]).filter(f => setIds.includes(f.set))
   const isPaid = (setId: string) => sets.find(s => s.id === setId)?.paid ?? false
 
-  const title = bundle ? bundle.title : guideFleets.filter(f => f.set === id).map(f => f.name).join(' and ')
+  // The bundle's title as its PDF and PRINTING.md have it.
+  const title: string = bundle ? L.bundle.title : guideFleets.filter(f => f.set === id).map(f => f.name).join(' and ')
 
   // ── Lookups (mirrors print-list.typ) ──────────────────────────────────
   function colorOf(key: string, fleet?: ListFleet): string {
     const gf = fleet ? guideFleet(fleet.id) : undefined
-    if (gf && (key === 'hull' || (gf.matchRigging && (key === 'masts' || key === 'sails')))) return gf.hull
+    if (gf?.hull && (key === 'hull' || (gf.matchRigging && (key === 'masts' || key === 'sails')))) return gf.hull
     return (G.colors.rows as ColorRow[]).find(r => r.id === key)?.color ?? key
   }
   const qtyOf = (p: PrintPart, fleet?: ListFleet) => p.each && fleet ? p.each * fleet.ships : p.qty
