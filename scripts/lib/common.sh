@@ -173,7 +173,7 @@ compress_pdf() {
 
 # ── STL set metadata ──────────────────────────────────────────────────
 #
-# Each folder under assets/stls/ carries a set.json holding its version of
+# Each set folder (assets/stls/<id>/ or paid-sets/<id>/) carries a set.json holding its version of
 # record (the folder name no longer does). Two files must agree about a
 # version: that set.json, and the matching entry in the site manifest
 # nuxt-site/server/data/sets.json, which the Worker bundles to build R2 keys.
