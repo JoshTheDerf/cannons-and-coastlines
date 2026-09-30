@@ -29,7 +29,7 @@ function sh(script, args = []) {
 // name -> [description, script, dependencies]. The only place a build step is
 // declared; add a row here and it shows up in `npx jake -T`.
 const TASKS = {
-    'stl':         ['Build the public versioned STL zip for each free set', 'scripts/build-stl-zip.sh'],
+    'stl':         ['Build the public STL zip for each free set (with PRINTING.pdf and .md)', 'scripts/build-stl-zip.sh'],
     'rulebook':    ['Build rulebook PDF + per-page PNG + SVG', 'scripts/rulebook/build-rulebook.sh'],
     'booklet':     ['Build the imposed rulebook booklet PDF', 'scripts/rulebook/build-booklet.sh', ['rulebook']],
     'cards':       ['Build the seven faction cards (PDF + 300dpi PNG)', 'scripts/rulebook/build-cards.sh'],
@@ -51,10 +51,10 @@ const TASKS = {
     'banner-fade':   ['Regenerate the faction-card banner overlays — needs ImageMagick', 'scripts/rulebook/build-banner-fade.sh'],
     'print-plates':  ['Build the print lists\' 3MFs, one per fleet and color (PAID_SET_ROOT=... for the paid ones) — needs OrcaSlicer', 'scripts/print/build_print_plates.py'],
     'starter-pack-3mf': ['Slice starter-pack 3MFs, e.g. starter-pack-3mf[--queens,2] — needs OrcaSlicer', 'scripts/print/build-starter-pack-3mf.sh'],
-    'bump-set':      ['Release a new version of a set, e.g. bump-set[base-set,0.4] — zip, manifest, redirects', 'scripts/bump-set.sh'],
+    'bump-set':      ['Release a new version of a set, e.g. bump-set[base-set,0.4]: set.json, site manifest, zip', 'scripts/bump-set.sh'],
     'sets-sync':     ['Copy each set.json version into the site manifest (CHECK=1 to only report)', 'scripts/sync-sets-manifest.sh'],
     'paid-zips':     ['Build the paid set zips and the all-fleets bundle into build/paid-zips/ (PAID_SET_ROOT=... to read another paid-sets/)', 'scripts/build-paid-zips.sh'],
-    'publish-sets':  ['Upload paid STL sets to R2, e.g. publish-sets[treasure-fleet-set] — needs wrangler auth', 'scripts/publish-paid-sets.sh'],
+    'publish-sets':  ['Build the paid zips and bundle and upload them to R2, e.g. publish-sets[treasure-fleet-set] — needs wrangler auth', 'scripts/publish-paid-sets.sh'],
 };
 
 for (const [name, [description, script, deps = []]] of Object.entries(TASKS)) {
@@ -62,7 +62,7 @@ for (const [name, [description, script, deps = []]] of Object.entries(TASKS)) {
     task(name, deps, function (...args) { sh(script, args); });
 }
 
-desc('Full build: STL zip, rulebook + booklet, cards + sheets, addon rulebook, then the site');
+desc('Full build: STL zip, rulebook + booklet, Trade Winds, cards + sheets, scoring card, addon rulebook, print lists, then the site');
 task('default', [
     'stl', 'rulebook', 'booklet', 'trade-winds', 'cards', 'card-sheets', 'scoring-card',
     'versatile-admiral', 'versatile-admiral-booklet', 'print-lists', 'site',
