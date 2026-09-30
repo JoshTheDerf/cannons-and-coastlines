@@ -40,7 +40,16 @@ STL_ROOT="$REPO_ROOT/assets/stls"
 # them out of git is not enough on its own — .gitignore governs what is
 # committed, not what is served — so the staging area sits where no symlink
 # reaches it. Do not move these back under assets/.
-PAID_SET_ROOT="$REPO_ROOT/paid-sets"
+#
+# PAID_SET_ROOT can point somewhere else (a git worktree has only the
+# set.json files, so point it at the main checkout's paid-sets/). Anything
+# under assets/ is refused, since that tree is served publicly.
+PAID_SET_ROOT="${PAID_SET_ROOT:-$REPO_ROOT/paid-sets}"
+case "$(realpath -m "$PAID_SET_ROOT")/" in
+    "$(realpath -m "$REPO_ROOT/assets")"/*)
+        echo "error: PAID_SET_ROOT ($PAID_SET_ROOT) is under assets/, which is served publicly" >&2
+        exit 1 ;;
+esac
 if [[ -z "${BASE_SET_DIR:-}" ]]; then
     shopt -s nullglob
     _versioned=("$STL_ROOT"/cannons-and-coastlines-base-set-*/)
@@ -285,4 +294,55 @@ preview_ship_stem() {
             } >&2
             return 1 ;;
     esac
+}
+
+# ── Zips and print guides ─────────────────────────────────────────────
+
+# make_zip <output.zip> <root>
+#
+# Archives everything under <root>, with entry names relative to <root>, into
+# <output.zip> (an absolute path, or relative to the caller's cwd). Prefers
+# Info-ZIP and falls back to python3's zipfile, which is not a nicety: python3
+# is already a hard dependency of this repo's build (the imposition scripts),
+# while `zip` is not installed by default on every distro. Either way the
+# entries are deflated and sorted, so repeated builds of unchanged input match.
+make_zip() {
+    local out="$1" root="$2"
+    [[ "$out" == /* ]] || out="$PWD/$out"
+    rm -f "$out"
+    if command -v zip >/dev/null 2>&1; then
+        # -X drops platform extras (uid/gid, resource forks) that vary by machine.
+        ( cd "$root" && zip -qrX "$out" . )
+        return
+    fi
+    python3 - "$out" "$root" <<'PY'
+import os, sys, zipfile
+
+out, root = sys.argv[1], sys.argv[2]
+with zipfile.ZipFile(out, "w", zipfile.ZIP_DEFLATED) as z:
+    for top, dirs, files in os.walk(root):
+        dirs.sort()
+        for name in sorted(files):
+            path = os.path.join(top, name)
+            z.write(path, os.path.relpath(path, root))
+PY
+}
+
+# print_guide <mode> <args...>
+#
+# Render a PRINTING.md for a zip (scripts/lib/print_guide.py lists the
+# modes). The words come from nuxt-site/content/pages/print-guide.yml, the
+# same file the /print-guide page reads. Needs PyYAML: uses the system
+# python3 when it has it, otherwise uv supplies it in a throwaway environment.
+print_guide() {
+    local script="$REPO_ROOT/scripts/lib/print_guide.py"
+    if python3 -c 'import yaml' >/dev/null 2>&1; then
+        python3 "$script" "$@"
+    elif command -v uv >/dev/null 2>&1; then
+        uv run --quiet --no-project --with pyyaml python3 "$script" "$@"
+    else
+        echo "error: PyYAML is not installed and uv is not available." >&2
+        echo "       Install one: 'pip install pyyaml' or https://docs.astral.sh/uv/" >&2
+        return 1
+    fi
 }

@@ -33,36 +33,7 @@ source "$(cd "$(dirname "${BASH_SOURCE[0]}")/lib" && pwd)/common.sh"
 
 command -v jq >/dev/null 2>&1 || { echo "error: jq is required but not installed" >&2; exit 1; }
 
-# make_zip <output.zip> <directory>
-#
-# Archives <directory> (relative to the cwd) into <output.zip>. Prefers Info-ZIP
-# and falls back to python3's zipfile, which is not a nicety: python3 is already
-# a hard dependency of this repo's build (the booklet and card-sheet imposition
-# scripts are python3), while `zip` is not installed by default on every distro.
-# Losing the release build to a missing archiver is a worse failure than
-# carrying ten lines of fallback.
-#
-# Both paths produce the same shape -- one top-level folder, deflate-compressed,
-# entries sorted so repeated builds of unchanged input match byte for byte.
-make_zip() {
-    local out="$1" dir="$2"
-    if command -v zip >/dev/null 2>&1; then
-        # -X drops platform extras (uid/gid, resource forks) that vary by machine.
-        zip -qrX "$out" "$dir"
-        return
-    fi
-    python3 - "$out" "$dir" <<'PY'
-import os, sys, zipfile
-
-out, top = sys.argv[1], sys.argv[2]
-with zipfile.ZipFile(out, "w", zipfile.ZIP_DEFLATED) as z:
-    for root, dirs, files in os.walk(top):
-        dirs.sort()
-        for name in sorted(files):
-            path = os.path.join(root, name)
-            z.write(path, path)
-PY
-}
+# make_zip (the archiver, with a python3 fallback) lives in scripts/lib/common.sh.
 
 # Which sets: the ids named on the command line, or every folder with a set.json.
 if (( $# )); then
@@ -124,14 +95,16 @@ for set_id in "${requested[@]}"; do
     # someone's Downloads, and says which release it is.
     #
     # Staged through a temp directory because the source folder is now named
-    # base-set/, not the versioned name the archive needs. Only model files are
-    # copied in: set.json is repo bookkeeping and has no business in a
+    # base-set/, not the versioned name the archive needs. Only model files and
+    # PRINTING.md go in: set.json is repo bookkeeping and has no business in a
     # customer's download.
     staging="$(mktemp -d)"
     trap 'rm -rf "$staging"' EXIT
     mkdir "$staging/${base_name}-${version}"
     cp "${contents[@]}" "$staging/${base_name}-${version}/"
-    ( cd "$staging" && make_zip "$zip_path" "${base_name}-${version}" )
+    # The print guide rides along (nuxt-site/content/pages/print-guide.yml).
+    print_guide set "$set_id" "$dir" > "$staging/${base_name}-${version}/PRINTING.md"
+    make_zip "$zip_path" "$staging"
     rm -rf "$staging"
     trap - EXIT
 

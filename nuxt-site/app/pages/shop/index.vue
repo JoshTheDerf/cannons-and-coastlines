@@ -145,7 +145,7 @@ const addons = computed(() => (products.value ?? []).filter(p => p.group === 'ad
               All {{ paidSets.length }} add-on fleets
               <span v-if="earlyBird" class="stamp stamp-gold ml-2 align-middle">Early bird price</span>
             </p>
-            <p class="text-sm text-ink-soft">{{ paidSets.map(s => s.title).join(', ') }}. One checkout, and every fleet's files on one download page.</p>
+            <p class="text-sm text-ink-soft">{{ paidSets.map(s => s.title).join(', ') }}. One checkout, and every fleet's files in one zip with the print guide.</p>
             <p v-if="buyAllError" class="mt-1 text-sm text-error-500">{{ buyAllError }}</p>
           </div>
           <UButton color="primary" size="lg" icon="i-lucide-download" :loading="buyingAll" class="justify-center" @click="buyAll">

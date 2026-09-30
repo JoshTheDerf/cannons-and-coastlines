@@ -1,6 +1,10 @@
 // Serve a paid STL set to someone who owns it.
 //
 //   GET /api/download/<set-id>?order=<order key>
+//   GET /api/download/<bundle-id>?order=<order key>
+//
+// A bundle id (server/data/sets.json `bundles`, e.g. all-fleets) serves one
+// zip of several sets, to an order that covers every paid set in it.
 //
 // The order key is the buyer's download link (/shop/order/<key>, see
 // server/utils/entitlement.ts). The order page links here once Stripe has
@@ -25,7 +29,7 @@
 
 import type { H3Event } from 'h3'
 import { findOrder, hasEntitlement, isOrderKey, useDb } from '~~/server/utils/entitlement'
-import { findSet, r2ZipKey } from '~~/server/utils/sets'
+import { bundlePaidSets, findBundle, findSet, r2BundleKey, r2ZipKey, type StlSet } from '~~/server/utils/sets'
 
 // Constant-time, so response timing cannot be used to guess the secret a
 // character at a time.
@@ -46,12 +50,13 @@ export default defineEventHandler(async (event) => {
   const env = event.context.cloudflare?.env as Record<string, unknown> | undefined
 
   const set = findSet(setId)
-  if (!set) {
+  const bundle = set ? undefined : findBundle(setId)
+  if (!set && !bundle) {
     throw createError({ statusCode: 404, statusMessage: 'Unknown set' })
   }
 
   // Free sets are plain static assets; there is nothing to gate.
-  if (!set.paid) {
+  if (set && !set.paid) {
     if (set.freeDownloadUrl) return sendRedirect(event, set.freeDownloadUrl, 302)
     throw createError({ statusCode: 404, statusMessage: 'No download for this set' })
   }
@@ -59,8 +64,11 @@ export default defineEventHandler(async (event) => {
   const shareToken = typeof env?.PAID_SHARE_TOKEN === 'string' ? env.PAID_SHARE_TOKEN : ''
   const shared = Boolean(shareToken && share && sameSecret(share, shareToken))
 
+  // A bundle is every one of its paid sets at once, so the order has to
+  // cover (and still be entitled to) each of them.
+  const required = set ? [set] : bundlePaidSets(bundle!)
   if (!shared) {
-    await requirePurchase(event, set, orderKey)
+    await requirePurchase(event, required, orderKey)
   }
 
   const bucket = env?.PAID_SETS as R2Bucket | undefined
@@ -68,7 +76,7 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 500, statusMessage: 'R2 binding PAID_SETS is not configured' })
   }
 
-  const key = r2ZipKey(set)
+  const key = set ? r2ZipKey(set) : r2BundleKey(bundle!)
   const object = await bucket.get(key)
   if (!object) {
     // Manifest and bucket disagree: the set was flagged available before
@@ -78,7 +86,7 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 503, statusMessage: 'These files are not ready yet. Please contact us.' })
   }
 
-  const filename = `${set.id}-v${set.version}.zip`
+  const filename = set ? `${set.id}-v${set.version}.zip` : `${bundle!.zipBaseName}.zip`
   setHeaders(event, {
     'Content-Type': 'application/zip',
     'Content-Length': String(object.size),
@@ -90,12 +98,13 @@ export default defineEventHandler(async (event) => {
   return object.body
 })
 
-// The normal path: a paid order that includes the set, not reversed, and a
-// live entitlement behind it. Throws on any failure. Deliberately no release
-// check: taking a set off sale stops new sales, never downloads for people
-// who bought it (access is perpetual; see server/utils/entitlement.ts). A set
-// that was never released cannot have buyers, since checkout refuses it.
-async function requirePurchase(event: H3Event, set: NonNullable<ReturnType<typeof findSet>>, orderKey: unknown) {
+// The normal path: a paid order that includes every one of these sets, not
+// reversed, and a live entitlement behind each. Throws on any failure.
+// Deliberately no release check: taking a set off sale stops new sales, never
+// downloads for people who bought it (access is perpetual; see
+// server/utils/entitlement.ts). A set that was never released cannot have
+// buyers, since checkout refuses it.
+async function requirePurchase(event: H3Event, required: StlSet[], orderKey: unknown) {
   if (!isOrderKey(orderKey)) {
     throw createError({ statusCode: 401, statusMessage: 'A download link is required' })
   }
@@ -104,13 +113,15 @@ async function requirePurchase(event: H3Event, set: NonNullable<ReturnType<typeo
   const order = await findOrder(db, orderKey)
   // email is filled in only once the order page or the webhook has seen the
   // payment confirmed by Stripe; before that the order grants nothing.
-  if (!order || !order.email || order.revokedAt || !order.setIds.includes(set.id)) {
+  if (!order || !order.email || order.revokedAt || !required.every(s => order.setIds.includes(s.id))) {
     throw createError({ statusCode: 403, statusMessage: 'Invalid download link' })
   }
 
   // The entitlement is what a refund or dispute revokes, so check it on every
   // download rather than trusting the order row alone.
-  if (!(await hasEntitlement(db, order.email, set.id))) {
-    throw createError({ statusCode: 403, statusMessage: 'No active purchase found for this set' })
+  for (const set of required) {
+    if (!(await hasEntitlement(db, order.email, set.id))) {
+      throw createError({ statusCode: 403, statusMessage: 'No active purchase found for this set' })
+    }
   }
 }

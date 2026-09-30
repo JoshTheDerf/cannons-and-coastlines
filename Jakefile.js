@@ -51,6 +51,7 @@ const TASKS = {
     'starter-pack-3mf': ['Slice starter-pack 3MFs, e.g. starter-pack-3mf[--queens,2] — needs OrcaSlicer', 'scripts/print/build-starter-pack-3mf.sh'],
     'bump-set':      ['Release a new version of a set, e.g. bump-set[base-set,0.4] — zip, manifest, redirects', 'scripts/bump-set.sh'],
     'sets-sync':     ['Copy each set.json version into the site manifest (CHECK=1 to only report)', 'scripts/sync-sets-manifest.sh'],
+    'paid-zips':     ['Build the paid set zips and the all-fleets bundle into build/paid-zips/ (PAID_SET_ROOT=... to read another paid-sets/)', 'scripts/build-paid-zips.sh'],
     'publish-sets':  ['Upload paid STL sets to R2, e.g. publish-sets[treasure-fleet-set] — needs wrangler auth', 'scripts/publish-paid-sets.sh'],
 };
 

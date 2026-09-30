@@ -374,6 +374,9 @@ const kitContents = computed((): Row[] => {
           <UButton to="/rulebook/pdf/rulebook.pdf" target="_blank" icon="i-lucide-book-open" variant="ghost" color="neutral" size="sm">
             Rulebook (PDF)
           </UButton>
+          <UButton :to="product.kind === 'faction' ? `/print-guide#${product.handle}` : '/print-guide'" icon="i-lucide-printer" variant="ghost" color="neutral" size="sm">
+            Print guide
+          </UButton>
         </div>
       </div>
     </div>

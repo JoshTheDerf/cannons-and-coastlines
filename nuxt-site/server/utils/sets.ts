@@ -49,6 +49,49 @@ export function isPurchasable(set: StlSet): boolean {
 /** R2 key prefix for a set's current version, e.g. "treasure-fleet-set/v1/". */
 export const r2Prefix = (set: StlSet): string => `${set.id}/v${set.version}/`
 
-/** Key of the bundled zip the download route hands out. */
+/** Key of the set's zip the download route hands out. */
 export const r2ZipKey = (set: StlSet): string =>
   `${r2Prefix(set)}${set.id}-v${set.version}.zip`
+
+// ── Bundles ─────────────────────────────────────────────────────────────
+// One zip holding several sets, a folder each, with the print guide on top.
+// Not a product of its own: an order that includes every paid set in a
+// bundle gets the bundle's zip as well. See "BUNDLES" in server/data/sets.json.
+
+export type Bundle = {
+  id: string
+  title: string
+  /** Download filename, without .zip. */
+  zipBaseName: string
+  includes: { set: string, folder: string }[]
+}
+
+export const bundles: Bundle[] = ((manifest as { bundles?: Bundle[] }).bundles ?? [])
+
+export const findBundle = (id: string): Bundle | undefined =>
+  bundles.find(b => b.id === id)
+
+const bundleSets = (bundle: Bundle): StlSet[] =>
+  bundle.includes.map((i) => {
+    const set = findSet(i.set)
+    if (!set) throw new Error(`bundle ${bundle.id} includes unknown set ${i.set}`)
+    return set
+  })
+
+/** The paid sets an order must include to get this bundle. */
+export const bundlePaidSets = (bundle: Bundle): StlSet[] =>
+  bundleSets(bundle).filter(s => s.paid)
+
+/** Does an order's set list cover every paid set in the bundle? */
+export const orderCoversBundle = (bundle: Bundle, setIds: string[]): boolean =>
+  bundlePaidSets(bundle).every(s => setIds.includes(s.id))
+
+/**
+ * R2 key of a bundle's zip. The middle segment names every included set's
+ * version, so a bump anywhere moves the key and a stale zip is never served.
+ * scripts/build-paid-zips.sh builds the same string; keep the two in step.
+ */
+export const r2BundleKey = (bundle: Bundle): string => {
+  const stamp = bundleSets(bundle).map(s => `${s.id}-v${s.version}`).join('_')
+  return `${bundle.id}/${stamp}/${bundle.zipBaseName}.zip`
+}

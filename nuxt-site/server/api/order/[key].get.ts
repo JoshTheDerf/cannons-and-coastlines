@@ -8,7 +8,7 @@
 // a refunded order stops offering downloads even without the webhook.
 
 import { findOrder, isOrderKey, useDb } from '~~/server/utils/entitlement'
-import { findSet } from '~~/server/utils/sets'
+import { bundles, findSet, orderCoversBundle, r2BundleKey } from '~~/server/utils/sets'
 import { products } from '~~/server/utils/shopMock'
 import { confirmOrder } from '~~/server/utils/stripe'
 
@@ -41,5 +41,25 @@ export default defineEventHandler(async (event) => {
     }]
   })
 
-  return { state, email, sets }
+  // An order with every add-on fleet gets them as one zip. Offered only once
+  // that exact zip is in R2 (its key moves whenever a set is bumped, and
+  // publish-paid-sets.sh rebuilds it); until then the per-set links above
+  // are the whole story, so a stale bundle never becomes a dead end.
+  const bucket = (event.context.cloudflare?.env as Record<string, unknown> | undefined)?.PAID_SETS as R2Bucket | undefined
+  let bundle: { id: string, title: string, folders: string[], downloadUrl: string } | null = null
+  if (state === 'paid' && bucket) {
+    for (const b of bundles) {
+      if (!orderCoversBundle(b, order.setIds)) continue
+      if (!(await bucket.head(r2BundleKey(b)))) continue
+      bundle = {
+        id: b.id,
+        title: b.title,
+        folders: b.includes.map(i => findSet(i.set)?.faction ?? i.set),
+        downloadUrl: `/api/download/${b.id}?order=${key}`
+      }
+      break
+    }
+  }
+
+  return { state, email, sets, bundle }
 })

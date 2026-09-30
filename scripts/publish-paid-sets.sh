@@ -11,10 +11,18 @@
 # assets/stls/<set>/ are a staging area, not storage.
 #
 # What gets uploaded, per set:
-#   <set-id>/v<version>/<set-id>-v<version>.zip   the bundle buyers download
+#   <set-id>/v<version>/<set-id>-v<version>.zip   the zip buyers download
 #   <set-id>/v<version>/MANIFEST.txt              sha256 of every file in it
+# and per bundle (bundles in the site manifest, e.g. all-fleets):
+#   <bundle-id>/<set-id>-v<version>_.../<zipBaseName>.zip
+#   <bundle-id>/<set-id>-v<version>_.../MANIFEST.txt
 #
-# The zip is what /api/download/<set> streams. MANIFEST.txt is not served; it
+# The bundle is every fleet in one zip, a folder each, with the print guide
+# at the top. It is rebuilt and uploaded on every run, since its key changes
+# whenever any set in it is bumped. scripts/build-paid-zips.sh builds all of
+# it (PAID_SET_ROOT picks another paid-sets/ folder, e.g. from a worktree).
+#
+# A zip is what /api/download/<set-or-bundle> streams. MANIFEST.txt is not served; it
 # is there so you can answer "what exactly did we ship as v2" later.
 #
 # The version of record is each set folder's set.json; status, price and the
@@ -35,93 +43,28 @@ need() {
     }
 }
 need jq
-need zip
 need sha256sum
 need npx
 
 [[ -f "$MANIFEST" ]] || { echo "error: manifest not found at $MANIFEST" >&2; exit 1; }
 
-# Which sets to publish: the ids given on the command line, or every paid set.
-if (( $# )); then
-    requested=("$@")
-else
-    mapfile -t requested < <(jq -r '.sets[] | select(.paid) | .id' "$MANIFEST")
-fi
+# Build every zip first (scripts/build-paid-zips.sh, into build/paid-zips/,
+# laid out as the R2 keys), so nothing uploads unless the whole build worked.
+# The version checks against the site manifest happen there.
+OUT="$REPO_ROOT/build/paid-zips"
+PAID_ZIP_OUT="$OUT" "$REPO_ROOT/scripts/build-paid-zips.sh" "$@"
 
 published=0
-skipped=0
-
-for set_id in "${requested[@]}"; do
-    entry="$(jq -c --arg id "$set_id" '.sets[] | select(.id == $id)' "$MANIFEST")"
-    if [[ -z "$entry" ]]; then
-        echo "error: '$set_id' is not in $MANIFEST" >&2
-        exit 1
-    fi
-
-    paid="$(jq -r '.paid'      <<<"$entry")"
-    src_rel="$(jq -r '.sourceDir' <<<"$entry")"
-    status="$(jq -r '.status'  <<<"$entry")"
-    src="$REPO_ROOT/$src_rel"
-
-    # The version of record is the set folder's set.json, not this manifest —
-    # it sits with the files it describes. require_version_agreement refuses to
-    # publish while the two disagree, so an R2 key can never name a version the
-    # site will not ask for.
-    if [[ "$paid" == "true" && -d "$src" ]]; then
-        require_version_agreement "$set_id" "$src"
-        version="$(set_field "$src" '.version')"
-    else
-        version="$(jq -r '.version' <<<"$entry")"
-    fi
-
-    if [[ "$paid" != "true" ]]; then
-        echo "skip  $set_id — free set, served as a static asset, nothing to upload"
-        (( skipped++ )) || true
-        continue
-    fi
-
-    # Model files only: set.json is repo bookkeeping and has no business in a
-    # buyer's download. An empty staging folder is the normal state for a set
-    # you have not finished yet, so it is a skip rather than an error.
-    shopt -s nullglob
-    files=("$src"/*.stl "$src"/*.svg "$src"/*.3mf)
-    shopt -u nullglob
-    if (( ${#files[@]} == 0 )); then
-        echo "skip  $set_id — $src_rel is empty (drop the STLs in, then re-run)"
-        (( skipped++ )) || true
-        continue
-    fi
+shopt -s nullglob
+zips=("$OUT"/*/*/*.zip)
+shopt -u nullglob
+for zip_path in "${zips[@]}"; do
+    prefix="${zip_path#"$OUT"/}"
+    prefix="${prefix%/*}"
+    zip_name="${zip_path##*/}"
 
     echo
-    echo "▸ $set_id  (v$version, status: $status)"
-    echo "  source: $src_rel  (${#files[@]} files)"
-
-    staging="$(mktemp -d)"
-    trap 'rm -rf "$staging"' EXIT
-
-    zip_name="${set_id}-v${version}.zip"
-    zip_path="$staging/$zip_name"
-
-    # -X drops extra file attributes (uid/gid, timestamps beyond the DOS
-    # field) so republishing unchanged files produces a byte-identical zip
-    # and you can tell a real content change from a repack.
-    ( cd "$src" && zip -qXj "$zip_path" "${files[@]##*/}" )
-
-    # Checksums of the *inputs*, not the zip: this is the record of what the
-    # set contained, independent of how it was packed.
-    manifest_path="$staging/MANIFEST.txt"
-    {
-        echo "# $set_id v$version"
-        echo "# packed $(date -u +%Y-%m-%dT%H:%M:%SZ) from $src_rel"
-        echo
-        ( cd "$src" && printf '%s\0' "${files[@]##*/}" | sort -z | xargs -0 sha256sum )
-    } > "$manifest_path"
-
-    size="$(du -h "$zip_path" | cut -f1)"
-    count="$(grep -c '^[0-9a-f]' "$manifest_path" || true)"
-    echo "  bundle: $zip_name ($size, $count files)"
-
-    prefix="${set_id}/v${version}"
+    echo "▸ $prefix/$zip_name"
     if [[ -n "$DRY_RUN" ]]; then
         echo "  DRY RUN — would upload:"
         echo "    r2://$BUCKET/$prefix/$zip_name"
@@ -130,17 +73,14 @@ for set_id in "${requested[@]}"; do
         npx wrangler r2 object put "$BUCKET/$prefix/$zip_name" \
             --file "$zip_path" --content-type application/zip --remote
         npx wrangler r2 object put "$BUCKET/$prefix/MANIFEST.txt" \
-            --file "$manifest_path" --content-type text/plain --remote
+            --file "$OUT/$prefix/MANIFEST.txt" --content-type text/plain --remote
         echo "  uploaded to r2://$BUCKET/$prefix/"
     fi
-
-    rm -rf "$staging"
-    trap - EXIT
     (( published++ )) || true
 done
 
 echo
-echo "Done: $published published, $skipped skipped."
+echo "Done: $published zip(s) published."
 if (( published )) && [[ -z "$DRY_RUN" ]]; then
     cat <<'EOF'
 
