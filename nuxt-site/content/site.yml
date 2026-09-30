@@ -57,6 +57,7 @@ footer:
     - title: More
       links:
         - { label: About, to: /#about }
+        - { label: Made with CubbyCAD, to: /tools }
         - { label: 'Playtest #2', to: /playtest-2 }
         - { label: First playtest, to: /live }
         - { label: Starter pack (sold out), to: /starter-pack }

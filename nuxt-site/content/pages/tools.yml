@@ -1,0 +1,128 @@
+# Tools page (/tools): CubbyCAD and Cubby Slicer, the browser apps the game's
+# models are built and sliced in. Stick to features that are public on
+# cubbycad.com (see its /docs and /pricing). Screenshots live in
+# assets/images/tools/ and were captured from the public Cannons and Coastlines
+# workspace, signed out. `**bold**` and [links](url) work in text fields.
+
+meta:
+  title: Made with CubbyCAD
+  description: >-
+    The Cannons & Coastlines ships and parts are modeled in CubbyCAD, a browser
+    CAD app made for this game, and sliced in Cubby Slicer, a web port of
+    OrcaSlicer.
+
+hero:
+  title: Made with CubbyCAD
+  intro: >-
+    The ships and parts for Cannons & Coastlines are modeled in CubbyCAD and
+    sliced in Cubby Slicer. I made CubbyCAD for this game, and Cubby Slicer
+    is my web port of OrcaSlicer to go with it.
+
+intro:
+  title: Why I made them
+  paragraphs:
+    - >-
+      The hulls are organic, hand-shaped models, but they also need exact
+      slots for the cannons, masts, cargo and coins, or nothing fits. I wanted
+      sculpting and precise hard-surface modeling in the same model, without
+      exporting back and forth between two programs.
+    - >-
+      I also work on this from a few different computers, usually in between
+      other things. Both apps run in the browser with nothing to install, and
+      cloud workspaces keep the files in sync, so a hull picks up wherever I
+      left it. And it had to stay easy to use, so the basics still work like
+      Tinkercad (drop in shapes, mark some as holes, group them).
+
+tools:
+  items:
+    - id: cubbycad
+      name: CubbyCAD
+      url: https://cubbycad.com/editor
+      lead: A 3D modeler in the browser, for parts you're going to print.
+      shots:
+        - src: /assets/images/tools/cubbycad-corsair.webp
+          alt: The Corsair hull open in the CubbyCAD editor, with the outliner listing the hull and its cutouts
+          caption: The Corsair hull. The outliner lists the sculpted hull and the cutouts subtracted from it.
+        - src: /assets/images/tools/cubbycad-corsair-cutouts.webp
+          alt: The Corsair hull shown see-through, with the cannon deck, mast, coin and cargo cutouts drawn as outlined shapes
+          caption: Editing inside the hull's group shows each cutout as a see-through shape.
+        - src: /assets/images/tools/cubbycad-queens-fleet.webp
+          alt: The Queen's Fleet hull open in CubbyCAD, with the same list of cutouts in the outliner
+          caption: The Queen's Fleet hull, cut with the same shared parts.
+      features:
+        - title: Sculpting and CAD in one part
+          body: >-
+            Each hull is a sculpt. Sculpting turns a shape into a signed
+            distance field (SDF) that you push and pull with brushes like clay,
+            and the sculpt sits in the same group as ordinary shapes. The hulls
+            also have a mirror modifier on them, so both sides always match.
+        - title: Holes cut with CSG
+          body: >-
+            Every slot in a hull is a shape marked as a hole in the hull's
+            group. [Manifold](https://github.com/elalish/manifold) does the
+            booleans, so the result is one watertight solid, and the STL
+            prints the way it looks on screen.
+        - title: Shared parts
+          body: >-
+            The cannon deck, mast, cargo, coin, movement wheel and bottom text
+            cutouts are each their own part, and the hulls embed them by
+            reference. Both base-set hulls use the same six, so a fit fix goes
+            into one file and every hull that uses it gets it.
+        - title: Sketches for the hard edges
+          body: >-
+            Draw on a face or the ground, then extrude or revolve it. The
+            cannon is built from revolved and extruded sketches plus a few
+            boxes, and the Jolly Roger on the Corsair's sides is an extruded
+            sketch cut into the hull.
+        - title: Save anywhere, then slice
+          body: >-
+            Save to the browser with no account, to a folder on disk, or to a
+            cloud workspace that syncs between devices once you sign in.
+            Export an STL, or send the model straight to Cubby Slicer with
+            **File ▸ Export ▸ Open Slicer**.
+      note: >-
+        CubbyCAD is free to use. The paid Enhanced plan unlocks the rest of the
+        sculpt brushes, more modifiers (arrays and decimate among them), more
+        export formats and more cloud storage.
+      links:
+        - { label: Open CubbyCAD, to: 'https://cubbycad.com/editor', icon: i-lucide-box }
+        - { label: Browse the game's workspace, to: 'https://cubbycad.com/browse/b90628ad-708f-4e8d-91e8-e470cfad2506', icon: i-lucide-folder-open }
+
+    - id: cubby-slicer
+      name: Cubby Slicer
+      url: https://cubbycad.com/slicer
+      lead: >-
+        A web port of OrcaSlicer. It's the real Orca slicing engine compiled to
+        WebAssembly, with Orca's menus, tools and profiles in a browser tab.
+        (It's still marked experimental.)
+      shots:
+        - src: /assets/images/tools/cubby-slicer-corsair.webp
+          alt: The Corsair hull sliced in Cubby Slicer, showing the layer preview and the time and filament estimate
+          caption: The Corsair hull sliced with the OrcaSlicer engine, in the layer preview.
+      features:
+        - title: Three engines
+          body: >-
+            OrcaSlicer, preFlight and Full Spectrum, picked at the top of the
+            Printer section. Each keeps its own presets, and all of them use
+            Orca's printer profiles.
+        - title: The usual Orca tools
+          body: >-
+            Plates, support, seam and color painting, cut with connectors,
+            variable layer height, calibration prints and print host upload
+            (OctoPrint, Moonraker, PrusaLink and others).
+        - title: Opens CubbyCAD files
+          body: >-
+            It opens and saves files in CubbyCAD workspaces, and can edit
+            CubbyCAD's basic shapes, holes and groups right on the plate.
+        - title: Orca-compatible projects
+          body: >-
+            Projects save as OrcaSlicer 3MF files, so desktop OrcaSlicer and
+            Bambu Studio open them with their plates and settings, and their
+            project files open here too.
+      links:
+        - { label: Open Cubby Slicer, to: 'https://cubbycad.com/slicer', icon: i-lucide-layers }
+
+cta:
+  text: >-
+    The layer heights and colors for each fleet are in the print guide, and
+    the parts page covers how the pieces go together.

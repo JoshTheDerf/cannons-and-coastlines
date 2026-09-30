@@ -301,9 +301,10 @@ about:
       now a small crew of us (my wife and a few coworkers) are making it for
       real.
     - >-
-      We design, print and playtest every piece ourselves, and we rewrite the
-      rules whenever something doesn't work at the table. The base game stays
-      free for anyone with a printer.
+      We design and print all of the pieces ourselves, and the rules get
+      changed pretty much every time a playtest turns up a problem. The base
+      game is free to download and print, and it'll stay that way.
+    - 'The ships and parts are modeled in CubbyCAD, a browser CAD app I made for this game, and sliced in Cubby Slicer, my web port of OrcaSlicer. [Here''s how](/tools).'
 
 # The rulebook change notes, newest release first. Shown on /live, linked
 # from "How to play". Items are RichText.
