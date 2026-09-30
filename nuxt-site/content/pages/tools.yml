@@ -1,4 +1,4 @@
-# Tools page (/tools): CubbyCAD and Cubby Slicer, the browser apps the game's
+# Tools page (/tools): CubbyCAD and CubbySlicer, the browser apps the game's
 # models are built and sliced in. Stick to features that are public on
 # cubbycad.com (see its /docs and /pricing). Screenshots live in
 # assets/images/tools/ and were captured from the public Cannons and Coastlines
@@ -8,19 +8,23 @@ seo:
   title: Made with CubbyCAD
   description: >-
     The Cannons & Coastlines ships and parts are modeled in CubbyCAD, a browser
-    CAD app made for this game, and sliced in Cubby Slicer, a web port of
+    CAD app made for this game, and sliced in CubbySlicer, a web port of
     OrcaSlicer.
 
 hero:
   title: Made with CubbyCAD
   intro: >-
     The ships and parts for Cannons & Coastlines are modeled in CubbyCAD and
-    sliced in Cubby Slicer. I made CubbyCAD for this game, and Cubby Slicer
+    sliced in CubbySlicer. I made CubbyCAD for this game, and CubbySlicer
     is my web port of OrcaSlicer to go with it.
 
 intro:
   title: Why I made them
   paragraphs:
+    - >-
+      I made the proof-of-concept models in Tinkercad, then moved to Blender.
+      Blender was great for shaping the hulls, but for exact, CAD-like edits I
+      kept running into crashes and slowdowns that broke up my workflow.
     - >-
       The hulls are organic, hand-shaped models, but they also need exact
       slots for the cannons, masts, cargo and coins, or nothing fits. I wanted
@@ -78,7 +82,7 @@ tools:
           body: >-
             Save to the browser with no account, to a folder on disk, or to a
             cloud workspace that syncs between devices once you sign in.
-            Export an STL, or send the model straight to Cubby Slicer with
+            Export an STL, or send the model straight to CubbySlicer with
             **File ▸ Export ▸ Open Slicer**.
       note: >-
         CubbyCAD is free to use. The paid Enhanced plan unlocks the rest of the
@@ -89,7 +93,7 @@ tools:
         - { label: Browse the game's workspace, to: 'https://cubbycad.com/browse/b90628ad-708f-4e8d-91e8-e470cfad2506', icon: i-lucide-folder-open }
 
     - id: cubby-slicer
-      name: Cubby Slicer
+      name: CubbySlicer
       url: https://cubbycad.com/slicer
       lead: >-
         A web port of OrcaSlicer. It's the real Orca slicing engine compiled to
@@ -97,7 +101,7 @@ tools:
         (It's still marked experimental.)
       shots:
         - src: /assets/images/tools/cubby-slicer-corsair.webp
-          alt: The Corsair hull sliced in Cubby Slicer, showing the layer preview and the time and filament estimate
+          alt: The Corsair hull sliced in CubbySlicer, showing the layer preview and the time and filament estimate
           caption: The Corsair hull sliced with the OrcaSlicer engine, in the layer preview.
       features:
         - title: Three engines
@@ -120,7 +124,7 @@ tools:
             Bambu Studio open them with their plates and settings, and their
             project files open here too.
       links:
-        - { label: Open Cubby Slicer, to: 'https://cubbycad.com/slicer', icon: i-lucide-layers }
+        - { label: Open CubbySlicer, to: 'https://cubbycad.com/slicer', icon: i-lucide-layers }
 
 cta:
   text: >-

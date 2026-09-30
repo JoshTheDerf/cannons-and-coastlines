@@ -25,6 +25,15 @@
 # and print-guide.yml. The bundle holds a folder per set (bundles[].includes
 # in nuxt-site/server/data/sets.json, the free base set too), each with its
 # own PRINTING.md, and one combined PRINTING.pdf and PRINTING.md at the top.
+#
+# Every zip also gets a plates/ folder: an OrcaSlicer project 3MF per color
+# (scripts/print/build_print_plates.py, run first; NO_PLATES=1 skips the
+# rebuild). Next to each set's zip go its paid STLs (files/) and paid 3MFs
+# (plates/) one by one, which the print list opens in CubbySlicer through
+# /api/download/<set>/<file>:
+#
+#   <set-id>/v<version>/files/<name>.stl
+#   <set-id>/v<version>/plates/<name>.3mf
 
 source "$(cd "$(dirname "${BASH_SOURCE[0]}")/lib" && pwd)/common.sh"
 
@@ -69,6 +78,21 @@ write_manifest() {
     } > "$out"
 }
 
+# The plate 3MFs (incremental: only groups whose parts changed are rebuilt).
+PLATES="$REPO_ROOT/scripts/print/build_print_plates.py"
+if [[ -z "${NO_PLATES:-}" ]]; then
+    PAID_SET_ROOT="$PAID_SET_ROOT" python3 "$PLATES"
+fi
+
+# add_plates <set-or-bundle-id> <dir>: copy that list's 3MFs into <dir>.
+add_plates() {
+    local list
+    list="$(PAID_SET_ROOT="$PAID_SET_ROOT" python3 "$PLATES" --files-for "$1")" || return 1
+    [[ -n "$list" ]] || return 0
+    mkdir -p "$2"
+    while IFS= read -r f; do cp "$f" "$2/"; done <<<"$list"
+}
+
 if (( $# )); then
     requested=("$@")
 else
@@ -110,6 +134,18 @@ for set_id in "${requested[@]}"; do
     # One top-level folder, so extracting doesn't scatter STLs in Downloads.
     mkdir "$staging/$name"
     cp "${files[@]}" "$staging/$name/"
+    add_plates "$set_id" "$staging/$name/plates"
+    # One by one too, for the print list's CubbySlicer links. Only this
+    # set's own files: the free ones are public already.
+    mkdir -p "$dest/files"
+    for f in "${files[@]}"; do [[ "$f" == *.stl ]] && cp "$f" "$dest/files/"; done
+    shopt -s nullglob
+    paid_plates=("${PLATES_PAID_OUT:-$REPO_ROOT/build/plates}/$set_id"/*.3mf)
+    shopt -u nullglob
+    if (( ${#paid_plates[@]} )); then
+        mkdir -p "$dest/plates"
+        cp "${paid_plates[@]}" "$dest/plates/"
+    fi
     print_guide check "$set_id" "$dir"
     print_guide set "$set_id" "$dir" > "$staging/$name/PRINTING.md"
     print_list_pdf "$set_id" "$staging/$name/PRINTING.pdf"
@@ -145,6 +181,7 @@ if [[ -z "${NO_BUNDLES:-}" ]]; then
             if (( ${#files[@]} == 0 )); then missing="$set_id"; break; fi
             mkdir "$root/$folder"
             cp "${files[@]}" "$root/$folder/"
+            add_plates "$set_id" "$root/$folder/plates"
             print_guide check "$set_id" "$dir"
             print_guide bundle-fleet "$set_id" "$dir" > "$root/$folder/PRINTING.md"
         done
@@ -155,6 +192,8 @@ if [[ -z "${NO_BUNDLES:-}" ]]; then
             (( skipped++ )) || true
             continue
         fi
+        # Each fleet's shared parts together (more cannons, masts and wheels per plate).
+        add_plates "$bundle_id" "$root/plates"
         print_guide bundle-top "${includes[@]}" > "$root/PRINTING.md"
         # One combined PDF for the whole bundle, at the top.
         print_list_pdf "$bundle_id" "$root/PRINTING.pdf"

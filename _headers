@@ -31,8 +31,11 @@
 # The base-set zip keeps one URL across releases (its filename carries no
 # version), so browsers and the CDN must check back for a new copy. The
 # ETag makes an unchanged file a cheap 304.
+# The print list's "Open in CubbySlicer" links have the slicer fetch these
+# STLs and 3MFs from its own origin, so that one origin may read them.
 /assets/stls/*
     Cache-Control: public, max-age=0, must-revalidate
+    Access-Control-Allow-Origin: https://cubbycad.com
 
 # 3D preview meshes are rebuilt in place when a model changes.
 /assets/previews/*

@@ -14,6 +14,7 @@
 // there.
 
 import manifest from '~~/server/data/sets.json'
+import platesData from '~~/shared/data/print-plates.json'
 
 type Part = {
   part: string, file: string, each?: number, qty?: number | string, color: string
@@ -86,6 +87,77 @@ const downloadUrl = free
       : null
 const shopHandle = set ? (free ? 'base-set-files' : guideFleets.value.find(f => f.set === id)?.id ?? null) : null
 const pdfUrl = `/rulebook/pdf/print-list-${id}.pdf`
+
+// ── CubbySlicer ────────────────────────────────────────────────────────
+// https://cubbycad.com/slicer/?model=<url>[&model=<url>…]&name=<file>…&arrange=all fetches each file
+// and opens it (a project 3MF opens with its plates and settings). The
+// slicer fetches from its own origin: /assets/stls/* allow it in _headers,
+// and /api/download/<set>/<file> in server/utils/slicerCors.ts. Paid files
+// need the order key or share token this page was opened with, same as the
+// zip; without one only the free base-set files get a link.
+// Plates: scripts/print/build_print_plates.py (npx jake print-plates).
+type Plate = {
+  fleet: string, file: string, set: string, paid: boolean, own: boolean
+  color: string, label: string, swatch: string, plates: number
+  parts: { part: string, qty: number, supports: boolean }[]
+}
+const SLICER = 'https://cubbycad.com/slicer/'
+const origin = useRequestURL().origin
+const access = orderKey ? `?order=${orderKey}` : share ? `?share=${encodeURIComponent(share)}` : null
+// name: the file name (the paid route's path ends in it too, but the query
+// string follows). arrange=all: the slicer lays the parts out again for
+// whatever printer it has.
+const slicerUrl = (urls: string[]) => {
+  const q = urls.map(u => `model=${encodeURIComponent(u)}`)
+  q.push(...urls.map(u => `name=${encodeURIComponent(new URL(u).pathname.split('/').pop()!)}`))
+  return `${SLICER}?${q.join('&')}&arrange=all`
+}
+// A file's URL for the slicer, or null when it's paid and this page has no key.
+function modelUrl(file: string, fromSet: string): string | null {
+  if (fromSet === baseSetId) return `${origin}/assets/stls/base-set/${file}`
+  return access ? `${origin}/api/download/${fromSet}/${file}${access}` : null
+}
+function openPart(p: Part & { files?: string[] }, fleet?: ListFleet): string | null {
+  const from = !fleet || p.base ? baseSetId : fleet.set
+  const urls = (p.files ?? [p.file]).map(f => modelUrl(f, from))
+  return urls.every(Boolean) ? slicerUrl(urls as string[]) : null
+}
+const plates = platesData.groups as Plate[]
+// "3 hulls", "6 masts and 3 cargo", "20 coins".
+function partsText(parts: Plate['parts']) {
+  const one = (pt: Plate['parts'][number]) => {
+    const name = pt.part.toLowerCase()
+    return `${pt.qty} ${pt.qty === 1 || /s$|cargo$/.test(name) ? name : `${name}s`}`
+  }
+  const list = parts.map(one)
+  const text = list.length > 1 ? `${list.slice(0, -1).join(', ')} and ${list.at(-1)}` : list[0]!
+  return parts.some(pt => pt.supports) ? `${text}, with supports` : text
+}
+function platesFor(key: string) {
+  return plates
+    // On the all-fleets list, the parts every fleet shares are in one set of plates at the end.
+    .filter(g => g.fleet === key && (!bundle || g.own))
+    .map((g) => {
+      // A paid plate without the order key is listed, with no link.
+      const url = !g.paid ? `${origin}/assets/stls/plates/${g.file}`
+        : access ? `${origin}/api/download/${g.set}/${g.file}${access}` : null
+      return {
+        ...g,
+        open: url ? slicerUrl([url]) : null,
+        download: g.paid ? null : `/assets/stls/plates/${g.file}`,
+        what: partsText(g.parts)
+      }
+    })
+}
+// One block per fleet (and the islands, coins and terrain, and on the
+// all-fleets list the shared parts), in page order.
+const plateSections = computed(() => {
+  const secs = fleets.value.map(f => ({ key: f.id, title: guideFleet(f.id).name, plates: platesFor(f.id) }))
+  if (hasBase) secs.push({ key: 'general', title: L.value.general.title, plates: platesFor('general') })
+  if (bundle) secs.push({ key: 'all-fleets', title: "Every fleet's masts, cargo, cannons and wheels", plates: platesFor('all-fleets') })
+  return secs.filter(sec => sec.plates.length)
+})
+
 // Material comes from print-lists.yml (print-guide.yml's row names another
 // fleet); the part tables already say which parts need supports.
 const settingsRows = computed((): [string, string][] => [
@@ -132,6 +204,7 @@ useSeoMeta({
         </p>
         <p class="mt-4 flex flex-wrap justify-center gap-x-5 gap-y-1 text-sm">
           <a :href="pdfUrl" target="_blank" class="underline text-[color:var(--gold)]">This list as a PDF</a>
+          <a href="#slicer" class="underline text-[color:var(--gold)]">Print it in CubbySlicer</a>
           <NuxtLink v-if="orderKey" :to="`/shop/order/${orderKey}`" class="underline text-[color:var(--gold)]">Back to your order</NuxtLink>
           <NuxtLink v-else-if="shopHandle && !free" :to="`/shop/${shopHandle}`" class="underline text-[color:var(--gold)]">The shop page</NuxtLink>
         </p>
@@ -154,6 +227,7 @@ useSeoMeta({
                 <td>
                   <span class="font-semibold">{{ p.part }}</span>
                   <br><span class="text-xs italic text-ink-faint [overflow-wrap:anywhere]">{{ p.file }}<template v-if="p.base && isPaid(f.set)"> from the base set</template></span>
+                  <SlicerLink :to="openPart(p, f)" />
                   <RichText v-if="p.note" tag="div" :text="p.note" class="text-xs muted" />
                 </td>
                 <td class="font-semibold text-base whitespace-nowrap">{{ qtyOf(p, f) }}</td>
@@ -187,6 +261,7 @@ useSeoMeta({
                   <td>
                     <span class="font-semibold">{{ p.part }}</span>
                     <br><span class="text-xs italic text-ink-faint [overflow-wrap:anywhere]">{{ p.file }}</span>
+                    <SlicerLink :to="openPart(p)" />
                     <RichText v-if="p.note" tag="div" :text="p.note" class="text-xs muted" />
                   </td>
                   <td class="font-semibold text-base whitespace-nowrap">{{ qtyOf(p) }}</td>
@@ -196,6 +271,23 @@ useSeoMeta({
               </tbody>
             </table>
           </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Plate files for CubbySlicer, one per color -->
+    <section id="slicer" class="pt-4 pb-14 px-4 scroll-mt-20">
+      <div class="container mx-auto max-w-4xl">
+        <h2 class="font-display text-2xl text-ink">Print it in CubbySlicer</h2>
+        <p class="mt-2 max-w-2xl font-serif text-sm text-ink-soft">
+          Each file is one color's parts from this list, laid out on a 256 mm plate with the settings below.
+          Open one in <a href="https://cubbycad.com/slicer/" target="_blank" rel="noopener" class="underline text-[color:var(--gold)]">CubbySlicer</a>
+          (it runs in your browser) or download the .3mf for OrcaSlicer.
+          The <UIcon name="i-lucide-square-arrow-out-up-right" class="size-3.5 align-[-2px] text-[color:var(--gold)]" /> by a file name in the tables opens just that file.
+        </p>
+        <div v-for="sec in plateSections" :key="sec.key" class="mt-6">
+          <h3 v-if="plateSections.length > 1" class="font-display text-lg text-ink">{{ sec.title }}</h3>
+          <PrintPlates :plates="sec.plates" />
         </div>
       </div>
     </section>

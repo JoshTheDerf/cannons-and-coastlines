@@ -94,3 +94,15 @@ export const r2BundleKey = (bundle: Bundle): string => {
   const stamp = bundleSets(bundle).map(s => `${s.id}-v${s.version}`).join('_')
   return `${bundle.id}/${stamp}/${bundle.zipBaseName}.zip`
 }
+
+// ── Single files ────────────────────────────────────────────────────────
+// Each paid STL and print-plate 3MF is also in R2 on its own, so the print
+// list can open one in CubbySlicer (/api/download/<set>/<file>).
+// scripts/build-paid-zips.sh lays them out the same way.
+
+/** An STL or 3MF name as the build scripts write them. */
+export const isModelFileName = (s: string): boolean => /^[a-z0-9][a-z0-9-]*\.(stl|3mf)$/.test(s)
+
+/** `<set>/v<version>/files/<name>.stl` or `<set>/v<version>/plates/<name>.3mf`. */
+export const r2FileKey = (set: StlSet, file: string): string =>
+  `${r2Prefix(set)}${file.endsWith('.3mf') ? 'plates' : 'files'}/${file}`

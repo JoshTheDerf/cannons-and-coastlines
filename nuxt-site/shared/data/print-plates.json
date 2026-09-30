@@ -1,0 +1,1070 @@
+{
+ "_comment": "Written by scripts/print/build_print_plates.py (npx jake print-plates). One OrcaSlicer project 3MF per fleet and color. Free ones are at /assets/stls/plates/<file>; paid ones are only in the paid zips and R2 (<set>/v<version>/plates/<file>).",
+ "groups": [
+  {
+   "fleet": "queens-fleet",
+   "file": "queens-fleet-hull.3mf",
+   "set": "base-set",
+   "paid": false,
+   "own": true,
+   "color": "Pale blue-grey or brown PLA",
+   "label": "Pale blue-grey or brown PLA",
+   "swatch": "#9DB0C2",
+   "parts": [
+    {
+     "part": "Hull",
+     "qty": 3,
+     "supports": false
+    }
+   ],
+   "plates": 1,
+   "objects": 3,
+   "hash": "c1f520121b37a544"
+  },
+  {
+   "fleet": "queens-fleet",
+   "file": "mast-6-cargo-6.3mf",
+   "set": "base-set",
+   "paid": false,
+   "own": false,
+   "color": "Brown",
+   "label": "Brown",
+   "swatch": "#7A4B2A",
+   "parts": [
+    {
+     "part": "Mast",
+     "qty": 6,
+     "supports": false
+    },
+    {
+     "part": "Cargo",
+     "qty": 6,
+     "supports": false
+    }
+   ],
+   "plates": 1,
+   "objects": 12,
+   "hash": "aa1f3b6f46cf02e5"
+  },
+  {
+   "fleet": "queens-fleet",
+   "file": "sail-6.3mf",
+   "set": "base-set",
+   "paid": false,
+   "own": false,
+   "color": "White",
+   "label": "White",
+   "swatch": "#F4F4F0",
+   "parts": [
+    {
+     "part": "Sail",
+     "qty": 6,
+     "supports": false
+    }
+   ],
+   "plates": 1,
+   "objects": 6,
+   "hash": "191288c610b1698d"
+  },
+  {
+   "fleet": "queens-fleet",
+   "file": "movement-wheel-3.3mf",
+   "set": "base-set",
+   "paid": false,
+   "own": false,
+   "color": "Any",
+   "label": "Any",
+   "swatch": "#C8C8C8",
+   "parts": [
+    {
+     "part": "Movement wheel",
+     "qty": 3,
+     "supports": false
+    }
+   ],
+   "plates": 1,
+   "objects": 3,
+   "hash": "ab151f9bfd9f10e2"
+  },
+  {
+   "fleet": "queens-fleet",
+   "file": "cannon-4.3mf",
+   "set": "base-set",
+   "paid": false,
+   "own": false,
+   "color": "Black",
+   "label": "Black",
+   "swatch": "#1E1E1E",
+   "parts": [
+    {
+     "part": "Cannon",
+     "qty": 4,
+     "supports": false
+    }
+   ],
+   "plates": 1,
+   "objects": 4,
+   "hash": "fec55eeeb33c533a"
+  },
+  {
+   "fleet": "queens-fleet",
+   "file": "cannonball-10.3mf",
+   "set": "base-set",
+   "paid": false,
+   "own": false,
+   "color": "Something bright, like neon green or orange",
+   "label": "Something bright",
+   "swatch": "#9CFF3A",
+   "parts": [
+    {
+     "part": "Cannonball",
+     "qty": 10,
+     "supports": false
+    }
+   ],
+   "plates": 1,
+   "objects": 10,
+   "hash": "fcd4fbb689e70d85"
+  },
+  {
+   "fleet": "corsairs",
+   "file": "corsairs-hull.3mf",
+   "set": "base-set",
+   "paid": false,
+   "own": true,
+   "color": "Black PLA",
+   "label": "Black PLA",
+   "swatch": "#1E1E1E",
+   "parts": [
+    {
+     "part": "Hull",
+     "qty": 3,
+     "supports": false
+    },
+    {
+     "part": "Mast",
+     "qty": 6,
+     "supports": false
+    },
+    {
+     "part": "Torn sail",
+     "qty": 6,
+     "supports": false
+    }
+   ],
+   "plates": 1,
+   "objects": 15,
+   "hash": "3e51939b8736a98f"
+  },
+  {
+   "fleet": "corsairs",
+   "file": "cargo-3.3mf",
+   "set": "base-set",
+   "paid": false,
+   "own": false,
+   "color": "Brown",
+   "label": "Brown",
+   "swatch": "#7A4B2A",
+   "parts": [
+    {
+     "part": "Cargo",
+     "qty": 3,
+     "supports": false
+    }
+   ],
+   "plates": 1,
+   "objects": 3,
+   "hash": "520c0e0cba52cfbb"
+  },
+  {
+   "fleet": "corsairs",
+   "file": "movement-wheel-3.3mf",
+   "set": "base-set",
+   "paid": false,
+   "own": false,
+   "color": "Any",
+   "label": "Any",
+   "swatch": "#C8C8C8",
+   "parts": [
+    {
+     "part": "Movement wheel",
+     "qty": 3,
+     "supports": false
+    }
+   ],
+   "plates": 1,
+   "objects": 3,
+   "hash": "ab151f9bfd9f10e2"
+  },
+  {
+   "fleet": "corsairs",
+   "file": "cannon-4.3mf",
+   "set": "base-set",
+   "paid": false,
+   "own": false,
+   "color": "Black",
+   "label": "Black",
+   "swatch": "#1E1E1E",
+   "parts": [
+    {
+     "part": "Cannon",
+     "qty": 4,
+     "supports": false
+    }
+   ],
+   "plates": 1,
+   "objects": 4,
+   "hash": "fec55eeeb33c533a"
+  },
+  {
+   "fleet": "corsairs",
+   "file": "cannonball-10.3mf",
+   "set": "base-set",
+   "paid": false,
+   "own": false,
+   "color": "Something bright, like neon green or orange",
+   "label": "Something bright",
+   "swatch": "#9CFF3A",
+   "parts": [
+    {
+     "part": "Cannonball",
+     "qty": 10,
+     "supports": false
+    }
+   ],
+   "plates": 1,
+   "objects": 10,
+   "hash": "fcd4fbb689e70d85"
+  },
+  {
+   "fleet": "treasure-fleet",
+   "file": "treasure-fleet-hull.3mf",
+   "set": "treasure-fleet-set",
+   "paid": true,
+   "own": true,
+   "color": "Silk gold PLA",
+   "label": "Silk gold PLA",
+   "swatch": "#D4AF37",
+   "parts": [
+    {
+     "part": "Hull",
+     "qty": 3,
+     "supports": true
+    }
+   ],
+   "plates": 1,
+   "objects": 3,
+   "hash": "da74d578389f1ed3"
+  },
+  {
+   "fleet": "treasure-fleet",
+   "file": "treasure-fleet-sail.3mf",
+   "set": "treasure-fleet-set",
+   "paid": true,
+   "own": true,
+   "color": "White",
+   "label": "White",
+   "swatch": "#F4F4F0",
+   "parts": [
+    {
+     "part": "Sail",
+     "qty": 6,
+     "supports": false
+    }
+   ],
+   "plates": 1,
+   "objects": 6,
+   "hash": "f6f60ec038296f86"
+  },
+  {
+   "fleet": "treasure-fleet",
+   "file": "mast-6-cargo-3.3mf",
+   "set": "base-set",
+   "paid": false,
+   "own": false,
+   "color": "Brown",
+   "label": "Brown",
+   "swatch": "#7A4B2A",
+   "parts": [
+    {
+     "part": "Mast",
+     "qty": 6,
+     "supports": false
+    },
+    {
+     "part": "Cargo",
+     "qty": 3,
+     "supports": false
+    }
+   ],
+   "plates": 1,
+   "objects": 9,
+   "hash": "620c2822ddf4b61d"
+  },
+  {
+   "fleet": "treasure-fleet",
+   "file": "movement-wheel-3.3mf",
+   "set": "base-set",
+   "paid": false,
+   "own": false,
+   "color": "Any",
+   "label": "Any",
+   "swatch": "#C8C8C8",
+   "parts": [
+    {
+     "part": "Movement wheel",
+     "qty": 3,
+     "supports": false
+    }
+   ],
+   "plates": 1,
+   "objects": 3,
+   "hash": "ab151f9bfd9f10e2"
+  },
+  {
+   "fleet": "treasure-fleet",
+   "file": "cannon-4.3mf",
+   "set": "base-set",
+   "paid": false,
+   "own": false,
+   "color": "Black",
+   "label": "Black",
+   "swatch": "#1E1E1E",
+   "parts": [
+    {
+     "part": "Cannon",
+     "qty": 4,
+     "supports": false
+    }
+   ],
+   "plates": 1,
+   "objects": 4,
+   "hash": "fec55eeeb33c533a"
+  },
+  {
+   "fleet": "treasure-fleet",
+   "file": "cannonball-10.3mf",
+   "set": "base-set",
+   "paid": false,
+   "own": false,
+   "color": "Something bright, like neon green or orange",
+   "label": "Something bright",
+   "swatch": "#9CFF3A",
+   "parts": [
+    {
+     "part": "Cannonball",
+     "qty": 10,
+     "supports": false
+    }
+   ],
+   "plates": 1,
+   "objects": 10,
+   "hash": "fcd4fbb689e70d85"
+  },
+  {
+   "fleet": "stone-fleet",
+   "file": "stone-fleet-hull.3mf",
+   "set": "stone-fleet-set",
+   "paid": true,
+   "own": true,
+   "color": "Matte grey or speckled rock PLA, or both",
+   "label": "Matte grey or speckled rock PLA, or both",
+   "swatch": "#8C8C8C",
+   "parts": [
+    {
+     "part": "Hull",
+     "qty": 3,
+     "supports": false
+    }
+   ],
+   "plates": 1,
+   "objects": 3,
+   "hash": "a93de851a02efab5"
+  },
+  {
+   "fleet": "stone-fleet",
+   "file": "stone-fleet-sail.3mf",
+   "set": "stone-fleet-set",
+   "paid": true,
+   "own": true,
+   "color": "White",
+   "label": "White",
+   "swatch": "#F4F4F0",
+   "parts": [
+    {
+     "part": "Sail",
+     "qty": 6,
+     "supports": false
+    }
+   ],
+   "plates": 1,
+   "objects": 6,
+   "hash": "ca269c6cbfa732b0"
+  },
+  {
+   "fleet": "stone-fleet",
+   "file": "mast-6-barrel-6.3mf",
+   "set": "base-set",
+   "paid": false,
+   "own": false,
+   "color": "Brown",
+   "label": "Brown",
+   "swatch": "#7A4B2A",
+   "parts": [
+    {
+     "part": "Mast",
+     "qty": 6,
+     "supports": false
+    },
+    {
+     "part": "Barrel",
+     "qty": 6,
+     "supports": false
+    }
+   ],
+   "plates": 1,
+   "objects": 12,
+   "hash": "b30e6110122ad107"
+  },
+  {
+   "fleet": "stone-fleet",
+   "file": "movement-wheel-3.3mf",
+   "set": "base-set",
+   "paid": false,
+   "own": false,
+   "color": "Any",
+   "label": "Any",
+   "swatch": "#C8C8C8",
+   "parts": [
+    {
+     "part": "Movement wheel",
+     "qty": 3,
+     "supports": false
+    }
+   ],
+   "plates": 1,
+   "objects": 3,
+   "hash": "ab151f9bfd9f10e2"
+  },
+  {
+   "fleet": "stone-fleet",
+   "file": "cannon-4.3mf",
+   "set": "base-set",
+   "paid": false,
+   "own": false,
+   "color": "Black",
+   "label": "Black",
+   "swatch": "#1E1E1E",
+   "parts": [
+    {
+     "part": "Cannon",
+     "qty": 4,
+     "supports": false
+    }
+   ],
+   "plates": 1,
+   "objects": 4,
+   "hash": "fec55eeeb33c533a"
+  },
+  {
+   "fleet": "stone-fleet",
+   "file": "cannonball-10.3mf",
+   "set": "base-set",
+   "paid": false,
+   "own": false,
+   "color": "Something bright, like neon green or orange",
+   "label": "Something bright",
+   "swatch": "#9CFF3A",
+   "parts": [
+    {
+     "part": "Cannonball",
+     "qty": 10,
+     "supports": false
+    }
+   ],
+   "plates": 1,
+   "objects": 10,
+   "hash": "fcd4fbb689e70d85"
+  },
+  {
+   "fleet": "shadow-fleet",
+   "file": "shadow-fleet-hull.3mf",
+   "set": "shadow-fleet-set",
+   "paid": true,
+   "own": true,
+   "color": "Translucent gradient PLA or PETG",
+   "label": "Translucent gradient PLA or PETG",
+   "swatch": "#CDE6EE",
+   "parts": [
+    {
+     "part": "Hull",
+     "qty": 3,
+     "supports": true
+    },
+    {
+     "part": "Torn sail",
+     "qty": 6,
+     "supports": false
+    },
+    {
+     "part": "Mast",
+     "qty": 6,
+     "supports": false
+    }
+   ],
+   "plates": 1,
+   "objects": 15,
+   "hash": "3bd2525e3acc4a47"
+  },
+  {
+   "fleet": "shadow-fleet",
+   "file": "cargo-3.3mf",
+   "set": "base-set",
+   "paid": false,
+   "own": false,
+   "color": "Brown",
+   "label": "Brown",
+   "swatch": "#7A4B2A",
+   "parts": [
+    {
+     "part": "Cargo",
+     "qty": 3,
+     "supports": false
+    }
+   ],
+   "plates": 1,
+   "objects": 3,
+   "hash": "520c0e0cba52cfbb"
+  },
+  {
+   "fleet": "shadow-fleet",
+   "file": "movement-wheel-3.3mf",
+   "set": "base-set",
+   "paid": false,
+   "own": false,
+   "color": "Any",
+   "label": "Any",
+   "swatch": "#C8C8C8",
+   "parts": [
+    {
+     "part": "Movement wheel",
+     "qty": 3,
+     "supports": false
+    }
+   ],
+   "plates": 1,
+   "objects": 3,
+   "hash": "ab151f9bfd9f10e2"
+  },
+  {
+   "fleet": "shadow-fleet",
+   "file": "cannon-4.3mf",
+   "set": "base-set",
+   "paid": false,
+   "own": false,
+   "color": "Black",
+   "label": "Black",
+   "swatch": "#1E1E1E",
+   "parts": [
+    {
+     "part": "Cannon",
+     "qty": 4,
+     "supports": false
+    }
+   ],
+   "plates": 1,
+   "objects": 4,
+   "hash": "fec55eeeb33c533a"
+  },
+  {
+   "fleet": "shadow-fleet",
+   "file": "cannonball-10.3mf",
+   "set": "base-set",
+   "paid": false,
+   "own": false,
+   "color": "Something bright, like neon green or orange",
+   "label": "Something bright",
+   "swatch": "#9CFF3A",
+   "parts": [
+    {
+     "part": "Cannonball",
+     "qty": 10,
+     "supports": false
+    }
+   ],
+   "plates": 1,
+   "objects": 10,
+   "hash": "fcd4fbb689e70d85"
+  },
+  {
+   "fleet": "industry",
+   "file": "industry-hull.3mf",
+   "set": "industry-set",
+   "paid": true,
+   "own": true,
+   "color": "Rust brown or steel blue PLA",
+   "label": "Rust brown or steel blue PLA",
+   "swatch": "#9A4A24",
+   "parts": [
+    {
+     "part": "Hull",
+     "qty": 3,
+     "supports": false
+    },
+    {
+     "part": "Turret",
+     "qty": 3,
+     "supports": false
+    },
+    {
+     "part": "Smokestack",
+     "qty": 3,
+     "supports": false
+    }
+   ],
+   "plates": 1,
+   "objects": 9,
+   "hash": "f2086ef6d69f1f16"
+  },
+  {
+   "fleet": "industry",
+   "file": "cargo-3.3mf",
+   "set": "base-set",
+   "paid": false,
+   "own": false,
+   "color": "Brown",
+   "label": "Brown",
+   "swatch": "#7A4B2A",
+   "parts": [
+    {
+     "part": "Cargo",
+     "qty": 3,
+     "supports": false
+    }
+   ],
+   "plates": 1,
+   "objects": 3,
+   "hash": "520c0e0cba52cfbb"
+  },
+  {
+   "fleet": "industry",
+   "file": "movement-wheel-3.3mf",
+   "set": "base-set",
+   "paid": false,
+   "own": false,
+   "color": "Any",
+   "label": "Any",
+   "swatch": "#C8C8C8",
+   "parts": [
+    {
+     "part": "Movement wheel",
+     "qty": 3,
+     "supports": false
+    }
+   ],
+   "plates": 1,
+   "objects": 3,
+   "hash": "ab151f9bfd9f10e2"
+  },
+  {
+   "fleet": "industry",
+   "file": "cannon-4.3mf",
+   "set": "base-set",
+   "paid": false,
+   "own": false,
+   "color": "Black",
+   "label": "Black",
+   "swatch": "#1E1E1E",
+   "parts": [
+    {
+     "part": "Cannon",
+     "qty": 4,
+     "supports": false
+    }
+   ],
+   "plates": 1,
+   "objects": 4,
+   "hash": "fec55eeeb33c533a"
+  },
+  {
+   "fleet": "industry",
+   "file": "cannonball-10.3mf",
+   "set": "base-set",
+   "paid": false,
+   "own": false,
+   "color": "Something bright, like neon green or orange",
+   "label": "Something bright",
+   "swatch": "#9CFF3A",
+   "parts": [
+    {
+     "part": "Cannonball",
+     "qty": 10,
+     "supports": false
+    }
+   ],
+   "plates": 1,
+   "objects": 10,
+   "hash": "fcd4fbb689e70d85"
+  },
+  {
+   "fleet": "islanders",
+   "file": "islanders-hull.3mf",
+   "set": "islander-set",
+   "paid": true,
+   "own": true,
+   "color": "Pine or light brown wood PLA",
+   "label": "Pine or light brown wood PLA",
+   "swatch": "#C9A26B",
+   "parts": [
+    {
+     "part": "Hull",
+     "qty": 5,
+     "supports": false
+    }
+   ],
+   "plates": 1,
+   "objects": 5,
+   "hash": "69eaf4641323a7cb"
+  },
+  {
+   "fleet": "islanders",
+   "file": "islanders-sail.3mf",
+   "set": "islander-set",
+   "paid": true,
+   "own": true,
+   "color": "White",
+   "label": "White",
+   "swatch": "#F4F4F0",
+   "parts": [
+    {
+     "part": "Sail",
+     "qty": 5,
+     "supports": false
+    }
+   ],
+   "plates": 1,
+   "objects": 5,
+   "hash": "87f1f0627975c6e3"
+  },
+  {
+   "fleet": "islanders",
+   "file": "short-mast-5.3mf",
+   "set": "base-set",
+   "paid": false,
+   "own": false,
+   "color": "Brown",
+   "label": "Brown",
+   "swatch": "#7A4B2A",
+   "parts": [
+    {
+     "part": "Short mast",
+     "qty": 5,
+     "supports": false
+    }
+   ],
+   "plates": 1,
+   "objects": 5,
+   "hash": "359f1da8a8c1a4f4"
+  },
+  {
+   "fleet": "islanders",
+   "file": "movement-wheel-5.3mf",
+   "set": "base-set",
+   "paid": false,
+   "own": false,
+   "color": "Any",
+   "label": "Any",
+   "swatch": "#C8C8C8",
+   "parts": [
+    {
+     "part": "Movement wheel",
+     "qty": 5,
+     "supports": false
+    }
+   ],
+   "plates": 1,
+   "objects": 5,
+   "hash": "b897919d48d0bc3b"
+  },
+  {
+   "fleet": "islanders",
+   "file": "cannon-4.3mf",
+   "set": "base-set",
+   "paid": false,
+   "own": false,
+   "color": "Black",
+   "label": "Black",
+   "swatch": "#1E1E1E",
+   "parts": [
+    {
+     "part": "Cannon",
+     "qty": 4,
+     "supports": false
+    }
+   ],
+   "plates": 1,
+   "objects": 4,
+   "hash": "fec55eeeb33c533a"
+  },
+  {
+   "fleet": "islanders",
+   "file": "cannonball-10.3mf",
+   "set": "base-set",
+   "paid": false,
+   "own": false,
+   "color": "Something bright, like neon green or orange",
+   "label": "Something bright",
+   "swatch": "#9CFF3A",
+   "parts": [
+    {
+     "part": "Cannonball",
+     "qty": 10,
+     "supports": false
+    }
+   ],
+   "plates": 1,
+   "objects": 10,
+   "hash": "fcd4fbb689e70d85"
+  },
+  {
+   "fleet": "all-fleets",
+   "file": "all-fleets-mast.3mf",
+   "set": "base-set",
+   "paid": false,
+   "own": true,
+   "color": "Brown",
+   "label": "Brown",
+   "swatch": "#7A4B2A",
+   "parts": [
+    {
+     "part": "Mast",
+     "qty": 18,
+     "supports": false
+    },
+    {
+     "part": "Cargo",
+     "qty": 18,
+     "supports": false
+    },
+    {
+     "part": "Barrel",
+     "qty": 6,
+     "supports": false
+    },
+    {
+     "part": "Short mast",
+     "qty": 5,
+     "supports": false
+    }
+   ],
+   "plates": 1,
+   "objects": 47,
+   "hash": "20e58308285edec6"
+  },
+  {
+   "fleet": "all-fleets",
+   "file": "all-fleets-sail.3mf",
+   "set": "base-set",
+   "paid": false,
+   "own": true,
+   "color": "White",
+   "label": "White",
+   "swatch": "#F4F4F0",
+   "parts": [
+    {
+     "part": "Sail",
+     "qty": 6,
+     "supports": false
+    }
+   ],
+   "plates": 1,
+   "objects": 6,
+   "hash": "39f4820de73eba0c"
+  },
+  {
+   "fleet": "all-fleets",
+   "file": "all-fleets-movement-wheel.3mf",
+   "set": "base-set",
+   "paid": false,
+   "own": true,
+   "color": "Any",
+   "label": "Any",
+   "swatch": "#C8C8C8",
+   "parts": [
+    {
+     "part": "Movement wheel",
+     "qty": 23,
+     "supports": false
+    }
+   ],
+   "plates": 1,
+   "objects": 23,
+   "hash": "4b1f9e6dd634aa45"
+  },
+  {
+   "fleet": "all-fleets",
+   "file": "all-fleets-cannon.3mf",
+   "set": "base-set",
+   "paid": false,
+   "own": true,
+   "color": "Black",
+   "label": "Black",
+   "swatch": "#1E1E1E",
+   "parts": [
+    {
+     "part": "Cannon",
+     "qty": 28,
+     "supports": false
+    }
+   ],
+   "plates": 1,
+   "objects": 28,
+   "hash": "cc09bf8e7e93ca6f"
+  },
+  {
+   "fleet": "all-fleets",
+   "file": "all-fleets-cannonball.3mf",
+   "set": "base-set",
+   "paid": false,
+   "own": true,
+   "color": "Something bright, like neon green or orange",
+   "label": "Something bright",
+   "swatch": "#9CFF3A",
+   "parts": [
+    {
+     "part": "Cannonball",
+     "qty": 70,
+     "supports": false
+    }
+   ],
+   "plates": 1,
+   "objects": 70,
+   "hash": "c514cac36606553e"
+  },
+  {
+   "fleet": "general",
+   "file": "coins-20.3mf",
+   "set": "base-set",
+   "paid": false,
+   "own": true,
+   "color": "Gold",
+   "label": "Gold",
+   "swatch": "#D4AF37",
+   "parts": [
+    {
+     "part": "Coins",
+     "qty": 20,
+     "supports": false
+    }
+   ],
+   "plates": 1,
+   "objects": 20,
+   "hash": "2fb4616a8645de79"
+  },
+  {
+   "fleet": "general",
+   "file": "island-2.3mf",
+   "set": "base-set",
+   "paid": false,
+   "own": true,
+   "color": "Green, sand or grey",
+   "label": "Green, sand or grey",
+   "swatch": "#5A8F4E",
+   "parts": [
+    {
+     "part": "Island",
+     "qty": 2,
+     "supports": false
+    }
+   ],
+   "plates": 1,
+   "objects": 2,
+   "hash": "8e297a3dac75bfe9"
+  },
+  {
+   "fleet": "general",
+   "file": "short-mast-2.3mf",
+   "set": "base-set",
+   "paid": false,
+   "own": true,
+   "color": "Brown",
+   "label": "Brown",
+   "swatch": "#7A4B2A",
+   "parts": [
+    {
+     "part": "Short mast",
+     "qty": 2,
+     "supports": false
+    }
+   ],
+   "plates": 1,
+   "objects": 2,
+   "hash": "6f8aed8b152d190b"
+  },
+  {
+   "fleet": "general",
+   "file": "rock-6.3mf",
+   "set": "base-set",
+   "paid": false,
+   "own": true,
+   "color": "Grey",
+   "label": "Grey",
+   "swatch": "#8C8C8C",
+   "parts": [
+    {
+     "part": "Rock",
+     "qty": 6,
+     "supports": false
+    }
+   ],
+   "plates": 1,
+   "objects": 6,
+   "hash": "c819d6f3d8eda520"
+  },
+  {
+   "fleet": "general",
+   "file": "reef-2.3mf",
+   "set": "base-set",
+   "paid": false,
+   "own": true,
+   "color": "Pale pink",
+   "label": "Pale pink",
+   "swatch": "#F2B8C6",
+   "parts": [
+    {
+     "part": "Reef",
+     "qty": 2,
+     "supports": false
+    }
+   ],
+   "plates": 1,
+   "objects": 2,
+   "hash": "7cd6199d5c6673a6"
+  },
+  {
+   "fleet": "general",
+   "file": "game-wind-dial.3mf",
+   "set": "base-set",
+   "paid": false,
+   "own": true,
+   "color": "Any",
+   "label": "Any",
+   "swatch": "#C8C8C8",
+   "parts": [
+    {
+     "part": "Wind dial",
+     "qty": 1,
+     "supports": false
+    },
+    {
+     "part": "Fit test",
+     "qty": 1,
+     "supports": false
+    }
+   ],
+   "plates": 1,
+   "objects": 5,
+   "hash": "f0b3b1af0ccc53e7"
+  }
+ ]
+}
