@@ -41,9 +41,12 @@ intro:
       Islands sit between the fleets. Plant your flag on one and it pays
       out coins, which you spend on things like repairs and extra shots, or
       save up as points.
+  # "clip" is a muted loop: clip.mp4 and clip-poster.jpg. "src" is the
+  # fallback still.
   photo:
-    src: /assets/photos/queens-fleet-ship-of-the-line-hero-sm.jpg
-    alt: A black Queen's Fleet ship with white paper sails and gold flags.
+    clip: /assets/videos/playtest-2/fire-cannon
+    src: /assets/videos/playtest-2/fire-cannon-poster.jpg
+    alt: A player presses a cannon on a Corsair ship and fires a green cannonball past two Industry steamships.
   reel:
     embed: https://www.instagram.com/p/DXEtgxttyCB/embed
     url: https://www.instagram.com/p/DXEtgxttyCB/
@@ -77,6 +80,9 @@ howToPlay:
           - [3–4, 6]
           - [5–6, 8]
           - [Group mode (6–20), 10–12]
+      photo:
+        src: /assets/photos/playtest-2/table-setup.webp
+        alt: Four fleets lined up along the table edges, with islands and rocks between them.
     - title: Take your turn
       body:
         - >-
@@ -101,8 +107,9 @@ howToPlay:
             from one of the island's cannon slots. It then stays put, which
             makes islands the only place a ship can hold still.
       photo:
-        src: /assets/photos/playtest-overhead-island-sm.jpg
-        alt: Four ships around an island on a carpet during a playtest.
+        clip: /assets/videos/playtest-2/aim-from-island
+        src: /assets/videos/playtest-2/aim-from-island-poster.jpg
+        alt: A player lines up a Shadow Fleet ship's cannon beside an island.
       note: >-
         A ship that bumps into a ship, island or rock stops there. Watch the
         table edge, too: a ship that runs out of room stops there, and a ship
@@ -124,8 +131,9 @@ howToPlay:
         Ships take their fittings + 1 hits to sink. A ship with 3 fittings
         goes down on the 4th hit.
       photo:
-        src: /assets/photos/queens-fleet-ship-of-the-line-sails-sm.jpg
-        alt: A ship with masts and sails, used for movement testing on a glass table.
+        clip: /assets/videos/playtest-2/take-a-prize
+        src: /assets/videos/playtest-2/take-a-prize-poster.jpg
+        alt: A player lifts the turret off a hit Industry steamship and keeps it as a prize.
     - title: Spend coins
       body:
         - >-
@@ -231,6 +239,18 @@ fleets:
       stats: 5 catamarans · 1 fitting · Move 4
       body: Lots of fast, fragile boats with their guns at the back. They start the game already holding an island.
       card: /rulebook/pdf/faction-card-the-islanders.pdf
+  gallery:
+    title: At the table
+    lead: >-
+      Some of the add-on fleets in our second playtest, all printed on
+      their finished designs.
+    photos:
+      - src: /assets/photos/playtest-2/treasure-and-shadow.webp
+        alt: Three gold Treasure Fleet junks and teal Shadow Fleet galleons sailing between islands.
+      - src: /assets/photos/playtest-2/industry-corsairs.webp
+        alt: Two brown Industry steamships beside an island, with black Corsair ships behind.
+      - src: /assets/photos/playtest-2/loading-a-cannon.webp
+        alt: A player loads a cannon while fleets sail past the islands.
 
 videos:
   title: Watch a game

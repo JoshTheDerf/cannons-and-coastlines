@@ -10,7 +10,7 @@ useSeoMeta({
   description: page.value.meta?.description,
   ogTitle: page.value.meta?.title,
   ogDescription: page.value.meta?.description,
-  ogImage: 'https://cannonsandcoastlines.com/assets/images/logo-with-wordmark.png',
+  ogImage: 'https://cannonsandcoastlines.com/assets/photos/playtest-2/table-wide.jpg',
   twitterCard: 'summary_large_image'
 })
 
@@ -62,7 +62,9 @@ const actionLetters = ['A', 'B', 'C']
           </a>
         </div>
         <figure class="photo-frame max-w-md mx-auto lg:mx-0 lg:justify-self-end">
-          <img :src="p.intro.photo.src" :alt="p.intro.photo.alt" class="w-full aspect-[5/6] object-cover">
+          <LoopClip v-if="p.intro.photo.clip" :src="p.intro.photo.clip" :alt="p.intro.photo.alt" class="block w-full aspect-[5/6] object-cover" />
+          <img v-else :src="p.intro.photo.src" :alt="p.intro.photo.alt" class="w-full aspect-[5/6] object-cover">
+          <figcaption v-if="p.intro.photo.caption" class="mt-2 text-sm muted font-serif">{{ p.intro.photo.caption }}</figcaption>
         </figure>
       </div>
     </section>
@@ -115,7 +117,8 @@ const actionLetters = ['A', 'B', 'C']
                 </tbody>
               </table>
               <figure v-if="step.photo" class="photo-frame">
-                <img :src="step.photo.src" :alt="step.photo.alt" loading="lazy" class="w-full aspect-[4/3] object-cover">
+                <LoopClip v-if="step.photo.clip" :src="step.photo.clip" :alt="step.photo.alt" class="block w-full aspect-[4/3] object-cover" />
+                <img v-else :src="step.photo.src" :alt="step.photo.alt" loading="lazy" class="w-full aspect-[4/3] object-cover">
               </figure>
             </aside>
           </li>
@@ -174,6 +177,16 @@ const actionLetters = ['A', 'B', 'C']
             </a>
           </li>
         </ul>
+
+        <div v-if="p.fleets.gallery" class="mt-12">
+          <h3 class="font-display text-2xl text-ink">{{ p.fleets.gallery.title }}</h3>
+          <p class="mt-2 font-serif text-ink-soft max-w-2xl">{{ p.fleets.gallery.lead }}</p>
+          <div class="mt-6 grid gap-4 grid-cols-2 md:grid-cols-3">
+            <figure v-for="(g, i) in p.fleets.gallery.photos" :key="g.src" class="photo-frame" :class="i === 2 ? 'hidden md:block' : ''">
+              <img :src="g.src" :alt="g.alt" loading="lazy" decoding="async" width="720" height="900" class="w-full h-auto aspect-[4/5] object-cover">
+            </figure>
+          </div>
+        </div>
       </div>
     </section>
 
