@@ -1,12 +1,18 @@
-# Print guide page (/print-guide), and the printing half of the PRINTING.pdf
+# Print guide page (/print-guide): the settings, every piece and its color,
+# each fleet, and how it all goes together. (/parts used to be a separate
+# page and now redirects here.) Also the printing half of the PRINTING.pdf
 # and PRINTING.md inside every STL zip.
 #
-# One source for all of them: rulebook/typst/print-list.typ (the PDF) and
-# scripts/lib/print_guide.py (the Markdown) read this file, plus the print
-# lists in print-lists.yml and the assembly cards in parts.yml. After editing,
+# rulebook/typst/print-list.typ (the PDF) and scripts/lib/print_guide.py (the
+# Markdown) read `settings`, `colors` and `fleets` from this file, plus the
+# print lists and assembly steps in print-lists.yml. After editing those,
 # rebuild: `npx jake print-lists` for the PDFs the site links, `npx jake stl`
 # for the free base set zip, `npx jake publish-sets` for the paid sets and the
-# all-fleets bundle.
+# all-fleets bundle. `pieces` and `assembly` are site only.
+#
+# Where the rest lives, so it isn't repeated here:
+#   how many of each to print    print-lists.yml (/print-list/<set>)
+#   the fleets, stats and cards  shared/data/fleets.json (/shop/<fleet>)
 #
 # Printing facts only. This text ships inside the downloads, so no faction
 # backstory here. `**bold**` works in every text field.
@@ -14,14 +20,15 @@
 seo:
   title: Print Guide
   description: >-
-    Slicer settings and filament colors for every Cannons & Coastlines fleet,
-    from the Queen's Fleet to the Shadow Fleet.
+    Slicer settings, filament colors and assembly for every Cannons &
+    Coastlines piece and fleet.
 
 hero:
   title: Print Guide
   intro: >-
-    The slicer settings and colors for each fleet. The same guide comes in
-    every STL download as PRINTING.md.
+    The slicer settings, what each piece is and what color to print it, and
+    how it all goes together. The settings and colors also come in every STL
+    download as PRINTING.md.
 
 settings:
   title: Settings for everything
@@ -38,6 +45,8 @@ settings:
     The add-on fleet downloads have the hulls and each fleet's own parts. The
     masts, cargo, cannons and wheels come from the free base set.
 
+# The PDF prints these rows as a table. On the site each piece below shows
+# its color from here instead, by `color` id.
 colors:
   title: Colors by part
   lead: Hull colors are listed under each fleet.
@@ -59,6 +68,84 @@ colors:
   note: >-
     The Corsairs and the Shadow Fleet are the exceptions. Print their masts and
     sails in the same color as the hull.
+
+# Every base-set piece except the hulls (those are under `fleets`). Site
+# only. color: an id from `colors` above. tip: a printing note, optional.
+# `desc` and `tip` accept **bold** and *italic*. Renders are cached as
+# immutable, so a re-rendered one needs a new ?v=.
+pieces:
+  title: The pieces
+  lead: >-
+    Everything in the base set except the hulls. The colors are suggestions.
+  items:
+    - render: /assets/images/renders/mast.png?v=0.5
+      name: Mast
+      color: masts
+      desc: A *fitting*. Plugs into the deck and comes off when the ship takes a hit. The flag holder is built into the top.
+      tip: If masts won't seat at all, your nozzle is probably too close to the bed.
+    - render: /assets/images/renders/mast-short.png
+      name: Short Mast
+      color: masts
+      desc: The same mast, cut down. It goes on islands and on Islander catamarans.
+    - render: /assets/images/renders/cargo.png?v=0.5
+      name: Cargo
+      color: cargo
+      desc: A *fitting*. A chest of supplies that comes off when the ship takes a hit.
+    - render: /assets/images/renders/barrel.png
+      name: Barrel
+      color: cargo
+      desc: A *fitting*, like cargo.
+    - render: /assets/images/renders/sail.png
+      name: Sail
+      color: sails
+      desc: Slides over a mast. Cosmetic, but it's how you tell fleets apart across the table.
+    - render: /assets/images/renders/sail-damaged.png?v=2
+      name: Damaged Sail
+      color: sails
+      desc: A torn sail. It's just cosmetic, but it looks good on pirates.
+    - render: /assets/images/renders/cannon.png?v=0.5
+      name: Cannon
+      color: cannons
+      desc: The gun. It plugs into any cannon slot on a ship or island, and you press the arm down until it fires.
+      tip: The arm loses tension after a few hundred shots, so print a couple of spares.
+    - render: /assets/images/renders/cannonball.png?v=3
+      name: Cannonball
+      color: cannonballs
+      desc: Goes in the muzzle. They're really easy to lose.
+      tip: PLA works best. Coarser layers shoot harder and less predictably.
+    - render: /assets/images/renders/movement-wheel.png?v=0.5
+      name: Movement Wheel
+      color: wheels
+      desc: Lives in the stern. One full turn is one *click* of movement. It needs a 10 mm **rubber band** or silicone cable tie around the rim or it won't click.
+    - render: /assets/images/renders/island.png
+      name: Island
+      color: islands
+      desc: A whole island that sits right on the table. Cannon slots on top, and a short mast holds your flag.
+    - render: /assets/images/renders/island-topper.png
+      name: Island Topper
+      color: islands
+      desc: A puck with cannon slots and flag holes. Set it on a box, a book, or an upside-down mug and you have an island.
+    - render: /assets/images/renders/rock1.png?v=2
+      name: Rock
+      color: rocks
+      desc: Terrain. It blocks ships and cannonballs.
+    - render: /assets/images/renders/reef.png?v=2
+      name: Reef
+      color: reefs
+      desc: Terrain too, and it works the same as a rock.
+    - render: /assets/images/renders/coin-skilled-gunner.png
+      name: Coins
+      color: coins
+      desc: Six kinds (Brace, Full Sail, Evasive, Gunner, Repair and Boarding). They go in a cloth bag.
+      tip: Silk gold gives the sheen in the renders. Matte gold is fine.
+    - render: /assets/images/renders/wind-dial.png
+      name: Wind Dial
+      color: dial
+      desc: A base, a vane, a washer and a cap, for the optional Trade Winds rule. A steel M8 washer spins better than the printed one.
+    - render: /assets/images/renders/ship-tolerance-test.png
+      name: Fit Test
+      color: fit-test
+      desc: A small block with the same slots as a hull. Print it first to check that your masts, cargo and cannons fit before you print a whole fleet.
 
 fleets:
   title: By fleet
@@ -104,3 +191,11 @@ fleets:
       name: The Islanders
       set: islander-set
       hull: Pine or light brown wood PLA
+
+# The steps are print-lists.yml `steps`, the same list every PRINTING.pdf
+# has, so there's one copy of them.
+assembly:
+  title: Putting it together
+  lead: >-
+    Everything press-fits, so you don't need glue or tools. The wheel is the
+    only part you fit once and leave in.

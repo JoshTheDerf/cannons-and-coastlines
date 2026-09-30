@@ -5,8 +5,9 @@
 #   - the page             nuxt-site/app/pages/print-list/[set].vue
 #   - the PDF              rulebook/typst/print-list.typ (npx jake print-lists)
 #   - the Markdown         scripts/lib/print_guide.py
-# Colors and settings come from print-guide.yml, assembly steps from
-# parts.yml. Rebuild the zips after editing (see print-guide.yml).
+# Colors and settings come from print-guide.yml. `steps` below is also the
+# assembly section of /print-guide. Rebuild the zips after editing (see
+# print-guide.yml).
 #
 # Printing facts only, no faction backstory: this ships inside the downloads.
 # Keep it short. A list plus its printing notes fits on two PDF pages; the

@@ -11,8 +11,9 @@ seo:
     for treasure.
 
 hero:
-  # A link above the wordmark for an event; delete to hide it.
-  live: { label: 'Watch the playtest #2 recap', to: /playtest-2 }
+  # A link above the wordmark for an event, e.g.
+  #   live: { label: 'Watch the playtest #2 recap', to: /playtest-2 }
+  # Leave it out while the announcement bar (site.yml) says the same thing.
   wordmark: /assets/images/wordmark-sm.webp
   tagline: A tabletop game of naval conquest
   description: >-
@@ -177,73 +178,22 @@ howToPlay:
     - { label: Rulebook (PDF), href: /rulebook/pdf/rulebook.pdf, icon: i-lucide-book-open }
     - { label: Print-and-fold booklet, href: /rulebook/pdf/rulebook-booklet.pdf, icon: i-lucide-printer }
     - { label: Trade Winds rule (1 page), href: /rulebook/pdf/trade-winds.pdf, icon: i-lucide-wind }
+    - { label: All faction cards (print sheet), href: /rulebook/pdf/faction-cards-print-sheet.pdf, icon: i-lucide-layers }
   version: v0.6, September 2026
-  changesHref: /live#changes
+  changesHref: /playtest-2#changes
 
 fleets:
   title: The fleets
   lead: >-
     The base game comes with two fleets. They're a good match for each other,
-    and either one works for your first game.
-  base:
-    - name: Queen's Fleet
-      image: /assets/ships/ship-preview-queen-fleet-large-sm.webp?v=0.5
-      summary: Well-armed frigates, and the easiest fleet to learn.
-      stats:
-        - [Ships, '3']
-        - [Fittings, 4 each]
-        - [Cannon slots, 3 per side]
-        - [Move Count, '3']
-      ability: Disciplined Crew
-      abilityBody: Ships can turn up to 180° instead of 90° when they steer.
-      card: /rulebook/pdf/faction-card-queens-fleet.pdf
-    - name: Corsairs
-      image: /assets/ships/ship-preview-corsairs-sm.webp?v=0.5
-      summary: Fast sloops with thin hulls. They do best when they pick their fights.
-      stats:
-        - [Ships, '3']
-        - [Fittings, 3 each]
-        - [Cannon slots, 3 per side]
-        - [Move Count, '4']
-      ability: Plunder
-      abilityBody: An extra coin for every successful boarding or island capture.
-      card: /rulebook/pdf/faction-card-corsairs.pdf
+    and either one works for your first game. Each fleet's page has its
+    stats, ability and faction card.
+  # The fleets themselves (names, pictures, stats) are in
+  # nuxt-site/shared/data/fleets.json.
   addonsTitle: Add-on fleets
   addonsLead: >-
-    Five more fleets are in playtesting. Early-release digital files are now
-    available, $5 each in the shop at the early-bird price, which is how we
-    fund the rest of the work. The faction cards are free to look at.
-  addons:
-    - name: Treasure Fleet
-      shop: /shop/treasure-fleet
-      image: /assets/ships/ship-preview-treasure-fleet-sm.webp
-      stats: 3 junks · 3 fittings · Move 2
-      body: Three slow junks, and every island they hold pays out double.
-      card: /rulebook/pdf/faction-card-treasure-fleet.pdf
-    - name: Stone Fleet
-      shop: /shop/stone-fleet
-      image: /assets/ships/ship-preview-stone-fleet-sm.webp
-      stats: 3 barges · 4 fittings · Move 2
-      body: Stone ships. They're slow, but at sea each one ignores the first hit it takes every turn.
-      card: /rulebook/pdf/faction-card-stone-fleet.pdf
-    - name: Shadow Fleet
-      shop: /shop/shadow-fleet
-      image: /assets/ships/ship-preview-shadow-fleet-sm.webp?v=2
-      stats: 3 galleons · 3 fittings · Move 3
-      body: Spend 2 coins to bring a sunken ship back at any island you hold.
-      card: /rulebook/pdf/faction-card-shadow-fleet.pdf
-    - name: The Industry
-      shop: /shop/industry
-      image: /assets/ships/ship-preview-industry-sm.webp
-      stats: 3 warships · 2 fittings + turret · Move 3
-      body: A forward bow gun plus a turret that fires any direction (until it gets shot off).
-      card: /rulebook/pdf/faction-card-the-industry.pdf
-    - name: The Islanders
-      shop: /shop/islanders
-      image: /assets/ships/ship-preview-islanders-sm.webp
-      stats: 5 catamarans · 1 fitting · Move 4
-      body: Lots of fast, fragile boats with their guns at the back. They start the game already holding an island.
-      card: /rulebook/pdf/faction-card-the-islanders.pdf
+    Five more fleets are in playtesting. Their STL files are on sale now at an
+    early-bird price, which is how we fund the rest of the work.
   gallery:
     title: At the table
     lead: >-
@@ -285,8 +235,8 @@ signup:
     label: Just want the rules? Read the rulebook PDF.
     href: /rulebook/pdf/rulebook.pdf
   partsLink:
-    label: What's in the pack and how to print it
-    to: /parts
+    label: Rather skip the email? Download the base set directly.
+    to: /print-list/base-set
   kitUid: a74f27ac96
   kitSrc: https://cannons-and-coastlines.kit.com/a74f27ac96/index.js
   discord:
@@ -333,42 +283,3 @@ about:
       changed pretty much every time a playtest turns up a problem. The base
       game is free to download and print, and it'll stay that way.
     - 'The ships and parts are modeled in CubbyCAD, a browser CAD app I made for this game, and sliced in Cubby Slicer, my web port of OrcaSlicer. [Here''s how](/tools).'
-
-# The rulebook change notes, newest release first. Shown on /live, linked
-# from "How to play". Items are RichText.
-changelog:
-  title: What changed
-  description: What each rulebook update changed, newest first.
-  releases:
-    - version: v0.6
-      released: '2026-09-24'
-      items:
-        - '**Parking at islands no longer wins.** Surviving ships don''t score any more, and a coin is worth a quarter of what it was. Points are 8 per island, 4 per prize fitting, 8 per prize hull, 1 per coin and +8 each for most ships and most islands, and you can declare victory at 60. Only points you hold when your turn begins count, so everyone gets a round to answer.'
-        - '**Trade Winds.** An optional one-page rule. Spin the Wind Dial at the start of each round, and ships sailing with the wind get +1 Move Count while ships sailing into it get -1 (they still click at least once). The dial prints from the base set, and a steel M8 washer helps it spin. In the web game, turn it on at setup or when you create an online game.'
-        - '**Prizes.** Keep every fitting you knock off an enemy ship, and the hull of every ship you sink or capture. A fitting is worth 4 points and a hull 8. When a ship is repaired, captured or raised, whoever holds the piece gives it back.'
-        - '**Collect from a distance.** Each turn, your ship nearest each of your islands can collect a coin there, touching it or not. A ship out at sea still sails forward after collecting.'
-        - '**Treasure Fleet gets a third junk.** Two ships were too few to hold their own at the table.'
-        - '**Stone Hulls only work at sea.** A Stone Fleet ship touching an island takes every hit.'
-        - '**Real tables, and where to sit.** A 6 ft round or a 6 or 8 ft folding table works well. Two players sit a quarter of the way round a round table, or diagonally across a folding one, so the fighting starts sooner. With three or more, put a rock just past each end of every fleet''s line. On a narrow table, islands run down the middle.'
-        - '**Full Sail replaces Signal Flags.** It lets one ship steer and sail twice in a turn, but that ship can''t fire. The 20-coin set is now 5 Brace, 2 Full Sail, 2 Evasive, 5 Gunner, 4 Repair, 2 Boarding.'
-        - '**Spend coins between ships.** You can spend coins before any of your ships takes its turn, as well as at the start of yours.'
-        - '**Cannons in the web game now shoot like the printed ones.** Two elevations (straight out or tipped up), no power control, a few degrees of spread, and a tapered ball that skids and curls to a stop.'
-    - version: v0.5
-      released: '2026-09-19'
-      items:
-        - '**Always Underway is the standard game now.** Every ship takes one action, then sails forward. You can steer or fire, but not both.'
-        - '**Islands are the only place to hold still.** A ship that takes an island action skips its forward click.'
-        - '**Move Count is a ceiling.** Click at least once, and up to your full count.'
-        - '**Run out of table and you sink.** A ship forced off the edge with no room left is scuttled.'
-        - '**Signal Flags reworked.** One of your ships gives up its action, and another takes two full turns.'
-        - '**Full Sail is gone.** Signal Flags pretty much covered it. The coin bag now leans toward guns and boarding: 4 Brace, 2 Signal, 2 Evasive, 4 Gunner, 4 Repair, 4 Boarding.'
-    - version: v0.4
-      released: '2026-05-18'
-      items:
-        - "**Faster fleets.** Every faction except the Islanders gains a click of movement. Shadow Fleet now matches Queen's Fleet."
-        - '**Corsairs down to three sloops.** Four was a lot to keep track of each turn. Three sloops at Move Count 4 can still flank just fine.'
-        - '**Islanders down to one fitting.** One hit leaves a catamaran dead in the water, which is pretty much the point.'
-        - '**Deploy at the table edge.** Ships now start touching the table edge. The old 3-inch gap just wasted space.'
-        - '**Ricochets.** The first ship a cannonball touches takes the hit. Anything it bounces into after that is fine.'
-        - '**Cannons need a crew.** To fire any cannon, a ship of yours must be touching it and spend its action. Islands no longer fire on their own.'
-        - '**Always Underway.** An optional mode where ships have to move forward every turn, and can steer or fire but not both.'

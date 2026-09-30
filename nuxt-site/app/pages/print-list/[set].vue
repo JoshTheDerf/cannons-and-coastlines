@@ -9,8 +9,9 @@
 //
 // Words: content/pages/print-lists.yml and print-guide.yml, the same files
 // rulebook/typst/print-list.typ renders into PRINTING.pdf (which also has
-// the assembly steps; here they're a link to /parts). Keep
-// colorOf() and qtyOf() in step with color-of() and qty-of() there.
+// the assembly steps; on the site they're on /print-guide#assembly, so here
+// they're a link). Keep colorOf() and qtyOf() in step with color-of() and qty-of()
+// there.
 
 import manifest from '~~/server/data/sets.json'
 
@@ -91,19 +92,7 @@ const settingsRows = computed((): [string, string][] => [
   ['Material', L.value.material],
   ...(G.value.settings.rows as [string, string][]).filter(([k]) => k !== 'Material' && k !== 'Supports')
 ])
-// Every file on this list, for the steps' `needs` (mirrors files-here).
-const filesHere = computed(() => {
-  const fs = fleets.value.flatMap(f => f.parts.map(p => p.file))
-  if (hasBase) {
-    for (const sec of ['perPlayer', 'perTable']) {
-      for (const p of L.value.general[sec].parts as (Part & { files?: string[] })[]) fs.push(...(p.files ?? [p.file]))
-    }
-  }
-  return fs
-})
-const steps = computed(() => (L.value.steps.items as { text: string, needs?: string[] }[])
-  .filter(st => !st.needs || st.needs.some(n => filesHere.value.includes(n))))
-const guideUrl = `/print-guide${fleets.value.length === 1 ? `#${fleets.value[0]!.id}` : ''}`
+const guideUrl = `/print-guide${fleets.value.length === 1 ? `#${fleets.value[0]!.id}` : '#fleets'}`
 const versions = setIds.map((s) => {
   const e = sets.find(x => x.id === s)!
   return `${e.title} v${e.version}`
@@ -224,9 +213,11 @@ useSeoMeta({
         <div class="mt-10 grid md:grid-cols-[1.4fr_1fr] gap-10">
           <div>
             <h2 class="font-display text-2xl text-ink">{{ L.steps.title }}</h2>
-            <ol class="mt-4 list-decimal pl-5 space-y-2 font-serif text-sm text-ink-soft">
-              <li v-for="st in steps" :key="st.text"><RichText :text="st.text" /></li>
-            </ol>
+            <p class="mt-3 font-serif text-sm text-ink-soft">
+              <NuxtLink to="/print-guide#assembly" class="underline text-[color:var(--gold)]">The print guide</NuxtLink>
+              shows how the pieces go together, and has
+              <NuxtLink :to="guideUrl" class="underline text-[color:var(--gold)]">the colors and a picture of each hull</NuxtLink>.
+            </p>
           </div>
           <div>
             <h2 class="font-display text-2xl text-ink">{{ L.kit.title }}</h2>
@@ -236,10 +227,6 @@ useSeoMeta({
             <p v-else class="mt-3 font-serif text-sm text-ink-soft">
               <RichText :text="L.kit.paid" />{{ " " }}
               <NuxtLink :to="`/print-list/${baseSetId}`" class="underline text-[color:var(--gold)]">The base set print list</NuxtLink>
-            </p>
-            <p class="mt-6 font-serif text-sm text-ink-soft">
-              <NuxtLink :to="guideUrl" class="underline text-[color:var(--gold)]">The print guide</NuxtLink>
-              has the colors and a picture of each hull.
             </p>
           </div>
         </div>

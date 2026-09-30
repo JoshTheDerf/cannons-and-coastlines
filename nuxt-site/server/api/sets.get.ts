@@ -1,11 +1,11 @@
 // Public, read-only view of the STL set manifest.
 //
-// The join key between marketing copy and commerce: content/pages/home.yml
-// gives each faction card a `set:` id, and the page merges this response in to
-// decide whether to render "Coming Soon" or a price and a buy button. That
-// indirection is what makes the drip-feed a one-line change — flipping
+// The join key between the fleets and commerce: each fleet in
+// shared/data/fleets.json names its `set`, and pages use this response to
+// decide whether to show "Coming Soon" or a price and a buy button. That
+// indirection is what makes the drip-feed a one-line change: flipping
 // `status` in server/data/sets.json changes the site without touching a
-// component or redeploying content.
+// component or any copy.
 //
 // Only fields safe for anyone to see. sourceDir stays server-side:
 // it is a local path. The price shown here is for display only; checkout
@@ -24,7 +24,6 @@ export default defineEventHandler(() => ({
     priceUsd: set.priceUsd,
     earlyBird: !!set.earlyBird,
     images: set.images,
-    factionCard: set.factionCard,
     // Present only for free sets; paid sets are reachable only through
     // /api/download-link and an entitlement.
     freeDownloadUrl: set.freeDownloadUrl

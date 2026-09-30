@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { FLEETS, fleetPage } from '#shared/utils/fleets'
+
 const { data: page } = await useAsyncData('playtest-2', () =>
   queryCollection('pages').where('stem', '=', 'pages/playtest-2').first()
 )
@@ -76,20 +78,22 @@ useSeoMeta({
             <RichText v-for="(item, i) in p.contents.kit" :key="i" tag="li" :text="item" />
           </ul>
           <div class="mt-8 flex flex-wrap justify-center gap-x-4 gap-y-6">
-            <figure v-for="s in p.contents.ships" :key="s.name" class="text-center w-[calc(50%-0.5rem)] md:w-[calc(25%-0.75rem)]">
-              <img :src="s.image" :alt="s.name" loading="lazy" class="w-full aspect-[4/3] object-contain">
-              <figcaption class="mt-1 font-display text-ink">{{ s.name }}</figcaption>
-              <FilesButtons :fleet="s.name" size="xs" block class="mt-2" />
+            <figure v-for="f in FLEETS" :key="f.id" class="text-center w-[calc(50%-0.5rem)] md:w-[calc(25%-0.75rem)]">
+              <NuxtLink :to="fleetPage(f)" class="block group">
+                <img :src="f.image" :alt="f.name" loading="lazy" class="w-full aspect-[4/3] object-contain">
+                <figcaption class="mt-1 font-display text-ink group-hover:text-[color:var(--heading)]">{{ f.name }}</figcaption>
+              </NuxtLink>
+              <FilesButtons :fleet="f.id" size="xs" class="mt-2 justify-center" />
             </figure>
           </div>
         </div>
       </div>
     </section>
 
-    <section v-if="home?.changelog" id="changes" class="px-4 pb-20">
+    <section v-if="p.changelog" id="changes" class="px-4 pb-20 scroll-mt-20">
       <div class="container mx-auto max-w-4xl py-16">
-        <SectionHeader :title="home.changelog.title" :description="home.changelog.description" />
-        <ChangelogList :releases="home.changelog.releases" />
+        <SectionHeader :title="p.changelog.title" :description="p.changelog.description" />
+        <ChangelogList :releases="p.changelog.releases" />
       </div>
     </section>
 

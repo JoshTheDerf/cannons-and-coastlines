@@ -81,6 +81,7 @@ export default defineNuxtConfig({
     // on the site still can.
     '/': { headers: { 'Cross-Origin-Embedder-Policy': 'unsafe-none' } },
     '/live': { headers: { 'Cross-Origin-Embedder-Policy': 'unsafe-none' } },
+    '/playtest-2': { headers: { 'Cross-Origin-Embedder-Policy': 'unsafe-none' } },
     '/starter-pack': { headers: { 'Cross-Origin-Embedder-Policy': 'unsafe-none' } }
   },
   content: {
