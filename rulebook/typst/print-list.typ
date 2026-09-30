@@ -3,8 +3,9 @@
 //   typst compile --input set=<set-id | bundle-id> print-list.typ out.pdf
 //
 // This is the PRINTING.pdf inside each zip and the PDF the /print-list/<set>
-// page links. It has no words of its own: the lists are
-// nuxt-site/content/pages/print-lists.yml (parts, steps, kit), the colors
+// page (and /print-guide, for the base set) links. It has no words of its
+// own: the lists are nuxt-site/content/pages/print-lists.yml (parts, howTo,
+// steps, kit), the colors
 // and settings print-guide.yml, and the set titles and versions
 // nuxt-site/server/data/sets.json. The site page reads the same
 // files. Same page and type as the rulebook (style.typ).
@@ -33,8 +34,10 @@
 #if fleets.len() == 0 { panic("print-list.typ: print-lists.yml has no fleet for " + target) }
 #let has-base = lists.base.set in set-ids
 #let short-url(u) = link(u, u.replace("https://", ""))
-#let page-url = site + "/print-list/" + target
-#let base-url = site + "/print-list/" + lists.base.set
+// The base set's list is the print guide.
+#let list-url(id) = site + if id == lists.base.set { "/print-guide" } else { "/print-list/" + id }
+#let page-url = list-url(target)
+#let base-url = list-url(lists.base.set)
 
 // ── Text helpers ─────────────────────────────────────────────────────────
 
@@ -125,10 +128,6 @@
     align(center, text(size: 10pt, style: "italic", fill: colors.sub)[#f.ships #f.shipType with #f.fittings])
   }
   parts-table(f.parts, fleet: f, show-base: paid)
-  // In the bundle the intro says it once for every fleet.
-  if paid and not has-base {
-    text(size: 9pt)[#rich(lists.base.body) Get it at #short-url(base-url).]
-  }
 })
 
 // ── Document ─────────────────────────────────────────────────────────────
@@ -177,17 +176,17 @@
   fs
 }
 
-#let material = lists.material
-
-// Material and the settings from print-guide.yml, in one row. The part
-// tables already say which parts need supports.
+// The settings from print-guide.yml, in one row. The part tables say which
+// parts need supports.
 #let settings-block = {
-  let rows = (("Material", material),) + guide.settings.rows.filter(r => r.at(0) not in ("Material", "Supports")).map(r => (r.at(0), r.at(1)))
+  let rows = guide.settings.rows.map(r => (r.at(0), r.at(1)))
+  set par(justify: false)
   block(width: 100%, above: 0.12in, below: 0.1in, inset: (x: 8pt, y: 6pt), radius: 2pt,
     stroke: 0.5pt + colors.box-border, fill: rgb(245, 235, 220, 70),
     grid(
-      columns: (1fr, 1fr, 1fr, 1fr),
-      column-gutter: 10pt,
+      // Auto columns share out the width by what's in them.
+      columns: rows.map(_ => auto),
+      column-gutter: 14pt,
       ..rows.map(((k, v)) => [
         #text(size: 7.5pt, weight: 700, fill: colors.brown, tracking: 0.8pt)[#upper(k)] \
         #text(size: 9pt)[#rich(v)]
@@ -203,27 +202,43 @@
     .map(st => rich(st.text))))
 }
 
-#let kit-section = {
+// What a game needs besides the prints. An add-on fleet's list says it
+// needs the base set in its steps at the top instead.
+#let kit-section = if has-base {
   list-title(lists.kit.title)
-  compact(if has-base {
-    for p in lists.kit.body [#rich(p)
-
-    ]
-  } else [
-    #rich(lists.kit.paid) #short-url(base-url)
-  ])
+  compact(rich(lists.kit.body))
 }
 
-#for f in fleets { fleet-list(f) }
+// The numbered "How to do it" (print-lists.yml howTo, the `file` wording).
+// The free zip has no plates folder, so it points at the page for those.
+#let how-to = {
+  let h = lists.howTo
+  let fill(s) = s.replace("{page}", page-url.replace("https://", "")).replace("{base}", base-url.replace("https://", ""))
+  let steps = (
+    if bundle == none and not find-set(target).paid { h.get.fileFree } else { h.get.file },
+    ..if has-base { () } else { (h.base.file,) },
+    h.print.file,
+    h.build.file,
+  )
+  block(width: 100%, above: 0.1in, below: 0.08in, inset: (x: 8pt, y: 6pt), radius: 2pt,
+    stroke: 0.5pt + colors.gold, {
+      text(size: 7.5pt, weight: 700, fill: colors.brown, tracking: 0.8pt)[#upper(h.title)]
+      v(0.02in)
+      compact(enum(..steps.map(st => rich(fill(st)))))
+    })
+}
 
-#settings-block
+#how-to
+
+#for f in fleets { fleet-list(f) }
 
 // ----- The shared pieces -----
 
 #if has-base {
-  // The base set's two fleets fill the first page; the shared pieces start
-  // the second.
+  // The base set's two fleets fill the first page; the settings and the
+  // shared pieces start the second.
   if bundle == none { pagebreak(weak: true) }
+  settings-block
   list-title(lists.general.title)
   for sec in ("perPlayer", "perTable") {
     let s = lists.general.at(sec)
@@ -231,16 +246,17 @@
     text(size: 9.5pt, weight: 700, fill: colors.brown, tracking: 0.8pt)[#upper(s.title)]
     parts-table(s.parts)
   }
+} else {
+  settings-block
 }
 
 #steps-section
 #kit-section
 
-// The fleet's shop page and its card in the print guide.
+// The fleet's shop page, and the print guide unless this is it.
 #let shop-url = site + "/shop" + if bundle != none { "" } else if has-base { "/base-set-files" } else { "/" + fleets.first().id }
-#let guide-url = site + "/print-guide" + if fleets.len() == 1 { "#" + fleets.first().id } else { "" }
 #v(0.1in, weak: true)
 #set par(justify: false)
 #text(size: 8.5pt, style: "italic", fill: colors.sub)[
-  The shop page is #short-url(shop-url), and the print guide is at #short-url(guide-url).
+  The shop page is #short-url(shop-url)#if page-url != base-url [, and the print guide is at #short-url(base-url)].
 ]

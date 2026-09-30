@@ -238,7 +238,7 @@ signup:
     href: /rulebook/pdf/rulebook.pdf
   partsLink:
     label: Rather skip the email? Download the base set directly.
-    to: /print-list/base-set
+    to: /print-guide
   kitUid: a74f27ac96
   kitSrc: https://cannons-and-coastlines.kit.com/a74f27ac96/index.js
   discord:

@@ -1,8 +1,12 @@
-# Print lists: /print-list/<set-id> on the site, and the PRINTING.pdf (plus
-# PRINTING.md) inside every STL zip.
+# Print lists: the free base set's is on /print-guide (/print-list/base-set
+# redirects there), every other set's and the bundle's on
+# /print-list/<set-id>, and each one is also the PRINTING.pdf (plus
+# PRINTING.md) inside its STL zip.
 #
 # One source for all of them:
-#   - the page             nuxt-site/app/pages/print-list/[set].vue
+#   - the base set page    nuxt-site/app/pages/print-guide.vue
+#   - the other pages      nuxt-site/app/pages/print-list/[set].vue
+#                          (both use composables/usePrintList.ts)
 #   - the PDF              rulebook/typst/print-list.typ (npx jake print-lists)
 #   - the Markdown         scripts/lib/print_guide.py
 # Colors and settings come from print-guide.yml. `steps` below is also the
@@ -10,9 +14,9 @@
 # print-guide.yml).
 #
 # Printing facts only, no faction backstory: this ships inside the downloads.
-# Keep it short. A list plus its printing notes fits on two PDF pages; the
-# PDF build doesn't check that, so look at it. `**bold**` and `*italic*`
-# work in every text field.
+# Keep it short. An add-on fleet's PDF fits on one page and the base set's
+# on two; the PDF build doesn't check that, so look at it (pdfinfo).
+# `**bold**` and `*italic*` work in every text field.
 #
 # HOW THE COUNTS ARE WORKED OUT
 #   ships     the faction card (rulebook/typst/factions.typ).
@@ -41,10 +45,36 @@ hero:
   title: Print List
   intro: Every file to print, how many copies, what color and whether it needs supports.
 
-# How a paid fleet's list points at the free files it needs.
+# The free set every other list borrows parts from. The rows marked
+# `base: true` say "from the base set".
 base:
   set: base-set
-  body: The parts marked "from the base set" come with the free base set download.
+
+# The numbered "How to do it" at the top of every print list: the pages,
+# PRINTING.pdf and PRINTING.md. `web` is the site's wording, `file` the
+# PDF's and the Markdown's (`fileFree` for the free zip, which has no plates
+# folder). `buy` is for a paid list opened without the order key, `base` for
+# an add-on fleet. Placeholders:
+#   {zip}        the zip download         {page}      this list online
+#   {base}       the base set (/print-guide)
+#   {settings}   /print-guide#settings    {assembly}  /print-guide#assembly
+howTo:
+  title: How to do it
+  get:
+    web: '**Get the files.** [Download the zip]({zip}), or open the [plates below](#slicer) in CubbySlicer, one for each color.'
+    file: '**Get the files.** The STLs are in this zip. The plates folder has a 3MF for each color, with the settings, for OrcaSlicer or CubbySlicer.'
+    fileFree: '**Get the files.** The STLs are in this zip. To print from CubbySlicer, open the plates for each color at {page}.'
+  buy:
+    web: "**Get the files.** Buy them above. If you already have, open this list from your order page (it's linked in your Stripe receipt email)."
+  base:
+    web: '**Get the free [base set]({base}) too.** It has the masts, cargo, cannons and wheels (the plates below include them), and the coins, islands and terrain a game needs.'
+    file: '**Get the free base set too**, from {base}. It has the masts, cargo, cannons and wheels, and the coins, islands and terrain a game needs.'
+  print:
+    web: '**Print each color.** The plates have the settings in them. If you slice the STLs yourself, use [these settings]({settings}).'
+    file: '**Print each color** with the settings below.'
+  build:
+    web: '**Put it together** with the [assembly steps]({assembly}).'
+    file: '**Put it together** with the steps at the end.'
 
 fleets:
   items:
@@ -178,37 +208,22 @@ general:
 # (print_guide.py check) accepts them without a warning.
 extras: [island-topper.stl]
 
-# What a full game needs, from the rulebook's Setup. The base-set list (and
-# the bundle) print `body`; an add-on fleet's list prints `paid`, with a link
-# to the base-set list.
+# What a game needs besides the prints. On /print-guide and the lists that
+# include the base set (its PDF and the bundle's). An add-on fleet's list
+# says it needs the base set in its `howTo` instead.
 kit:
-  title: What a game needs
-  body:
-    - >-
-      Each player needs a fleet printed from its list, 20 coins, one or two
-      islands with a short mast each, the faction card and some paper flags.
-    - >-
-      The table needs 2 to 6 rocks and reefs, and the wind dial if you want
-      it.
-    - >-
-      You also need a 10 mm rubber band or silicone cable tie for every wheel
-      and a cloth bag for the coins.
-  paid: >-
-    For a game you also need coins, islands and terrain. They're in the free
-    base set, and its print list has everything a game needs.
-
-# Printing settings. Layer height, Z contouring and infill come from
-# print-guide.yml `settings.rows`; its Material row mentions other fleets, so
-# the lists use this. (The Shadow Fleet's PETG note is on its hull row.)
-material: PLA
+  title: Also needed
+  body: >-
+    Each player needs their faction card, some paper flags for the masts and
+    a cloth bag for the coins.
 
 # Printing and assembly, in order. A step with `needs` only shows on a list
 # that has one of those files.
 steps:
   title: Printing and putting it together
   items:
-    - text: Print the fit test (ship-tolerance-test.stl in the base set) first. If a peg is loose, scale it up 0.5 to 1% in your slicer. If it's tight, sand it a bit.
-    - text: Print a spare cannon or two.
+    - text: Print the fit test (ship-tolerance-test.stl in the base set) first. If a peg is loose, scale it up 0.5 to 1% in your slicer. If it's tight, sand it a bit. If it won't go in at all, your nozzle is probably too close to the bed.
+    - text: Print a spare cannon or two. The arm loses tension after a few hundred shots.
     - text: Stretch a 10 mm rubber band or silicone cable tie around each wheel's rim and push the wheel into the slot under the stern. It should be snug but still spin, and it stays in.
     - text: Plug the fittings into the deck.
     - text: Slide the sails down over the masts, and a paper flag into the slot at the top of a mast.
@@ -220,5 +235,7 @@ steps:
 bundle:
   title: All fleets
   intro: >-
-    There's a folder for each fleet. The base-set folder also has the parts
-    the add-on fleets borrow, and the islands, coins and terrain.
+    There's a folder for each fleet, each with its own plates folder. The
+    base-set folder also has the parts the add-on fleets borrow, and the
+    islands, coins and terrain. The plates folder at the top has the masts,
+    cargo, cannons and wheels for every fleet together.

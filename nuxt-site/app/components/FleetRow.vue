@@ -3,6 +3,7 @@
 // linking to the fleet's page (/shop/<id>), which has everything else. A paid
 // fleet gets its price and Add to cart; a base fleet links to the free files.
 import { fleetPage, statLine, type Fleet } from '#shared/utils/fleets'
+import { printListPath } from '~/composables/usePrintList'
 
 const props = defineProps<{ fleet: Fleet }>()
 const to = computed(() => fleetPage(props.fleet))
@@ -18,7 +19,7 @@ const to = computed(() => fleetPage(props.fleet))
     </div>
     <div class="col-start-2 sm:col-start-auto flex sm:justify-end">
       <FilesButtons v-if="fleet.group === 'addon'" :fleet="fleet.id" class="sm:justify-end" />
-      <NuxtLink v-else :to="`/print-list/${fleet.set}`" class="text-sm font-semibold text-[color:var(--gold)] hover:underline whitespace-nowrap">
+      <NuxtLink v-else :to="printListPath(fleet.set)" class="text-sm font-semibold text-[color:var(--gold)] hover:underline whitespace-nowrap">
         STL files, free
       </NuxtLink>
     </div>

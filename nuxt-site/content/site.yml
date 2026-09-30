@@ -55,7 +55,6 @@ footer:
         - { label: Get the free files, to: /#files }
         - { label: Shop, to: /shop }
         - { label: Print guide, to: /print-guide }
-        - { label: Base set print list, to: /print-list/base-set }
         - { label: GitHub, to: https://github.com/JoshTheDerf/cannons-and-coastlines/tree/main, external: true }
     - title: More
       links:

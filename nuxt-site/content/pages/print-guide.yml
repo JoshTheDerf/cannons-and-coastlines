@@ -1,17 +1,19 @@
-# Print guide page (/print-guide): the settings, every piece and its color,
-# each fleet, and how it all goes together. (/parts used to be a separate
-# page and now redirects here.) Also the printing half of the PRINTING.pdf
-# and PRINTING.md inside every STL zip.
+# Print guide page (/print-guide): the settings, the free base set's print
+# list and download, how it all goes together, and a card for each add-on
+# fleet. /print-list/base-set and /parts redirect here. Also the printing
+# half of the PRINTING.pdf and PRINTING.md inside every STL zip.
 #
 # rulebook/typst/print-list.typ (the PDF) and scripts/lib/print_guide.py (the
 # Markdown) read `settings`, `colors` and `fleets` from this file, plus the
-# print lists and assembly steps in print-lists.yml. After editing those,
-# rebuild: `npx jake print-lists` for the PDFs the site links, `npx jake stl`
-# for the free base set zip, `npx jake publish-sets` for the paid sets and the
-# all-fleets bundle. `pieces` and `assembly` are site only.
+# print lists, the "How to do it" steps and the assembly steps in
+# print-lists.yml. After editing those, rebuild: `npx jake print-lists` for
+# the PDFs the site links, `npx jake stl` for the free base set zip,
+# `npx jake publish-sets` for the paid sets and the all-fleets bundle.
+# `hero` and `assembly` are site only.
 #
 # Where the rest lives, so it isn't repeated here:
-#   how many of each to print    print-lists.yml (/print-list/<set>)
+#   how many of each to print    print-lists.yml (the tables on this page
+#                                and on /print-list/<set>)
 #   the fleets, stats and cards  shared/data/fleets.json (/shop/<fleet>)
 #
 # Printing facts only. This text ships inside the downloads, so no faction
@@ -20,37 +22,30 @@
 seo:
   title: Print Guide
   description: >-
-    Slicer settings, filament colors and assembly for every Cannons &
-    Coastlines piece and fleet.
+    The free Cannons & Coastlines base set: what to print, the slicer
+    settings and colors, CubbySlicer plates and how it goes together.
 
 hero:
   title: Print Guide
   intro: >-
-    The slicer settings, what each piece is and what color to print it, and
-    how it all goes together. The settings and colors also come in every STL
-    download as PRINTING.md.
+    What to print for the free base set, the settings and colors, and how it
+    goes together. The add-on fleets have their own print lists, linked at
+    the bottom.
 
 settings:
-  title: Settings for everything
-  lead: These work for every part in every fleet.
+  title: Settings
+  lead: These work for every part in every fleet. The tables say which parts need supports.
   # [label, value]
   rows:
-    - [Material, PLA, unless a fleet says otherwise.]
+    - [Material, PLA]
     - [Layer height, "0.12–0.20 mm (0.16 mm recommended)"]
     - [Z contouring, 'On']
     - [Orientation, Use your slicer's auto-orient.]
     - [Infill, 10% or more]
-    - [Supports, Off. Only the Shadow Fleet and Treasure Fleet need them.]
-  baseSet: >-
-    The add-on fleet downloads have the hulls and each fleet's own parts. The
-    masts, cargo, cannons and wheels come from the free base set.
 
-# The PDF prints these rows as a table. On the site each piece below shows
-# its color from here instead, by `color` id.
+# The color for each kind of part. The print lists (print-lists.yml) look a
+# color up by `id`; hull colors are under `fleets`.
 colors:
-  title: Colors by part
-  lead: Hull colors are listed under each fleet.
-  # id: the key the print lists (print-lists.yml) look a color up by.
   rows:
     - { id: masts, part: Masts, color: Brown }
     - { id: cargo, part: Cargo and barrels, color: Brown }
@@ -65,96 +60,20 @@ colors:
     - { id: reefs, part: Reefs, color: Pale pink }
     - { id: dial, part: Wind dial, color: Any }
     - { id: fit-test, part: Fit test, color: Anything }
-  note: >-
-    The Corsairs and the Shadow Fleet are the exceptions. Print their masts and
-    sails in the same color as the hull.
 
-# Every base-set piece except the hulls (those are under `fleets`). Site
-# only. color: an id from `colors` above. tip: a printing note, optional.
-# `desc` and `tip` accept **bold** and *italic*. Renders are cached as
-# immutable, so a re-rendered one needs a new ?v=.
-pieces:
-  title: The pieces
-  lead: >-
-    Everything in the base set except the hulls. The colors are suggestions.
-  items:
-    - render: /assets/images/renders/mast.png?v=0.5
-      name: Mast
-      color: masts
-      desc: A *fitting*. Plugs into the deck and comes off when the ship takes a hit. The flag holder is built into the top.
-      tip: If masts won't seat at all, your nozzle is probably too close to the bed.
-    - render: /assets/images/renders/mast-short.png
-      name: Short Mast
-      color: masts
-      desc: The same mast, cut down. It goes on islands and on Islander catamarans.
-    - render: /assets/images/renders/cargo.png?v=0.5
-      name: Cargo
-      color: cargo
-      desc: A *fitting*. A chest of supplies that comes off when the ship takes a hit.
-    - render: /assets/images/renders/barrel.png
-      name: Barrel
-      color: cargo
-      desc: A *fitting*, like cargo.
-    - render: /assets/images/renders/sail.png
-      name: Sail
-      color: sails
-      desc: Slides over a mast. Cosmetic, but it's how you tell fleets apart across the table.
-    - render: /assets/images/renders/sail-damaged.png?v=2
-      name: Damaged Sail
-      color: sails
-      desc: A torn sail. It's just cosmetic, but it looks good on pirates.
-    - render: /assets/images/renders/cannon.png?v=0.5
-      name: Cannon
-      color: cannons
-      desc: The gun. It plugs into any cannon slot on a ship or island, and you press the arm down until it fires.
-      tip: The arm loses tension after a few hundred shots, so print a couple of spares.
-    - render: /assets/images/renders/cannonball.png?v=3
-      name: Cannonball
-      color: cannonballs
-      desc: Goes in the muzzle. They're really easy to lose.
-      tip: PLA works best. Coarser layers shoot harder and less predictably.
-    - render: /assets/images/renders/movement-wheel.png?v=0.5
-      name: Movement Wheel
-      color: wheels
-      desc: Lives in the stern. One full turn is one *click* of movement. It needs a 10 mm **rubber band** or silicone cable tie around the rim or it won't click.
-    - render: /assets/images/renders/island.png
-      name: Island
-      color: islands
-      desc: A whole island that sits right on the table. Cannon slots on top, and a short mast holds your flag.
-    - render: /assets/images/renders/island-topper.png
-      name: Island Topper
-      color: islands
-      desc: A puck with cannon slots and flag holes. Set it on a box, a book, or an upside-down mug and you have an island.
-    - render: /assets/images/renders/rock1.png?v=2
-      name: Rock
-      color: rocks
-      desc: Terrain. It blocks ships and cannonballs.
-    - render: /assets/images/renders/reef.png?v=2
-      name: Reef
-      color: reefs
-      desc: Terrain too, and it works the same as a rock.
-    - render: /assets/images/renders/coin-skilled-gunner.png
-      name: Coins
-      color: coins
-      desc: Six kinds (Brace, Full Sail, Evasive, Gunner, Repair and Boarding). They go in a cloth bag.
-      tip: Silk gold gives the sheen in the renders. Matte gold is fine.
-    - render: /assets/images/renders/wind-dial.png
-      name: Wind Dial
-      color: dial
-      desc: A base, a vane, a washer and a cap, for the optional Trade Winds rule. A steel M8 washer spins better than the printed one.
-    - render: /assets/images/renders/ship-tolerance-test.png
-      name: Fit Test
-      color: fit-test
-      desc: A small block with the same slots as a hull. Print it first to check that your masts, cargo and cannons fit before you print a whole fleet.
-
+# Every fleet's hull color and the rest. The page shows a card for each
+# add-on fleet; the two base-set fleets are the tables near the top.
 fleets:
-  title: By fleet
-  lead: Anything not listed for a fleet uses the settings and part colors above.
+  title: Add-on fleets
+  lead: >-
+    Each one has its own print list. Their downloads have the hulls and the
+    fleet's own parts, and the masts, cargo, cannons and wheels come from the
+    base set above.
   # id: the shop handle, also the #anchor on /print-guide.
   # set: the sets.json id whose zip this fleet's guide goes into.
   # hull: hull color and material. Leave it out if there isn't one yet.
   # matchRigging: masts and sails are printed in the hull color.
-  # supports: override of the default above.
+  # supports: some of this fleet's parts need supports (the default is none).
   # parts: extra per-fleet part colors, [part, color].
   items:
     - id: queens-fleet
