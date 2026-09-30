@@ -1,5 +1,6 @@
 <script setup lang="ts">
 const { cart, loadCart, updateQuantity, removeLine } = useShop()
+const files = useFilesCart()
 
 onMounted(() => { if (!cart.value) loadCart() })
 
@@ -24,13 +25,18 @@ function checkout() {
     <NuxtLink to="/shop" class="text-sm text-ink-soft hover:text-ink">← Continue shopping</NuxtLink>
     <h1 class="font-display text-3xl text-ink mt-4">Your cart</h1>
 
-    <div v-if="!cart || cart.lines.length === 0" class="mt-10 card-parchment p-10 text-center">
+    <div v-if="files.ids.value.length === 0 && (!cart || cart.lines.length === 0)" class="mt-10 card-parchment p-10 text-center">
       <UIcon name="i-lucide-shopping-cart" class="size-10 text-ink-faint mx-auto" />
       <p class="mt-3 text-ink-soft">Your cart is empty.</p>
-      <UButton to="/shop" color="primary" class="mt-5" icon="i-lucide-arrow-right" trailing>Browse starter sets</UButton>
+      <UButton to="/shop" color="primary" class="mt-5" icon="i-lucide-arrow-right" trailing>Browse the shop</UButton>
     </div>
 
-    <div v-else class="mt-8 grid lg:grid-cols-[1.4fr_1fr] gap-8">
+    <section v-if="files.ids.value.length" class="mt-8 card-parchment p-6 max-w-2xl">
+      <h2 class="font-display text-xl text-ink">STL files</h2>
+      <FilesCartList />
+    </section>
+
+    <div v-if="cart && cart.lines.length" class="mt-8 grid lg:grid-cols-[1.4fr_1fr] gap-8">
       <ul class="flex flex-col gap-3">
         <li v-for="line in cart.lines" :key="line.id" class="card-parchment p-4 flex gap-4 items-center">
           <NuxtLink :to="`/shop/${line.product.handle}`" class="shrink-0">

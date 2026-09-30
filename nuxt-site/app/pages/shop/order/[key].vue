@@ -47,6 +47,21 @@ async function load() {
   if (order.value?.state === 'pending' && tries++ < 30) timer = setTimeout(load, 2000)
 }
 
+// Once paid, these sets leave the cart, and the cart remembers they were
+// bought here so it can say so if someone adds one again.
+const filesCart = useFilesCart()
+watch(() => order.value?.state, (state) => {
+  if (state !== 'paid' || !order.value) return
+  const ids = order.value.sets.map(s => s.id)
+  // Read storage too, in case the cart plugin hasn't loaded it yet.
+  const cartIds = [...new Set([...readStoredIds(FILES_CART_KEY), ...filesCart.ids.value])].filter(id => !ids.includes(id))
+  const owned = [...new Set([...readStoredIds(OWNED_SETS_KEY), ...filesCart.owned.value, ...ids])]
+  writeStoredIds(FILES_CART_KEY, cartIds)
+  writeStoredIds(OWNED_SETS_KEY, owned)
+  filesCart.ids.value = cartIds
+  filesCart.owned.value = owned
+})
+
 onMounted(load)
 onBeforeUnmount(() => clearTimeout(timer))
 

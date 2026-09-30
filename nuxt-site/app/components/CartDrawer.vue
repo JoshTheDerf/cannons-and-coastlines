@@ -1,6 +1,11 @@
 <script setup lang="ts">
+// Two carts share the drawer: the STL files (useFilesCart, Stripe) and the
+// printed kits (useShop, a Shopify stub while KITS_ON_SALE is off).
 const { cart, loadCart, updateQuantity, removeLine } = useShop()
-const open = useState<boolean>('cart-drawer-open', () => false)
+const files = useFilesCart()
+const open = files.open
+const kitLines = computed(() => cart.value?.lines.length ?? 0)
+const count = computed(() => files.ids.value.length + (cart.value?.totalQuantity ?? 0))
 
 onMounted(() => { if (!cart.value) loadCart() })
 
@@ -50,21 +55,26 @@ async function checkout() {
           <h2 class="font-display text-xl text-ink flex items-center gap-2">
             <UIcon name="i-lucide-shopping-cart" class="size-5" />
             Your cart
-            <span v-if="cart && cart.totalQuantity > 0" class="text-sm text-ink-soft">({{ cart.totalQuantity }})</span>
+            <span v-if="count > 0" class="text-sm text-ink-soft">({{ count }})</span>
           </h2>
           <button class="text-ink-soft hover:text-ink" aria-label="Close cart" @click="close">
             <UIcon name="i-lucide-x" class="size-6" />
           </button>
         </header>
 
-        <div v-if="!cart || cart.lines.length === 0" class="flex-1 flex flex-col items-center justify-center p-8 text-center gap-4">
+        <div v-if="count === 0" class="flex-1 flex flex-col items-center justify-center p-8 text-center gap-4">
           <UIcon name="i-lucide-shopping-cart" class="size-12 text-ink-faint" />
           <p class="text-ink-soft">Your cart is empty.</p>
-          <UButton to="/shop" color="primary" icon="i-lucide-arrow-right" trailing @click="close">Browse starter sets</UButton>
+          <UButton to="/shop" color="primary" icon="i-lucide-arrow-right" trailing @click="close">Browse the shop</UButton>
         </div>
 
         <div v-else class="flex-1 overflow-y-auto">
-          <ul class="divide-y divide-ink/20">
+          <section v-if="files.ids.value.length" class="p-5 border-b border-ink/20">
+            <h3 class="font-display text-lg text-ink">STL files</h3>
+            <FilesCartList compact @navigate="close" />
+          </section>
+          <h3 v-if="kitLines" class="px-5 pt-4 font-display text-lg text-ink">Printed kits</h3>
+          <ul v-if="kitLines" class="divide-y divide-ink/20">
             <li v-for="line in cart.lines" :key="line.id" class="p-4 flex gap-3">
               <NuxtLink :to="`/shop/${line.product.handle}`" class="shrink-0" @click="close">
                 <img :src="line.product.image.url" :alt="line.product.image.altText" class="size-20 rounded-lg object-cover">
@@ -95,19 +105,21 @@ async function checkout() {
           </ul>
         </div>
 
-        <footer v-if="cart && cart.lines.length > 0" class="border-t border-ink/25 p-5 space-y-3">
+        <footer v-if="kitLines" class="border-t border-ink/25 p-5 space-y-3">
           <div class="flex justify-between text-sm">
             <span class="text-ink-soft">Subtotal</span>
             <span class="text-ink font-display">${{ cart.subtotal.amount }}</span>
           </div>
           <p class="text-sm text-ink-faint">Shipping and tax calculated at checkout.</p>
           <UButton color="primary" size="xl" icon="i-lucide-anchor" class="w-full justify-center" @click="checkout">
-            Checkout
+            Check out the kits
           </UButton>
+        </footer>
+        <div v-if="count > 0" class="px-5 pb-4">
           <UButton to="/shop/cart" color="neutral" variant="ghost" size="sm" class="w-full justify-center" @click="close">
             View full cart
           </UButton>
-        </footer>
+        </div>
       </aside>
     </Transition>
   </Teleport>

@@ -31,7 +31,7 @@ function rows(f: Fleet): [string, string][] {
     ['Masts and sails', f.matchRigging ? 'Same color as the hull' : 'Brown masts, white sails'],
     ...(f.parts ?? []),
     ['Supports', f.supports ? 'On' : 'Off'],
-    ['Material', f.petg ? 'PLA or PETG' : 'PLA']
+    ['Material', f.petg ? 'PLA. Translucent PETG works well for a ghostly look.' : 'PLA']
   ]
 }
 
@@ -110,9 +110,10 @@ const renderFor = (name: string): string | undefined =>
                 <dd class="muted mt-0.5"><RichText :text="value" /></dd>
               </div>
             </dl>
-            <div class="mt-4 flex flex-wrap gap-x-4 gap-y-1 text-sm">
+            <FilesButtons v-if="findAddonFleet(f.id)" :fleet="f.id" class="mt-4" />
+            <div class="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-sm">
               <NuxtLink :to="`/print-list/${f.set}`" class="text-[color:var(--gold)] hover:underline">Print list →</NuxtLink>
-              <NuxtLink :to="`/shop/${f.id}`" class="text-[color:var(--gold)] hover:underline">Get the files →</NuxtLink>
+              <NuxtLink v-if="!findAddonFleet(f.id)" :to="`/shop/${f.id}`" class="text-[color:var(--gold)] hover:underline">Get the files →</NuxtLink>
             </div>
           </div>
         </div>

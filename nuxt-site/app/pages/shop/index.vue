@@ -46,6 +46,12 @@ const visible = (p: ShopProductCard) =>
 const paidSets = computed(() => (setsData.value?.all ?? []).filter(s => s.purchasable))
 const bundleTotal = computed(() => paidSets.value.reduce((n, s) => n + (s.priceUsd ?? 0), 0))
 const earlyBird = computed(() => paidSets.value.some(s => s.earlyBird))
+const filesCart = useFilesCart()
+const allInCart = computed(() => paidSets.value.length > 0 && paidSets.value.every(s => filesCart.has(s.id)))
+function addAll() {
+  filesCart.addMany(paidSets.value.map(s => s.id))
+  filesCart.open.value = true
+}
 const buyingAll = ref(false)
 const buyAllError = ref('')
 async function buyAll() {
@@ -148,9 +154,14 @@ const addons = computed(() => (products.value ?? []).filter(p => p.group === 'ad
             <p class="text-sm text-ink-soft">{{ paidSets.map(s => s.title).join(', ') }}. One checkout, and every fleet's files in one zip with the print guide.</p>
             <p v-if="buyAllError" class="mt-1 text-sm text-error-500">{{ buyAllError }}</p>
           </div>
-          <UButton color="primary" size="lg" icon="i-lucide-download" :loading="buyingAll" class="justify-center" @click="buyAll">
-            Buy all {{ paidSets.length }} · {{ formatPrice(bundleTotal) }}
-          </UButton>
+          <div class="grid sm:grid-cols-2 gap-2 shrink-0">
+            <UButton color="neutral" variant="outline" size="lg" :icon="allInCart ? 'i-lucide-check' : 'i-lucide-shopping-cart'" class="justify-center" @click="allInCart ? (filesCart.open.value = true) : addAll()">
+              {{ allInCart ? 'All in your cart' : 'Add all to cart' }}
+            </UButton>
+            <UButton color="primary" size="lg" icon="i-lucide-download" :loading="buyingAll" class="justify-center" @click="buyAll">
+              Buy all {{ paidSets.length }} · {{ formatPrice(bundleTotal) }}
+            </UButton>
+          </div>
         </div>
         <div class="mt-5 grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
           <ShopProductTile

@@ -43,6 +43,7 @@ const p = computed(() => page.value!)
               <p class="stamp text-[#7a5316] mb-1">Color</p>
               <RichText tag="p" :text="hull.color" class="muted" />
             </div>
+            <FilesButtons :fleet="hull.name" class="mt-4" />
           </div>
         </div>
 

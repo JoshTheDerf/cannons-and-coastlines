@@ -9,8 +9,9 @@ defineProps<{
 
 const open = ref(false)
 const { cart } = useShop()
-const cartDrawerOpen = useState<boolean>('cart-drawer-open', () => false)
-const openCart = () => { cartDrawerOpen.value = true }
+const files = useFilesCart()
+const cartCount = computed(() => files.ids.value.length + (cart.value?.totalQuantity ?? 0))
+const openCart = () => { files.open.value = true }
 </script>
 
 <template>
@@ -33,20 +34,18 @@ const openCart = () => { cartDrawerOpen.value = true }
         </li>
       </ul>
       <div class="flex items-center gap-1">
-        <!--
         <button
           type="button"
           class="relative size-10 rounded-lg text-ink-soft hover:text-ink hover:bg-ink/10 flex items-center justify-center transition"
-          aria-label="Open cart"
+          :aria-label="cartCount ? `Open cart (${cartCount})` : 'Open cart'"
           @click="openCart"
         >
           <UIcon name="i-lucide-shopping-cart" class="size-5" />
           <span
-            v-if="cart && cart.totalQuantity > 0"
+            v-if="cartCount > 0"
             class="absolute -top-0.5 -right-0.5 min-w-5 h-5 px-1 rounded-full bg-primary-500 text-ink text-sm font-semibold flex items-center justify-center"
-          >{{ cart.totalQuantity }}</span>
+          >{{ cartCount }}</span>
         </button>
-        -->
         <button
           type="button"
           class="lg:hidden size-10 rounded-lg text-ink-soft hover:text-ink hover:bg-ink/10 flex items-center justify-center transition"

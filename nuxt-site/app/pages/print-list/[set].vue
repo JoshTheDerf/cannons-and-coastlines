@@ -85,8 +85,25 @@ const downloadUrl = free
       : null
 const shopHandle = set ? (free ? 'base-set-files' : guideFleets.value.find(f => f.set === id)?.id ?? null) : null
 const pdfUrl = `/rulebook/pdf/print-list-${id}.pdf`
-// The part tables already say which parts need supports.
-const settingsRows = computed(() => (G.value.settings.rows as [string, string][]).filter(([k]) => k !== 'Supports'))
+// Material comes from print-lists.yml (print-guide.yml's row names another
+// fleet); the part tables already say which parts need supports.
+const settingsRows = computed((): [string, string][] => [
+  ['Material', L.value.material],
+  ...(G.value.settings.rows as [string, string][]).filter(([k]) => k !== 'Material' && k !== 'Supports')
+])
+// Every file on this list, for the steps' `needs` (mirrors files-here).
+const filesHere = computed(() => {
+  const fs = fleets.value.flatMap(f => f.parts.map(p => p.file))
+  if (hasBase) {
+    for (const sec of ['perPlayer', 'perTable']) {
+      for (const p of L.value.general[sec].parts as (Part & { files?: string[] })[]) fs.push(...(p.files ?? [p.file]))
+    }
+  }
+  return fs
+})
+const steps = computed(() => (L.value.steps.items as { text: string, needs?: string[] }[])
+  .filter(st => !st.needs || st.needs.some(n => filesHere.value.includes(n))))
+const guideUrl = `/print-guide${fleets.value.length === 1 ? `#${fleets.value[0]!.id}` : ''}`
 const versions = setIds.map((s) => {
   const e = sets.find(x => x.id === s)!
   return `${e.title} v${e.version}`
@@ -116,23 +133,18 @@ useSeoMeta({
           <UButton v-if="downloadUrl" :to="downloadUrl" external color="primary" size="xl" icon="i-lucide-download">
             {{ bundle ? 'Download every fleet (zip)' : 'Download the STLs (zip)' }}
           </UButton>
-          <template v-else>
-            <UButton v-if="shopHandle" :to="`/shop/${shopHandle}`" color="primary" size="xl" icon="i-lucide-shopping-cart">
-              Get the files
-            </UButton>
-            <UButton v-else to="/shop" color="primary" size="xl" icon="i-lucide-shopping-cart">
-              The shop
-            </UButton>
-          </template>
-          <UButton :to="pdfUrl" external target="_blank" variant="ghost" color="neutral" size="xl" icon="i-lucide-file-text" class="btn-ink">
-            Print list (PDF)
+          <FilesButtons v-else-if="shopHandle" :fleet="shopHandle" buy-now :shop-link="false" size="lg" class="w-full max-w-md" />
+          <UButton v-else to="/shop" color="primary" size="xl" icon="i-lucide-shopping-cart">
+            The shop
           </UButton>
         </div>
         <p v-if="!downloadUrl" class="mt-4 text-sm text-ink-soft">
           Already bought {{ bundle ? 'them' : 'it' }}? The download is on your order page, linked in your Stripe receipt email.
         </p>
-        <p v-else-if="orderKey" class="mt-4 text-sm text-ink-soft">
-          <NuxtLink :to="`/shop/order/${orderKey}`" class="underline">Back to your order</NuxtLink>
+        <p class="mt-4 flex flex-wrap justify-center gap-x-5 gap-y-1 text-sm">
+          <a :href="pdfUrl" target="_blank" class="underline text-[color:var(--gold)]">This list as a PDF</a>
+          <NuxtLink v-if="orderKey" :to="`/shop/order/${orderKey}`" class="underline text-[color:var(--gold)]">Back to your order</NuxtLink>
+          <NuxtLink v-else-if="shopHandle && !free" :to="`/shop/${shopHandle}`" class="underline text-[color:var(--gold)]">The shop page</NuxtLink>
         </p>
       </div>
     </header>
@@ -143,16 +155,16 @@ useSeoMeta({
         <h2 v-if="fleets.length > 1" class="font-display text-2xl text-ink">{{ guideFleet(f.id).name }}</h2>
         <p class="mt-1 mb-4 font-serif text-sm muted">{{ f.ships }} {{ f.shipType }} with {{ f.fittings }}</p>
         <div class="overflow-x-auto">
-          <table class="rulebook print-list table-fixed w-full min-w-[36rem] font-serif text-sm">
+          <table class="rulebook print-list table-fixed w-full font-serif text-sm">
             <thead>
-              <tr><th class="w-16"><span class="sr-only">Picture</span></th><th>Part</th><th class="w-20">Qty</th><th class="w-44">Color</th><th class="w-24">Supports</th></tr>
+              <tr><th class="hidden sm:table-cell w-16"><span class="sr-only">Picture</span></th><th>Part</th><th class="w-12 sm:w-20">Qty</th><th class="w-28 sm:w-44">Color</th><th class="w-20 sm:w-24">Supports</th></tr>
             </thead>
             <tbody>
               <tr v-for="p in f.parts" :key="p.file + p.part">
-                <td><img :src="renderOf(p)" alt="" loading="lazy" class="size-12 object-contain"></td>
+                <td class="hidden sm:table-cell"><img :src="renderOf(p)" alt="" loading="lazy" class="size-12 object-contain"></td>
                 <td>
                   <span class="font-semibold">{{ p.part }}</span>
-                  <br><span class="text-xs italic text-ink-faint">{{ p.file }}<template v-if="p.base && isPaid(f.set)"> from the base set</template></span>
+                  <br><span class="text-xs italic text-ink-faint [overflow-wrap:anywhere]">{{ p.file }}<template v-if="p.base && isPaid(f.set)"> from the base set</template></span>
                   <RichText v-if="p.note" tag="div" :text="p.note" class="text-xs muted" />
                 </td>
                 <td class="font-semibold text-base whitespace-nowrap">{{ qtyOf(p, f) }}</td>
@@ -176,16 +188,16 @@ useSeoMeta({
         <div v-for="sec in ['perPlayer', 'perTable']" :key="sec" class="mt-6">
           <h3 class="font-display text-lg text-ink">{{ L.general[sec].title }}</h3>
           <div class="overflow-x-auto">
-            <table class="rulebook print-list table-fixed w-full min-w-[36rem] font-serif text-sm">
+            <table class="rulebook print-list table-fixed w-full font-serif text-sm">
               <thead>
-                <tr><th class="w-16"><span class="sr-only">Picture</span></th><th>Part</th><th class="w-20">Qty</th><th class="w-44">Color</th><th class="w-24">Supports</th></tr>
+                <tr><th class="hidden sm:table-cell w-16"><span class="sr-only">Picture</span></th><th>Part</th><th class="w-12 sm:w-20">Qty</th><th class="w-28 sm:w-44">Color</th><th class="w-20 sm:w-24">Supports</th></tr>
               </thead>
               <tbody>
                 <tr v-for="p in (L.general[sec].parts as Part[])" :key="p.file">
-                  <td><img :src="renderOf(p)" alt="" loading="lazy" class="size-12 object-contain"></td>
+                  <td class="hidden sm:table-cell"><img :src="renderOf(p)" alt="" loading="lazy" class="size-12 object-contain"></td>
                   <td>
                     <span class="font-semibold">{{ p.part }}</span>
-                    <br><span class="text-xs italic text-ink-faint">{{ p.file }}</span>
+                    <br><span class="text-xs italic text-ink-faint [overflow-wrap:anywhere]">{{ p.file }}</span>
                     <RichText v-if="p.note" tag="div" :text="p.note" class="text-xs muted" />
                   </td>
                   <td class="font-semibold text-base whitespace-nowrap">{{ qtyOf(p) }}</td>
@@ -199,29 +211,37 @@ useSeoMeta({
       </div>
     </section>
 
-    <!-- Printing, and what a game needs -->
+    <!-- Settings, steps and what a game needs. Only what applies to these fleets. -->
     <section class="mt-10 py-14 px-4 band-parchment">
-      <div class="container mx-auto max-w-4xl grid md:grid-cols-2 gap-10">
-        <div>
-          <h2 class="font-display text-2xl text-ink">Printing</h2>
-          <dl class="mt-4 rulebook-dl">
-            <div v-for="[label, value] in settingsRows" :key="label">
-              <dt>{{ label }}</dt>
-              <dd class="mt-0.5">{{ value }}</dd>
-            </div>
-          </dl>
-          <RichText v-for="t in L.tips" :key="t" tag="p" :text="t" class="mt-3 font-serif text-sm text-ink-soft" />
-          <p class="mt-4 text-sm">
-            <NuxtLink to="/parts#assembly" class="underline text-[color:var(--gold)]">How it goes together →</NuxtLink>
-          </p>
-        </div>
-        <div>
-          <h2 class="font-display text-2xl text-ink">{{ L.kit.title }}</h2>
-          <RichText v-for="(para, i) in L.kit.body" :key="i" tag="p" :text="para" class="mt-3 font-serif text-sm text-ink-soft" />
-          <p v-if="!hasBase" class="mt-2 font-serif text-sm">
-            The islands, coins and terrain come with the
-            <NuxtLink :to="`/print-list/${baseSetId}`" class="underline text-[color:var(--gold)]">free base set</NuxtLink>.
-          </p>
+      <div class="container mx-auto max-w-4xl">
+        <dl class="grid grid-cols-2 sm:grid-cols-4 gap-4 card-parchment p-4">
+          <div v-for="[label, value] in settingsRows" :key="label">
+            <dt class="stamp text-[#7a5316]">{{ label }}</dt>
+            <dd class="mt-1 font-serif text-ink">{{ value }}</dd>
+          </div>
+        </dl>
+
+        <div class="mt-10 grid md:grid-cols-[1.4fr_1fr] gap-10">
+          <div>
+            <h2 class="font-display text-2xl text-ink">{{ L.steps.title }}</h2>
+            <ol class="mt-4 list-decimal pl-5 space-y-2 font-serif text-sm text-ink-soft">
+              <li v-for="st in steps" :key="st.text"><RichText :text="st.text" /></li>
+            </ol>
+          </div>
+          <div>
+            <h2 class="font-display text-2xl text-ink">{{ L.kit.title }}</h2>
+            <template v-if="hasBase">
+              <RichText v-for="(para, i) in L.kit.body" :key="i" tag="p" :text="para" class="mt-3 font-serif text-sm text-ink-soft" />
+            </template>
+            <p v-else class="mt-3 font-serif text-sm text-ink-soft">
+              <RichText :text="L.kit.paid" />{{ " " }}
+              <NuxtLink :to="`/print-list/${baseSetId}`" class="underline text-[color:var(--gold)]">The base set print list</NuxtLink>
+            </p>
+            <p class="mt-6 font-serif text-sm text-ink-soft">
+              <NuxtLink :to="guideUrl" class="underline text-[color:var(--gold)]">The print guide</NuxtLink>
+              has the colors and a picture of each hull.
+            </p>
+          </div>
         </div>
       </div>
     </section>

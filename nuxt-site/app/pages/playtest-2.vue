@@ -79,6 +79,7 @@ useSeoMeta({
             <figure v-for="s in p.contents.ships" :key="s.name" class="text-center w-[calc(50%-0.5rem)] md:w-[calc(25%-0.75rem)]">
               <img :src="s.image" :alt="s.name" loading="lazy" class="w-full aspect-[4/3] object-contain">
               <figcaption class="mt-1 font-display text-ink">{{ s.name }}</figcaption>
+              <FilesButtons :fleet="s.name" size="xs" block class="mt-2" />
             </figure>
           </div>
         </div>

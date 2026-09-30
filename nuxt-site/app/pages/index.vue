@@ -173,7 +173,7 @@ const actionLetters = ['A', 'B', 'C']
               <p class="mt-1 font-serif text-sm text-ink-soft">{{ f.body }}</p>
             </div>
             <div class="col-start-2 sm:col-start-auto flex flex-wrap sm:flex-col sm:items-end gap-x-4 gap-y-2">
-              <UButton :to="f.shop" color="primary" size="sm" icon="i-lucide-download">Get the files</UButton>
+              <FilesButtons :fleet="f.name" class="sm:justify-end" />
               <a :href="f.card" target="_blank" class="text-sm font-serif font-semibold underline text-[color:var(--gold)] hover:text-[color:var(--heading)] whitespace-nowrap">
                 Faction card (PDF)
               </a>
