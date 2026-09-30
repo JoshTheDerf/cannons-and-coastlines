@@ -22,6 +22,10 @@ intro:
   title: Why I made them
   paragraphs:
     - >-
+      I made the proof-of-concept models in Tinkercad, then moved to Blender.
+      Blender was great for shaping the hulls, but for exact, CAD-like edits I
+      kept running into crashes and slowdowns that broke up my workflow.
+    - >-
       The hulls are organic, hand-shaped models, but they also need exact
       slots for the cannons, masts, cargo and coins, or nothing fits. I wanted
       sculpting and precise hard-surface modeling in the same model, without
