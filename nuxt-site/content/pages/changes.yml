@@ -1,48 +1,13 @@
-# Playtest #2 (/playtest-2). The stream is over; the page shows the recap
-# recording from YouTube.
-# The first playtest (rulebook v0.3) is on /live. "rules" sums up what
-# changed from v0.3 to v0.6; the full notes are `changelog` below.
-# Items are RichText.
+# Rulebook changes (/changes): what each rulebook update changed, newest
+# release first. This is the one place the notes are shown. "What changed"
+# under How to play on the home page, /playtests and the footer link here.
+# /live#changes and /playtest-2#changes end up here too. Items are RichText.
 
 seo:
-  title: 'Playtest #2 Recap'
+  title: Rule Changes
   description: >-
-    The recording of the second full playtest of Cannons & Coastlines: two
-    games on rulebook v0.6, with the finished ship designs and the new
-    cannons.
+    What changed in each Cannons & Coastlines rulebook update, newest first.
 
-hero:
-  stamp: Event ended
-  title: 'Playtest #2 is done'
-  lead: >-
-    Thanks for watching. We played two full games on rulebook v0.6 (the first
-    playtest used v0.3), with the finished ship designs and the new cannons on
-    the table. The recording below starts as the first game does.
-
-contents:
-  rulesTitle: What's changed since the first playtest
-  rulesLead: >-
-    The rules have changed quite a bit since v0.3, mostly because of things
-    that didn't work at the table last time.
-  rules:
-    - '**Ships are always underway.** Each ship takes one action (steer, fire or use an island), then sails forward at least one click. Islands are the only place a ship can stay put.'
-    - '**You win by fighting.** Sitting on islands doesn''t win the game any more. You score for the islands you hold, the prizes you take off enemy ships and any coins you haven''t spent, and you can declare victory once you think you have 60 points.'
-    - '**You keep what you shoot off.** Every fitting you knock off an enemy ship goes in front of you as a prize, and so does the hull of any ship you sink or capture.'
-    - '**Cannons need a crew.** A cannon only fires if one of your ships is touching it and spends its action on it, so islands can''t shoot by themselves. Ricochets onto a second ship don''t count either.'
-    - '**A new coin bag.** Signal Flags are gone, and Full Sail now lets one ship steer and sail twice (but it can''t fire that turn). You can also spend coins between ships, and your ship nearest each of your islands can collect a coin there, even from out at sea.'
-    - '**Faster fleets.** Most fleets got an extra click of movement. The Corsairs are down to three sloops, the Islanders to one fitting, and the Treasure Fleet gets a third junk.'
-  kitTitle: New ships and cannons
-  kitLead: >-
-    Most of the pieces on the table are new since last time, too.
-  kit:
-    - '**Finished ship designs.** All seven fleets are on their finished designs (below). The Queen''s Fleet and the Corsairs have new hulls, masts, cargo and wheels, and the Stone Fleet and the Islanders have new sails.'
-    - '**Updated cannons.** Both the cannon and its barrel are new.'
-    - '**New islands and coins.** The island stands on its own now and has six cannon slots, and the coins have engraved designs on top.'
-  # The fleet pictures under this list come from shared/data/fleets.json.
-
-# The rulebook change notes, newest release first. This is the one place
-# they're shown (/playtest-2#changes); "How to play" on the home page and
-# /live link here. Items are RichText.
 changelog:
   title: What changed
   description: What each rulebook update changed, newest first.

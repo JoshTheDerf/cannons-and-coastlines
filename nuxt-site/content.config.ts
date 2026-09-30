@@ -46,6 +46,8 @@ export default defineContentConfig({
         videos: z.record(z.any()).optional(),
         factions: z.record(z.any()).optional(),
         changelog: z.record(z.any()).optional(),
+        // playtests.yml: one entry per playtest recording
+        playtests: z.array(z.record(z.any())).optional(),
         signup: z.record(z.any()).optional(),
         playOnline: z.record(z.any()).optional(),
         downloads: z.record(z.any()).optional(),

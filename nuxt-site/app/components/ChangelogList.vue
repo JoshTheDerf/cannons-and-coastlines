@@ -1,5 +1,5 @@
 <script setup lang="ts">
-// The rulebook change notes, newest release first. Shared by the home page and /live.
+// The rulebook change notes, newest release first. Shown on /changes.
 defineProps<{
   releases: Array<{ version: string, released: string, items: string[] }>
 }>()

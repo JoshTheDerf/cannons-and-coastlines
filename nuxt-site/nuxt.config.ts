@@ -80,8 +80,7 @@ export default defineNuxtConfig({
     // no longer be framed by a COEP page like thederf.com; everything else
     // on the site still can.
     '/': { headers: { 'Cross-Origin-Embedder-Policy': 'unsafe-none' } },
-    '/live': { headers: { 'Cross-Origin-Embedder-Policy': 'unsafe-none' } },
-    '/playtest-2': { headers: { 'Cross-Origin-Embedder-Policy': 'unsafe-none' } },
+    '/playtests': { headers: { 'Cross-Origin-Embedder-Policy': 'unsafe-none' } },
     '/starter-pack': { headers: { 'Cross-Origin-Embedder-Policy': 'unsafe-none' } }
   },
   content: {

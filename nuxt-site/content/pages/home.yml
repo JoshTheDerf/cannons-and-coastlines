@@ -12,7 +12,7 @@ seo:
 
 hero:
   # A link above the wordmark for an event, e.g.
-  #   live: { label: 'Watch the playtest #2 recap', to: /playtest-2 }
+  #   live: { label: 'Watch the playtest #2 recap', to: /playtests }
   # Leave it out while the announcement bar (site.yml) says the same thing.
   wordmark: /assets/images/wordmark-sm.webp
   tagline: A tabletop game of naval conquest
@@ -180,7 +180,7 @@ howToPlay:
     - { label: Trade Winds rule (1 page), href: /rulebook/pdf/trade-winds.pdf, icon: i-lucide-wind }
     - { label: All faction cards (print sheet), href: /rulebook/pdf/faction-cards-print-sheet.pdf, icon: i-lucide-layers }
   version: v0.6, September 2026
-  changesHref: /playtest-2#changes
+  changesHref: /changes
 
 fleets:
   title: The fleets
@@ -213,6 +213,8 @@ videos:
     The second full playtest: two games on rulebook v0.6. The others are the
     first playtest from May and shorter clips from testing.
   main: https://www.youtube.com/embed/5YRH92ho2SM
+  # A link under the videos. Leave it out to hide it.
+  page: { label: 'Both playtests and what changed between them', to: /playtests }
   more:
     - https://www.youtube.com/embed/xrnoY0tmqjc?start=760
     - https://www.youtube.com/embed/oexjEaUXXjA

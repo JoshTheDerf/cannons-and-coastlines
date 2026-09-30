@@ -24,7 +24,7 @@ defineProps<{
             <h4 class="font-display text-ink text-sm uppercase tracking-widest">{{ col.title }}</h4>
             <hr class="rule-gold my-3">
             <ul class="space-y-2 text-sm">
-              <li v-for="l in col.links" :key="l.to">
+              <li v-for="l in col.links" :key="l.label">
                 <a v-if="l.external" :href="l.to" target="_blank" rel="noopener" class="hover:text-ink">{{ l.label }}</a>
                 <NuxtLink v-else :to="l.to" class="hover:text-ink">{{ l.label }}</NuxtLink>
               </li>

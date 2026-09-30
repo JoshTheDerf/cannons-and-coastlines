@@ -204,6 +204,9 @@ const addonFleets = FLEETS.filter(f => f.group === 'addon')
           </div>
         </div>
         </div>
+        <p v-if="p.videos.page" class="mt-6 font-serif text-ink-soft">
+          <NuxtLink :to="p.videos.page.to" class="underline text-[color:var(--gold)]">{{ p.videos.page.label }}</NuxtLink>
+        </p>
       </div>
     </section>
 

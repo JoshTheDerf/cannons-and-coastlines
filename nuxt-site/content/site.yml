@@ -13,7 +13,7 @@ nav:
   - label: How to play
     to: /#how-to-play
   - label: Fleets
-    to: /#fleets
+    to: /shop
   - label: Shop
     to: /shop
   - label: Print guide
@@ -36,7 +36,7 @@ announce:
   headline: 'Playtest #2 is done.'
   extra: Watch both games on rulebook v0.6, with the finished ships and the new cannons.
   cta: Watch
-  to: /playtest-2
+  to: /playtests
 
 footer:
   blurb: A 3D-printable naval game for 2 to 20 players, where you sink your friends' ships with actual cannons.
@@ -44,12 +44,12 @@ footer:
     - title: Game
       links:
         - { label: How to play, to: /#how-to-play }
-        - { label: Fleets, to: /#fleets }
+        - { label: Fleets, to: /shop }
         - { label: Rulebook (PDF), to: /rulebook/pdf/rulebook.pdf, external: true }
         - { label: Play online, to: /game/?online, external: true }
         - { label: Videos, to: /#videos }
-        - { label: 'Playtest #2', to: /playtest-2 }
-        - { label: First playtest, to: /live }
+        - { label: Playtests, to: /playtests }
+        - { label: Rule changes, to: /changes }
     - title: Printing
       links:
         - { label: Get the free files, to: /#files }

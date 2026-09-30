@@ -21,7 +21,7 @@ const openCart = () => { files.open.value = true }
         <img :src="data.brand.logo" :alt="data.brand.name" class="h-10 w-auto">
       </NuxtLink>
       <ul class="hidden lg:flex items-center gap-6 text-sm font-medium">
-        <li v-for="link in data.nav" :key="link.to">
+        <li v-for="link in data.nav" :key="link.label">
           <a v-if="link.external" :href="link.to" class="text-ink-soft hover:text-ink transition">{{ link.label }}</a>
           <NuxtLink v-else :to="link.to" class="text-ink-soft hover:text-ink transition">
             {{ link.label }}
@@ -58,7 +58,7 @@ const openCart = () => { files.open.value = true }
     </div>
     <div v-if="open" class="lg:hidden border-t border-ink/25 bg-[color:var(--paper)]">
       <ul class="container mx-auto flex flex-col gap-1 px-4 py-3">
-        <li v-for="link in data.nav" :key="link.to">
+        <li v-for="link in data.nav" :key="link.label">
           <a v-if="link.external" :href="link.to" class="block py-2 text-ink-soft hover:text-ink" @click="open = false">{{ link.label }}</a>
           <NuxtLink v-else :to="link.to" class="block py-2 text-ink-soft hover:text-ink" @click="open = false">
             {{ link.label }}
