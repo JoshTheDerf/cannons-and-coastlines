@@ -1,7 +1,6 @@
 <script setup lang="ts">
 // /print-guide. The copy is content/pages/print-guide.yml, which
 // scripts/lib/print_guide.py also renders into the PRINTING.md in every zip.
-// Keep the fleet rows below in step with fleet_rows() there.
 
 const { data: page } = await useAsyncData('print-guide', () =>
   queryCollection('pages').where('stem', '=', 'pages/print-guide').first()
@@ -22,7 +21,7 @@ const p = computed(() => page.value!)
 
 type Fleet = {
   id: string, name: string, set: string, hull?: string, matchRigging?: boolean
-  supports?: boolean, petg?: boolean, parts?: [string, string][]
+  supports?: boolean, parts?: [string, string][]
 }
 
 function rows(f: Fleet): [string, string][] {
@@ -30,8 +29,7 @@ function rows(f: Fleet): [string, string][] {
     ...(f.hull ? [['Hull', f.hull] as [string, string]] : []),
     ['Masts and sails', f.matchRigging ? 'Same color as the hull' : 'Brown masts, white sails'],
     ...(f.parts ?? []),
-    ['Supports', f.supports ? 'On' : 'Off'],
-    ['Material', f.petg ? 'PLA. Translucent PETG works well for a ghostly look.' : 'PLA']
+    ['Supports', f.supports ? 'On' : 'Off']
   ]
 }
 

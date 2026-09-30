@@ -19,7 +19,7 @@ type Part = {
   base?: boolean, supports?: boolean, note?: string, render?: string
 }
 type ListFleet = { id: string, set: string, ships: number, shipType: string, fittings: string, parts: Part[] }
-type GuideFleet = { id: string, name: string, set: string, hull: string, matchRigging?: boolean, supports?: boolean, petg?: boolean }
+type GuideFleet = { id: string, name: string, set: string, hull: string, matchRigging?: boolean, supports?: boolean }
 type ColorRow = { id: string, part: string, color: string }
 type SetEntry = { id: string, title: string, paid: boolean, version: string, freeDownloadUrl: string | null }
 type BundleEntry = { id: string, title: string, zipBaseName: string, includes: { set: string, folder: string }[] }

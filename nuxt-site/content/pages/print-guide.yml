@@ -28,7 +28,7 @@ settings:
   lead: These work for every part in every fleet.
   # [label, value]
   rows:
-    - [Material, PLA. For the Shadow Fleet, translucent PETG works well for a ghostly look.]
+    - [Material, PLA, unless a fleet says otherwise.]
     - [Layer height, "0.12–0.20 mm (0.16 mm recommended)"]
     - [Z contouring, 'On']
     - [Orientation, Use your slicer's auto-orient.]
@@ -65,43 +65,42 @@ fleets:
   lead: Anything not listed for a fleet uses the settings and part colors above.
   # id: the shop handle, also the #anchor on /print-guide.
   # set: the sets.json id whose zip this fleet's guide goes into.
-  # hull: hull color. Leave it out if there isn't one yet.
+  # hull: hull color and material. Leave it out if there isn't one yet.
   # matchRigging: masts and sails are printed in the hull color.
-  # supports / petg: overrides of the defaults above.
+  # supports: override of the default above.
   # parts: extra per-fleet part colors, [part, color].
   items:
     - id: queens-fleet
       name: Queen's Fleet
       set: base-set
-      hull: Pale blue-grey or brown
+      hull: Pale blue-grey or brown PLA
     - id: corsairs
       name: Corsairs
       set: base-set
-      hull: Black
+      hull: Black PLA
       matchRigging: true
     - id: treasure-fleet
       name: Treasure Fleet
       set: treasure-fleet-set
-      hull: Silk gold
+      hull: Silk gold PLA
       supports: true
     - id: stone-fleet
       name: Stone Fleet
       set: stone-fleet-set
-      hull: Matte grey, speckled rock filament, or both
+      hull: Matte grey or speckled rock PLA, or both
     - id: shadow-fleet
       name: Shadow Fleet
       set: shadow-fleet-set
-      hull: Translucent gradient filament
+      hull: Translucent gradient PLA or PETG
       matchRigging: true
       supports: true
-      petg: true
     - id: industry
       name: The Industry
       set: industry-set
-      hull: Rust brown or steel blue
+      hull: Rust brown or steel blue PLA
       parts:
-        - [Turrets and smokestacks, Rust brown or steel blue]
+        - [Turrets and smokestacks, Rust brown or steel blue PLA]
     - id: islanders
       name: The Islanders
       set: islander-set
-      hull: Pine, or a light brown wood color
+      hull: Pine or light brown wood PLA
