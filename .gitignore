@@ -22,7 +22,6 @@ result.json
 #   nuxt-site/.gitignore        .output/ .nuxt/ .data/ dist/ and the
 #                               public/_headers + public/_redirects copies
 #                               that build.sh stages there
-#   tools/bitty-cad/.gitignore  dist/
 
 # ── Paid (non-base-game) STL payloads ─────────────────────────────────
 # These sets are sold, not free, and they are kept out of the repository in

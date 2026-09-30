@@ -70,7 +70,6 @@ scripts/            # Every build step; see `npx jake -T`
 ├── rulebook/       # Rulebook, booklet, faction-card and imposition builds
 ├── blender/        # STL render pipeline
 └── print/          # OrcaSlicer 3MF generation for print orders
-tools/bitty-cad/    # In-browser CAD scratchpad
 Jakefile.js         # Build orchestrator, the entry point for every step
 build.sh            # Nuxt/Workers build, invoked by wrangler.jsonc
 ```
