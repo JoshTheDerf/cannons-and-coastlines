@@ -66,8 +66,7 @@
       "images": {
         "preview": "/assets/ships/ship-preview-queen-fleet-large-sm.webp",
         "large": "/assets/ships/renders/ship-queens-fleet.png"
-      },
-      "factionCard": "/rulebook/pdf/faction-card-queens-fleet.pdf"
+      }
     },
     {
       "id": "treasure-fleet-set",
@@ -83,8 +82,7 @@
       "images": {
         "preview": "/assets/ships/ship-preview-treasure-fleet-sm.webp",
         "large": "/assets/ships/ship-preview-treasure-fleet-large.png"
-      },
-      "factionCard": "/rulebook/pdf/faction-card-treasure-fleet.pdf"
+      }
     },
     {
       "id": "stone-fleet-set",
@@ -100,8 +98,7 @@
       "images": {
         "preview": "/assets/ships/ship-preview-stone-fleet-sm.webp",
         "large": "/assets/ships/ship-preview-stone-fleet-large.png"
-      },
-      "factionCard": "/rulebook/pdf/faction-card-stone-fleet.pdf"
+      }
     },
     {
       "id": "shadow-fleet-set",
@@ -117,8 +114,7 @@
       "images": {
         "preview": "/assets/ships/ship-preview-shadow-fleet-sm.webp",
         "large": "/assets/ships/ship-preview-shadow-fleet-large.png"
-      },
-      "factionCard": "/rulebook/pdf/faction-card-shadow-fleet.pdf"
+      }
     },
     {
       "id": "industry-set",
@@ -134,8 +130,7 @@
       "images": {
         "preview": "/assets/ships/ship-preview-industry-sm.webp",
         "large": "/assets/ships/ship-preview-industry-large.png"
-      },
-      "factionCard": "/rulebook/pdf/faction-card-the-industry.pdf"
+      }
     },
     {
       "id": "islander-set",
@@ -151,8 +146,7 @@
       "images": {
         "preview": "/assets/ships/ship-preview-islanders-sm.webp",
         "large": "/assets/ships/ship-preview-islanders-large.png"
-      },
-      "factionCard": "/rulebook/pdf/faction-card-the-islanders.pdf"
+      }
     }
   ]
 }

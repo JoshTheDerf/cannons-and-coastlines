@@ -16,15 +16,11 @@ export const FILES_CART_KEY = 'cnc.filesCart'
 export const OWNED_SETS_KEY = 'cnc.ownedSets'
 const MAX_ITEMS = 20
 
-// The five add-on fleets, by every name the site uses for them. The shop
-// handle is also the fleet's id in print-guide.yml.
-export const ADDON_FLEETS = [
-  { name: 'Treasure Fleet', handle: 'treasure-fleet', setId: 'treasure-fleet-set' },
-  { name: 'Stone Fleet', handle: 'stone-fleet', setId: 'stone-fleet-set' },
-  { name: 'Shadow Fleet', handle: 'shadow-fleet', setId: 'shadow-fleet-set' },
-  { name: 'The Industry', handle: 'industry', setId: 'industry-set' },
-  { name: 'The Islanders', handle: 'islanders', setId: 'islander-set' }
-] as const
+// The add-on fleets (shared/data/fleets.json), by every name the site uses
+// for them: fleet name, shop handle or set id.
+export const ADDON_FLEETS = FLEETS
+  .filter(f => f.group === 'addon')
+  .map(f => ({ name: f.name, handle: f.id, setId: f.set }))
 
 /** Look an add-on fleet up by name, shop handle or set id. */
 export const findAddonFleet = (key: string) =>

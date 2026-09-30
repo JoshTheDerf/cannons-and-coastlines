@@ -1,10 +1,15 @@
 <script setup lang="ts">
 import type { ShopProductCard } from '~/composables/useShop'
+import { findFleet, statLine } from '#shared/utils/fleets'
 
 const { listProducts, cart, loadCart } = useShop()
 const { data: products } = await useAsyncData('shop-products', () => listProducts())
 const { data: setsData } = await useFleetSets()
-const { data: fleetCopy } = await useFleetCopy()
+// "3 frigates · 4 fittings · Move 3"; the full stats are on each fleet's page.
+const statsFor = (p: ShopProductCard) => {
+  const f = p.kind === 'faction' ? findFleet(p.handle) : null
+  return f ? statLine(f) : undefined
+}
 
 onMounted(() => { if (!cart.value) loadCart() })
 
@@ -58,13 +63,9 @@ async function buyAll() {
   buyingAll.value = true
   buyAllError.value = ''
   try {
-    const { url } = await $fetch<{ url: string }>('/api/checkout', {
-      method: 'POST',
-      body: { setIds: paidSets.value.map(s => s.id), from: '/shop' }
-    })
-    await navigateTo(url, { external: true })
-  } catch (e: any) {
-    buyAllError.value = e?.data?.statusMessage ?? 'Could not start checkout. Please try again.'
+    await filesCart.checkout(paidSets.value.map(s => s.id), '/shop')
+  } catch (e) {
+    buyAllError.value = checkoutError(e)
     buyingAll.value = false
   }
 }
@@ -135,7 +136,7 @@ const addons = computed(() => (products.value ?? []).filter(p => p.group === 'ad
             :product="p"
             :kit-label="kitLabel(p)"
             :files-label="filesLabel(p)"
-            :stats="fleetCopy?.[p.faction]?.stats"
+            :stats="statsFor(p)"
           />
         </div>
       </section>
@@ -170,7 +171,7 @@ const addons = computed(() => (products.value ?? []).filter(p => p.group === 'ad
             :product="p"
             :kit-label="kitLabel(p)"
             :files-label="filesLabel(p)"
-            :stats="fleetCopy?.[p.faction]?.stats"
+            :stats="statsFor(p)"
           />
         </div>
       </section>

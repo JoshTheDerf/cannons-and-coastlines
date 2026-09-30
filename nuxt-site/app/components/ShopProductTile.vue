@@ -7,7 +7,8 @@ const props = defineProps<{
   product: ShopProductCard
   kitLabel: string | null
   filesLabel: string | null
-  stats?: string[]
+  /** One line, e.g. "3 frigates · 4 fittings · Move 3". */
+  stats?: string
 }>()
 
 const to = computed(() => `/shop/${props.product.handle}`)
@@ -40,9 +41,7 @@ const soon = (label: string | null) => label === 'Coming soon'
         <NuxtLink :to="to" class="after:absolute after:inset-0 relative">{{ product.title }}</NuxtLink>
       </h3>
       <p class="text-sm text-ink-soft">{{ product.tagline }}</p>
-      <ul v-if="stats?.length" class="flex flex-wrap gap-1.5 mt-1">
-        <li v-for="s in stats" :key="s" class="text-xs px-2 py-0.5 rounded-full bg-[color:var(--paper-tint)] text-ink-soft">{{ s }}</li>
-      </ul>
+      <p v-if="stats" class="text-xs text-ink-faint">{{ stats }}</p>
 
       <dl class="mt-auto pt-4 grid gap-1.5 text-sm border-t border-[color:var(--rule)]/60">
         <div v-if="kitLabel" class="flex items-center justify-between">

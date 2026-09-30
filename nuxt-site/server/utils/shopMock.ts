@@ -1,5 +1,11 @@
 // Mock Shopify Storefront data store.
 // Internal shape only — Shopify-shaped output is produced in the GraphQL handler.
+//
+// A fleet's name, summary, pictures and faction card come from
+// shared/data/fleets.json (see fleet() below). This file owns only what is
+// about selling it: kit contents, colors, prices and pairings.
+
+import { findFleet, type Fleet } from '#shared/utils/fleets'
 
 export type Money = { amount: string, currencyCode: 'USD' }
 
@@ -92,7 +98,12 @@ const buildVariants = (
     selectedOptions: [{ name: 'Color', value: c.name }]
   }))
 
-const card = (slug: string) => `/rulebook/png/faction-card-${slug}.png`
+const fleet = (id: string): Fleet => {
+  const f = findFleet(id)
+  if (!f) throw new Error(`shared/data/fleets.json has no fleet ${id}`)
+  return f
+}
+const cardImage = (f: Fleet): Image => ({ url: f.cardImage, altText: `${f.name} faction card` })
 
 // Every printed kit ships the same terrain; the 3D view scatters the same
 // pieces (shared/data/ship-assemblies.json `scene.terrain`).
@@ -119,17 +130,17 @@ export const products: Product[] = [
     aliases: ['queens-fleet-starter-set'],
     kind: 'faction',
     group: 'base',
-    title: "Queen's Fleet",
-    faction: "Queen's Fleet",
-    tagline: "Three well-armed frigates from the Crown's navy. It's the easiest fleet to learn.",
+    title: fleet('queens-fleet').name,
+    faction: fleet('queens-fleet').name,
+    tagline: fleet('queens-fleet').summary,
     description:
-      "Heavy hulls and disciplined broadsides. The Queen has sent ships to the islands before, and some of them never came back. The printed kit is everything you need to field the fleet, printed by hand at our home in Georgia. The files are free with the base game.",
-    featuredImage: { url: '/assets/ships/ship-preview-queen-fleet-large-sm.webp?v=0.5', altText: "A Queen's Fleet frigate" },
+      "The printed kit is everything you need to field the fleet, printed by hand at our home in Georgia. The files are free with the base game.",
+    featuredImage: { url: fleet('queens-fleet').image, altText: "A Queen's Fleet frigate" },
     images: [
       { url: '/assets/photos/starter-pack/queens-fleet-ship-sm.jpg', altText: "Queen's Fleet ships printed in cream and tan" },
       { url: '/assets/photos/queens-fleet-ship-of-the-line-hero-sm.jpg', altText: "Queen's Fleet ship of the line" },
       { url: '/assets/photos/queens-fleet-ship-of-the-line-sails-sm.jpg', altText: "Queen's Fleet ship with sails attached" },
-      { url: card('queens-fleet'), altText: "Queen's Fleet faction card" }
+      cardImage(fleet('queens-fleet'))
     ],
     options: [{ id: 'gid://shopify/ProductOption/queens-color', name: 'Color', values: queensColors.map(c => c.name) }],
     variants: buildVariants('queens', 65, queensColors),
@@ -152,12 +163,12 @@ export const products: Product[] = [
       {
         with: 'corsairs',
         title: 'Pair with the Corsairs',
-        blurb: "One of each is a complete two-player game. The Crown's frigates want a straight fight and the raiders would rather avoid one, which is the matchup we tune the rules around."
+        blurb: "One of each is a complete two-player game. The frigates want a straight fight and the sloops would rather avoid one, and it's the matchup the rules are tuned around."
       },
       {
         with: 'shadow-fleet',
         title: 'Or face the Shadow Fleet',
-        blurb: "The Queen's first ships to the islands disappeared without a trace. Something is sailing them again, and they're still flying her colors."
+        blurb: 'Thin hulls that sink easily and come back, against the heaviest broadsides in the game.'
       }
     ]
   },
@@ -167,16 +178,16 @@ export const products: Product[] = [
     aliases: ['corsair-fleet-starter-set'],
     kind: 'faction',
     group: 'base',
-    title: 'Corsairs',
-    faction: 'Corsairs',
-    tagline: 'Three fast sloops for raiding and boarding.',
+    title: fleet('corsairs').name,
+    faction: fleet('corsairs').name,
+    tagline: fleet('corsairs').summary,
     description:
-      'The Corsairs do best when they pick their fights and stay out of the way of the big guns. The printed kit is a full raiding fleet with everything you need to play, and the files are free with the base game.',
-    featuredImage: { url: '/assets/ships/ship-preview-corsairs-sm.webp?v=0.5', altText: 'A Corsair sloop' },
+      'The printed kit is the whole fleet with everything you need to play, and the files are free with the base game.',
+    featuredImage: { url: fleet('corsairs').image, altText: 'A Corsair sloop' },
     images: [
       { url: '/assets/photos/starter-pack/corsair-ship-sm.jpg', altText: 'Corsair ships printed in dark filament' },
       { url: '/assets/photos/starter-pack/both-ships-and-background-sm.jpg', altText: "Corsairs and Queen's Fleet ships side by side" },
-      { url: card('corsairs'), altText: 'Corsairs faction card' }
+      cardImage(fleet('corsairs'))
     ],
     options: [{ id: 'gid://shopify/ProductOption/corsairs-color', name: 'Color', values: corsairsColors.map(c => c.name) }],
     variants: buildVariants('corsairs', 60, corsairsColors),
@@ -199,7 +210,7 @@ export const products: Product[] = [
       {
         with: 'queens-fleet',
         title: "Pair with the Queen's Fleet",
-        blurb: 'The Corsairs play very differently from the Queens, so bringing both lets a new group jump straight into a head-to-head game.'
+        blurb: "The two base fleets play very differently, so a new group can start straight away with a head-to-head game."
       }
     ]
   },
@@ -217,8 +228,8 @@ export const products: Product[] = [
     featuredImage: { url: '/assets/photos/starter-pack/both-ships-and-background-sm.jpg', altText: 'Both base fleets on the table' },
     images: [
       { url: '/assets/photos/starter-pack/both-ships-and-background-sm.jpg', altText: 'Both base fleets on the table' },
-      { url: card('queens-fleet'), altText: "Queen's Fleet faction card" },
-      { url: card('corsairs'), altText: 'Corsairs faction card' }
+      cardImage(fleet('queens-fleet')),
+      cardImage(fleet('corsairs'))
     ],
     options: [],
     variants: [],
@@ -253,90 +264,67 @@ export const products: Product[] = [
  */
 function addOnFactions(): Product[] {
   const specs: {
-    handle: string, alias: string, title: string, setId: string, assembly: string, cardSlug: string
-    tagline: string, description: string, image: string, large: string
+    handle: string, alias: string, assembly: string
     kit: string[]
     pairings: Product['pairings']
   }[] = [
     {
-      handle: 'treasure-fleet', alias: 'treasure-fleet-files', title: 'Treasure Fleet',
-      setId: 'treasure-fleet-set', assembly: 'treasure-fleet', cardSlug: 'treasure-fleet',
-      tagline: 'Three gilded junks from an empire far to the north.',
-      description: "They're here to collect tribute and gold, and they'll leave you alone if you return the favor. Every island they hold pays out double.",
-      image: '/assets/ships/ship-preview-treasure-fleet-sm.webp',
-      large: '/assets/ships/ship-preview-treasure-fleet-large.png',
+      handle: 'treasure-fleet', alias: 'treasure-fleet-files', assembly: 'treasure-fleet',
       kit: ['Three junk hulls in silk gold', 'Treasure Fleet sails', 'Masts, cargo, cannons and wheels'],
-      pairings: [{ with: 'industry', title: 'Pair with The Industry', blurb: "The Industry would rather not pay tribute to anyone, and the Treasure Fleet would rather not have to ask twice." }]
+      pairings: [{ with: 'industry', title: 'Pair with the Industry', blurb: 'Slow junks with a lot of coins to spend, against a turret that can reach them from any angle.' }]
     },
     {
-      handle: 'stone-fleet', alias: 'stone-fleet-files', title: 'Stone Fleet',
-      setId: 'stone-fleet-set', assembly: 'stone-fleet', cardSlug: 'stone-fleet',
-      tagline: 'Carved stone barges. Slow, and very hard to sink.',
-      description: "They're descended from the losing side of an old uprising, who fled to a distant, rocky continent and built a harder people there. Stone was what they had, so they used it for pretty much everything, ships included. Each ship ignores the first hit it takes every turn.",
-      image: '/assets/ships/ship-preview-stone-fleet-sm.webp',
-      large: '/assets/ships/ship-preview-stone-fleet-large.png',
+      handle: 'stone-fleet', alias: 'stone-fleet-files', assembly: 'stone-fleet',
       kit: ['Three barge hulls in stone grey', 'Stone Fleet sails', 'Masts, barrels, cannons and wheels'],
-      pairings: [{ with: 'islanders', title: 'Pair with The Islanders', blurb: "The Stone Fleet's ancestors left the islands a long time ago, and not on good terms. The Islanders still remember why." }]
+      pairings: [{ with: 'islanders', title: 'Pair with the Islanders', blurb: 'Slow barges that shrug off the first hit, against five quick catamarans.' }]
     },
     {
-      handle: 'shadow-fleet', alias: 'shadow-fleet-files', title: 'Shadow Fleet',
-      setId: 'shadow-fleet-set', assembly: 'shadow-fleet', cardSlug: 'shadow-fleet',
-      tagline: 'Galleons that sank in the first rush for the islands, and came back.',
-      description: "Nobody knows what happened to them, or what's crewing them now. They're printed in translucent gradient PETG. The hulls are thin and sink easily, but they rise again at any island you hold.",
-      image: '/assets/ships/ship-preview-shadow-fleet-sm.webp?v=2',
-      large: '/assets/ships/ship-preview-shadow-fleet-large.png?v=2',
+      handle: 'shadow-fleet', alias: 'shadow-fleet-files', assembly: 'shadow-fleet',
       kit: ['Three galleon hulls in gradient PETG', 'Torn sails', 'Masts, cargo, cannons and wheels'],
-      pairings: [{ with: 'queens-fleet', title: "Pair with the Queen's Fleet", blurb: "They were the Queen's ships once, and she'd very much like them back." }]
+      pairings: [{ with: 'queens-fleet', title: "Pair with the Queen's Fleet", blurb: 'Frigates with four fittings each take a while to sink. Your galleons sink faster, but they come back.' }]
     },
     {
-      handle: 'industry', alias: 'industry-files', title: 'The Industry',
-      setId: 'industry-set', assembly: 'industry', cardSlug: 'the-industry',
-      tagline: 'Iron steamships from a colony that won its independence.',
-      description: "They broke away from the Queen's empire and kept their freedom by out-building it. They're on reasonably civil terms with the Crown now, mostly. Each ship has a bow gun and a turret that fires in any direction (until it gets shot off).",
-      image: '/assets/ships/ship-preview-industry-sm.webp',
-      large: '/assets/ships/ship-preview-industry-large.png',
+      handle: 'industry', alias: 'industry-files', assembly: 'industry',
       kit: ['Three ironclad hulls in rust', 'Turrets and smokestacks', 'Cargo, cannons and wheels'],
-      pairings: [{ with: 'treasure-fleet', title: 'Pair with the Treasure Fleet', blurb: "A young nation with a lot of new guns, and an old empire that just wants to be paid. Neither of them is looking for a war, which doesn't always stop one." }]
+      pairings: [{ with: 'treasure-fleet', title: 'Pair with the Treasure Fleet', blurb: 'Slow junks sitting on their islands are an easy target for a turret, if you can get past the coins they spend.' }]
     },
     {
-      handle: 'islanders', alias: 'islanders-files', title: 'The Islanders',
-      setId: 'islander-set', assembly: 'islanders', cardSlug: 'the-islanders',
-      tagline: 'Fast catamarans, sailed by the people who live on the islands.',
-      description: "They know these waters better than anyone else, and they start the game already holding an island. The boats are quick and fragile, with their guns at the back.",
-      image: '/assets/ships/ship-preview-islanders-sm.webp',
-      large: '/assets/ships/ship-preview-islanders-large.png',
+      handle: 'islanders', alias: 'islanders-files', assembly: 'islanders',
       kit: ['Five catamaran hulls in pine', 'Islander sails on short masts', 'Cannons and wheels'],
-      pairings: [{ with: 'stone-fleet', title: 'Pair with the Stone Fleet', blurb: "The Islanders against the descendants of the people who once tried to rule them. Quick catamarans take on slow barges that won't break." }]
+      pairings: [{ with: 'stone-fleet', title: 'Pair with the Stone Fleet', blurb: "Quick catamarans against slow barges that don't break easily." }]
     }
   ]
 
-  return specs.map(s => ({
-    id: `gid://shopify/Product/${s.setId}`,
+  return specs.map((s) => {
+    const f = fleet(s.handle)
+    return {
+    id: `gid://shopify/Product/${f.set}`,
     handle: s.handle,
     aliases: [s.alias],
     kind: 'faction' as const,
     group: 'addon' as const,
-    title: s.title,
-    faction: s.title,
-    tagline: s.tagline,
-    description: s.description,
-    featuredImage: { url: s.image, altText: `A ${s.title} ship` },
+    title: f.name,
+    faction: f.name,
+    tagline: f.summary,
+    description: `${f.summary} ${f.ability}: ${f.abilityBody}`,
+    featuredImage: { url: f.image, altText: `A ${f.name} ship` },
     images: [
-      { url: s.large, altText: `A ${s.title} ship` },
-      { url: card(s.cardSlug), altText: `${s.title} faction card` }
+      { url: f.large, altText: `A ${f.name} ship` },
+      cardImage(f)
     ],
     options: [],
     variants: [],
     kitStatus: 'coming-soon' as const,
     includes: [
       { icon: 'i-lucide-package', title: 'Printed kit', items: s.kit },
-      coastlineKit(`The ${s.title} faction card`),
-      filesIncludes(`${s.title} hulls`)
+      coastlineKit(`The ${f.name} faction card`),
+      filesIncludes(`${f.name} hulls`)
     ],
-    setId: s.setId,
+    setId: f.set,
     assembly: s.assembly,
     pairings: s.pairings
-  }))
+    }
+  })
 }
 
 export type CartLine = { id: string, variantId: string, quantity: number }

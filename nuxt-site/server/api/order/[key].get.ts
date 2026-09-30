@@ -35,7 +35,6 @@ export default defineEventHandler(async (event) => {
       title: set.title,
       version: set.version,
       image: set.images.preview,
-      factionCard: set.factionCard,
       handle: products.find(p => p.setId === set.id)?.handle ?? null,
       downloadUrl: state === 'paid' ? `/api/download/${set.id}?order=${key}` : null
     }]

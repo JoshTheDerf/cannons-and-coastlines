@@ -8,7 +8,6 @@ type OrderSet = {
   title: string
   version: string
   image: string
-  factionCard: string
   handle: string | null
   downloadUrl: string | null
 }
@@ -147,7 +146,7 @@ async function copyLink() {
           <div class="flex-1 min-w-0">
             <p class="font-display text-lg text-ink">{{ s.title }}</p>
             <p class="text-sm text-ink-soft">STL files · version {{ s.version }}</p>
-            <a :href="s.factionCard" target="_blank" class="text-sm text-[color:var(--gold)] hover:underline">Faction card (PDF)</a>
+            <NuxtLink v-if="s.handle" :to="`/shop/${s.handle}`" class="text-sm text-[color:var(--gold)] hover:underline">Fleet page and faction card</NuxtLink>
           </div>
           <UButton
             v-if="s.downloadUrl"

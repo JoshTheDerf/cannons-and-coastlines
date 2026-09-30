@@ -26,7 +26,6 @@ export type StlSet = {
   /** Label the price as an early-bird price in the shop. */
   earlyBird?: boolean
   images: { preview: string, large: string }
-  factionCard: string
 }
 
 export const sets: StlSet[] = (manifest.sets as StlSet[])

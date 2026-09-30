@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { ShopVariant } from '~/composables/useShop'
 import assemblies from '#shared/data/ship-assemblies.json'
+import { findFleet } from '#shared/utils/fleets'
 
 const route = useRoute()
 const handle = computed(() => String(route.params.handle))
@@ -29,9 +30,11 @@ useSeoMeta({
 
 const { data: allProducts } = await useAsyncData('shop-products-list', () => listProducts())
 const { data: setsData } = await useFleetSets()
-const { data: fleetCopy } = await useFleetCopy()
 
-const fleet = computed(() => fleetCopy.value?.[product.value!.faction] ?? null)
+// The fleet's stats, ability and faction card (shared/data/fleets.json).
+// This page is their one full home; other pages link here. Null on the
+// base-set download page, which isn't one fleet.
+const fleet = computed(() => product.value!.kind === 'faction' ? findFleet(product.value!.handle) : null)
 const suggestions = computed(() => {
   const all = allProducts.value ?? []
   return product.value!.pairings
@@ -115,7 +118,7 @@ const PART_NAMES: Record<string, string> = {
 }
 // Every piece has a gallery render at assets/images/renders/<stem>.png
 // (npx jake renders). Those are cached as immutable, so a piece re-rendered
-// in place carries a version here, as in content/pages/parts.yml.
+// in place carries a version here, as in content/pages/print-guide.yml.
 const RENDER_VERSION: Record<string, string> = {
   'mast': '?v=0.5', 'cannon': '?v=0.5', 'cargo': '?v=0.5', 'movement-wheel': '?v=0.5',
   'ship-queens-fleet': '?v=0.5', 'ship-corsair': '?v=0.5', 'ship-shadow-fleet': '?v=2',
@@ -170,7 +173,7 @@ const kitContents = computed((): Row[] => {
 
     <div class="mt-5 grid lg:grid-cols-[1.25fr_1fr] gap-8 lg:gap-12 items-start">
       <!-- Gallery -->
-      <div class="lg:sticky lg:top-20">
+      <div class="lg:sticky lg:top-20 min-w-0">
         <div class="rounded-xl overflow-hidden border border-[color:var(--rule)]/70 aspect-[4/3] bg-[color:var(--paper-card)] flex items-center justify-center">
           <ClientOnly v-if="media === '3d' && product.assembly">
             <ShipPreview
@@ -210,16 +213,19 @@ const kitContents = computed((): Row[] => {
       </div>
 
       <!-- Buy box -->
-      <div class="flex flex-col gap-5">
+      <div class="flex flex-col gap-5 min-w-0">
         <div>
           <p class="text-xs uppercase tracking-[0.2em] text-[color:var(--gold)] font-semibold">
             {{ product.kind === 'download' ? 'Free download' : product.group === 'base' ? 'Base game fleet' : 'Add-on fleet' }}
           </p>
           <h1 class="font-display text-3xl md:text-4xl text-[color:var(--heading)] mt-1">{{ product.title }}</h1>
           <p class="mt-2 text-ink-soft">{{ product.tagline }}</p>
-          <ul v-if="fleet?.stats.length" class="mt-3 flex flex-wrap gap-1.5">
-            <li v-for="s in fleet.stats" :key="s" class="text-xs px-2.5 py-1 rounded-full bg-[color:var(--paper-tint)] text-ink-soft">{{ s }}</li>
-          </ul>
+          <dl v-if="fleet" class="mt-4 grid grid-cols-2 gap-x-6 text-sm border-t border-[color:var(--rule)]">
+            <div v-for="[k, v] in fleet.stats" :key="k" class="flex justify-between gap-3 py-1.5 border-b border-[color:var(--rule)]/60">
+              <dt class="text-ink-faint">{{ k }}</dt>
+              <dd class="text-ink font-semibold text-right">{{ v }}</dd>
+            </div>
+          </dl>
           <div v-if="fleet?.ability" class="mt-3 callout text-sm">
             <b class="text-ink">{{ fleet.ability }}.</b> <span class="text-ink-soft">{{ fleet.abilityBody }}</span>
           </div>
@@ -322,7 +328,6 @@ const kitContents = computed((): Row[] => {
             <UButton v-if="digital.freeDownloadUrl" :to="`/print-list/${digital.id}`" class="mt-4" size="xl" color="primary" icon="i-lucide-download" block>
               Download the STLs
             </UButton>
-            <NuxtLink to="/parts" class="mt-3 inline-block text-sm text-[color:var(--gold)] hover:underline">What's in the pack and how to print it →</NuxtLink>
           </div>
 
           <div v-else-if="digital.purchasable" class="rounded-xl border border-[color:var(--rule)] bg-[color:var(--paper-card)] p-5">
@@ -353,11 +358,11 @@ const kitContents = computed((): Row[] => {
         </template>
 
         <div class="flex flex-wrap gap-2">
-          <UButton v-if="digital?.factionCard" :to="digital.factionCard" target="_blank" icon="i-lucide-file-text" variant="ghost" color="neutral" size="sm">
+          <UButton v-if="fleet" :to="fleet.card" target="_blank" icon="i-lucide-file-text" variant="ghost" color="neutral" size="sm">
             Faction card (PDF)
           </UButton>
-          <UButton to="/rulebook/pdf/rulebook.pdf" target="_blank" icon="i-lucide-book-open" variant="ghost" color="neutral" size="sm">
-            Rulebook (PDF)
+          <UButton v-if="digital" :to="`/print-list/${digital.id}`" icon="i-lucide-list-checks" variant="ghost" color="neutral" size="sm">
+            Print list
           </UButton>
           <UButton :to="product.kind === 'faction' ? `/print-guide#${product.handle}` : '/print-guide'" icon="i-lucide-printer" variant="ghost" color="neutral" size="sm">
             Print guide
@@ -398,11 +403,6 @@ const kitContents = computed((): Row[] => {
           <p v-if="row.note" class="mt-1 text-[0.7rem] leading-snug text-ink-soft">{{ row.note }}</p>
         </li>
       </ul>
-    </section>
-
-    <section class="mt-12 max-w-3xl">
-      <h2 class="font-display text-2xl text-[color:var(--heading)] mb-2">About {{ product.kind === 'download' ? 'the files' : 'this fleet' }}</h2>
-      <p class="text-ink-soft">{{ product.description }}</p>
     </section>
 
     <section v-if="suggestions.length" class="mt-14">
