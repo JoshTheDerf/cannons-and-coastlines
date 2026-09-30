@@ -296,25 +296,22 @@ signup:
 playOnline:
   title: Want to learn how to play? Play online
   lead: >-
-    The browser version is the easiest way to learn the rules, and you don't
-    need to print anything first.
+    There's a browser version of the game, and it's pretty much the quickest
+    way to learn the rules. You can play against the computer or online with
+    friends, and you don't have to print anything first.
   body: >-
-    You can play a battle against the computer, or start an online game and
-    send the code to your friends. Empty seats can go to the computer, so a
-    game of two can still have a full table.
+    (Short on players? The computer can take the empty seats in an online
+    game.)
   actions:
     - { label: Play the computer, to: /game/, icon: i-lucide-bot, variant: solid }
     - { label: Play online with friends, to: /game/?online, icon: i-lucide-users, variant: outline }
   shots:
     - src: /assets/images/game/table-overview.webp
       alt: The web game's 3D view of a round table, with three white Queen's Fleet ships near the bottom edge, black Corsair ships across the table and green islands between them.
-      caption: The whole table, your fleet against the computer's.
+      caption: A game against the computer.
     - src: /assets/images/game/aiming.webp
-      alt: A Queen's Fleet ship lining up a straight-out shot at a Corsair ship, with Fire, Tipped up and Straight buttons around it.
-      caption: Lining up a shot. Pick a cannon, straight out or tipped up, then fire.
-    - src: /assets/images/game/online-lobby.webp
-      alt: The Play online screen, with a list of three open games, a box to join with a code and the options for starting a game.
-      caption: The online game list. Join with a code or start your own.
+      alt: A Queen's Fleet ship lining up a shot at a Corsair ship, with Fire, Tipped up and Straight buttons around it.
+      caption: Lining up a shot.
 
 about:
   title: Who's making this

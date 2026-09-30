@@ -233,7 +233,7 @@ const actionLetters = ['A', 'B', 'C']
             {{ a.label }}
           </UButton>
         </div>
-        <div class="mt-10 grid gap-6 sm:grid-cols-3">
+        <div class="mt-10 grid gap-6 sm:grid-cols-2 max-w-4xl">
           <figure v-for="s in p.playOnline.shots" :key="s.src" class="photo-frame">
             <img :src="s.src" :alt="s.alt" loading="lazy" decoding="async" width="980" height="735" class="w-full h-auto aspect-[4/3] object-cover object-top">
             <figcaption v-if="s.caption" class="mt-2 text-sm muted font-serif">{{ s.caption }}</figcaption>
