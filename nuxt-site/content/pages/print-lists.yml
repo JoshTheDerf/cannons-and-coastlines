@@ -170,7 +170,7 @@ general:
         render: wind-dial
         qty: 1 each
         color: dial
-        note: For the optional Trade Winds rule. A steel M8 washer spins better.
+        note: Optional. A steel M8 washer spins better.
       - { part: Fit test, file: ship-tolerance-test.stl, qty: 1, color: fit-test, note: Print it first. }
 
 # Other base-set files no row above counts. The zip check
@@ -184,15 +184,14 @@ kit:
   title: What a game needs
   body:
     - >-
-      Each player brings a fleet printed from its list, 20 coins, one or two
+      Each player needs a fleet printed from its list, 20 coins, one or two
       islands with a short mast each, the faction card and some paper flags.
     - >-
-      The table needs 2 to 6 rocks and reefs. With three or more players, put
-      a rock at each end of every fleet's line. Add the wind dial if you play
-      Trade Winds. A 6 ft round table or a 6 or 8 ft folding table works well.
+      The table needs 2 to 6 rocks and reefs, and the wind dial if you want
+      it.
     - >-
-      You also need a thin rubber band for every wheel and a cloth bag for
-      the coins.
+      You also need a 10 mm rubber band or silicone cable tie for every wheel
+      and a cloth bag for the coins.
   paid: >-
     For a game you also need coins, islands and terrain. They're in the free
     base set, and its print list has everything a game needs.
@@ -208,15 +207,12 @@ steps:
   title: Printing and putting it together
   items:
     - text: Print the fit test (ship-tolerance-test.stl in the base set) first. If a peg is loose, scale it up 0.5 to 1% in your slicer. If it's tight, sand it a bit.
-    - text: Lay each cannon so the flex arm's layers run across the bend, and print a spare or two.
-    - text: Print the masts lying flat.
-      needs: [mast.stl, mast-short.stl]
-    - text: Stretch a thin rubber band around each wheel's rim and push the wheel into the slot under the stern. It should be snug but still spin, and it stays in.
-    - text: Plug the fittings into the deck. Each hit knocks one off, and a bare hull sinks on the next hit.
+    - text: Print a spare cannon or two.
+    - text: Stretch a 10 mm rubber band or silicone cable tie around each wheel's rim and push the wheel into the slot under the stern. It should be snug but still spin, and it stays in.
+    - text: Plug the fittings into the deck.
     - text: Slide the sails down over the masts, and a paper flag into the slot at the top of a mast.
       needs: [sail.stl, sail-damaged.stl, sail-treasure-fleet.stl, sail-stone-fleet.stl, sail-islanders.stl]
-    - text: To fire, plug a cannon into an open slot, drop in a cannonball and press the arm down.
-    - text: Islands sit right on the table. A short mast in the hole flies your flag.
+    - text: Plug a short mast into each island for its flag.
       needs: [island.stl]
 
 # The all-fleets zip (bundles in nuxt-site/server/data/sets.json).

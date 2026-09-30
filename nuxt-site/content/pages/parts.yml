@@ -96,7 +96,7 @@ gallery:
     - render: /assets/images/renders/movement-wheel.png?v=0.5
       name: Movement Wheel
       desc: Lives in the stern. One full turn is one *click* of movement. The flat spot parks the ship.
-      color: Any. Needs a thin **rubber band** around the rim or it won't click.
+      color: Any. Needs a 10 mm **rubber band** or silicone cable tie around the rim or it won't click.
     - render: /assets/images/renders/island.png
       name: Island
       desc: A whole island that sits right on the table, so you don't need anything under it. Cannon slots on top, and a short mast holds your flag.
@@ -125,7 +125,7 @@ assembly:
       title: The ship (once)
       ordered: true
       items:
-        - Stretch a thin **rubber band** around the rim of the **wheel**.
+        - Stretch a 10 mm **rubber band** or silicone cable tie around the rim of the **wheel**.
         - Push the wheel into the slot under the stern. It should be snug but still spin.
     - icon: i-lucide-anchor
       title: Fittings (every game)
@@ -162,8 +162,9 @@ printing:
   lead: Colors and settings for each fleet are in the print guide. A few parts need extra care.
   # Shown as a single row of label / value pairs. Keep in step with print-guide.yml.
   defaults:
-    - [Layer height, 0.16 mm or lower]
+    - [Layer height, "0.12–0.20 mm (0.16 mm recommended)"]
     - [Z contouring, 'On']
+    - [Orientation, Use your slicer's auto-orient.]
     - [Infill, 10% or more]
     - [Material, PLA. Translucent PETG works well for a ghostly Shadow Fleet.]
     - [Supports, Only for the Shadow Fleet and Treasure Fleet.]
@@ -172,16 +173,12 @@ printing:
     - icon: i-lucide-crosshair
       title: Cannons
       body: >-
-        Orient the flex arm so the layers run **across** the bend. If they
-        run along it, the arm splits under load. Print a couple of spares,
-        since the arm loses tension after a few hundred shots.
+        Print a couple of spares, since the arm loses tension after a few
+        hundred shots.
     - icon: i-lucide-circle-dot
       title: Cannonballs
       body: >-
         PLA works best. Coarser layers shoot harder and less predictably.
-    - icon: i-lucide-anchor
-      title: Masts
-      body: Print them lying flat, short masts too.
     - icon: i-lucide-coins
       title: Coins
       body: Silk gold gives the sheen in the renders. Matte gold is fine.
@@ -209,7 +206,7 @@ quantities:
     - [Rocks and reefs, 2–4, Optional. They block ships and cannonballs.]
     - [Fit test, 1, Print it before anything else.]
     - [Coins, 1 set of 20, 5 Brace · 2 Full Sail · 2 Evasive · 5 Gunner · 4 Repair · 2 Boarding]
-  notPrinted: "**Not printed:** one cloth draw bag for the table, and a thin rubber band per wheel."
+  notPrinted: "**Not printed:** one cloth draw bag for the table, and a 10 mm rubber band or silicone cable tie per wheel."
 
 cta:
   title: Get the Files

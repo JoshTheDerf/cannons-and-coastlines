@@ -518,7 +518,7 @@ Every printed piece in the base set, with what it does and recommended print col
 
   ..part-row("movement-wheel", "Movement Wheel",
     [Insert into the slot in the bottom of the hull. One full revolution is one *click* of movement.],
-    [*Any color*. Wrap a *thin rubber band* around the rim before assembly.]),
+    [*Any color*. Wrap a *10mm rubber band* or silicone cable tie around the rim before assembly.]),
 
   ..part-row("island", "Island",
     [A freestanding island with cannon slots and a hole for a short mast to fly your flag. Needs nothing under it.],
@@ -537,7 +537,7 @@ Every printed piece in the base set, with what it does and recommended print col
 
 = The Print List
 
-A *faction set* is one complete print run for one player: their fleet plus a fair share of shared terrain and coins. The only non-printed parts are the draw bag (any small cloth pouch) and the wheel rubber bands. Print at *0.2 or 0.16mm* layer height, *15%* infill. Print the *fit test* first to check that masts, cargo and cannons seat.
+A *faction set* is one complete print run for one player: their fleet plus a fair share of shared terrain and coins. The only non-printed parts are the draw bag (any small cloth pouch) and the wheel rubber bands. Print at *0.12–0.20mm* layer height (*0.16mm* recommended), *15%* infill. Print the *fit test* first to check that masts, cargo and cannons seat.
 
 == Per Faction Set
 
@@ -568,14 +568,14 @@ The cannons fire by flexing printed plastic under tension, so two copies of the 
 
 Every ship has a wheel built into the stern. Two details matter:
 
-- Wrap a thin rubber band around the rim before seating the wheel in the hull. The wheel needs the band to click at all; without it, the rim slides on the table instead of rolling.
+- Wrap a 10mm rubber band or silicone cable tie around the rim before seating the wheel in the hull. The wheel needs the band to click at all; without it, the rim slides on the table instead of rolling.
 - The wheel has a *flat spot* on one side. One full revolution brings the flat back to the table, ending one *click* and parking the ship between turns.
 
 == Print Tips
 
 - Print everything in *PLA* or *PETG* unless noted. It's rigid enough for the cannon mechanism and cheap enough to replace when pieces wear out.
 - Print cannonballs in *PLA*. Coarser layer heights make them shoot harder and less predictably.
-- The cannon's flex arm is the part to orient carefully. Lay it so the print layers run *across* the bending direction, not along it. Layer lines parallel to the flex will split under load.
+- Use your slicer's *auto-orient* for every part.
 - Print a few spare cannons per player. The snap mechanism loses tension after hundreds of shots. Swapping in a fresh cannon restores the original feel without reprinting the whole fleet.
 - Bed leveling is critical. A nozzle too close to the bed may cause pieces like masts not to fit in their slots.
 
