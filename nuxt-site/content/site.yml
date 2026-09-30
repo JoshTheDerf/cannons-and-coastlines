@@ -45,6 +45,7 @@ footer:
         - { label: How to play, to: /#how-to-play }
         - { label: Fleets, to: /#fleets }
         - { label: Parts, to: /parts }
+        - { label: Print guide, to: /print-guide }
         - { label: Videos, to: /#videos }
         - { label: Play online, to: /game/?online, external: true }
     - title: Files

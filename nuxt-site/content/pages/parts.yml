@@ -27,37 +27,37 @@ gallery:
       name: Queen's Fleet
       badge: Base set
       desc: A frigate with three broadside slots on each side and four fittings.
-      color: Blue-grey, or your fleet color.
+      color: Pale blue-grey or brown.
     - render: /assets/ships/renders/ship-corsair.png?v=0.5
       name: Corsairs
       badge: Base set
       desc: A sloop. It's smaller and quicker than the frigate, with three fittings.
-      color: Black, or your fleet color.
+      color: Black, with black masts and sails.
     - render: /assets/ships/renders/ship-treasure-fleet.png
       name: Treasure Fleet
       badge: Add-on
       desc: A slow junk with a deep hold. Every island it collects from pays double.
-      color: Gold.
+      color: Silk gold.
     - render: /assets/ships/renders/ship-stone-fleet.png
       name: Stone Fleet
       badge: Add-on
       desc: A carved stone barge. Slow, but pretty hard to sink.
-      color: Stone grey.
+      color: Matte grey, speckled rock filament, or both.
     - render: /assets/ships/renders/ship-shadow-fleet.png?v=2
       name: Shadow Fleet
       badge: Add-on
       desc: A thin-hulled galleon that can come back after it sinks.
-      color: Translucent teal-to-purple gradient **PETG**.
+      color: Translucent gradient filament, in PLA or **PETG**. Masts and sails match the hull.
     - render: /assets/ships/renders/ship-industry.png
       name: The Industry
       badge: Add-on
       desc: Iron hull with a separate **turret** and **smokestack** that plug in like fittings.
-      color: Rust brown. Turret grey, stack black.
+      color: Rust brown or steel blue, turret and smokestack too.
     - render: /assets/ships/renders/ship-islander.png
       name: The Islanders
       badge: Add-on
       desc: A catamaran with its guns at the back and a single fitting. It takes the **short mast**.
-      color: Pine.
+      color: Pine, or a light brown wood color.
   partsTitle: The Pieces
   partsLead: Everything else in the base set. The colors are just suggestions.
   items:
@@ -159,13 +159,14 @@ assembly:
 
 printing:
   title: Printing
-  lead: The rulebook defaults cover almost everything. The exceptions are below.
-  # Shown as a single row of label / value pairs.
+  lead: Colors and settings for each fleet are in the print guide. A few parts need extra care.
+  # Shown as a single row of label / value pairs. Keep in step with print-guide.yml.
   defaults:
-    - [Layer height, 0.16 or 0.2 mm]
-    - [Infill, '15%']
-    - [Material, PLA or PETG]
-    - [Supports, Rarely. Some hulls print cleaner with them.]
+    - [Layer height, 0.16 mm or lower]
+    - [Z contouring, 'On']
+    - [Infill, 10% or more]
+    - [Material, PLA. PETG works for the Shadow Fleet.]
+    - [Supports, Only for the Shadow Fleet and Treasure Fleet.]
   # Part-specific notes. `body` accepts **bold** and *italic*.
   notes:
     - icon: i-lucide-crosshair
@@ -220,3 +221,4 @@ cta:
     - { label: Mailing list, to: /#files, icon: i-lucide-mail, variant: solid }
     - { label: Discord, to: https://discord.gg/DMuFEWJtZq, icon: i-lucide-message-circle, variant: outline }
     - { label: Rulebook PDF, to: /rulebook/pdf/rulebook.pdf, icon: i-lucide-file-text, variant: outline }
+    - { label: Print guide, to: /print-guide, icon: i-lucide-printer, variant: outline }

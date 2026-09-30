@@ -26,7 +26,31 @@
     "and the download route always resolves to the current version.",
     "",
     "NEVER remove or rename a paid set's `id` once it has sold: purchases are",
-    "recorded against it, and a buyer's download link names it."
+    "recorded against it, and a buyer's download link names it.",
+    "",
+    "BUNDLES are one zip holding several sets, one folder each, with the print",
+    "guide at the top. They are not sold on their own: an order that includes",
+    "every PAID set in `includes` gets the bundle zip on its order page (free",
+    "sets in `includes` ride along). Buying all five fleets is still five",
+    "line items at the per-set price. The R2 key carries every included set's",
+    "version, so bumping any of them points the site at a zip that",
+    "`npx jake publish-sets` has to rebuild; until it does, the order page",
+    "just offers the per-set downloads."
+  ],
+  "bundles": [
+    {
+      "id": "all-fleets",
+      "title": "Every fleet",
+      "zipBaseName": "cannons-and-coastlines-all-fleets",
+      "includes": [
+        { "set": "base-set", "folder": "base-set" },
+        { "set": "treasure-fleet-set", "folder": "treasure-fleet" },
+        { "set": "stone-fleet-set", "folder": "stone-fleet" },
+        { "set": "shadow-fleet-set", "folder": "shadow-fleet" },
+        { "set": "industry-set", "folder": "the-industry" },
+        { "set": "islander-set", "folder": "the-islanders" }
+      ]
+    }
   ],
   "sets": [
     {

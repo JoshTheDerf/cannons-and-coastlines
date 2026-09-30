@@ -41,6 +41,8 @@ export default defineContentConfig({
         intro: z.record(z.any()).optional(),
         howToPlay: z.record(z.any()).optional(),
         fleets: z.record(z.any()).optional(),
+        settings: z.record(z.any()).optional(),
+        colors: z.record(z.any()).optional(),
         videos: z.record(z.any()).optional(),
         factions: z.record(z.any()).optional(),
         changelog: z.record(z.any()).optional(),

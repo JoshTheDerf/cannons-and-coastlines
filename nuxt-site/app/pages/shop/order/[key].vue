@@ -12,7 +12,15 @@ type OrderSet = {
   handle: string | null
   downloadUrl: string | null
 }
-type OrderResponse = { state: 'paid' | 'pending' | 'expired' | 'refunded', email: string | null, sets: OrderSet[] }
+// Every add-on fleet in one zip, when the order has them all (see BUNDLES in
+// server/data/sets.json). Null until that zip is published.
+type OrderBundle = { id: string, title: string, folders: string[], downloadUrl: string }
+type OrderResponse = {
+  state: 'paid' | 'pending' | 'expired' | 'refunded'
+  email: string | null
+  sets: OrderSet[]
+  bundle?: OrderBundle | null
+}
 
 const route = useRoute()
 const key = String(route.params.key)
@@ -101,7 +109,21 @@ async function copyLink() {
         </p>
       </header>
 
-      <ul class="mt-8 flex flex-col gap-3">
+      <div v-if="order.bundle" class="mt-8 card-parchment p-5 flex flex-col sm:flex-row sm:items-center gap-4">
+        <div class="flex-1 min-w-0">
+          <p class="font-display text-lg text-ink">{{ order.bundle.title }}, in one zip</p>
+          <p class="text-sm text-ink-soft">
+            A folder for each fleet, plus the base set's masts, cannons and terrain. The print guide and
+            assembly steps are in PRINTING.md at the top.
+          </p>
+        </div>
+        <UButton :to="order.bundle.downloadUrl" external color="primary" icon="i-lucide-download" size="lg" class="shrink-0 justify-center">
+          Download all
+        </UButton>
+      </div>
+      <p v-if="order.bundle" class="mt-6 text-sm text-ink-soft">Or one fleet at a time:</p>
+
+      <ul :class="order.bundle ? 'mt-3' : 'mt-8'" class="flex flex-col gap-3">
         <li v-for="s in order.sets" :key="s.id" class="card-parchment p-4 flex gap-4 items-center">
           <img :src="s.image" :alt="`A ${s.title} ship`" class="size-20 sm:size-24 rounded-lg object-contain bg-[color:var(--paper-tint)] shrink-0">
           <div class="flex-1 min-w-0">
@@ -109,7 +131,16 @@ async function copyLink() {
             <p class="text-sm text-ink-soft">STL files · version {{ s.version }}</p>
             <a :href="s.factionCard" target="_blank" class="text-sm text-[color:var(--gold)] hover:underline">Faction card (PDF)</a>
           </div>
-          <UButton v-if="s.downloadUrl" :to="s.downloadUrl" external color="primary" icon="i-lucide-download" size="lg" class="shrink-0">
+          <UButton
+            v-if="s.downloadUrl"
+            :to="s.downloadUrl"
+            external
+            :color="order.bundle ? 'neutral' : 'primary'"
+            :variant="order.bundle ? 'outline' : 'solid'"
+            icon="i-lucide-download"
+            size="lg"
+            class="shrink-0"
+          >
             <span class="hidden sm:inline">Download</span>
           </UButton>
         </li>
@@ -122,7 +153,8 @@ async function copyLink() {
         <p>
           The files are for your own prints; please don't share the link. See the
           <NuxtLink to="/terms#paid-models-add-on-fleets" class="underline">license</NuxtLink>.
-          Printing tips are on the <NuxtLink to="/parts" class="underline">parts page</NuxtLink>,
+          Colors and slicer settings are in the <NuxtLink to="/print-guide" class="underline">print guide</NuxtLink>
+          (also PRINTING.md in each zip),
           and the <NuxtLink to="/rulebook/pdf/rulebook.pdf" external target="_blank" class="underline">rulebook</NuxtLink> is free.
           A file broken or missing? Email
           <a href="mailto:josh@thederf.com" class="underline text-[color:var(--gold)]">josh@thederf.com</a>.

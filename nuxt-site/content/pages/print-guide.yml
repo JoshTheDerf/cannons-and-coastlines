@@ -1,0 +1,94 @@
+# Print guide page (/print-guide), and the PRINTING.md inside every STL zip.
+#
+# One source for both: scripts/lib/print_guide.py renders the zip copy from
+# this file (plus the assembly cards in parts.yml). After editing, rebuild the
+# zips: `npx jake stl` for the free base set, `npx jake publish-sets` for the
+# paid sets and the all-fleets bundle.
+#
+# Printing facts only. This text ships inside the downloads, so no faction
+# backstory here. `**bold**` works in every text field.
+
+meta:
+  title: Print Guide
+  description: >-
+    Slicer settings and filament colors for every Cannons & Coastlines fleet,
+    from the Queen's Fleet to the Shadow Fleet.
+
+hero:
+  title: Print Guide
+  intro: >-
+    The slicer settings and colors for each fleet. The same guide comes in
+    every STL download as PRINTING.md.
+
+settings:
+  title: Settings for everything
+  lead: These work for every part in every fleet.
+  # [label, value]
+  rows:
+    - [Material, PLA. PETG works for the Shadow Fleet too.]
+    - [Layer height, 0.16 mm or lower]
+    - [Z contouring, 'On']
+    - [Infill, 10% or more]
+    - [Supports, Off. Only the Shadow Fleet and Treasure Fleet need them.]
+  baseSet: >-
+    The add-on fleet downloads have the hulls and each fleet's own parts. The
+    masts, cargo, cannons and wheels come from the free base set.
+
+colors:
+  title: Colors by part
+  lead: Hull colors are listed under each fleet.
+  # [part, color]
+  rows:
+    - [Masts and cargo, Brown]
+    - [Industry turrets and smokestacks, Rust brown or steel blue]
+    - [Cannons, Black]
+    - [Sails, White]
+  note: >-
+    The Corsairs and the Shadow Fleet are the exceptions. Print their masts and
+    sails in the same color as the hull.
+
+fleets:
+  title: By fleet
+  lead: Anything not listed for a fleet uses the settings and part colors above.
+  # id: the shop handle, also the #anchor on /print-guide.
+  # set: the sets.json id whose zip this fleet's guide goes into.
+  # hull: hull color. Leave it out if there isn't one yet.
+  # matchRigging: masts and sails are printed in the hull color.
+  # supports / petg: overrides of the defaults above.
+  # parts: extra per-fleet part colors, [part, color].
+  items:
+    - id: queens-fleet
+      name: Queen's Fleet
+      set: base-set
+      hull: Pale blue-grey or brown
+    - id: corsairs
+      name: Corsairs
+      set: base-set
+      hull: Black
+      matchRigging: true
+    - id: treasure-fleet
+      name: Treasure Fleet
+      set: treasure-fleet-set
+      hull: Silk gold
+      supports: true
+    - id: stone-fleet
+      name: Stone Fleet
+      set: stone-fleet-set
+      hull: Matte grey, speckled rock filament, or both
+    - id: shadow-fleet
+      name: Shadow Fleet
+      set: shadow-fleet-set
+      hull: Translucent gradient filament
+      matchRigging: true
+      supports: true
+      petg: true
+    - id: industry
+      name: The Industry
+      set: industry-set
+      hull: Rust brown or steel blue
+      parts:
+        - [Turrets and smokestacks, Rust brown or steel blue]
+    - id: islanders
+      name: The Islanders
+      set: islander-set
+      hull: Pine, or a light brown wood color
