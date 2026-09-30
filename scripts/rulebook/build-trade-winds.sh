@@ -11,12 +11,18 @@ source "$(cd "$(dirname "${BASH_SOURCE[0]}")/../lib" && pwd)/common.sh"
 
 mkdir -p "$PDF_DIR" "$PNG_DIR"
 
+# `typst eval` from Typst 0.15, where `typst query` is deprecated; `query`
+# on older versions that have no `eval`.
+page=$("$TYPST" eval --root "$REPO_ROOT" --font-path "$FONT_DIR" \
+    'query(<trade-winds-page>).first().value' --in "$TYPST_DIR/rulebook.typ" 2>/dev/null) ||
 page=$("$TYPST" query --root "$REPO_ROOT" --font-path "$FONT_DIR" \
     "$TYPST_DIR/rulebook.typ" "<trade-winds-page>" --field value --one)
 [[ "$page" =~ ^[0-9]+$ ]] || { echo "error: could not find the Trade Winds page (got '$page')" >&2; exit 1; }
 
 echo "Building Trade Winds handout (rulebook page $page)..."
-typst_compile rulebook.typ "$PDF_DIR/trade-winds.pdf" --pages "$page"
+# One page of a tagged document can't be tagged, so say so rather than have
+# Typst warn about it.
+typst_compile rulebook.typ "$PDF_DIR/trade-winds.pdf" --pages "$page" --no-pdf-tags
 compress_pdf "$PDF_DIR/trade-winds.pdf"
 typst_compile rulebook.typ "$PNG_DIR/trade-winds.png" --pages "$page" --format png --ppi 300
 
