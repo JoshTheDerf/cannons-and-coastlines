@@ -38,6 +38,7 @@ settings:
     - [Material, PLA, unless a fleet says otherwise.]
     - [Layer height, "0.12–0.20 mm (0.16 mm recommended)"]
     - [Z contouring, 'On']
+    - [Walls, '4']
     - [Orientation, Use your slicer's auto-orient.]
     - [Infill, 10% or more]
     - [Supports, Off. Only the Shadow Fleet and Treasure Fleet need them.]

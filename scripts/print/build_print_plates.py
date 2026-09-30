@@ -63,8 +63,8 @@ PRESET = os.path.join(HERE, "presets", "main.json")
 
 MACHINE = "Elegoo Centauri Carbon 0.4 nozzle"
 FILAMENT = "Elegoo PLA @ECC"
-# On top of presets/main.json. print-guide.yml: 0.16 mm, Z contouring on, 10%+ infill.
-PROCESS_OVERRIDES = {"layer_height": "0.16", "zaa_enabled": "1"}
+# On top of presets/main.json. print-guide.yml: 0.16 mm, Z contouring on, 4 walls, 10%+ infill.
+PROCESS_OVERRIDES = {"layer_height": "0.16", "zaa_enabled": "1", "wall_loops": "4"}
 # Bump when the output format changes, to rebuild everything.
 FORMAT = 1
 

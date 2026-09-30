@@ -19,7 +19,7 @@
    ],
    "plates": 1,
    "objects": 3,
-   "hash": "c1f520121b37a544"
+   "hash": "412025d0adc8bced"
   },
   {
    "fleet": "queens-fleet",
@@ -44,7 +44,7 @@
    ],
    "plates": 1,
    "objects": 12,
-   "hash": "aa1f3b6f46cf02e5"
+   "hash": "56a9da95bd0aba17"
   },
   {
    "fleet": "queens-fleet",
@@ -64,7 +64,7 @@
    ],
    "plates": 1,
    "objects": 6,
-   "hash": "191288c610b1698d"
+   "hash": "154d9dbfe849a050"
   },
   {
    "fleet": "queens-fleet",
@@ -84,7 +84,7 @@
    ],
    "plates": 1,
    "objects": 3,
-   "hash": "ab151f9bfd9f10e2"
+   "hash": "d6841fbf1255a5dc"
   },
   {
    "fleet": "queens-fleet",
@@ -104,7 +104,7 @@
    ],
    "plates": 1,
    "objects": 4,
-   "hash": "fec55eeeb33c533a"
+   "hash": "051b32455fd0a622"
   },
   {
    "fleet": "queens-fleet",
@@ -124,7 +124,7 @@
    ],
    "plates": 1,
    "objects": 10,
-   "hash": "fcd4fbb689e70d85"
+   "hash": "e027e9247aa736e6"
   },
   {
    "fleet": "corsairs",
@@ -154,7 +154,7 @@
    ],
    "plates": 1,
    "objects": 15,
-   "hash": "3e51939b8736a98f"
+   "hash": "7a4eea1198237575"
   },
   {
    "fleet": "corsairs",
@@ -174,7 +174,7 @@
    ],
    "plates": 1,
    "objects": 3,
-   "hash": "520c0e0cba52cfbb"
+   "hash": "2e32c1b6a2849965"
   },
   {
    "fleet": "corsairs",
@@ -194,7 +194,7 @@
    ],
    "plates": 1,
    "objects": 3,
-   "hash": "ab151f9bfd9f10e2"
+   "hash": "d6841fbf1255a5dc"
   },
   {
    "fleet": "corsairs",
@@ -214,7 +214,7 @@
    ],
    "plates": 1,
    "objects": 4,
-   "hash": "fec55eeeb33c533a"
+   "hash": "051b32455fd0a622"
   },
   {
    "fleet": "corsairs",
@@ -234,7 +234,7 @@
    ],
    "plates": 1,
    "objects": 10,
-   "hash": "fcd4fbb689e70d85"
+   "hash": "e027e9247aa736e6"
   },
   {
    "fleet": "treasure-fleet",
@@ -254,7 +254,7 @@
    ],
    "plates": 1,
    "objects": 3,
-   "hash": "da74d578389f1ed3"
+   "hash": "a4251e8ed896019f"
   },
   {
    "fleet": "treasure-fleet",
@@ -274,7 +274,7 @@
    ],
    "plates": 1,
    "objects": 6,
-   "hash": "f6f60ec038296f86"
+   "hash": "682fc23656a10c1b"
   },
   {
    "fleet": "treasure-fleet",
@@ -299,7 +299,7 @@
    ],
    "plates": 1,
    "objects": 9,
-   "hash": "620c2822ddf4b61d"
+   "hash": "541add06fafb22ce"
   },
   {
    "fleet": "treasure-fleet",
@@ -319,7 +319,7 @@
    ],
    "plates": 1,
    "objects": 3,
-   "hash": "ab151f9bfd9f10e2"
+   "hash": "d6841fbf1255a5dc"
   },
   {
    "fleet": "treasure-fleet",
@@ -339,7 +339,7 @@
    ],
    "plates": 1,
    "objects": 4,
-   "hash": "fec55eeeb33c533a"
+   "hash": "051b32455fd0a622"
   },
   {
    "fleet": "treasure-fleet",
@@ -359,7 +359,7 @@
    ],
    "plates": 1,
    "objects": 10,
-   "hash": "fcd4fbb689e70d85"
+   "hash": "e027e9247aa736e6"
   },
   {
    "fleet": "stone-fleet",
@@ -379,7 +379,7 @@
    ],
    "plates": 1,
    "objects": 3,
-   "hash": "a93de851a02efab5"
+   "hash": "61f1233cf338593a"
   },
   {
    "fleet": "stone-fleet",
@@ -399,7 +399,7 @@
    ],
    "plates": 1,
    "objects": 6,
-   "hash": "ca269c6cbfa732b0"
+   "hash": "b8cf02bbdbdb931f"
   },
   {
    "fleet": "stone-fleet",
@@ -424,7 +424,7 @@
    ],
    "plates": 1,
    "objects": 12,
-   "hash": "b30e6110122ad107"
+   "hash": "dea75728bce281a2"
   },
   {
    "fleet": "stone-fleet",
@@ -444,7 +444,7 @@
    ],
    "plates": 1,
    "objects": 3,
-   "hash": "ab151f9bfd9f10e2"
+   "hash": "d6841fbf1255a5dc"
   },
   {
    "fleet": "stone-fleet",
@@ -464,7 +464,7 @@
    ],
    "plates": 1,
    "objects": 4,
-   "hash": "fec55eeeb33c533a"
+   "hash": "051b32455fd0a622"
   },
   {
    "fleet": "stone-fleet",
@@ -484,7 +484,7 @@
    ],
    "plates": 1,
    "objects": 10,
-   "hash": "fcd4fbb689e70d85"
+   "hash": "e027e9247aa736e6"
   },
   {
    "fleet": "shadow-fleet",
@@ -514,7 +514,7 @@
    ],
    "plates": 1,
    "objects": 15,
-   "hash": "3bd2525e3acc4a47"
+   "hash": "178c8c5c32b19581"
   },
   {
    "fleet": "shadow-fleet",
@@ -534,7 +534,7 @@
    ],
    "plates": 1,
    "objects": 3,
-   "hash": "520c0e0cba52cfbb"
+   "hash": "2e32c1b6a2849965"
   },
   {
    "fleet": "shadow-fleet",
@@ -554,7 +554,7 @@
    ],
    "plates": 1,
    "objects": 3,
-   "hash": "ab151f9bfd9f10e2"
+   "hash": "d6841fbf1255a5dc"
   },
   {
    "fleet": "shadow-fleet",
@@ -574,7 +574,7 @@
    ],
    "plates": 1,
    "objects": 4,
-   "hash": "fec55eeeb33c533a"
+   "hash": "051b32455fd0a622"
   },
   {
    "fleet": "shadow-fleet",
@@ -594,7 +594,7 @@
    ],
    "plates": 1,
    "objects": 10,
-   "hash": "fcd4fbb689e70d85"
+   "hash": "e027e9247aa736e6"
   },
   {
    "fleet": "industry",
@@ -624,7 +624,7 @@
    ],
    "plates": 1,
    "objects": 9,
-   "hash": "f2086ef6d69f1f16"
+   "hash": "7aebe1b0e2a1b136"
   },
   {
    "fleet": "industry",
@@ -644,7 +644,7 @@
    ],
    "plates": 1,
    "objects": 3,
-   "hash": "520c0e0cba52cfbb"
+   "hash": "2e32c1b6a2849965"
   },
   {
    "fleet": "industry",
@@ -664,7 +664,7 @@
    ],
    "plates": 1,
    "objects": 3,
-   "hash": "ab151f9bfd9f10e2"
+   "hash": "d6841fbf1255a5dc"
   },
   {
    "fleet": "industry",
@@ -684,7 +684,7 @@
    ],
    "plates": 1,
    "objects": 4,
-   "hash": "fec55eeeb33c533a"
+   "hash": "051b32455fd0a622"
   },
   {
    "fleet": "industry",
@@ -704,7 +704,7 @@
    ],
    "plates": 1,
    "objects": 10,
-   "hash": "fcd4fbb689e70d85"
+   "hash": "e027e9247aa736e6"
   },
   {
    "fleet": "islanders",
@@ -724,7 +724,7 @@
    ],
    "plates": 1,
    "objects": 5,
-   "hash": "69eaf4641323a7cb"
+   "hash": "7295da5abe6c7454"
   },
   {
    "fleet": "islanders",
@@ -744,7 +744,7 @@
    ],
    "plates": 1,
    "objects": 5,
-   "hash": "87f1f0627975c6e3"
+   "hash": "a71a1e6aa13193db"
   },
   {
    "fleet": "islanders",
@@ -764,7 +764,7 @@
    ],
    "plates": 1,
    "objects": 5,
-   "hash": "359f1da8a8c1a4f4"
+   "hash": "ba12cfbc19b74fcb"
   },
   {
    "fleet": "islanders",
@@ -784,7 +784,7 @@
    ],
    "plates": 1,
    "objects": 5,
-   "hash": "b897919d48d0bc3b"
+   "hash": "dde66195717293a6"
   },
   {
    "fleet": "islanders",
@@ -804,7 +804,7 @@
    ],
    "plates": 1,
    "objects": 4,
-   "hash": "fec55eeeb33c533a"
+   "hash": "051b32455fd0a622"
   },
   {
    "fleet": "islanders",
@@ -824,7 +824,7 @@
    ],
    "plates": 1,
    "objects": 10,
-   "hash": "fcd4fbb689e70d85"
+   "hash": "e027e9247aa736e6"
   },
   {
    "fleet": "all-fleets",
@@ -859,7 +859,7 @@
    ],
    "plates": 1,
    "objects": 47,
-   "hash": "20e58308285edec6"
+   "hash": "58dbcaed5ae4cb63"
   },
   {
    "fleet": "all-fleets",
@@ -879,7 +879,7 @@
    ],
    "plates": 1,
    "objects": 6,
-   "hash": "39f4820de73eba0c"
+   "hash": "3b54aad3f6f9ae53"
   },
   {
    "fleet": "all-fleets",
@@ -899,7 +899,7 @@
    ],
    "plates": 1,
    "objects": 23,
-   "hash": "4b1f9e6dd634aa45"
+   "hash": "80b073fc7426bb4f"
   },
   {
    "fleet": "all-fleets",
@@ -919,7 +919,7 @@
    ],
    "plates": 1,
    "objects": 28,
-   "hash": "cc09bf8e7e93ca6f"
+   "hash": "96b2f426232b91b4"
   },
   {
    "fleet": "all-fleets",
@@ -939,7 +939,7 @@
    ],
    "plates": 1,
    "objects": 70,
-   "hash": "c514cac36606553e"
+   "hash": "dfe487edb8c6f77b"
   },
   {
    "fleet": "general",
@@ -959,7 +959,7 @@
    ],
    "plates": 1,
    "objects": 20,
-   "hash": "2fb4616a8645de79"
+   "hash": "9f56dd486ae08ba4"
   },
   {
    "fleet": "general",
@@ -979,7 +979,7 @@
    ],
    "plates": 1,
    "objects": 2,
-   "hash": "8e297a3dac75bfe9"
+   "hash": "3661ecc2bc0fa9fc"
   },
   {
    "fleet": "general",
@@ -999,7 +999,7 @@
    ],
    "plates": 1,
    "objects": 2,
-   "hash": "6f8aed8b152d190b"
+   "hash": "7a3649abb6709ba8"
   },
   {
    "fleet": "general",
@@ -1019,7 +1019,7 @@
    ],
    "plates": 1,
    "objects": 6,
-   "hash": "c819d6f3d8eda520"
+   "hash": "0d3de0edee679462"
   },
   {
    "fleet": "general",
@@ -1039,7 +1039,7 @@
    ],
    "plates": 1,
    "objects": 2,
-   "hash": "7cd6199d5c6673a6"
+   "hash": "1e300e60812a84ac"
   },
   {
    "fleet": "general",
@@ -1064,7 +1064,7 @@
    ],
    "plates": 1,
    "objects": 5,
-   "hash": "f0b3b1af0ccc53e7"
+   "hash": "56fa5bbe8d9832b6"
   }
  ]
 }
