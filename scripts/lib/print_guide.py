@@ -158,6 +158,10 @@ def links_md(set_id, fleets):
     return f"The shop page is {SITE}{shop}, and the print guide is at {SITE}{guide}."
 
 
+PLATES = ("The plates folder has a 3MF for each color, with these counts and the settings below. "
+          "OrcaSlicer and Cubby Slicer open them with their plates and settings.")
+
+
 def fleet_names(fleets):
     names = [f["name"] for f in fleets]
     return names[0] if len(names) == 1 else " and ".join([", ".join(names[:-1]), names[-1]])
@@ -173,6 +177,8 @@ def cmd_set(set_id, directory=None):
         f"# {fleet_names(fleets)} print list",
         "What to print from this download, and how. PRINTING.pdf has the same, with pictures. "
         f"Online: {SITE}/print-list/{set_id}",
+        # The paid zips have plates/ (scripts/build-paid-zips.sh); the free zip doesn't.
+        PLATES if set_id != BASE_SET else None,
         *[fleet_md(f) for f in fleets],
         general_md() if set_id == BASE_SET else None,
         settings_md(),
@@ -193,6 +199,8 @@ def cmd_bundle_top(*pairs):
         "One folder per fleet, each with its own PRINTING.md listing what to print from it. "
         "PRINTING.pdf, next to this file, has every fleet's print list with pictures. "
         f"Online: {SITE}/print-list/all-fleets",
+        PLATES.replace("The plates folder has", "Each folder's plates folder has") +
+        " The plates folder at the top has the shared parts for every fleet together.",
         "## Folders\n\n" + "\n".join(index),
         general_md(),
         settings_md(),

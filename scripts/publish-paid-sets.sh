@@ -13,6 +13,10 @@
 # What gets uploaded, per set:
 #   <set-id>/v<version>/<set-id>-v<version>.zip   the zip buyers download
 #   <set-id>/v<version>/MANIFEST.txt              sha256 of every file in it
+#   <set-id>/v<version>/files/<name>.stl          each paid STL on its own
+#   <set-id>/v<version>/plates/<name>.3mf         each paid print-plate 3MF
+# (the last two for the print list's "Open in Cubby Slicer" links, served by
+# /api/download/<set>/<file> behind the same check as the zip)
 # and per bundle (bundles in the site manifest, e.g. all-fleets):
 #   <bundle-id>/<set-id>-v<version>_.../<zipBaseName>.zip
 #   <bundle-id>/<set-id>-v<version>_.../MANIFEST.txt
@@ -69,11 +73,21 @@ for zip_path in "${zips[@]}"; do
         echo "  DRY RUN — would upload:"
         echo "    r2://$BUCKET/$prefix/$zip_name"
         echo "    r2://$BUCKET/$prefix/MANIFEST.txt"
+        shopt -s nullglob
+        for f in "$OUT/$prefix"/files/*.stl "$OUT/$prefix"/plates/*.3mf; do echo "    r2://$BUCKET/${f#"$OUT"/}"; done
+        shopt -u nullglob
     else
         npx wrangler r2 object put "$BUCKET/$prefix/$zip_name" \
             --file "$zip_path" --content-type application/zip --remote
         npx wrangler r2 object put "$BUCKET/$prefix/MANIFEST.txt" \
             --file "$OUT/$prefix/MANIFEST.txt" --content-type text/plain --remote
+        shopt -s nullglob
+        for f in "$OUT/$prefix"/files/*.stl "$OUT/$prefix"/plates/*.3mf; do
+            rel="${f#"$OUT"/}"
+            type=model/stl; [[ "$f" == *.3mf ]] && type=model/3mf
+            npx wrangler r2 object put "$BUCKET/$rel" --file "$f" --content-type "$type" --remote
+        done
+        shopt -u nullglob
         echo "  uploaded to r2://$BUCKET/$prefix/"
     fi
     (( published++ )) || true
