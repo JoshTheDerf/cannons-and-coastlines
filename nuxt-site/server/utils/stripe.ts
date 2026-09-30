@@ -19,6 +19,16 @@ export function stripeSecret(event: H3Event): string {
 }
 
 /**
+ * Where Stripe's API is. STRIPE_API_BASE (a .dev.vars entry) points local
+ * testing at a mock Stripe; only a localhost URL is honored, so a stray
+ * production value can't send the secret key anywhere else.
+ */
+function stripeBase(event: H3Event): string {
+  const base = (event.context.cloudflare?.env as Record<string, string> | undefined)?.STRIPE_API_BASE
+  return base && /^http:\/\/(127\.0\.0\.1|localhost)(:\d+)?$/.test(base) ? base : 'https://api.stripe.com'
+}
+
+/**
  * Call the Stripe API. A form body makes it a POST. Stripe's error bodies can
  * name the account and its objects, so they are logged here and the caller
  * gets a generic 502.
@@ -32,7 +42,7 @@ export async function stripeApi<T>(
   if (opts.form) headers['Content-Type'] = 'application/x-www-form-urlencoded'
   if (opts.idempotencyKey) headers['Idempotency-Key'] = opts.idempotencyKey
 
-  const res = await fetch(`https://api.stripe.com/v1/${path}`, {
+  const res = await fetch(`${stripeBase(event)}/v1/${path}`, {
     method: opts.form ? 'POST' : 'GET',
     headers,
     body: opts.form

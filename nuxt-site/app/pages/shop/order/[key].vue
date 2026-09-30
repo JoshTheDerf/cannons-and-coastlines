@@ -47,8 +47,27 @@ async function load() {
   if (order.value?.state === 'pending' && tries++ < 30) timer = setTimeout(load, 2000)
 }
 
+// Once paid, these sets leave the cart, and the cart remembers they were
+// bought here so it can say so if someone adds one again.
+const filesCart = useFilesCart()
+watch(() => order.value?.state, (state) => {
+  if (state !== 'paid' || !order.value) return
+  const ids = order.value.sets.map(s => s.id)
+  // Read storage too, in case the cart plugin hasn't loaded it yet.
+  const cartIds = [...new Set([...readStoredIds(FILES_CART_KEY), ...filesCart.ids.value])].filter(id => !ids.includes(id))
+  const owned = [...new Set([...readStoredIds(OWNED_SETS_KEY), ...filesCart.owned.value, ...ids])]
+  writeStoredIds(FILES_CART_KEY, cartIds)
+  writeStoredIds(OWNED_SETS_KEY, owned)
+  filesCart.ids.value = cartIds
+  filesCart.owned.value = owned
+})
+
 onMounted(load)
 onBeforeUnmount(() => clearTimeout(timer))
+
+// Each download opens its print list first; the zip button is on that page,
+// which passes the order key on to /api/download.
+const printList = (id: string) => `/print-list/${id}?order=${key}`
 
 const copied = ref(false)
 async function copyLink() {
@@ -113,11 +132,10 @@ async function copyLink() {
         <div class="flex-1 min-w-0">
           <p class="font-display text-lg text-ink">{{ order.bundle.title }}, in one zip</p>
           <p class="text-sm text-ink-soft">
-            A folder for each fleet, plus the base set's masts, cannons and terrain. The print guide and
-            assembly steps are in PRINTING.md at the top.
+            A folder for each fleet, plus the base set's masts, cannons and terrain, with one print list for all of them.
           </p>
         </div>
-        <UButton :to="order.bundle.downloadUrl" external color="primary" icon="i-lucide-download" size="lg" class="shrink-0 justify-center">
+        <UButton :to="printList(order.bundle.id)" color="primary" icon="i-lucide-download" size="lg" class="shrink-0 justify-center">
           Download all
         </UButton>
       </div>
@@ -133,8 +151,7 @@ async function copyLink() {
           </div>
           <UButton
             v-if="s.downloadUrl"
-            :to="s.downloadUrl"
-            external
+            :to="printList(s.id)"
             :color="order.bundle ? 'neutral' : 'primary'"
             :variant="order.bundle ? 'outline' : 'solid'"
             icon="i-lucide-download"
@@ -153,8 +170,8 @@ async function copyLink() {
         <p>
           The files are for your own prints; please don't share the link. See the
           <NuxtLink to="/terms#paid-models-add-on-fleets" class="underline">license</NuxtLink>.
-          Colors and slicer settings are in the <NuxtLink to="/print-guide" class="underline">print guide</NuxtLink>
-          (also PRINTING.md in each zip),
+          Each download opens its print list first (it's also PRINTING.pdf in the zip), and
+          the <NuxtLink to="/print-guide" class="underline">print guide</NuxtLink> has the colors for every fleet,
           and the <NuxtLink to="/rulebook/pdf/rulebook.pdf" external target="_blank" class="underline">rulebook</NuxtLink> is free.
           A file broken or missing? Email
           <a href="mailto:josh@thederf.com" class="underline text-[color:var(--gold)]">josh@thederf.com</a>.

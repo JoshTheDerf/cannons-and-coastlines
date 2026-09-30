@@ -261,11 +261,11 @@ function addOnFactions(): Product[] {
     {
       handle: 'treasure-fleet', alias: 'treasure-fleet-files', title: 'Treasure Fleet',
       setId: 'treasure-fleet-set', assembly: 'treasure-fleet', cardSlug: 'treasure-fleet',
-      tagline: 'Two gilded junks from an empire far to the north.',
-      description: "They're here to collect tribute and gold, and they'll leave you alone if you return the favor. They bring fewer ships than anyone else at the table, but every island they hold pays out double.",
+      tagline: 'Three gilded junks from an empire far to the north.',
+      description: "They're here to collect tribute and gold, and they'll leave you alone if you return the favor. Every island they hold pays out double.",
       image: '/assets/ships/ship-preview-treasure-fleet-sm.webp',
       large: '/assets/ships/ship-preview-treasure-fleet-large.png',
-      kit: ['Two junk hulls in silk gold', 'Treasure Fleet sails', 'Masts, cargo, cannons and wheels'],
+      kit: ['Three junk hulls in silk gold', 'Treasure Fleet sails', 'Masts, cargo, cannons and wheels'],
       pairings: [{ with: 'industry', title: 'Pair with The Industry', blurb: "The Industry would rather not pay tribute to anyone, and the Treasure Fleet would rather not have to ask twice." }]
     },
     {

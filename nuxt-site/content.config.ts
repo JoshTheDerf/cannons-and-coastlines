@@ -59,6 +59,14 @@ export default defineContentConfig({
         printing: z.record(z.any()).optional(),
         quantities: z.record(z.any()).optional(),
         tools: z.record(z.any()).optional(),
+        // print-lists.yml
+        base: z.record(z.any()).optional(),
+        general: z.record(z.any()).optional(),
+        kit: z.record(z.any()).optional(),
+        bundle: z.record(z.any()).optional(),
+        extras: z.array(z.string()).optional(),
+        material: z.string().optional(),
+        steps: z.record(z.any()).optional(),
         cta: z.record(z.any()).optional()
       })
     }),

@@ -169,15 +169,18 @@ const actionLetters = ['A', 'B', 'C']
         <p class="mt-2 font-serif text-ink-soft max-w-2xl">{{ p.fleets.addonsLead }}</p>
         <ul class="mt-6 divide-y divide-[color:var(--rule)] border-y border-[color:var(--rule)]">
           <li v-for="f in p.fleets.addons" :key="f.name" class="py-4 grid grid-cols-[5.5rem_1fr] sm:grid-cols-[7rem_1fr_auto] gap-4 items-center">
-            <img :src="f.image" :alt="f.name" loading="lazy" class="w-full aspect-[4/3] object-contain">
+            <NuxtLink :to="f.shop"><img :src="f.image" :alt="f.name" loading="lazy" class="w-full aspect-[4/3] object-contain"></NuxtLink>
             <div class="min-w-0">
-              <p class="font-display text-lg text-ink">{{ f.name }}</p>
+              <NuxtLink :to="f.shop" class="font-display text-lg text-ink hover:text-[color:var(--heading)]">{{ f.name }}</NuxtLink>
               <p class="text-sm text-ink-faint">{{ f.stats }}</p>
               <p class="mt-1 font-serif text-sm text-ink-soft">{{ f.body }}</p>
             </div>
-            <a :href="f.card" target="_blank" class="col-start-2 sm:col-start-auto text-sm font-serif font-semibold underline text-[color:var(--gold)] hover:text-[color:var(--heading)] whitespace-nowrap">
-              Faction card (PDF)
-            </a>
+            <div class="col-start-2 sm:col-start-auto flex flex-wrap sm:flex-col sm:items-end gap-x-4 gap-y-2">
+              <FilesButtons :fleet="f.name" class="sm:justify-end" />
+              <a :href="f.card" target="_blank" class="text-sm font-serif font-semibold underline text-[color:var(--gold)] hover:text-[color:var(--heading)] whitespace-nowrap">
+                Faction card (PDF)
+              </a>
+            </div>
           </li>
         </ul>
 

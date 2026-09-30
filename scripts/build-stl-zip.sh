@@ -102,8 +102,12 @@ for set_id in "${requested[@]}"; do
     trap 'rm -rf "$staging"' EXIT
     mkdir "$staging/${base_name}-${version}"
     cp "${contents[@]}" "$staging/${base_name}-${version}/"
-    # The print guide rides along (nuxt-site/content/pages/print-guide.yml).
+    # The print list and print guide ride along, as PRINTING.pdf (styled like
+    # the rulebook) and PRINTING.md (nuxt-site/content/pages/print-lists.yml
+    # and print-guide.yml).
+    print_guide check "$set_id" "$dir"
     print_guide set "$set_id" "$dir" > "$staging/${base_name}-${version}/PRINTING.md"
+    print_list_pdf "$set_id" "$staging/${base_name}-${version}/PRINTING.pdf"
     make_zip "$zip_path" "$staging"
     rm -rf "$staging"
     trap - EXIT

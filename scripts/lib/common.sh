@@ -346,3 +346,21 @@ print_guide() {
         return 1
     fi
 }
+
+# print_list_pdf <set-id | bundle-id> <output.pdf>
+#
+# The print list + printing guide PDF for one download (PRINTING.pdf in the
+# zips, rulebook/pdf/print-list-<id>.pdf on the site). The template is
+# rulebook/typst/print-list.typ; it reads its words from
+# nuxt-site/content/pages/print-lists.yml, print-guide.yml and parts.yml, the
+# same files the /print-list/<id> page reads. Typst's variable-font warnings
+# are dropped; errors still show.
+print_list_pdf() {
+    local id="$1" out="$2" log
+    log="$(mktemp)"
+    if ! typst_compile print-list.typ "$out" --input "set=$id" 2>"$log"; then
+        cat "$log" >&2; rm -f "$log"; return 1
+    fi
+    rm -f "$log"
+    compress_pdf "$out" >/dev/null
+}

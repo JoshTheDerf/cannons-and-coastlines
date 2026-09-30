@@ -20,10 +20,11 @@
 # (except to look inside a zip before publishing).
 #
 # Zips are built from whatever is in the set folders right now. Every zip
-# gets a PRINTING.md (scripts/lib/print_guide.py, from
-# nuxt-site/content/pages/print-guide.yml). The bundle holds a folder per set
-# (bundles[].includes in nuxt-site/server/data/sets.json, the free base set
-# too), each with its own PRINTING.md, and the general guide at the top.
+# gets a PRINTING.pdf (rulebook/typst/print-list.typ) and a PRINTING.md
+# (scripts/lib/print_guide.py), both from nuxt-site/content/pages/print-lists.yml
+# and print-guide.yml. The bundle holds a folder per set (bundles[].includes
+# in nuxt-site/server/data/sets.json, the free base set too), each with its
+# own PRINTING.md, and one combined PRINTING.pdf and PRINTING.md at the top.
 
 source "$(cd "$(dirname "${BASH_SOURCE[0]}")/lib" && pwd)/common.sh"
 
@@ -109,7 +110,9 @@ for set_id in "${requested[@]}"; do
     # One top-level folder, so extracting doesn't scatter STLs in Downloads.
     mkdir "$staging/$name"
     cp "${files[@]}" "$staging/$name/"
+    print_guide check "$set_id" "$dir"
     print_guide set "$set_id" "$dir" > "$staging/$name/PRINTING.md"
+    print_list_pdf "$set_id" "$staging/$name/PRINTING.pdf"
     make_zip "$dest/$name.zip" "$staging"
     write_manifest "$dest/MANIFEST.txt" "$set_id v$version" "$staging"
     rm -rf "$staging"
@@ -142,6 +145,7 @@ if [[ -z "${NO_BUNDLES:-}" ]]; then
             if (( ${#files[@]} == 0 )); then missing="$set_id"; break; fi
             mkdir "$root/$folder"
             cp "${files[@]}" "$root/$folder/"
+            print_guide check "$set_id" "$dir"
             print_guide bundle-fleet "$set_id" "$dir" > "$root/$folder/PRINTING.md"
         done
         if [[ -n "$missing" ]]; then
@@ -152,6 +156,8 @@ if [[ -z "${NO_BUNDLES:-}" ]]; then
             continue
         fi
         print_guide bundle-top "${includes[@]}" > "$root/PRINTING.md"
+        # One combined PDF for the whole bundle, at the top.
+        print_list_pdf "$bundle_id" "$root/PRINTING.pdf"
 
         stamp_str="$(IFS=_; echo "${stamp[*]}")"
         dest="$OUT/$bundle_id/$stamp_str"

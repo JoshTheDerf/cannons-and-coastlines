@@ -21,7 +21,7 @@ useSeoMeta({
 const p = computed(() => page.value!)
 
 type Fleet = {
-  id: string, name: string, hull?: string, matchRigging?: boolean
+  id: string, name: string, set: string, hull?: string, matchRigging?: boolean
   supports?: boolean, petg?: boolean, parts?: [string, string][]
 }
 
@@ -31,7 +31,7 @@ function rows(f: Fleet): [string, string][] {
     ['Masts and sails', f.matchRigging ? 'Same color as the hull' : 'Brown masts, white sails'],
     ...(f.parts ?? []),
     ['Supports', f.supports ? 'On' : 'Off'],
-    ['Material', f.petg ? 'PLA or PETG' : 'PLA']
+    ['Material', f.petg ? 'PLA. Translucent PETG works well for a ghostly look.' : 'PLA']
   ]
 }
 
@@ -77,9 +77,9 @@ const renderFor = (name: string): string | undefined =>
           <SectionHeader :title="p.colors.title" :description="p.colors.lead" align="left" size="sm" />
           <div class="card-parchment p-5">
             <dl class="rulebook-dl">
-              <div v-for="[part, color] in p.colors.rows" :key="part">
-                <dt>{{ part }}</dt>
-                <dd class="mt-0.5">{{ color }}</dd>
+              <div v-for="r in (p.colors.rows as { id: string, part: string, color: string }[])" :key="r.id">
+                <dt>{{ r.part }}</dt>
+                <dd class="mt-0.5">{{ r.color }}</dd>
               </div>
             </dl>
           </div>
@@ -110,7 +110,11 @@ const renderFor = (name: string): string | undefined =>
                 <dd class="muted mt-0.5"><RichText :text="value" /></dd>
               </div>
             </dl>
-            <NuxtLink :to="`/shop/${f.id}`" class="mt-4 inline-block text-sm text-[color:var(--gold)] hover:underline">Get the files →</NuxtLink>
+            <FilesButtons v-if="findAddonFleet(f.id)" :fleet="f.id" class="mt-4" />
+            <div class="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-sm">
+              <NuxtLink :to="`/print-list/${f.set}`" class="text-[color:var(--gold)] hover:underline">Print list →</NuxtLink>
+              <NuxtLink v-if="!findAddonFleet(f.id)" :to="`/shop/${f.id}`" class="text-[color:var(--gold)] hover:underline">Get the files →</NuxtLink>
+            </div>
           </div>
         </div>
       </div>

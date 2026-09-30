@@ -54,6 +54,14 @@ const soon = (label: string | null) => label === 'Coming soon'
           <dd :class="soon(filesLabel) ? 'text-ink-faint italic' : 'font-semibold text-ink'">{{ filesLabel }}</dd>
         </div>
       </dl>
+      <!-- Above the card-wide link overlay, so the buttons get the click. -->
+      <FilesButtons
+        v-if="product.group === 'addon'"
+        :fleet="product.handle"
+        buy-now
+        :shop-link="false"
+        class="relative z-10 mt-3"
+      />
     </div>
   </article>
 </template>

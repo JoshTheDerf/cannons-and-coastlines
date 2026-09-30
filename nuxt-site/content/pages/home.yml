@@ -210,31 +210,36 @@ fleets:
       card: /rulebook/pdf/faction-card-corsairs.pdf
   addonsTitle: Add-on fleets
   addonsLead: >-
-    Five more fleets are in playtesting. They're paid add-ons, $5 each in the
-    shop at the early-bird price, which is how we fund the rest of the work.
-    The faction cards are free to look at.
+    Five more fleets are in playtesting. Early-release digital files are now
+    available, $5 each in the shop at the early-bird price, which is how we
+    fund the rest of the work. The faction cards are free to look at.
   addons:
     - name: Treasure Fleet
+      shop: /shop/treasure-fleet
       image: /assets/ships/ship-preview-treasure-fleet-sm.webp
       stats: 3 junks · 3 fittings · Move 2
       body: Three slow junks, and every island they hold pays out double.
       card: /rulebook/pdf/faction-card-treasure-fleet.pdf
     - name: Stone Fleet
+      shop: /shop/stone-fleet
       image: /assets/ships/ship-preview-stone-fleet-sm.webp
       stats: 3 barges · 4 fittings · Move 2
       body: Stone ships. They're slow, but at sea each one ignores the first hit it takes every turn.
       card: /rulebook/pdf/faction-card-stone-fleet.pdf
     - name: Shadow Fleet
+      shop: /shop/shadow-fleet
       image: /assets/ships/ship-preview-shadow-fleet-sm.webp?v=2
       stats: 3 galleons · 3 fittings · Move 3
       body: Spend 2 coins to bring a sunken ship back at any island you hold.
       card: /rulebook/pdf/faction-card-shadow-fleet.pdf
     - name: The Industry
+      shop: /shop/industry
       image: /assets/ships/ship-preview-industry-sm.webp
       stats: 3 warships · 2 fittings + turret · Move 3
       body: A forward bow gun plus a turret that fires any direction (until it gets shot off).
       card: /rulebook/pdf/faction-card-the-industry.pdf
     - name: The Islanders
+      shop: /shop/islanders
       image: /assets/ships/ship-preview-islanders-sm.webp
       stats: 5 catamarans · 1 fitting · Move 4
       body: Lots of fast, fragile boats with their guns at the back. They start the game already holding an island.

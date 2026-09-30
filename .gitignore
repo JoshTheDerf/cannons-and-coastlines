@@ -15,6 +15,8 @@ node_modules/
 result.json
 # wrangler's local state cache (account id, deploy bookkeeping)
 .wrangler/
+# wrangler dev's local secrets (e.g. STRIPE_API_BASE for a mock Stripe)
+.dev.vars
 
 # Sub-project build output is ignored by that project's own .gitignore:
 #   nuxt-site/.gitignore        .output/ .nuxt/ .data/ dist/ and the

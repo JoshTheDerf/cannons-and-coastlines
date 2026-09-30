@@ -93,21 +93,9 @@ async function buyNow() {
   await navigateTo('/shop/cart')
 }
 
+// The files are bought through <FilesButtons> (Add to cart or Buy now).
 // Stripe sends the buyer on to their order page (/shop/order/<key>), which
 // holds the downloads; cancelling comes back here.
-const buyingFiles = ref(false)
-const filesError = ref('')
-async function buyFiles() {
-  buyingFiles.value = true
-  filesError.value = ''
-  try {
-    const { url } = await $fetch<{ url: string }>('/api/checkout', { method: 'POST', body: { setIds: [digital.value!.id], from: route.path } })
-    await navigateTo(url, { external: true })
-  } catch (e: any) {
-    filesError.value = e?.data?.statusMessage ?? 'Could not start checkout. Please try again.'
-    buyingFiles.value = false
-  }
-}
 
 // ── Gallery: the assembled 3D ship first, then photos and the card ─────
 const has3d = computed(() => !!product.value!.assembly)
@@ -331,7 +319,7 @@ const kitContents = computed((): Row[] => {
           <div v-if="!digital.paid" class="rounded-xl border border-[color:var(--rule)] bg-[color:var(--paper-card)] p-5">
             <p class="font-display text-2xl text-ink">Free</p>
             <p class="mt-1 text-sm text-ink-soft">Part of the free base set: both base fleets, terrain and coins. Licensed CC BY-NC-SA.</p>
-            <UButton v-if="digital.freeDownloadUrl" :to="digital.freeDownloadUrl" class="mt-4" size="xl" color="primary" icon="i-lucide-download" block>
+            <UButton v-if="digital.freeDownloadUrl" :to="`/print-list/${digital.id}`" class="mt-4" size="xl" color="primary" icon="i-lucide-download" block>
               Download the STLs
             </UButton>
             <NuxtLink to="/parts" class="mt-3 inline-block text-sm text-[color:var(--gold)] hover:underline">What's in the pack and how to print it →</NuxtLink>
@@ -343,10 +331,7 @@ const kitContents = computed((): Row[] => {
               <span v-if="digital.earlyBird" class="stamp stamp-gold">Early bird price</span>
             </div>
             <p class="mt-1 text-sm text-ink-soft">Buy once and print as many as you like. You download right after checkout, and re-downloads are free when the models change.</p>
-            <UButton class="mt-4" size="xl" color="primary" icon="i-lucide-download" block :loading="buyingFiles" @click="buyFiles">
-              Buy the files
-            </UButton>
-            <p v-if="filesError" class="mt-2 text-sm text-error-500">{{ filesError }}</p>
+            <FilesButtons :fleet="product.handle" buy-now :shop-link="false" owned-note size="xl" block class="mt-4" />
             <p class="mt-2 text-xs text-ink-faint">
               For your own prints only. See the <NuxtLink to="/terms#paid-models-add-on-fleets" class="underline">license</NuxtLink>.
             </p>
