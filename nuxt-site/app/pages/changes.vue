@@ -1,7 +1,7 @@
 <script setup lang="ts">
 // /changes: what each rulebook update changed, newest first. The notes are
-// content/pages/changes.yml. /live#changes and /playtest-2#changes end up
-// here (see playtests.vue).
+// content/pages/changes.yml. Old /playtest-2#changes links (and in-app
+// /live#changes) end up here (see playtests.vue and live.vue).
 const { data: page } = await useAsyncData('changes', () =>
   queryCollection('pages').where('stem', '=', 'pages/changes').first()
 )
