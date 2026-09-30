@@ -44,13 +44,11 @@ export default defineContentConfig({
         settings: z.record(z.any()).optional(),
         colors: z.record(z.any()).optional(),
         videos: z.record(z.any()).optional(),
-        factions: z.record(z.any()).optional(),
         changelog: z.record(z.any()).optional(),
         // playtests.yml: one entry per playtest recording
         playtests: z.array(z.record(z.any())).optional(),
         signup: z.record(z.any()).optional(),
         playOnline: z.record(z.any()).optional(),
-        downloads: z.record(z.any()).optional(),
         about: z.record(z.any()).optional(),
         story: z.record(z.any()).optional(),
         contents: z.record(z.any()).optional(),
@@ -58,9 +56,6 @@ export default defineContentConfig({
         donate: z.record(z.any()).optional(),
         gallery: z.record(z.any()).optional(),
         assembly: z.record(z.any()).optional(),
-        printing: z.record(z.any()).optional(),
-        pieces: z.record(z.any()).optional(),
-        quantities: z.record(z.any()).optional(),
         tools: z.record(z.any()).optional(),
         // print-lists.yml
         base: z.record(z.any()).optional(),
