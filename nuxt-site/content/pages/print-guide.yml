@@ -28,7 +28,7 @@ settings:
   lead: These work for every part in every fleet.
   # [label, value]
   rows:
-    - [Material, PLA. PETG works for the Shadow Fleet too.]
+    - [Material, PLA. For the Shadow Fleet, translucent PETG works well for a ghostly look.]
     - [Layer height, 0.16 mm or lower]
     - [Z contouring, 'On']
     - [Infill, 10% or more]

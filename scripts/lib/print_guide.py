@@ -2,7 +2,7 @@
 """Render the PRINTING.md that goes inside the STL zips, and check a zip's files.
 
 The words live in nuxt-site/content/pages/print-lists.yml (what to print),
-print-guide.yml (settings and colors) and the `assembly` block of parts.yml.
+print-guide.yml (settings and colors).
 The /print-list and /print-guide pages and PRINTING.pdf
 (rulebook/typst/print-list.typ) read the same files. This only lays them out
 as Markdown, so the site and the zips can't drift apart.
@@ -41,7 +41,6 @@ def load(name):
 
 
 GUIDE = load("print-guide.yml")
-PARTS = load("parts.yml")
 LISTS = load("print-lists.yml")
 BASE_SET = LISTS["base"]["set"]
 
@@ -94,15 +93,11 @@ def parts_md(items, lf=None, gf=None, mark_base=False):
 
 
 def settings_md():
-    """Settings and tips. Colors are in each list; supports are a column there."""
-    s = GUIDE["settings"]
-    rows = [r for r in s["rows"] if r[0] != "Supports"]
-    tips = [text(t) for t in LISTS["tips"]]
-    return "\n\n".join([
-        "## Printing",
-        table(("Setting", "Value"), rows),
-        "\n".join(f"- {t}" for t in tips),
-    ])
+    """Material from print-lists.yml, the rest from print-guide.yml. Supports
+    are a column in each list."""
+    rows = [("Material", LISTS["material"])]
+    rows += [r for r in GUIDE["settings"]["rows"] if r[0] not in ("Material", "Supports")]
+    return "## Settings\n\n" + table(("Setting", "Value"), rows)
 
 
 def fleet_md(f):
@@ -129,23 +124,38 @@ def general_md():
     ])
 
 
-def kit_md():
+def kit_md(has_base):
     k = LISTS["kit"]
-    return "\n\n".join([f"## {k['title']}", *(text(p) for p in k["body"])])
+    if has_base:
+        return "\n\n".join([f"## {k['title']}", *(text(p) for p in k["body"])])
+    return f"## {k['title']}\n\n{text(k['paid'])} {SITE}/print-list/{BASE_SET}"
 
 
-def assembly_md():
-    a = PARTS["assembly"]
-    out = [f"## {a['title']}", text(a["lead"])]
-    for card in (c for t in LISTS["assemblyCards"] for c in a["cards"] if c["title"] == t):
-        out.append(f"### {card['title']}")
-        if card.get("items"):
-            mark = (lambda i: f"{i + 1}.") if card.get("ordered") else (lambda i: "-")
-            out.append("\n".join(f"{mark(i)} {text(it)}" for i, it in enumerate(card["items"])))
-        if card.get("body"):
-            out.append(text(card["body"]))
-    out.append(f"Every piece, with pictures: {SITE}/parts")
-    return "\n\n".join(out)
+def files_for(set_ids):
+    """Every file on these lists, for the steps' `needs`."""
+    fs = set()
+    for f in LISTS["fleets"]["items"]:
+        if f["set"] in set_ids:
+            fs |= {p["file"] for p in f["parts"]}
+    if BASE_SET in set_ids:
+        for sec in ("perPlayer", "perTable"):
+            for p in LISTS["general"][sec]["parts"]:
+                fs |= set(p.get("files") or [p["file"]])
+    return fs
+
+
+def steps_md(set_ids):
+    """Mirrors steps-section in rulebook/typst/print-list.typ."""
+    here = files_for(set_ids)
+    steps = [st for st in LISTS["steps"]["items"] if not st.get("needs") or here & set(st["needs"])]
+    return f"## {LISTS['steps']['title']}\n\n" + "\n".join(f"{i + 1}. {text(st['text'])}" for i, st in enumerate(steps))
+
+
+def links_md(set_id, fleets):
+    shop = "/shop" if set_id not in {f["set"] for f in fleets} else (
+        "/shop/base-set-files" if set_id == BASE_SET else f"/shop/{fleets[0]['id']}")
+    guide = "/print-guide" + (f"#{fleets[0]['id']}" if len(fleets) == 1 else "")
+    return f"The shop page is {SITE}{shop}, and the print guide is at {SITE}{guide}."
 
 
 def fleet_names(fleets):
@@ -166,13 +176,15 @@ def cmd_set(set_id, directory=None):
         *[fleet_md(f) for f in fleets],
         general_md() if set_id == BASE_SET else None,
         settings_md(),
-        assembly_md(),
-        kit_md(),
+        steps_md({set_id}),
+        kit_md(set_id == BASE_SET),
+        links_md(set_id, fleets),
     ])
 
 
 def cmd_bundle_top(*pairs):
     index = []
+    set_ids = {pair.partition("=")[2] for pair in pairs}
     for pair in pairs:
         folder, _, set_id = pair.partition("=")
         index.append(f"- `{folder}/`: {fleet_names(fleets_for(set_id))}")
@@ -180,12 +192,12 @@ def cmd_bundle_top(*pairs):
         "# All fleets print list",
         "One folder per fleet, each with its own PRINTING.md listing what to print from it. "
         "PRINTING.pdf, next to this file, has every fleet's print list with pictures. "
-        f"The settings, part colors and assembly steps below apply to all of them. Online: {SITE}/print-list/all-fleets",
+        f"Online: {SITE}/print-list/all-fleets",
         "## Folders\n\n" + "\n".join(index),
         general_md(),
         settings_md(),
-        assembly_md(),
-        kit_md(),
+        steps_md(set_ids),
+        kit_md(True),
     ])
 
 
@@ -193,8 +205,7 @@ def cmd_bundle_fleet(set_id, directory=None):
     fleets = fleets_for(set_id)
     emit([
         f"# {fleet_names(fleets)} print list",
-        "The slicer settings, part colors and assembly steps for every fleet are in ../PRINTING.md "
-        "and ../PRINTING.pdf. This is what to print from this folder.",
+        "The settings and steps are in ../PRINTING.md and ../PRINTING.pdf. This is what to print from this folder.",
         *[fleet_md(f) for f in fleets],
         general_md() if set_id == BASE_SET else None,
     ])

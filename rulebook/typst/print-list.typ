@@ -4,13 +4,13 @@
 //
 // This is the PRINTING.pdf inside each zip and the PDF the /print-list/<set>
 // page links. It has no words of its own: the lists are
-// nuxt-site/content/pages/print-lists.yml, the settings and colors
-// print-guide.yml, the assembly steps parts.yml, and the set titles and
-// versions nuxt-site/server/data/sets.json. The site page reads the same
+// nuxt-site/content/pages/print-lists.yml (parts, steps, kit), the colors
+// and settings print-guide.yml, and the set titles and versions
+// nuxt-site/server/data/sets.json. The site page reads the same
 // files. Same page and type as the rulebook (style.typ).
 //
-// Keep a single set to two pages: its list on the first, printing and
-// assembly on the second. The bundle runs longer, one list after another.
+// Every note is about the fleets on the list, nothing else. An add-on fleet
+// fits one page, the base set two; the bundle runs longer.
 //
 // Build via `npx jake print-lists` (scripts/rulebook/build-print-lists.sh);
 // the zip builds call print_list_pdf in scripts/lib/common.sh.
@@ -19,7 +19,6 @@
 
 #let lists    = yaml("/nuxt-site/content/pages/print-lists.yml")
 #let guide    = yaml("/nuxt-site/content/pages/print-guide.yml")
-#let parts    = yaml("/nuxt-site/content/pages/parts.yml")
 #let manifest = json("/nuxt-site/server/data/sets.json")
 #let site     = "https://cannonsandcoastlines.com"
 
@@ -161,44 +160,63 @@
   #text(size: 9.5pt)[#rich(lists.bundle.intro)]
 ]
 
-// Settings and tips. With the base set they fill the rest of the first
-// page; otherwise they open the second.
 #let compact(body) = {
+  set par(justify: false)
   set par(spacing: 0.55em, leading: 0.55em)
-  set list(spacing: 0.4em, indent: 0.05in, body-indent: 0.08in)
-  set enum(spacing: 0.4em, indent: 0.05in, body-indent: 0.08in)
+  set enum(spacing: 0.45em, indent: 0.05in, body-indent: 0.08in)
   set text(size: 9pt)
   body
 }
 
-#let box-title(body) = text(size: 9.5pt, weight: 700, fill: colors.crimson-dim, tracking: 0.8pt)[#upper(body)]
+// Every file on this list, for the steps' `needs`.
+#let files-here = {
+  let fs = fleets.map(f => f.parts.map(p => p.file)).flatten()
+  if has-base {
+    fs += ("perPlayer", "perTable").map(sec => lists.general.at(sec).parts.map(p => p.at("files", default: (p.file,)))).flatten()
+  }
+  fs
+}
 
-#let printing-section = block(breakable: false)[
-#list-title[Printing]
-#compact[
-  #grid(
-    columns: (1fr, 1fr),
-    column-gutter: 0.2in,
-    [
-      #table(
-        columns: (1.1fr, 1.6fr),
-        inset: (_, y) => if y == 0 { (x: 4pt, y: 0pt) } else { (x: 4pt, y: 3pt) },
-        table.header[Setting][Value],
-        // The fleet tables already say which parts need supports.
-        ..guide.settings.rows.filter(r => r.at(0) != "Supports").map(r => ([*#r.at(0)*], rich(r.at(1)))).flatten(),
-      )
-    ],
-    [
-      #for t in lists.tips [- #rich(t)
-      ]
-    ],
+#let material = lists.material
+
+// Material and the settings from print-guide.yml, in one row. The part
+// tables already say which parts need supports.
+#let settings-block = {
+  let rows = (("Material", material),) + guide.settings.rows.filter(r => r.at(0) not in ("Material", "Supports")).map(r => (r.at(0), r.at(1)))
+  block(width: 100%, above: 0.12in, below: 0.1in, inset: (x: 8pt, y: 6pt), radius: 2pt,
+    stroke: 0.5pt + colors.box-border, fill: rgb(245, 235, 220, 70),
+    grid(
+      columns: (1fr, 1fr, 1fr, 1fr),
+      column-gutter: 10pt,
+      ..rows.map(((k, v)) => [
+        #text(size: 7.5pt, weight: 700, fill: colors.brown, tracking: 0.8pt)[#upper(k)] \
+        #text(size: 9pt)[#rich(v)]
+      ]),
+    ),
   )
-]
-]
+}
+
+#let steps-section = {
+  list-title(lists.steps.title)
+  compact(enum(..lists.steps.items
+    .filter(st => st.at("needs", default: none) == none or st.needs.any(n => n in files-here))
+    .map(st => rich(st.text))))
+}
+
+#let kit-section = {
+  list-title(lists.kit.title)
+  compact(if has-base {
+    for p in lists.kit.body [#rich(p)
+
+    ]
+  } else [
+    #rich(lists.kit.paid) #short-url(base-url)
+  ])
+}
 
 #for f in fleets { fleet-list(f) }
 
-#if has-base { printing-section }
+#settings-block
 
 // ----- The shared pieces -----
 
@@ -215,39 +233,14 @@
   }
 }
 
-// ----- Printing, assembly and what a game needs: the second page -----
-// (With the base set they follow the shared pieces on that page.)
+#steps-section
+#kit-section
 
-#if not has-base {
-  pagebreak(weak: true)
-  printing-section
-}
-
-#list-title[#parts.assembly.title]
-#compact[
-  #grid(
-    columns: (1fr, 1fr),
-    column-gutter: 0.2in,
-    row-gutter: 0.1in,
-    ..lists.assemblyCards.map(t => {
-      let card = parts.assembly.cards.find(c => c.title == t)
-      if card == none { panic("parts.yml assembly has no card titled " + t) }
-      card
-    }).map(card => [
-      #box-title(card.title)
-      #v(0.02in)
-      #if card.at("items", default: none) != none {
-        if card.at("ordered", default: false) { enum(..card.items.map(rich)) } else { list(..card.items.map(rich)) }
-      }
-      #if card.at("body", default: none) != none [#rich(card.body)]
-    ]),
-  )
-]
-
-#list-title(lists.kit.title)
-#compact[
-  #for p in lists.kit.body [#rich(p)
-
-  ]
-  #if not has-base [The islands, coins and terrain come with the free base set: #short-url(base-url).]
+// The fleet's shop page and its card in the print guide.
+#let shop-url = site + "/shop" + if bundle != none { "" } else if has-base { "/base-set-files" } else { "/" + fleets.first().id }
+#let guide-url = site + "/print-guide" + if fleets.len() == 1 { "#" + fleets.first().id } else { "" }
+#v(0.1in, weak: true)
+#set par(justify: false)
+#text(size: 8.5pt, style: "italic", fill: colors.sub)[
+  The shop page is #short-url(shop-url), and the print guide is at #short-url(guide-url).
 ]

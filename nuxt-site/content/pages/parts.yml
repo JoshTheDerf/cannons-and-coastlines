@@ -47,7 +47,7 @@ gallery:
       name: Shadow Fleet
       badge: Add-on
       desc: A thin-hulled galleon that can come back after it sinks.
-      color: Translucent gradient filament, in PLA or **PETG**. Masts and sails match the hull.
+      color: Translucent gradient filament. Translucent **PETG** works well for a ghostly look. Masts and sails match the hull.
     - render: /assets/ships/renders/ship-industry.png
       name: The Industry
       badge: Add-on
@@ -165,7 +165,7 @@ printing:
     - [Layer height, 0.16 mm or lower]
     - [Z contouring, 'On']
     - [Infill, 10% or more]
-    - [Material, PLA. PETG works for the Shadow Fleet.]
+    - [Material, PLA. Translucent PETG works well for a ghostly Shadow Fleet.]
     - [Supports, Only for the Shadow Fleet and Treasure Fleet.]
   # Part-specific notes. `body` accepts **bold** and *italic*.
   notes:

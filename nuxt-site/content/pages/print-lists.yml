@@ -109,7 +109,7 @@ fleets:
       shipType: galleons
       fittings: 3 fittings each (2 masts, 1 cargo)
       parts:
-        - { part: Hull, file: ship-shadow-fleet.stl, each: 1, color: hull, supports: true, note: PLA or PETG. }
+        - { part: Hull, file: ship-shadow-fleet.stl, each: 1, color: hull, supports: true, note: Translucent PETG works well for a ghostly look. }
         - { part: Torn sail, file: sail-damaged.stl, each: 2, color: sails }
         - { part: Mast, file: mast.stl, each: 2, color: masts, base: true }
         - { part: Cargo, file: cargo.stl, each: 1, color: cargo, base: true }
@@ -177,7 +177,9 @@ general:
 # (print_guide.py check) accepts them without a warning.
 extras: [island-topper.stl]
 
-# What a full game needs, from the rulebook's Setup. One paragraph each.
+# What a full game needs, from the rulebook's Setup. The base-set list (and
+# the bundle) print `body`; an add-on fleet's list prints `paid`, with a link
+# to the base-set list.
 kit:
   title: What a game needs
   body:
@@ -191,15 +193,31 @@ kit:
     - >-
       You also need a thin rubber band for every wheel and a cloth bag for
       the coins.
+  paid: >-
+    For a game you also need coins, islands and terrain. They're in the free
+    base set, and its print list has everything a game needs.
 
-# Printing notes for every list, after print-guide.yml's settings.
-tips:
-  - Lay each cannon so the flex arm's layers run across the bend, and print a spare or two.
-  - Print masts lying flat.
+# Printing settings. Layer height, Z contouring and infill come from
+# print-guide.yml `settings.rows`; its Material row mentions other fleets, so
+# the lists use this. (The Shadow Fleet's PETG note is on its hull row.)
+material: PLA
 
-# The assembly cards from parts.yml that the PDF prints, by title. The coin
-# and fit-test cards are left out: the lists above already cover them.
-assemblyCards: [The ship (once), Fittings (every game), Cannons, Flags and islands]
+# Printing and assembly, in order. A step with `needs` only shows on a list
+# that has one of those files.
+steps:
+  title: Printing and putting it together
+  items:
+    - text: Print the fit test (ship-tolerance-test.stl in the base set) first. If a peg is loose, scale it up 0.5 to 1% in your slicer. If it's tight, sand it a bit.
+    - text: Lay each cannon so the flex arm's layers run across the bend, and print a spare or two.
+    - text: Print the masts lying flat.
+      needs: [mast.stl, mast-short.stl]
+    - text: Stretch a thin rubber band around each wheel's rim and push the wheel into the slot under the stern. It should be snug but still spin, and it stays in.
+    - text: Plug the fittings into the deck. Each hit knocks one off, and a bare hull sinks on the next hit.
+    - text: Slide the sails down over the masts, and a paper flag into the slot at the top of a mast.
+      needs: [sail.stl, sail-damaged.stl, sail-treasure-fleet.stl, sail-stone-fleet.stl, sail-islanders.stl]
+    - text: To fire, plug a cannon into an open slot, drop in a cannonball and press the arm down.
+    - text: Islands sit right on the table. A short mast in the hole flies your flag.
+      needs: [island.stl]
 
 # The all-fleets zip (bundles in nuxt-site/server/data/sets.json).
 bundle:
