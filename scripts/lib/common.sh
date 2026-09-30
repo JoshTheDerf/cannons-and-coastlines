@@ -353,7 +353,7 @@ print_guide() {
 # zips, rulebook/pdf/print-list-<id>.pdf on the site). The template is
 # rulebook/typst/print-list.typ; it reads its words from
 # nuxt-site/content/pages/print-lists.yml and print-guide.yml, the
-# same files the /print-list/<id> page reads. Typst's variable-font warnings
+# same files the /print-list/<id> and /print-guide pages read. Typst's variable-font warnings
 # are dropped; errors still show.
 print_list_pdf() {
     local id="$1" out="$2" log

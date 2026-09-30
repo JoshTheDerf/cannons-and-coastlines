@@ -13,7 +13,7 @@
 #
 #   - the rulebook and faction-card Typst sources, via
 #     rulebook/typst/card.typ's `renders` constant
-#   - the site's print guide, content/pages/print-guide.yml `pieces`
+#   - the print list tables on /print-guide and /print-list/<set>
 #
 # THIS IS NOT THE SHIP-PREVIEW PASS. Both render the same hulls, and they are
 # deliberately different pictures:

@@ -86,7 +86,7 @@ const sections = [
       <div class="container mx-auto max-w-4xl">
         <h2 class="font-display text-2xl text-ink">{{ G.settings.title }}</h2>
         <p class="mt-1 mb-4 font-serif text-sm muted">{{ G.settings.lead }}</p>
-        <dl class="grid grid-cols-2 sm:grid-cols-5 gap-4 card-parchment p-4">
+        <dl class="grid grid-cols-2 sm:grid-cols-3 gap-4 card-parchment p-4">
           <div v-for="[label, value] in (G.settings.rows as [string, string][])" :key="label">
             <dt class="stamp text-[#7a5316]">{{ label }}</dt>
             <dd class="mt-1 font-serif text-ink">{{ value }}</dd>
@@ -102,26 +102,22 @@ const sections = [
 
     <!-- Assembly -->
     <section id="assembly" class="py-14 px-4 band-parchment scroll-mt-20">
-      <div class="container mx-auto max-w-4xl grid md:grid-cols-[1.4fr_1fr] gap-10">
-        <div>
-          <h2 class="font-display text-2xl text-ink">{{ G.assembly.title }}</h2>
-          <p class="mt-2 font-serif text-ink-soft">{{ G.assembly.lead }}</p>
-          <ol class="mt-4 list-decimal pl-5 space-y-3 font-serif text-ink-soft">
-            <li v-for="st in steps" :key="st.text"><RichText :text="st.text" /></li>
-          </ol>
-        </div>
-        <div>
-          <h2 class="font-display text-2xl text-ink">{{ L.kit.title }}</h2>
-          <RichText tag="p" :text="L.kit.body" class="mt-2 font-serif text-ink-soft" />
-        </div>
+      <div class="container mx-auto max-w-4xl">
+        <h2 class="font-display text-2xl text-ink">{{ G.assembly.title }}</h2>
+        <p class="mt-2 max-w-3xl font-serif text-ink-soft">{{ G.assembly.lead }}</p>
+        <ol class="mt-4 max-w-3xl list-decimal pl-5 space-y-3 font-serif text-ink-soft">
+          <li v-for="st in steps" :key="st.text"><RichText :text="st.text" /></li>
+        </ol>
+        <h3 class="mt-8 font-display text-lg text-ink">{{ L.kit.title }}</h3>
+        <RichText tag="p" :text="L.kit.body" class="mt-1 max-w-3xl font-serif text-ink-soft" />
       </div>
     </section>
 
     <!-- Add-on fleets -->
     <section id="fleets" class="py-16 px-4 scroll-mt-20">
-      <div class="container mx-auto">
+      <div class="container mx-auto max-w-4xl">
         <SectionHeader :title="G.fleets.title" :description="G.fleets.lead" align="left" size="sm" />
-        <div class="grid sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-5 gap-5">
+        <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
           <div
             v-for="f in addonFleets"
             :id="f.id"

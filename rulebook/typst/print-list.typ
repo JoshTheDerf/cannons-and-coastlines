@@ -57,7 +57,7 @@
   xs.slice(0, -1).join(", ") + " and " + xs.last()
 }
 
-// ── Lookups (mirrored in nuxt-site/app/pages/print-list/[set].vue) ──────
+// ── Lookups (mirrored in nuxt-site/app/composables/usePrintList.ts) ─────
 
 #let guide-fleet(id) = {
   let f = guide.fleets.items.find(f => f.id == id)
@@ -184,9 +184,11 @@
   block(width: 100%, above: 0.12in, below: 0.1in, inset: (x: 8pt, y: 6pt), radius: 2pt,
     stroke: 0.5pt + colors.box-border, fill: rgb(245, 235, 220, 70),
     grid(
-      // Auto columns share out the width by what's in them.
-      columns: rows.map(_ => auto),
-      column-gutter: 14pt,
+      // Three to a row. The middle column gets the long ones (layer height,
+      // orientation).
+      columns: (1fr, 1.7fr, 1fr),
+      column-gutter: 12pt,
+      row-gutter: 5pt,
       ..rows.map(((k, v)) => [
         #text(size: 7.5pt, weight: 700, fill: colors.brown, tracking: 0.8pt)[#upper(k)] \
         #text(size: 9pt)[#rich(v)]
