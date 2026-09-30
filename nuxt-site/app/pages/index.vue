@@ -186,7 +186,7 @@ const actionLetters = ['A', 'B', 'C']
         </div>
         <div class="mt-8 grid gap-4 lg:grid-cols-[2fr_1fr]">
         <div class="aspect-video rounded-sm overflow-hidden bg-black border border-ink/25">
-          <iframe :src="p.videos.main" title="First full playtest" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" loading="lazy" allowfullscreen class="w-full h-full" />
+          <iframe :src="p.videos.main" title="Playtest #2 recording" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" loading="lazy" allowfullscreen class="w-full h-full" />
         </div>
         <div class="grid grid-cols-2 gap-4 content-start">
           <div v-for="src in p.videos.more" :key="src" class="aspect-video rounded-sm overflow-hidden bg-black border border-ink/25">

@@ -12,7 +12,7 @@ meta:
 
 hero:
   # A link above the wordmark for an event; delete to hide it.
-  live: { label: 'We''ll be streaming playtest #2 on Twitch this afternoon', to: /playtest-2 }
+  live: { label: 'Watch the playtest #2 recap', to: /playtest-2 }
   wordmark: /assets/images/wordmark-sm.webp
   tagline: A tabletop game of naval conquest
   description: >-
@@ -235,10 +235,11 @@ fleets:
 videos:
   title: Watch a game
   lead: >-
-    The first full playtest, streamed in May. Gameplay starts at 12:40 (the
-    video skips ahead for you). The others are shorter clips from testing.
-  main: https://www.youtube.com/embed/xrnoY0tmqjc?start=760
+    The second full playtest: two games on rulebook v0.6. The others are the
+    first playtest from May and shorter clips from testing.
+  main: https://www.youtube.com/embed/5YRH92ho2SM
   more:
+    - https://www.youtube.com/embed/xrnoY0tmqjc?start=760
     - https://www.youtube.com/embed/oexjEaUXXjA
     - https://www.youtube.com/embed/ViBGuyKuE84
     - https://www.youtube.com/embed/SVqNlvkFg-w

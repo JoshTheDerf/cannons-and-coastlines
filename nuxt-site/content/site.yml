@@ -31,9 +31,9 @@ cta:
 # The announcement strip on every page. Delete the block to hide it
 # (fields: pill, headline, extra, cta, to; see content.config.ts).
 announce:
-  pill: Today
-  headline: 'We''ll be streaming playtest #2 on Twitch this afternoon.'
-  extra: It's on rulebook v0.6, with the finished ships and the new cannons.
+  pill: Recap
+  headline: 'Playtest #2 is done.'
+  extra: Watch both games on rulebook v0.6, with the finished ships and the new cannons.
   cta: Watch
   to: /playtest-2
 

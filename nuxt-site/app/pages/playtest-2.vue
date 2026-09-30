@@ -10,13 +10,11 @@ if (!page.value) throw createError({ statusCode: 404, statusMessage: 'Playtest p
 
 const p = computed(() => page.value!)
 
-const channel = 'cannonsandcoastlines'
-const channelUrl = `https://www.twitch.tv/${channel}`
-// Twitch refuses to play inside a page whose host isn't listed as a parent.
-const parents = ['cannonsandcoastlines.com', 'www.cannonsandcoastlines.com', 'localhost']
-const host = useRequestURL().hostname
-if (!parents.includes(host)) parents.push(host)
-const embedUrl = `https://player.twitch.tv/?channel=${channel}&${parents.map(h => `parent=${h}`).join('&')}`
+const channelUrl = 'https://www.twitch.tv/cannonsandcoastlines'
+
+// Trimmed recording of the stream: both games, setup cut out.
+const videoId = '5YRH92ho2SM'
+const recordingEmbedUrl = `https://www.youtube.com/embed/${videoId}`
 
 useSeoMeta({
   title: p.value.meta?.title,
@@ -40,16 +38,18 @@ useSeoMeta({
       <div class="container mx-auto max-w-5xl">
         <div class="relative w-full overflow-hidden rounded-sm bg-black border border-ink/25 shadow-2xl" style="aspect-ratio: 16 / 9;">
           <iframe
-            :src="embedUrl"
-            title="Cannons & Coastlines: Playtest #2 on Twitch"
+            :src="recordingEmbedUrl"
+            title="Cannons & Coastlines: Playtest #2 Recording"
             frameborder="0"
-            allow="autoplay; fullscreen"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+            referrerpolicy="strict-origin-when-cross-origin"
             allowfullscreen
             class="absolute inset-0 h-full w-full"
           />
         </div>
         <p class="mt-4 font-serif text-sm text-ink-soft text-center">
-          Stream not loading? <a :href="channelUrl" target="_blank" rel="noopener" class="underline text-[color:var(--gold)]">Watch it on Twitch</a>.
+          Video not loading? <a :href="`https://youtu.be/${videoId}`" target="_blank" rel="noopener" class="underline text-[color:var(--gold)]">Watch it on YouTube</a>.
+          The full stream stays up on <a :href="channelUrl" target="_blank" rel="noopener" class="underline text-[color:var(--gold)]">Twitch</a>.
           You can also watch the <NuxtLink to="/live" class="underline text-[color:var(--gold)]">first playtest's recording</NuxtLink>.
         </p>
       </div>

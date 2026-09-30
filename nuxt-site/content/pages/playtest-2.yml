@@ -1,22 +1,23 @@
-# Playtest #2 (/playtest-2), streaming live on Twitch.
+# Playtest #2 (/playtest-2). The stream is over; the page shows the recap
+# recording from YouTube.
 # The first playtest (rulebook v0.3) is on /live. "rules" sums up what
 # changed from v0.3 to v0.6; the full notes are the changelog in home.yml.
 # Items are RichText.
 
 meta:
-  title: Playtest #2, Live
+  title: 'Playtest #2 Recap'
   description: >-
-    We'll be streaming the second full playtest of Cannons & Coastlines on
-    Twitch this afternoon. It's on rulebook v0.6, with the finished ship
-    designs and the new cannons.
+    The recording of the second full playtest of Cannons & Coastlines: two
+    games on rulebook v0.6, with the finished ship designs and the new
+    cannons.
 
 hero:
-  stamp: Today
-  title: 'Playtest #2'
+  stamp: Event ended
+  title: 'Playtest #2 is done'
   lead: >-
-    We'll be streaming our second full playtest on Twitch this afternoon.
-    It's our first game on rulebook v0.6 (the first playtest used v0.3), with
-    the finished ship designs and the new cannons on the table.
+    Thanks for watching. We played two full games on rulebook v0.6 (the first
+    playtest used v0.3), with the finished ship designs and the new cannons on
+    the table. The recording below starts as the first game does.
 
 contents:
   rulesTitle: What's changed since the first playtest
