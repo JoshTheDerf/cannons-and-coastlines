@@ -1,7 +1,7 @@
 # Playtest #2 (/playtest-2). The stream is over; the page shows the recap
 # recording from YouTube.
 # The first playtest (rulebook v0.3) is on /live. "rules" sums up what
-# changed from v0.3 to v0.6; the full notes are the changelog in home.yml.
+# changed from v0.3 to v0.6; the full notes are `changelog` below.
 # Items are RichText.
 
 seo:
@@ -38,11 +38,44 @@ contents:
     - '**Finished ship designs.** All seven fleets are on their finished designs (below). The Queen''s Fleet and the Corsairs have new hulls, masts, cargo and wheels, and the Stone Fleet and the Islanders have new sails.'
     - '**Updated cannons.** Both the cannon and its barrel are new.'
     - '**New islands and coins.** The island stands on its own now and has six cannon slots, and the coins have engraved designs on top.'
-  ships:
-    - { name: "Queen's Fleet", image: "/assets/ships/ship-preview-queen-fleet-large-sm.webp?v=0.5" }
-    - { name: Corsairs, image: "/assets/ships/ship-preview-corsairs-sm.webp?v=0.5" }
-    - { name: Treasure Fleet, image: /assets/ships/ship-preview-treasure-fleet-sm.webp }
-    - { name: Stone Fleet, image: /assets/ships/ship-preview-stone-fleet-sm.webp }
-    - { name: Shadow Fleet, image: "/assets/ships/ship-preview-shadow-fleet-sm.webp?v=2" }
-    - { name: The Industry, image: /assets/ships/ship-preview-industry-sm.webp }
-    - { name: The Islanders, image: /assets/ships/ship-preview-islanders-sm.webp }
+  # The fleet pictures under this list come from shared/data/fleets.json.
+
+# The rulebook change notes, newest release first. This is the one place
+# they're shown (/playtest-2#changes); "How to play" on the home page and
+# /live link here. Items are RichText.
+changelog:
+  title: What changed
+  description: What each rulebook update changed, newest first.
+  releases:
+    - version: v0.6
+      released: '2026-09-24'
+      items:
+        - '**Parking at islands no longer wins.** Surviving ships don''t score any more, and a coin is worth a quarter of what it was. Points are 8 per island, 4 per prize fitting, 8 per prize hull, 1 per coin and +8 each for most ships and most islands, and you can declare victory at 60. Only points you hold when your turn begins count, so everyone gets a round to answer.'
+        - '**Trade Winds.** An optional one-page rule. Spin the Wind Dial at the start of each round, and ships sailing with the wind get +1 Move Count while ships sailing into it get -1 (they still click at least once). The dial prints from the base set, and a steel M8 washer helps it spin. In the web game, turn it on at setup or when you create an online game.'
+        - '**Prizes.** Keep every fitting you knock off an enemy ship, and the hull of every ship you sink or capture. A fitting is worth 4 points and a hull 8. When a ship is repaired, captured or raised, whoever holds the piece gives it back.'
+        - '**Collect from a distance.** Each turn, your ship nearest each of your islands can collect a coin there, touching it or not. A ship out at sea still sails forward after collecting.'
+        - '**Treasure Fleet gets a third junk.** Two ships were too few to hold their own at the table.'
+        - '**Stone Hulls only work at sea.** A Stone Fleet ship touching an island takes every hit.'
+        - '**Real tables, and where to sit.** A 6 ft round or a 6 or 8 ft folding table works well. Two players sit a quarter of the way round a round table, or diagonally across a folding one, so the fighting starts sooner. With three or more, put a rock just past each end of every fleet''s line. On a narrow table, islands run down the middle.'
+        - '**Full Sail replaces Signal Flags.** It lets one ship steer and sail twice in a turn, but that ship can''t fire. The 20-coin set is now 5 Brace, 2 Full Sail, 2 Evasive, 5 Gunner, 4 Repair, 2 Boarding.'
+        - '**Spend coins between ships.** You can spend coins before any of your ships takes its turn, as well as at the start of yours.'
+        - '**Cannons in the web game now shoot like the printed ones.** Two elevations (straight out or tipped up), no power control, a few degrees of spread, and a tapered ball that skids and curls to a stop.'
+    - version: v0.5
+      released: '2026-09-19'
+      items:
+        - '**Always Underway is the standard game now.** Every ship takes one action, then sails forward. You can steer or fire, but not both.'
+        - '**Islands are the only place to hold still.** A ship that takes an island action skips its forward click.'
+        - '**Move Count is a ceiling.** Click at least once, and up to your full count.'
+        - '**Run out of table and you sink.** A ship forced off the edge with no room left is scuttled.'
+        - '**Signal Flags reworked.** One of your ships gives up its action, and another takes two full turns.'
+        - '**Full Sail is gone.** Signal Flags pretty much covered it. The coin bag now leans toward guns and boarding: 4 Brace, 2 Signal, 2 Evasive, 4 Gunner, 4 Repair, 4 Boarding.'
+    - version: v0.4
+      released: '2026-05-18'
+      items:
+        - "**Faster fleets.** Every faction except the Islanders gains a click of movement. Shadow Fleet now matches Queen's Fleet."
+        - '**Corsairs down to three sloops.** Four was a lot to keep track of each turn. Three sloops at Move Count 4 can still flank just fine.'
+        - '**Islanders down to one fitting.** One hit leaves a catamaran dead in the water, which is pretty much the point.'
+        - '**Deploy at the table edge.** Ships now start touching the table edge. The old 3-inch gap just wasted space.'
+        - '**Ricochets.** The first ship a cannonball touches takes the hit. Anything it bounces into after that is fine.'
+        - '**Cannons need a crew.** To fire any cannon, a ship of yours must be touching it and spend its action. Islands no longer fire on their own.'
+        - '**Always Underway.** An optional mode where ships have to move forward every turn, and can steer or fire but not both.'
