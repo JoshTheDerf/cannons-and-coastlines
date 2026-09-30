@@ -47,6 +47,7 @@ export default defineContentConfig({
         factions: z.record(z.any()).optional(),
         changelog: z.record(z.any()).optional(),
         signup: z.record(z.any()).optional(),
+        playOnline: z.record(z.any()).optional(),
         downloads: z.record(z.any()).optional(),
         about: z.record(z.any()).optional(),
         story: z.record(z.any()).optional(),

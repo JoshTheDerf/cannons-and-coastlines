@@ -213,6 +213,35 @@ const actionLetters = ['A', 'B', 'C']
     <!-- Files -->
     <SignupSection :data="p.signup" />
 
+    <!-- Play online (the browser game at /game/, a static app outside the router) -->
+    <section v-if="p.playOnline" id="play-online" class="py-20 px-4 band-parchment">
+      <div class="container mx-auto">
+        <SectionHeader :title="p.playOnline.title" :description="p.playOnline.lead" align="left" class="!mb-0" />
+        <p class="mt-4 font-serif text-ink-soft max-w-2xl">{{ p.playOnline.body }}</p>
+        <div class="mt-6 flex flex-wrap gap-3">
+          <UButton
+            v-for="(a, i) in p.playOnline.actions"
+            :key="a.to"
+            :to="a.to"
+            :icon="a.icon"
+            external
+            target="_blank"
+            :color="i === 0 ? 'primary' : 'neutral'"
+            :variant="i === 0 ? 'solid' : 'ghost'"
+            :class="i === 0 ? '' : 'btn-ink'"
+          >
+            {{ a.label }}
+          </UButton>
+        </div>
+        <div class="mt-10 grid gap-6 sm:grid-cols-3">
+          <figure v-for="s in p.playOnline.shots" :key="s.src" class="photo-frame">
+            <img :src="s.src" :alt="s.alt" loading="lazy" decoding="async" width="980" height="735" class="w-full h-auto aspect-[4/3] object-cover object-top">
+            <figcaption v-if="s.caption" class="mt-2 text-sm muted font-serif">{{ s.caption }}</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
     <!-- About -->
     <section id="about" class="py-20 px-4">
       <div class="container mx-auto grid lg:grid-cols-2 gap-10 items-center">

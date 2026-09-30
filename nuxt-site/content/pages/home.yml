@@ -290,6 +290,32 @@ signup:
     url: https://discord.gg/DMuFEWJtZq
     qr: https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=https://discord.gg/DMuFEWJtZq
 
+# The browser game at /game/. /game/ opens its title screen ("Play the
+# computer" is the first button there) and /game/?online opens the online
+# game list. Screenshots are from the real game, 3D view.
+playOnline:
+  title: Want to learn how to play? Play online
+  lead: >-
+    The browser version is the easiest way to learn the rules, and you don't
+    need to print anything first.
+  body: >-
+    You can play a battle against the computer, or start an online game and
+    send the code to your friends. Empty seats can go to the computer, so a
+    game of two can still have a full table.
+  actions:
+    - { label: Play the computer, to: /game/, icon: i-lucide-bot, variant: solid }
+    - { label: Play online with friends, to: /game/?online, icon: i-lucide-users, variant: outline }
+  shots:
+    - src: /assets/images/game/table-overview.webp
+      alt: The web game's 3D view of a round table, with three white Queen's Fleet ships near the bottom edge, black Corsair ships across the table and green islands between them.
+      caption: The whole table, your fleet against the computer's.
+    - src: /assets/images/game/aiming.webp
+      alt: A Queen's Fleet ship lining up a straight-out shot at a Corsair ship, with Fire, Tipped up and Straight buttons around it.
+      caption: Lining up a shot. Pick a cannon, straight out or tipped up, then fire.
+    - src: /assets/images/game/online-lobby.webp
+      alt: The Play online screen, with a list of three open games, a box to join with a code and the options for starting a game.
+      caption: The online game list. Join with a code or start your own.
+
 about:
   title: Who's making this
   video: https://www.youtube.com/embed/I8fr532RWB0
