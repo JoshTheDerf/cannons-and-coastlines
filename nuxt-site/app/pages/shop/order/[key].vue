@@ -2,6 +2,7 @@
 // Where Stripe sends a buyer after checkout, and the link in their receipt
 // email. The URL is the credential (see server/utils/entitlement.ts), so the
 // page is fetched client-side only, never indexed, and sends no referrer.
+import { printListPath } from '~/composables/usePrintList'
 
 type OrderSet = {
   id: string
@@ -66,7 +67,7 @@ onBeforeUnmount(() => clearTimeout(timer))
 
 // Each download opens its print list first; the zip button is on that page,
 // which passes the order key on to /api/download.
-const printList = (id: string) => `/print-list/${id}?order=${key}`
+const printList = (id: string) => `${printListPath(id)}?order=${key}`
 
 const copied = ref(false)
 async function copyLink() {
@@ -169,8 +170,8 @@ async function copyLink() {
         <p>
           The files are for your own prints; please don't share the link. See the
           <NuxtLink to="/terms#paid-models-add-on-fleets" class="underline">license</NuxtLink>.
-          Each download opens its print list first (it's also PRINTING.pdf in the zip), and
-          the <NuxtLink to="/print-guide" class="underline">print guide</NuxtLink> has the colors for every fleet,
+          Each download opens its print list first (it's also PRINTING.pdf in the zip),
+          the <NuxtLink to="/print-guide" class="underline">print guide</NuxtLink> has the settings and how it goes together,
           and the <NuxtLink to="/rulebook/pdf/rulebook.pdf" external target="_blank" class="underline">rulebook</NuxtLink> is free.
           A file broken or missing? Email
           <a href="mailto:josh@thederf.com" class="underline text-[color:var(--gold)]">josh@thederf.com</a>.

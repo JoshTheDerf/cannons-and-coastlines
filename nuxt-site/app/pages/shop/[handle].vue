@@ -2,6 +2,7 @@
 import type { ShopVariant } from '~/composables/useShop'
 import assemblies from '#shared/data/ship-assemblies.json'
 import { findFleet } from '#shared/utils/fleets'
+import { printListPath } from '~/composables/usePrintList'
 
 const route = useRoute()
 const handle = computed(() => String(route.params.handle))
@@ -325,7 +326,7 @@ const kitContents = computed((): Row[] => {
           <div v-if="!digital.paid" class="rounded-xl border border-[color:var(--rule)] bg-[color:var(--paper-card)] p-5">
             <p class="font-display text-2xl text-ink">Free</p>
             <p class="mt-1 text-sm text-ink-soft">Part of the free base set: both base fleets, terrain and coins. Licensed CC BY-NC-SA.</p>
-            <UButton v-if="digital.freeDownloadUrl" :to="`/print-list/${digital.id}`" class="mt-4" size="xl" color="primary" icon="i-lucide-download" block>
+            <UButton v-if="digital.freeDownloadUrl" :to="printListPath(digital.id)" class="mt-4" size="xl" color="primary" icon="i-lucide-download" block>
               Download the STLs
             </UButton>
           </div>
@@ -361,7 +362,7 @@ const kitContents = computed((): Row[] => {
           <UButton v-if="fleet" :to="fleet.card" target="_blank" icon="i-lucide-file-text" variant="ghost" color="neutral" size="sm">
             Faction card (PDF)
           </UButton>
-          <UButton v-if="digital" :to="`/print-list/${digital.id}`" icon="i-lucide-list-checks" variant="ghost" color="neutral" size="sm">
+          <UButton v-if="digital && digital.paid" :to="printListPath(digital.id)" icon="i-lucide-list-checks" variant="ghost" color="neutral" size="sm">
             Print list
           </UButton>
           <UButton :to="product.kind === 'faction' ? `/print-guide#${product.handle}` : '/print-guide'" icon="i-lucide-printer" variant="ghost" color="neutral" size="sm">

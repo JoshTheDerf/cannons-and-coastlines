@@ -68,8 +68,8 @@ export default defineContentConfig({
         kit: z.record(z.any()).optional(),
         bundle: z.record(z.any()).optional(),
         extras: z.array(z.string()).optional(),
-        material: z.string().optional(),
         steps: z.record(z.any()).optional(),
+        howTo: z.record(z.any()).optional(),
         cta: z.record(z.any()).optional()
       })
     }),

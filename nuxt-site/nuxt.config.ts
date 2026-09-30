@@ -81,7 +81,11 @@ export default defineNuxtConfig({
     // on the site still can.
     '/': { headers: { 'Cross-Origin-Embedder-Policy': 'unsafe-none' } },
     '/playtests': { headers: { 'Cross-Origin-Embedder-Policy': 'unsafe-none' } },
-    '/starter-pack': { headers: { 'Cross-Origin-Embedder-Policy': 'unsafe-none' } }
+    '/starter-pack': { headers: { 'Cross-Origin-Embedder-Policy': 'unsafe-none' } },
+    // The base set's print list is part of /print-guide now. The Kit welcome
+    // email, old zips and PDFs link here; Nitro keeps the query string (an
+    // ?order= key), and the browser keeps the #fragment.
+    '/print-list/base-set': { redirect: { to: '/print-guide', statusCode: 301 } }
   },
   content: {
     // On Cloudflare Workers @nuxt/content needs a SQL backend. Bind a D1

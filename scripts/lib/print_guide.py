@@ -3,7 +3,7 @@
 
 The words live in nuxt-site/content/pages/print-lists.yml (what to print),
 print-guide.yml (settings and colors).
-The /print-list and /print-guide pages and PRINTING.pdf
+The /print-guide page (the base set's list), the /print-list/<set> pages and PRINTING.pdf
 (rulebook/typst/print-list.typ) read the same files. This only lays them out
 as Markdown, so the site and the zips can't drift apart.
 
@@ -43,6 +43,11 @@ def load(name):
 GUIDE = load("print-guide.yml")
 LISTS = load("print-lists.yml")
 BASE_SET = LISTS["base"]["set"]
+
+
+def list_url(set_id):
+    """The base set's print list is the print guide."""
+    return f"{SITE}/print-guide" if set_id == BASE_SET else f"{SITE}/print-list/{set_id}"
 
 
 def text(s):
@@ -93,24 +98,32 @@ def parts_md(items, lf=None, gf=None, mark_base=False):
 
 
 def settings_md():
-    """Material from print-lists.yml, the rest from print-guide.yml. Supports
-    are a column in each list."""
-    rows = [("Material", LISTS["material"])]
-    rows += [r for r in GUIDE["settings"]["rows"] if r[0] not in ("Material", "Supports")]
-    return "## Settings\n\n" + table(("Setting", "Value"), rows)
+    """print-guide.yml settings. Supports are a column in each list."""
+    return "## Settings\n\n" + table(("Setting", "Value"), GUIDE["settings"]["rows"])
+
+
+def how_to_md(page, plates=True, needs_base=False):
+    """Mirrors how-to in rulebook/typst/print-list.typ: print-lists.yml
+    howTo, the `file` wording."""
+    h = LISTS["howTo"]
+    steps = [h["get"]["file" if plates else "fileFree"]]
+    if needs_base:
+        steps.append(h["base"]["file"])
+    steps += [h["print"]["file"], h["build"]["file"]]
+    base = list_url(BASE_SET).replace("https://", "")
+    page = page.replace("https://", "")
+    return f"## {h['title']}\n\n" + "\n".join(
+        f"{i + 1}. {text(st).replace('{page}', page).replace('{base}', base)}" for i, st in enumerate(steps))
 
 
 def fleet_md(f):
     lf = list_for(f["id"])
     paid = f["set"] != BASE_SET
-    out = [
+    return "\n\n".join([
         f"## {f['name']}",
         f"{lf['ships']} {lf['shipType']} with {lf['fittings']}.",
         parts_md(lf["parts"], lf, f, mark_base=paid),
-    ]
-    if paid:
-        out.append(f"{text(LISTS['base']['body'])} Get it at {SITE}/print-list/{BASE_SET}")
-    return "\n\n".join(out)
+    ])
 
 
 def general_md():
@@ -124,11 +137,11 @@ def general_md():
     ])
 
 
-def kit_md(has_base):
+def kit_md():
+    """Only on lists with the base set; an add-on fleet's how_to_md says it
+    needs the base set instead."""
     k = LISTS["kit"]
-    if has_base:
-        return "\n\n".join([f"## {k['title']}", *(text(p) for p in k["body"])])
-    return f"## {k['title']}\n\n{text(k['paid'])} {SITE}/print-list/{BASE_SET}"
+    return f"## {k['title']}\n\n{text(k['body'])}"
 
 
 def files_for(set_ids):
@@ -151,15 +164,10 @@ def steps_md(set_ids):
     return f"## {LISTS['steps']['title']}\n\n" + "\n".join(f"{i + 1}. {text(st['text'])}" for i, st in enumerate(steps))
 
 
-def links_md(set_id, fleets):
-    shop = "/shop" if set_id not in {f["set"] for f in fleets} else (
-        "/shop/base-set-files" if set_id == BASE_SET else f"/shop/{fleets[0]['id']}")
-    guide = "/print-guide" + (f"#{fleets[0]['id']}" if len(fleets) == 1 else "")
-    return f"The shop page is {SITE}{shop}, and the print guide is at {SITE}{guide}."
-
-
-PLATES = ("The plates folder has a 3MF for each color, with these counts and the settings below. "
-          "OrcaSlicer and CubbySlicer open them with their plates and settings.")
+def links_md(set_id):
+    if set_id == BASE_SET:
+        return f"The shop page is {SITE}/shop/base-set-files."
+    return f"The shop page is {SITE}/shop/{fleets_for(set_id)[0]['id']}, and the print guide is at {SITE}/print-guide."
 
 
 def fleet_names(fleets):
@@ -173,18 +181,19 @@ def emit(parts):
 
 def cmd_set(set_id, directory=None):
     fleets = fleets_for(set_id)
+    base = set_id == BASE_SET
     emit([
         f"# {fleet_names(fleets)} print list",
         "What to print from this download, and how. PRINTING.pdf has the same, with pictures. "
-        f"Online: {SITE}/print-list/{set_id}",
+        f"Online: {list_url(set_id)}",
         # The paid zips have plates/ (scripts/build-paid-zips.sh); the free zip doesn't.
-        PLATES if set_id != BASE_SET else None,
+        how_to_md(list_url(set_id), plates=not base, needs_base=not base),
         *[fleet_md(f) for f in fleets],
-        general_md() if set_id == BASE_SET else None,
+        general_md() if base else None,
         settings_md(),
         steps_md({set_id}),
-        kit_md(set_id == BASE_SET),
-        links_md(set_id, fleets),
+        kit_md() if base else None,
+        links_md(set_id),
     ])
 
 
@@ -199,13 +208,13 @@ def cmd_bundle_top(*pairs):
         "One folder per fleet, each with its own PRINTING.md listing what to print from it. "
         "PRINTING.pdf, next to this file, has every fleet's print list with pictures. "
         f"Online: {SITE}/print-list/all-fleets",
-        PLATES.replace("The plates folder has", "Each folder's plates folder has") +
-        " The plates folder at the top has the shared parts for every fleet together.",
+        text(LISTS["bundle"]["intro"]),
+        how_to_md(f"{SITE}/print-list/all-fleets"),
         "## Folders\n\n" + "\n".join(index),
         general_md(),
         settings_md(),
         steps_md(set_ids),
-        kit_md(True),
+        kit_md(),
     ])
 
 
