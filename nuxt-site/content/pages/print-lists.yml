@@ -65,7 +65,7 @@ howTo:
     file: '**Get the files.** The STLs are in this zip. The plates folder has a 3MF for each color, with the settings, for OrcaSlicer or CubbySlicer.'
     fileFree: '**Get the files.** The STLs are in this zip. To print from CubbySlicer, open the plates for each color at {page}.'
   buy:
-    web: "**Get the files.** Buy them above. If you already have, open this list from your order page (it's linked in your Stripe receipt email)."
+    web: "**Get the files.** Buy them above. If you already have, open this list from the order page you landed on after checkout."
   base:
     web: '**Get the free [base set]({base}) too.** It has the masts, cargo, cannons and wheels (the plates below include them), and the coins, islands and terrain a game needs.'
     file: '**Get the free base set too**, from {base}. It has the masts, cargo, cannons and wheels, and the coins, islands and terrain a game needs.'
