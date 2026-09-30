@@ -97,7 +97,7 @@ export const r2BundleKey = (bundle: Bundle): string => {
 
 // ── Single files ────────────────────────────────────────────────────────
 // Each paid STL and print-plate 3MF is also in R2 on its own, so the print
-// list can open one in Cubby Slicer (/api/download/<set>/<file>).
+// list can open one in CubbySlicer (/api/download/<set>/<file>).
 // scripts/build-paid-zips.sh lays them out the same way.
 
 /** An STL or 3MF name as the build scripts write them. */

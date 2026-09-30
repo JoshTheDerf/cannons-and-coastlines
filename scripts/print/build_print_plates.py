@@ -17,7 +17,7 @@ they do.
 The CLI writes a separate copy of the mesh for every copy of a part. The 3MF is
 rewritten so each file's mesh is stored once and every copy points at it (the
 copies stay separate objects, since Orca's Z contouring won't slice an object
-with several instances). Cubby Slicer and desktop OrcaSlicer open the
+with several instances). CubbySlicer and desktop OrcaSlicer open the
 result with its plates and settings.
 
 Where the files go:

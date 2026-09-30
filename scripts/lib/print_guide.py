@@ -159,7 +159,7 @@ def links_md(set_id, fleets):
 
 
 PLATES = ("The plates folder has a 3MF for each color, with these counts and the settings below. "
-          "OrcaSlicer and Cubby Slicer open them with their plates and settings.")
+          "OrcaSlicer and CubbySlicer open them with their plates and settings.")
 
 
 def fleet_names(fleets):

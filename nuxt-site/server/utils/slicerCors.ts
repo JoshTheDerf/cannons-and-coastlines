@@ -1,4 +1,4 @@
-// CORS for Cubby Slicer. The print list opens files with
+// CORS for CubbySlicer. The print list opens files with
 // https://cubbycad.com/slicer/?model=<url>, and the slicer fetches <url> from
 // its own origin, so the download routes let that one origin read them.
 // Only that origin: the gated routes never answer with `*`.

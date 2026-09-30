@@ -32,7 +32,7 @@ import { bundlePaidSets, findBundle, findSet, r2BundleKey, r2ZipKey } from '~~/s
 import { allowSlicer } from '~~/server/utils/slicerCors'
 
 export default defineEventHandler(async (event) => {
-  // Cubby Slicer may read the download too (server/utils/slicerCors.ts).
+  // CubbySlicer may read the download too (server/utils/slicerCors.ts).
   allowSlicer(event)
   const setId = getRouterParam(event, 'set')!
   const query = getQuery(event)

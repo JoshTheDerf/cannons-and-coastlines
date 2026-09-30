@@ -1,6 +1,6 @@
 <script setup lang="ts">
 // One row per plate file (a color's parts, ready to slice): what's on it, a
-// link that opens it in Cubby Slicer, and the .3mf itself for the free ones.
+// link that opens it in CubbySlicer, and the .3mf itself for the free ones.
 // A paid plate on a list opened without the order key has no link.
 defineProps<{
   plates: { file: string, label: string, swatch: string, what: string, plates: number, open: string | null, download: string | null }[]
@@ -15,7 +15,7 @@ defineProps<{
       <span class="flex-1 min-w-40 text-ink-soft">{{ p.what }}<template v-if="p.plates > 1"> ({{ p.plates }} plates)</template></span>
       <span class="ml-auto whitespace-nowrap">
         <span v-if="!p.open" class="text-xs muted">Open it from your order page</span>
-        <a v-else :href="p.open" target="_blank" rel="noopener" class="underline text-[color:var(--gold)]" :aria-label="`Open ${p.label} plate in Cubby Slicer`">Open<UIcon name="i-lucide-square-arrow-out-up-right" class="ml-0.5 size-3.5 align-[-2px]" /></a>
+        <a v-else :href="p.open" target="_blank" rel="noopener" class="underline text-[color:var(--gold)]" :aria-label="`Open ${p.label} plate in CubbySlicer`">Open<UIcon name="i-lucide-square-arrow-out-up-right" class="ml-0.5 size-3.5 align-[-2px]" /></a>
         <a v-if="p.download" :href="p.download" download class="ml-3 text-xs text-ink-faint underline" :title="`Download ${p.file} (opens in OrcaSlicer too)`">.3mf</a>
       </span>
     </li>

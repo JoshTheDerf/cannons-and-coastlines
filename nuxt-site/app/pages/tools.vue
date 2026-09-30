@@ -1,5 +1,5 @@
 <script setup lang="ts">
-// /tools: CubbyCAD and Cubby Slicer. Copy is content/pages/tools.yml.
+// /tools: CubbyCAD and CubbySlicer. Copy is content/pages/tools.yml.
 
 const { data: page } = await useAsyncData('tools', () =>
   queryCollection('pages').where('stem', '=', 'pages/tools').first()

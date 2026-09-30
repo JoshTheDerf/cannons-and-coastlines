@@ -15,7 +15,7 @@
 #   <set-id>/v<version>/MANIFEST.txt              sha256 of every file in it
 #   <set-id>/v<version>/files/<name>.stl          each paid STL on its own
 #   <set-id>/v<version>/plates/<name>.3mf         each paid print-plate 3MF
-# (the last two for the print list's "Open in Cubby Slicer" links, served by
+# (the last two for the print list's "Open in CubbySlicer" links, served by
 # /api/download/<set>/<file> behind the same check as the zip)
 # and per bundle (bundles in the site manifest, e.g. all-fleets):
 #   <bundle-id>/<set-id>-v<version>_.../<zipBaseName>.zip

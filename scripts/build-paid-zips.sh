@@ -29,7 +29,7 @@
 # Every zip also gets a plates/ folder: an OrcaSlicer project 3MF per color
 # (scripts/print/build_print_plates.py, run first; NO_PLATES=1 skips the
 # rebuild). Next to each set's zip go its paid STLs (files/) and paid 3MFs
-# (plates/) one by one, which the print list opens in Cubby Slicer through
+# (plates/) one by one, which the print list opens in CubbySlicer through
 # /api/download/<set>/<file>:
 #
 #   <set-id>/v<version>/files/<name>.stl
@@ -135,7 +135,7 @@ for set_id in "${requested[@]}"; do
     mkdir "$staging/$name"
     cp "${files[@]}" "$staging/$name/"
     add_plates "$set_id" "$staging/$name/plates"
-    # One by one too, for the print list's Cubby Slicer links. Only this
+    # One by one too, for the print list's CubbySlicer links. Only this
     # set's own files: the free ones are public already.
     mkdir -p "$dest/files"
     for f in "${files[@]}"; do [[ "$f" == *.stl ]] && cp "$f" "$dest/files/"; done

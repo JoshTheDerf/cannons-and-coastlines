@@ -1,4 +1,4 @@
-// One file from a paid set, for opening in Cubby Slicer from the print list.
+// One file from a paid set, for opening in CubbySlicer from the print list.
 //
 //   GET /api/download/<set-id>/<file>.stl?order=<order key>
 //   GET /api/download/<set-id>/<file>.3mf?order=<order key>   (a print plate)
@@ -9,7 +9,7 @@
 // else. Files come from R2 (r2FileKey in server/utils/sets.ts), put there by
 // scripts/publish-paid-sets.sh.
 //
-// Cubby Slicer (https://cubbycad.com/slicer/?model=<this URL>) fetches the
+// CubbySlicer (https://cubbycad.com/slicer/?model=<this URL>) fetches the
 // file from its own origin, so this route allows that one origin by CORS
 // (server/utils/slicerCors.ts). No cookies are involved: the key is in the
 // URL, as for the zip.

@@ -88,7 +88,7 @@ const downloadUrl = free
 const shopHandle = set ? (free ? 'base-set-files' : guideFleets.value.find(f => f.set === id)?.id ?? null) : null
 const pdfUrl = `/rulebook/pdf/print-list-${id}.pdf`
 
-// ── Cubby Slicer ────────────────────────────────────────────────────────
+// ── CubbySlicer ────────────────────────────────────────────────────────
 // https://cubbycad.com/slicer/?model=<url>[&model=<url>…]&name=<file>…&arrange=all fetches each file
 // and opens it (a project 3MF opens with its plates and settings). The
 // slicer fetches from its own origin: /assets/stls/* allow it in _headers,
@@ -204,7 +204,7 @@ useSeoMeta({
         </p>
         <p class="mt-4 flex flex-wrap justify-center gap-x-5 gap-y-1 text-sm">
           <a :href="pdfUrl" target="_blank" class="underline text-[color:var(--gold)]">This list as a PDF</a>
-          <a href="#slicer" class="underline text-[color:var(--gold)]">Print it in Cubby Slicer</a>
+          <a href="#slicer" class="underline text-[color:var(--gold)]">Print it in CubbySlicer</a>
           <NuxtLink v-if="orderKey" :to="`/shop/order/${orderKey}`" class="underline text-[color:var(--gold)]">Back to your order</NuxtLink>
           <NuxtLink v-else-if="shopHandle && !free" :to="`/shop/${shopHandle}`" class="underline text-[color:var(--gold)]">The shop page</NuxtLink>
         </p>
@@ -275,13 +275,13 @@ useSeoMeta({
       </div>
     </section>
 
-    <!-- Plate files for Cubby Slicer, one per color -->
+    <!-- Plate files for CubbySlicer, one per color -->
     <section id="slicer" class="pt-4 pb-14 px-4 scroll-mt-20">
       <div class="container mx-auto max-w-4xl">
-        <h2 class="font-display text-2xl text-ink">Print it in Cubby Slicer</h2>
+        <h2 class="font-display text-2xl text-ink">Print it in CubbySlicer</h2>
         <p class="mt-2 max-w-2xl font-serif text-sm text-ink-soft">
           Each file is one color's parts from this list, laid out on a 256 mm plate with the settings below.
-          Open one in <a href="https://cubbycad.com/slicer/" target="_blank" rel="noopener" class="underline text-[color:var(--gold)]">Cubby Slicer</a>
+          Open one in <a href="https://cubbycad.com/slicer/" target="_blank" rel="noopener" class="underline text-[color:var(--gold)]">CubbySlicer</a>
           (it runs in your browser) or download the .3mf for OrcaSlicer.
           The <UIcon name="i-lucide-square-arrow-out-up-right" class="size-3.5 align-[-2px] text-[color:var(--gold)]" /> by a file name in the tables opens just that file.
         </p>
