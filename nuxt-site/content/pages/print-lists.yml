@@ -35,14 +35,9 @@
 #   render    image stem under assets/images/renders/, when it isn't the
 #             file's own name.
 
-seo:
-  title: Print Lists
-  description: >-
-    What to print for each Cannons & Coastlines fleet: every STL, how many
-    copies, what color and whether it needs supports.
-
+# The /print-list/<set> page title is the fleet's name, and its description
+# is written in print-list/[set].vue; only the intro lives here.
 hero:
-  title: Print List
   intro: Every file to print, how many copies, what color and whether it needs supports.
 
 # The free set every other list borrows parts from. The rows marked
