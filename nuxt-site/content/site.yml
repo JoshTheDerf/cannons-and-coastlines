@@ -12,9 +12,7 @@ brand:
 nav:
   - label: How to play
     to: /#how-to-play
-  - label: Fleets
-    to: /shop
-  - label: Shop
+  - label: Shop Fleets
     to: /shop
   - label: Print guide
     to: /print-guide
@@ -44,7 +42,7 @@ footer:
     - title: Game
       links:
         - { label: How to play, to: /#how-to-play }
-        - { label: Fleets, to: /shop }
+        - { label: Shop Fleets, to: /shop }
         - { label: Rulebook (PDF), to: /rulebook/pdf/rulebook.pdf, external: true }
         - { label: Play online, to: /game/?online, external: true }
         - { label: Videos, to: /#videos }
@@ -53,7 +51,6 @@ footer:
     - title: Printing
       links:
         - { label: Get the free files, to: /#files }
-        - { label: Shop, to: /shop }
         - { label: Print guide, to: /print-guide }
         - { label: GitHub, to: https://github.com/JoshTheDerf/cannons-and-coastlines/tree/main, external: true }
     - title: More
