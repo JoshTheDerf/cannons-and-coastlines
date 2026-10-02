@@ -57,7 +57,8 @@ async function buy() {
 
 <template>
   <div v-if="set && f" :class="block || buyNow ? 'grid gap-2' : 'flex flex-wrap items-center gap-2'">
-    <div :class="buyNow ? 'grid grid-cols-2 gap-2' : 'contents'">
+    <!-- The full-size pair is stacked on a phone, Buy now on top: side by side they don't fit. -->
+    <div :class="!buyNow ? 'contents' : compact ? 'grid grid-cols-2 gap-2' : 'grid grid-cols-1 sm:grid-cols-2 gap-2'">
       <UButton
         :color="buyNow ? 'neutral' : 'primary'"
         :variant="buyNow ? 'outline' : 'solid'"
@@ -70,7 +71,7 @@ async function buy() {
       >
         {{ cartLabel }}
       </UButton>
-      <UButton v-if="buyNow" color="primary" :size="size" icon="i-lucide-download" block class="justify-center whitespace-nowrap" :class="{ 'btn-compact': compact }" :loading="buying" @click="buy">
+      <UButton v-if="buyNow" color="primary" :size="size" icon="i-lucide-download" block class="justify-center whitespace-nowrap" :class="compact ? 'btn-compact' : 'max-sm:order-first'" :loading="buying" @click="buy">
         Buy now
       </UButton>
     </div>

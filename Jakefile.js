@@ -48,6 +48,7 @@ const TASKS = {
     'ship-previews': ['Render the ship 3/4 previews in Blender — needs Blender', 'scripts/blender/render_ship_previews.sh'],
     'set-previews':  ["Render one set's ship art and install it, e.g. set-previews[industry-set] — needs Blender", 'scripts/blender/render_set_previews.sh'],
     'preview-meshes': ['Build the shop 3D preview meshes from ship-assemblies.json — needs Blender', 'scripts/blender/build_preview_meshes.sh'],
+    'social-cards':  ['Build the link-preview picture for each shop page (assets/images/social/) — needs ImageMagick', 'scripts/rulebook/build-social-cards.sh'],
     'banner-fade':   ['Regenerate the faction-card banner overlays — needs ImageMagick', 'scripts/rulebook/build-banner-fade.sh'],
     'print-plates':  ['Build the print lists\' 3MFs, one per fleet and color (PAID_SET_ROOT=... for the paid ones) — needs OrcaSlicer', 'scripts/print/build_print_plates.py'],
     'starter-pack-3mf': ['Slice starter-pack 3MFs, e.g. starter-pack-3mf[--queens,2] — needs OrcaSlicer', 'scripts/print/build-starter-pack-3mf.sh'],

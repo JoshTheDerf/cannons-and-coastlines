@@ -149,10 +149,13 @@ const addons = computed(() => (products.value ?? []).filter(p => p.group === 'ad
         <div v-if="paidSets.length > 1" class="mt-5 card-parchment p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center gap-4">
           <div class="flex-1">
             <p class="font-display text-lg text-ink">
-              All {{ paidSets.length }} add-on fleets
+              <NuxtLink to="/shop/all-fleets" class="hover:text-[color:var(--heading)] hover:underline">Every Fleet: all {{ paidSets.length }} add-on fleets</NuxtLink>
               <span v-if="earlyBird" class="stamp stamp-gold ml-2 align-middle">Early bird price</span>
             </p>
-            <p class="text-sm text-ink-soft">{{ paidSets.map(s => s.title).join(', ') }}. One checkout, and every fleet's files in one zip with the print guide.</p>
+            <p class="text-sm text-ink-soft">
+              {{ paidSets.map(s => s.title).join(', ') }}. One checkout, and every fleet's files in one zip with the print guide.
+              <NuxtLink to="/shop/all-fleets" class="text-[color:var(--gold)] hover:underline whitespace-nowrap">See the set</NuxtLink>
+            </p>
             <p v-if="buyAllError" class="mt-1 text-sm text-error-500">{{ buyAllError }}</p>
           </div>
           <div class="grid sm:grid-cols-2 gap-2 shrink-0">

@@ -4,6 +4,14 @@ export default defineNuxtConfig({
   modules: ['@nuxt/ui', '@nuxt/content'],
   css: ['~/assets/css/main.css'],
   devtools: { enabled: true },
+  runtimeConfig: {
+    public: {
+      // The canonical address, for links crawlers read (og:url, og:image,
+      // canonical), whichever host served the page. NUXT_PUBLIC_SITE_URL
+      // overrides it.
+      siteUrl: 'https://cannonsandcoastlines.com'
+    }
+  },
   ssr: true,
   app: {
     head: {

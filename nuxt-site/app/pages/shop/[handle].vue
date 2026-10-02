@@ -23,14 +23,29 @@ if (product.value.handle !== handle.value) {
   await navigateTo({ path: `/shop/${product.value.handle}`, query: route.query }, { redirectCode: 301, replace: true })
 }
 
-useSeoMeta({
-  title: product.value.title,
-  description: product.value.tagline,
-  ogImage: product.value.featuredImage.url
-})
-
 const { data: allProducts } = await useAsyncData('shop-products-list', () => listProducts())
 const { data: setsData } = await useFleetSets()
+
+// Link previews (Instagram, Facebook, iMessage) and search. The offer is the
+// STL files, the one thing on the page that can be bought today.
+{
+  const p = product.value
+  const set = setsData.value?.all.find(s => s.id === p.setId) ?? null
+  const offer = !set ? null : !set.paid ? { price: 0, available: true } : set.purchasable ? { price: set.priceUsd!, available: true } : null
+  // The base-set download page's tagline already says what the files cost.
+  const files = !set || p.kind !== 'faction' ? '' : !set.paid ? ' The STL files are free.' : set.purchasable
+    ? ` STL files, ${formatPrice(set.priceUsd)}${set.earlyBird ? ' at the early-bird price' : ''}.`
+    : ' STL files coming soon.'
+  useProductSeo({
+    path: `/shop/${p.handle}`,
+    social: p.handle,
+    title: p.group === 'addon' ? `${p.title} STL files` : p.title,
+    description: `${p.tagline}${files}`,
+    imageAlt: p.featuredImage.altText,
+    offer,
+    sku: p.setId ?? p.handle
+  })
+}
 
 // The fleet's stats, ability and faction card (shared/data/fleets.json).
 // This page is their one full home; other pages link here. Null on the
@@ -341,6 +356,10 @@ const kitContents = computed((): Row[] => {
             <p class="mt-2 text-xs text-ink-faint">
               For your own prints only. See the <NuxtLink to="/terms#paid-models-add-on-fleets" class="underline">license</NuxtLink>.
             </p>
+            <NuxtLink v-if="product.group === 'addon'" to="/shop/all-fleets" class="mt-4 flex items-center gap-2 text-sm text-ink-soft hover:text-ink">
+              <UIcon name="i-lucide-layers" class="size-4 text-[color:var(--gold)] shrink-0" />
+              <span>Want them all? <span class="text-[color:var(--gold)] underline">Every fleet in one checkout and one zip</span>.</span>
+            </NuxtLink>
             <p class="mt-5 pt-4 border-t border-[color:var(--rule)]/70 text-sm text-ink-soft">
               Already bought this? Your download link is in your Stripe receipt email. Lost it? Email
               <a href="mailto:josh@thederf.com" class="underline text-[color:var(--gold)]">josh@thederf.com</a>
