@@ -15,6 +15,22 @@ const RECT_TABLE = 122;
 const INCH = 2.54;
 const ROUND_FOR = { 2: 'round6', 3: 'round6', 4: 'round6', 5: 'round6', 6: 'round6', 7: 'round6' };
 const ISLANDS_FOR = { 2: 2, 3: 3, 4: 4, 5: 5, 6: 6, 7: 7 };  // rulebook v0.7: one island per player
+// Setup option: islands per player. 1 is the rulebook; 2 is close to the
+// older game (v0.6 had 4 for two players), where fleets meet later.
+const ISLANDS_PER = [1, 1.5, 2];
+/** How many islands n players set out, at `per` islands each (default: the rulebook). */
+function islandsFor(n, per) {
+  per = ISLANDS_PER.includes(+per) ? +per : 1;
+  return per === 1 ? ISLANDS_FOR[n] || n : Math.max(2, Math.round(per * n));
+}
+// Setup option (web game only): every fleet's Move Count times this, to
+// whole clicks. 1 is the rulebook. Trade Winds still adds or takes one.
+const SPEEDS = [1, 1.25, 1.5, 2];
+/** A Move Count at speed multiplier `mult`. */
+function moveCountFor(base, mult) {
+  mult = SPEEDS.includes(+mult) ? +mult : 1;
+  return Math.max(1, Math.round(base * mult));
+}
 const MAX_SEATS = 7;
 // Real tables, the sizes people have to hand (a church hall's folding
 // tables are 30 in wide). Used by the balance tests; a local game could
@@ -53,7 +69,7 @@ const TERRAIN_DEFS = {
 // ahead most often). The ball then does most of its work on the table:
 // straight out it drops a hand's width from the muzzle, skips and rolls;
 // tipped up it sails over nearby hulls, lands about 38 cm out and bounces.
-// Straight out a shot carries 30-45 cm in all, tipped up 50-70 cm.
+// Straight out a shot carries 35-50 cm in all, tipped up 60-85 cm.
 // The printed ball is tapered (10 mm wide, 13 mm long, a ~22 degree cone),
 // so it cannot roll straight: a cone rolls in circles about its tip. Once
 // the bounces die out it skids and tumbles, losing speed fast and curling
@@ -72,8 +88,8 @@ const MUZZLE_V = 198;                // cm/s: a lofted shot lands ~38 cm out
 const MUZZLE_V_SD = 0.07;            // spring-to-spring and shot-to-shot variation
 const ELEVATIONS = { flat: 0, lob: 30 * Math.PI / 180 };
 const SPREAD_MAX = 5 * Math.PI / 180;        // side-to-side cone, straight ahead most likely
-const BOUNCE_E = 0.35;               // vertical speed kept by a bounce
-const BOUNCE_KEEP = 0.75;           // forward speed kept by a bounce
+const BOUNCE_E = 0.5;                // vertical speed kept by a bounce (PLA on a hard table)
+const BOUNCE_KEEP = 0.85;           // forward speed kept by a bounce
 // Sideways knock at each bounce: the first landing is fairly true, after
 // that the tapered ball goes where it likes.
 const BOUNCE_KICK_SD = [3, 9, 14, 14].map(d => d * Math.PI / 180);
@@ -83,7 +99,7 @@ const SPIN_SD = 0.9 * Math.PI / 180;
 const SPIN_SKID_KEEP = 0.9;             // spin kept per 1.5 cm of skid
 const TUMBLE_SD = 20 * Math.PI / 180;        // the turn it takes as it drops into a skid
 const HOP_MIN_VZ = 20;               // slower than this off the table and it just skids
-const SKID_DECEL = 450;              // cm/s^2: a tumbling cone scrubs speed fast
+const SKID_DECEL = 750;              // cm/s^2: a tumbling cone scrubs speed fast
 const SKID_DECEL_SD = 0.3;           // tables and landings vary
 const SKID_CURL = 1.3;              // how hard it curls: radians per cm, times cm/s of speed
 const SKID_CURL_V = 30;              // ...so the curl tightens as it slows

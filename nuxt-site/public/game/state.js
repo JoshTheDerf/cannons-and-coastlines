@@ -10,7 +10,7 @@ function makeShip(p, fid, i, used = new Set()) {
   return {
     id: `p${p}s${i}`, owner: p, origin: p, build: fid,
     name: shipName(fid, used),
-    len: f.len, wid: f.wid, height: f.height || HULL_H, guns: f.guns, moveCount: f.moveCount, hullStyle: f.hull,
+    len: f.len, wid: f.wid, height: f.height || HULL_H, guns: f.guns, moveCount: moveCountFor(f.moveCount, G && G.opts && G.opts.speed), hullStyle: f.hull,
     maxFit: f.fittings, fit: f.fittings,
     fitMask: Array(f.fittings).fill(true),  // which fittings are aboard (see fittingLayout)
     turretRel: 0,        // Industry: turret facing relative to the bow, kept between turns
@@ -59,7 +59,7 @@ function newGame(opts) {
     turn: 1,
     table: preset ? (round ? { shape: 'circle', r: preset.r } : { shape: 'rect', w: preset.w, h: preset.h })
       : { shape: 'rect', w: RECT_TABLE, h: RECT_TABLE },
-    islandCount: ISLANDS_FOR[n] || n,
+    islandCount: islandsFor(n, opts.islandsPer),
     factions: {},
     terrain: [],
     players: {},

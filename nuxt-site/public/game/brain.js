@@ -727,7 +727,7 @@ function aiBestMove(ship, goal, lo, hi, straight) {
     // One rotation and one sweep to the longest run per heading; shorter
     // runs are the same track cut short.
     const rot = planRotate(ship, normAngle(ship.h + k * stepA), piv);
-    const start = { x: ship.x, y: ship.y, h: rot.h };
+    const start = { x: rot.x, y: rot.y, h: rot.h };
     // hi is the ship's Move Count; Trade Winds shift it per heading.
     const top = Math.max(lo, hi + windDelta(rot.h));
     const clickSet = [...new Set([lo, Math.round((lo + top) / 2), top])].filter(c => c >= lo && c <= top);

@@ -77,7 +77,11 @@ function nearbyObstacles(ship, x, y, reach) {
 
 /** Smallest gap from `ship` at `pose` to anything else on the table. */
 function poseGap(ship, pose, near) {
-  const s = shipSeg(ship, pose);
+  return segGap(ship, shipSeg(ship, pose), near);
+}
+
+/** Smallest gap from segment `s` (part or all of `ship`) to anything else on the table. */
+function segGap(ship, s, near) {
   let best = { gap: Infinity, kind: null, obj: null };
   const eg = edgeGapOfSeg(s);
   if (eg < best.gap) best = { gap: eg, kind: 'edge', obj: null };
@@ -115,25 +119,43 @@ function touchingIslands(ship, pose) {
   return out;
 }
 
+// Steering pivots about a point a quarter of the hull in from the stern, as
+// a ship turns on its rudder: the bow swings wide, the stern barely moves.
+const PIVOT_BACK = 0.25;
+/** Where `ship`, at `pose`, sits once turned to heading h about its pivot. */
+function pivotPose(ship, pose, h) {
+  const off = ship.len * PIVOT_BACK, f0 = fwdVec(pose.h), f1 = fwdVec(h);
+  return { x: pose.x + (f1.x - f0.x) * off, y: pose.y + (f1.y - f0.y) * off, h };
+}
+/** The bow quarter of the hull: the part that leads a turn and can be stopped by what it meets. */
+function bowSeg(ship, pose) {
+  const s = shipSeg(ship, pose), f = fwdVec(pose.h), q = Math.min(ship.len / 4, Math.max(0, (ship.len - ship.wid) / 2));
+  return { ax: s.ax, ay: s.ay, bx: pose.x + f.x * q, by: pose.y + f.y * q, r: s.r };
+}
+
 /**
- * Set Heading: rotate in place toward `target`, limited to the ship's pivot
- * arc. Rotation stops early if the hull would swing into something.
+ * Set Heading: turn toward `target` about the pivot (see PIVOT_BACK),
+ * limited to the ship's pivot arc. Only the bow can stop a turn: the side
+ * and stern may swing over the table edge or anything else, so a ship
+ * jammed against something can always turn its bow clear. The forward
+ * clicks that follow may pull away from whatever it overlaps (planSlide).
+ * Returns the heading reached and the pose there ({ h, x, y }).
  */
 function planRotate(ship, target, pivotDeg) {
   const lim = pivotDeg * Math.PI / 180;
   let delta = angleDiff(target, ship.h);
   delta = clamp(delta, -lim, lim);
-  const near = nearbyObstacles(ship, ship.x, ship.y, ship.len / 2 + 2);
+  const near = nearbyObstacles(ship, ship.x, ship.y, ship.len + 2);
   const tryDir = d => {
     const steps = Math.max(1, Math.ceil(Math.abs(d) / (3 * Math.PI / 180)));
-    let prev = poseGap(ship, ship, near).gap, last = ship.h;
+    let prev = segGap(ship, bowSeg(ship, ship), near).gap, last = ship.h;
     for (let i = 1; i <= steps; i++) {
       const hh = ship.h + d * i / steps;
-      const g = poseGap(ship, { x: ship.x, y: ship.y, h: hh }, near).gap;
-      if (g < -COLLIDE_EPS && g < prev - 1e-4) return { h: normAngle(last), blocked: true, turned: Math.abs(d * (i - 1) / steps) };
+      const g = segGap(ship, bowSeg(ship, pivotPose(ship, ship, hh)), near).gap;
+      if (g < -COLLIDE_EPS && g < prev - 1e-4) return Object.assign(pivotPose(ship, ship, normAngle(last)), { blocked: true, turned: Math.abs(d * (i - 1) / steps) });
       prev = g; last = hh;
     }
-    return { h: normAngle(ship.h + d), blocked: false, turned: Math.abs(d) };
+    return Object.assign(pivotPose(ship, ship, normAngle(ship.h + d)), { blocked: false, turned: Math.abs(d) });
   };
   let r = tryDir(delta);
   // A 180 degree pivot can go either way round; try the other way if blocked.
@@ -183,7 +205,7 @@ function planSlide(ship, pose, dirH, length) {
 /** Full Move: set heading then click forward `clicks` times. */
 function planMove(ship, targetH, clicks, pivotDeg) {
   const rot = planRotate(ship, targetH, pivotDeg);
-  const start = { x: ship.x, y: ship.y, h: rot.h };
+  const start = { x: rot.x, y: rot.y, h: rot.h };
   const slide = planSlide(ship, start, rot.h, clicks * CLICK_LEN);
   return { rot, start, end: slide.end, moved: slide.moved, planned: clicks * CLICK_LEN, stoppedBy: slide.stoppedBy, obj: slide.obj, clicks };
 }

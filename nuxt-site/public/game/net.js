@@ -212,7 +212,7 @@ async function createOnline() {
   onlineName();
   const settings = {
     name: $('olGameName').value.trim().slice(0, 32) || `${onlineName()}'s game`,
-    maxPlayers: +$('olMax').value, timer: +$('olTimer').value, table: $('olTable').value, winds: $('olWinds').value === '1',
+    maxPlayers: +$('olMax').value, timer: +$('olTimer').value, table: $('olTable').value, winds: $('olWinds').value === '1', islandsPer: +$('olIslands').value, speed: +$('olSpeed').value,
   };
   try { await NET.create(settings); } catch (e) { alertOnline('Could not create the game. Is the game server running?'); }
 }
@@ -246,7 +246,7 @@ function renderRoom() {
   const humansReady = R.seats.filter(s => !s.ai).every(s => s.ready);
   const canStart = host && R.seats.length >= 2 && humansReady;
   $('roomBody').innerHTML = `
-    <p class="roomCode">Code <b>${esc(R.code)}</b> · Rulebook ${RULES_VERSION} · ${esc((TABLES[R.table || 'round6'] || TABLES.round6).name)} · ${R.timer ? R.timer + 's turns' : 'no turn timer'}${R.winds ? ' · Trade Winds' : ''}</p>
+    <p class="roomCode">Code <b>${esc(R.code)}</b> · Rulebook ${RULES_VERSION} · ${esc((TABLES[R.table || 'round6'] || TABLES.round6).name)} · ${R.timer ? R.timer + 's turns' : 'no turn timer'}${R.winds ? ' · Trade Winds' : ''}${R.islandsPer > 1 ? ` · ${R.islandsPer === 1.5 ? '1½' : R.islandsPer} islands per crew` : ''}${R.speed > 1 ? ` · ships ×${R.speed} speed` : ''}</p>
     <div class="setupLabel">Crews (${R.seats.length}/${R.max})</div>
     <div class="seatList">${R.seats.map(s => `
       <div class="seatRow" style="--pc:${PALETTE[s.color].main}">

@@ -245,7 +245,7 @@
   };
   moveHandleScreen = function (m) {
     const f = fwdVec(m.plan.rot.h), R = m.ship.len * 1.1;
-    return w2s(m.ship.x + f.x * R, m.ship.y + f.y * R);
+    return w2s(m.plan.start.x + f.x * R, m.plan.start.y + f.y * R);
   };
   aimHandleScreen = function (F) {
     const p = aimPivot(F), c = w2s(p.x, p.y), f = fwdVec(F.h), R = Math.max(9, 34 / Math.max(0.1, worldScale));

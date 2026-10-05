@@ -175,6 +175,23 @@ for (const [table, seating, setup, expect] of [['fold8', 'ends', 'quick', 'left,
   noErrors(pg, `${table} ${seating}`);
 }
 
+// ─── Setup options: islands per player, ship speed ───
+{
+  const pg = await page();
+  await pg.click('#btnSolo');
+  const def = await pg.evaluate(() => ({ isl: setupChoice.islandsPer, speed: setupChoice.speed }));
+  ok(def.isl === 1 && def.speed === 1, 'setup defaults: one island per player, rulebook speed');
+  for (const [k, v] of Object.entries({ islandsPer: 2, speed: 2, factions: null })) if (v != null) await pg.click(`.optBtn[data-k="${k}"][data-v="${v}"]`);
+  await pg.click('#btnStart');
+  await myTurn(pg);
+  const g = await pg.evaluate(() => ({ count: G.islandCount, placed: islands().length, mc: G.players[1].ships[0].moveCount, base: FACTION_DEFS[G.factions[1]].moveCount }));
+  ok(g.count === 4 && g.placed === 4, `2 islands each: two players get 4 (${g.placed} placed)`);
+  ok(g.mc === g.base * 2, `ship speed x2: Move Count ${g.base} -> ${g.mc}`);
+  noErrors(pg, 'setup options');
+  const fields = await pg.evaluate(() => [...document.querySelectorAll('#olIslands option, #olSpeed option')].map(o => o.value).join(','));
+  ok(fields === '1,1.5,2,1,1.25,1.5,2', `online form offers islands and speed (${fields})`);
+}
+
 // ─── Online, against a local game server ───
 if (online) {
   const wr = spawn('npx', ['wrangler', 'dev', '--port', '8787', '--var', 'AI_STEP_MS:100'], { cwd: fileURLToPath(new URL('..', import.meta.url)), stdio: 'ignore', detached: true });

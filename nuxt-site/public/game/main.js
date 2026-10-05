@@ -7,7 +7,7 @@ let aiControlled = { 1: false, 2: true };
 const setupChoice = {
   solo: true,
   factions: { 1: 'queens_fleet', 2: 'corsairs' },
-  setup: 'quick', stalemate: false, winds: false,
+  setup: 'quick', stalemate: false, winds: false, islandsPer: 1, speed: 1,
   table: 'fold6', seating: 'diagonal',
 };
 // The tables people have to hand, and where two players sit at them.
@@ -47,7 +47,7 @@ function factionCard(fid, selected, attrs) {
   const f = FACTION_DEFS[fid];
   return `<button class="fCard${selected ? ' selected' : ''}" ${attrs} style="--acc:${rgba(f.hullColor, 1)}">
       <span class="fName">${esc(f.name)}${f.base ? ' <em>base</em>' : ''}</span>
-      <span class="fStats">${f.shipCount} ships · ${f.fittings} fitting${f.fittings === 1 ? "" : "s"} · move ${f.moveCount}</span>
+      <span class="fStats">${f.shipCount} ships · ${f.fittings} fitting${f.fittings === 1 ? "" : "s"} · move ${moveCountFor(f.moveCount, setupChoice.speed)}</span>
       <span class="fPass"><b>${esc(f.passiveName)}.</b> ${esc(f.passiveText)}</span>
     </button>`;
 }
@@ -63,6 +63,8 @@ function showSetup() {
       <span>Table</span><div>${Object.entries(LOCAL_TABLES).map(([id, name]) => opt('table', id, name)).join('')}</div>
       <span>Seating</span><div>${(TABLES[setupChoice.table].shape === 'circle' ? ROUND_SEATING : RECT_SEATING).map(([id, name]) => opt('seating', id, name)).join('')}</div>
       <span>Map</span><div>${opt('setup', 'quick', 'Quick start')}${opt('setup', 'custom', 'Set it up yourselves')}</div>
+      <span>Islands</span><div>${ISLANDS_PER.map(per => opt('islandsPer', per, per === 1 ? `${islandsFor(2, per)} (rulebook)` : String(islandsFor(2, per)))).join('')}</div>
+      <span>Ship speed</span><div>${SPEEDS.map(x => opt('speed', x, x === 1 ? '×1 (rulebook)' : `×${x}`)).join('')}</div>
       <span>Stalemate rule</span><div>${opt('stalemate', true, 'On')}${opt('stalemate', false, 'Off')}</div>
       <span>Trade Winds</span><div>${opt('winds', true, 'On')}${opt('winds', false, 'Off')}</div>
     </div>
@@ -84,6 +86,7 @@ function beginGame() {
   newGame({
     seats: [1, 2].map(p => ({ faction: setupChoice.factions[p], color: p - 1, name: p === 2 && setupChoice.solo ? 'Computer' : `Player ${p}`, ai: p === 2 && setupChoice.solo })),
     setup: setupChoice.setup, stalemate: setupChoice.stalemate, winds: setupChoice.winds, table: setupChoice.table, seating: setupChoice.seating,
+    islandsPer: +setupChoice.islandsPer || 1, speed: +setupChoice.speed || 1,
   });
   enterGameScreen();
   if (G.phase === 'play') announceTurn();
@@ -1148,8 +1151,11 @@ function replanMove() {
 function setMoveHeading(w) {
   const m = UI.move;
   if (!m || m.lockHeading) return;
-  if (dist(w.x, w.y, m.ship.x, m.ship.y) < 1) return;
-  m.h = headingTo(w.x - m.ship.x, w.y - m.ship.y);
+  // Aim from the pivot near the stern (pivotPose), so the bow follows the pointer.
+  const f = fwdVec(m.ship.h), back = m.ship.len * PIVOT_BACK;
+  const px = m.ship.x - f.x * back, py = m.ship.y - f.y * back;
+  if (dist(w.x, w.y, px, py) < 1) return;
+  m.h = headingTo(w.x - px, w.y - py);
   replanMove();
   refreshPrompt();
 }

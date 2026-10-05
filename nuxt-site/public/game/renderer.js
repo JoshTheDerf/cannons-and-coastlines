@@ -92,7 +92,7 @@ function camNextShip() {}
 function noteShot(ship, origin, h) {}
 /** Screen position of the heading handle while steering. */
 function moveHandleScreen(m) {
-  const c = w2s(m.ship.x, m.ship.y), f = fwdVec(m.plan.rot.h), R = w2r(m.ship.len * 1.1);
+  const c = w2s(m.plan.start.x, m.plan.start.y), f = fwdVec(m.plan.rot.h), R = w2r(m.ship.len * 1.1);
   return { x: c.x + f.x * R, y: c.y + f.y * R };
 }
 /** Screen position of the Industry turret's aiming handle, and its circle's pivot. */

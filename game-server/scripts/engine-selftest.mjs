@@ -226,6 +226,34 @@ for (const n of [2, 3, 5, 7]) {
   ok(engine.G.players[1].ships.length === 5 && engine.G.players[1].ships.every(s => s.maxFit === 2 && s.fit === 2), 'the Islanders field five catamarans with two fittings each');
   // One island per player (v0.7).
   ok(engine.G.islandCount === 2 && engine.islands().length === 2, 'two players place two islands');
+  // Steering pivots a quarter of the hull in from the stern, and only the
+  // bow can stop a turn: a ship along the table edge can turn in from it.
+  engine.newGame({ seats: [{ faction: 'queens_fleet', color: 0 }, { faction: 'corsairs', color: 1 }], setup: 'quick', table: 'rect' });
+  engine.G.terrain = [];
+  const sv = engine.G.players[1].ships[0], back = sv.len / 4;
+  const pivotOf = q => ({ x: q.x - Math.sin(q.h) * back, y: q.y + Math.cos(q.h) * back });
+  Object.assign(sv, { x: 60, y: 60, h: 0 });
+  const free = engine.planRotate(sv, Math.PI / 2, 90), p0 = pivotOf(sv), p1 = pivotOf(free);
+  const fv = engine.planMove(sv, 0, 1, 90).start;
+  ok(!free.blocked && Math.hypot(p1.x - p0.x, p1.y - p0.y) < 1e-6 && Math.hypot(free.x - sv.x, free.y - sv.y) > 1,
+    `a turn swings about the pivot near the stern (pivot moved ${Math.hypot(p1.x - p0.x, p1.y - p0.y).toFixed(4)})`);
+  ok(fv.x === sv.x && fv.y === sv.y, 'no turn, no shift');
+  // Lying along the left edge, its side against it: one way the bow turns in
+  // (the stern swings out over the edge, which is fine), the other way the
+  // bow would run off the table and stops.
+  for (const h of [0, Math.PI]) {
+    Object.assign(sv, { x: sv.wid / 2 + 0.05, y: 60, h });
+    const turns = [Math.PI / 2, -Math.PI / 2].map(d => engine.planRotate(sv, h + d, 90));
+    const inward = turns.filter(t => !t.blocked && Math.abs(t.turned - Math.PI / 2) < 1e-6), outward = turns.filter(t => t.blocked);
+    ok(inward.length === 1 && outward.length === 1, `along the edge (heading ${h ? 'south' : 'north'}): the bow turns in, stern over the edge; turning out is stopped by the bow`);
+  }
+  // Setup options: islands per player and a ship speed multiplier.
+  engine.newGame({ seats: [{ faction: 'stone_fleet', color: 0 }, { faction: 'corsairs', color: 1 }, { faction: 'queens_fleet', color: 2 }, { faction: 'industry', color: 3 }], setup: 'quick', table: 'round', islandsPer: 2, speed: 1.5 });
+  ok(engine.G.islandCount === 8, `2 islands per player: four players set out 8 (${engine.G.islandCount})`);
+  ok(engine.G.players[1].ships[0].moveCount === 3 && engine.G.players[2].ships[0].moveCount === 6 && engine.G.players[3].ships[0].moveCount === 5,
+    'speed x1.5: Move Count 2 -> 3, 4 -> 6, 3 -> 5');
+  engine.newGame({ seats: [{ faction: 'corsairs', color: 0 }, { faction: 'queens_fleet', color: 1 }], setup: 'quick', table: 'round', islandsPer: 7, speed: 9 });
+  ok(engine.G.islandCount === 2 && engine.G.players[1].ships[0].moveCount === 4, 'unknown option values fall back to the rulebook');
   // Victory counts the points held when the turn began, so points won
   // mid-turn can only be claimed a round later.
   engine.newGame({ seats: [{ faction: 'corsairs', color: 0 }, { faction: 'queens_fleet', color: 1 }], setup: 'quick', table: 'rect' });

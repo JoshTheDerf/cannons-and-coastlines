@@ -46,6 +46,10 @@ export default {
         table: ['round6', 'fold6', 'fold8'].includes(body.table) ? body.table : 'round6',
         // The optional Trade Winds rule.
         winds: body.winds === true,
+        // Islands per crew: 1 is the rulebook (v0.7).
+        islandsPer: [1, 1.5, 2].includes(+body.islandsPer) ? +body.islandsPer : 1,
+        // Ship speed multiplier on every Move Count: 1 is the rulebook.
+        speed: [1, 1.25, 1.5, 2].includes(+body.speed) ? +body.speed : 1,
       };
       for (let i = 0; i < 6; i++) {
         const code = newCode();
@@ -137,7 +141,7 @@ export class GameRoom extends DurableObject {
   async init(code, settings) {
     if (this.room) return false;
     this.room = {
-      code, name: settings.name, max: settings.maxPlayers, timer: settings.timer, table: settings.table, winds: !!settings.winds,
+      code, name: settings.name, max: settings.maxPlayers, timer: settings.timer, table: settings.table, winds: !!settings.winds, islandsPer: settings.islandsPer || 1, speed: settings.speed || 1,
       status: 'lobby', host: null, seats: [], nextSeat: 1, created: Date.now(),
     };
     this.meta = { seq: 0, rng: crypto.getRandomValues(new Uint32Array(1))[0], deadline: null, deadlineTurn: null };
@@ -171,7 +175,7 @@ export class GameRoom extends DurableObject {
     const r = this.room;
     const away = this.away();
     return {
-      code: r.code, name: r.name, max: r.max, timer: r.timer, table: r.table || 'round6', winds: !!r.winds, status: r.status, host: r.host, rules: engine.RULES_VERSION,
+      code: r.code, name: r.name, max: r.max, timer: r.timer, table: r.table || 'round6', winds: !!r.winds, islandsPer: r.islandsPer || 1, speed: r.speed || 1, status: r.status, host: r.host, rules: engine.RULES_VERSION,
       spectators: this.sockets().filter(ws => !this.seatOf(ws)).length,
       seats: r.seats.map(s => ({ seat: s.seat, name: s.name, faction: s.faction, color: s.color, ready: s.ready, ai: s.ai, connected: s.ai || !away.includes(s.seat) })),
     };
@@ -339,7 +343,7 @@ export class GameRoom extends DurableObject {
         for (const w of this.sockets()) { const st = this.seatOf(w); if (st) this.send(w, { type: 'welcome', seat: st.seat, token: st.token, spectator: false }); }
         this.withEngine(() => engine.newGame({
           seats: R.seats.map(x => ({ faction: x.faction, color: x.color, name: x.name, ai: !!x.ai })),
-          setup: 'quick', stalemate: false, winds: !!R.winds, table: R.table || 'round',
+          setup: 'quick', stalemate: false, winds: !!R.winds, table: R.table || 'round', islandsPer: R.islandsPer || 1, speed: R.speed || 1,
         }));
         R.status = 'play';
         this.meta.seq = 0;

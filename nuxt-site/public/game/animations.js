@@ -45,13 +45,14 @@ const ease = t => (t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2);
 
 /** Rotate then slide a ship along a planned move, one click at a time. */
 async function animShipMove(ship, plan) {
-  const h0 = ship.h;
-  const dh = angleDiff(plan.rot.h, h0);
+  const p0 = { x: ship.x, y: ship.y, h: ship.h };
+  const dh = angleDiff(plan.rot.h, p0.h);
   if (Math.abs(dh) > 0.01) {
     sfxRudder();
-    await tween(180 + Math.abs(dh) * 260, p => { ship.h = normAngle(h0 + dh * ease(p)); });
+    // Swing about the pivot near the stern, as the rules turn it (pivotPose).
+    await tween(180 + Math.abs(dh) * 260, p => { Object.assign(ship, pivotPose(ship, p0, normAngle(p0.h + dh * ease(p)))); });
   }
-  ship.h = plan.rot.h;
+  Object.assign(ship, plan.start);
   const bump = !!plan.stoppedBy && plan.moved < plan.planned - 0.05;
   camFollowShip(ship);
   try { await animRoll(ship, plan.start, plan.end, bump); } finally { camFollowShip(null); }
