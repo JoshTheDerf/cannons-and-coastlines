@@ -84,7 +84,11 @@ const MUZZLE_H = 2.4;                // ball height at the muzzle, for a shot th
 // sits MUZZLE_REACH out along the barrel and MUZZLE_RISE above the hole.
 const MUZZLE_REACH = 1.73;
 const MUZZLE_RISE = 0.76;
-const MUZZLE_V = 198;                // cm/s: a lofted shot lands ~38 cm out
+// MUZZLE_RISE is the centre of the cannon's front. The ball leaves centred
+// on it, so its underside, the height a shot carries (shotPath), starts a
+// ball's radius lower.
+const MUZZLE_BALL_Z = MUZZLE_RISE - BALL_R;
+const MUZZLE_V = 200;                // cm/s: a lofted shot lands ~38 cm out
 const MUZZLE_V_SD = 0.07;            // spring-to-spring and shot-to-shot variation
 const ELEVATIONS = { flat: 0, lob: 30 * Math.PI / 180 };
 const SPREAD_MAX = 5 * Math.PI / 180;        // side-to-side cone, straight ahead most likely
@@ -99,7 +103,7 @@ const SPIN_SD = 0.9 * Math.PI / 180;
 const SPIN_SKID_KEEP = 0.9;             // spin kept per 1.5 cm of skid
 const TUMBLE_SD = 20 * Math.PI / 180;        // the turn it takes as it drops into a skid
 const HOP_MIN_VZ = 20;               // slower than this off the table and it just skids
-const SKID_DECEL = 750;              // cm/s^2: a tumbling cone scrubs speed fast
+const SKID_DECEL = 680;              // cm/s^2: a tumbling cone scrubs speed fast
 const SKID_DECEL_SD = 0.3;           // tables and landings vary
 const SKID_CURL = 1.3;              // how hard it curls: radians per cm, times cm/s of speed
 const SKID_CURL_V = 30;              // ...so the curl tightens as it slows

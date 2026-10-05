@@ -307,7 +307,7 @@ for (const n of [2, 3, 5, 7]) {
     for (const sl of slots) {
       const s = sl.free ? def.sockets.cannon.find(x => (x.where || '').startsWith('turret')) : socks[sl.sock === 'bow' ? 0 : sl.sock];
       const lx = (s.at[1] - cy) / 10, ly = -(s.at[0] - cx) / 10, z = s.at[2] / 10;
-      worst = Math.max(worst, Math.hypot(sl.hole ? sl.hole[0] - lx : sl.lx - lx, sl.hole ? sl.hole[1] - ly : sl.ly - ly), Math.abs(sl.z - 0.76 - z));
+      worst = Math.max(worst, Math.hypot(sl.hole ? sl.hole[0] - lx : sl.lx - lx, sl.hole ? sl.hole[1] - ly : sl.ly - ly), Math.abs(sl.z - (0.76 - 0.5) - z)); // the ball's underside: the muzzle's centre (0.76 above the hole) less its radius
       if (!sl.free && socks.length > 1) worst = Math.max(worst, Math.abs(((180 - sl.dir * 180 / Math.PI) - (s.rotZ || 0) + 540) % 360 - 180) / 10);
     }
     ok(worst < 0.1, `${fid}: every cannon slot sits on its hull's hole (worst ${worst.toFixed(2)})`);

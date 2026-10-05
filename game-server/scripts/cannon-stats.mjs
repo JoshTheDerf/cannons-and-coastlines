@@ -5,6 +5,10 @@
 //
 //   node scripts/cannon-stats.mjs
 //   node scripts/cannon-stats.mjs --engine /tmp/variant.js --shots 8000
+//   node scripts/cannon-stats.mjs --z 2.4      launch height (the ball's underside, cm)
+//
+// Shots leave from the median height of the ships' own cannon slots unless
+// --z says otherwise.
 import { resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 
@@ -12,17 +16,22 @@ const args = process.argv.slice(2), opt = (k, d) => { const i = args.indexOf(k);
 const enginePath = args.includes('--engine') ? pathToFileURL(resolve(opt('--engine'))).href : new URL('../src/engine.gen.js', import.meta.url).href;
 const { engine: E } = await import(enginePath);
 const N = +opt('--shots', 4000);
+// Every fleet's cannon slots: where their shots leave from.
+E.newGame({ seats: E.FACTION_ORDER.map((faction, i) => ({ faction, color: i })), setup: 'quick', table: 'round' });
+const zs = E.allShips().flatMap(s => E.shipSlots(s).map(sl => sl.z)).sort((a, b) => a - b);
+const Z = +opt('--z', zs[Math.floor(zs.length / 2)]);
+console.log(`Launch height (ball underside) ${Z.toFixed(2)} cm; ship slots range ${zs[0].toFixed(2)}-${zs.at(-1).toFixed(2)} cm.`);
 // An empty table far larger than any shot, so nothing stops the ball.
 E.G = { table: { shape: 'circle', r: 400 }, terrain: [], players: {}, order: [] };
 E.setRand(E.seededRandom(1));
 const pc = (a, f) => a.slice().sort((x, y) => x - y)[Math.floor(a.length * f)].toFixed(1);
 for (const elev of ['flat', 'lob']) {
-  const p = E.shotPath(400, 400, E.aimedShot(0, elev));
+  const p = E.shotPath(400, 400, E.aimedShot(0, elev, Z));
   let apex = 0;
   for (let s = 0; s < p.total; s += 0.5) apex = Math.max(apex, E.pathAt(p, s).z);
   const tot = [], side30 = [], sideEnd = [], turn = [];
   for (let i = 0; i < N; i++) {
-    const q = E.shotPath(400, 400, E.wobbleShot(0, elev));
+    const q = E.shotPath(400, 400, E.wobbleShot(0, elev, Z));
     tot.push(q.total);
     if (q.total > 30) side30.push(Math.abs(E.pathAt(q, 30).x - 400));
     sideEnd.push(Math.abs(E.pathAt(q, q.total).x - 400));

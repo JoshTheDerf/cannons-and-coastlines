@@ -257,12 +257,12 @@ function shipSlots(ship) {
   // Each slot is where the ball leaves: the mouth of a cannon seated in the
   // hull's hole, MUZZLE_REACH out along the way it points (a turret's
   // swings with it, see muzzleOf). z is the ball's height there.
-  const mouth = (lx, ly, dir, z, rest) => Object.assign({ lx: lx + Math.sin(dir) * MUZZLE_REACH, ly: ly + Math.cos(dir) * MUZZLE_REACH, dir, z: z + MUZZLE_RISE, hole: [lx, ly] }, rest);
+  const mouth = (lx, ly, dir, z, rest) => Object.assign({ lx: lx + Math.sin(dir) * MUZZLE_REACH, ly: ly + Math.cos(dir) * MUZZLE_REACH, dir, z: z + MUZZLE_BALL_Z, hole: [lx, ly] }, rest);
   if (ship.guns === 'industry') {
     const bow = holes ? holes.bow : [0, ship.len / 2 - 1.5, 1.49], tur = holes ? holes.turret : [0, ship.len * 0.1, 2.09];
     out.push(mouth(bow[0], bow[1], 0, bow[2], { label: 'Bow', short: 'Bow', sock: 'bow' }));
     // The turret is a fitting: shot off, it cannot fire until repaired.
-    if (hasTurret(ship)) out.push({ lx: tur[0], ly: tur[1], dir: 0, z: tur[2] + MUZZLE_RISE, free: true, label: 'Turret', short: 'Turret', sock: 'turret' });
+    if (hasTurret(ship)) out.push({ lx: tur[0], ly: tur[1], dir: 0, z: tur[2] + MUZZLE_BALL_Z, free: true, label: 'Turret', short: 'Turret', sock: 'turret' });
   } else if (ship.guns === 'stern') {
     // Islanders: the gun swivels in one arc at the stern to three stops.
     // The outer two splay 15 degrees toward their own side (port-most to
