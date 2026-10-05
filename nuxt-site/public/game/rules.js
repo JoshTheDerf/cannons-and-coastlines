@@ -131,6 +131,8 @@ function finishFiring(ship, source) {
 ACTIONS.fire = (p, a) => {
   const s = ownShip(p, a.ship);
   const again = s.pending === 'shot2';
+  // Two elevations and no power control: the spring and the table decide the rest.
+  const elev = a.elev === 'lob' ? 'lob' : 'flat';
   need(!underFullSail(s), 'Under Full Sail this turn, the ship only steers and sails.');
   need(again || canAct(s), s.noAction ? 'This ship gave its action away. It only sails forward.' : 'This ship has already acted this turn.');
   const F = { source: a.source === 'island' ? 'island' : 'ship', h: normAngle(+a.h || 0) };
@@ -149,12 +151,10 @@ ACTIONS.fire = (p, a) => {
     F.slot = shipSlots(s)[a.slot | 0];
     need(F.slot, 'No such cannon slot.');
     // Turning the turret is part of firing it, not Set Heading, so any
-    // angle outside its blind cones ahead and astern is fine. The hull
-    // itself does not turn.
-    if (F.slot.free) { F.h = turretAim(s, F.h); s.turretRel = normAngle(F.h - s.h); }
+    // angle outside its blind cones ahead and astern (which depend on the
+    // elevation) is fine. The hull itself does not turn.
+    if (F.slot.free) { F.h = turretAim(s, F.h, elev); s.turretRel = normAngle(F.h - s.h); }
   }
-  // Two elevations and no power control: the spring and the table decide the rest.
-  const elev = a.elev === 'lob' ? 'lob' : 'flat';
   G.coinPhase = false;
   const o = fireOriginFor(s, F);
   const src = F.source === 'island' ? { island: F.island } : { ship: s };

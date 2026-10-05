@@ -110,7 +110,7 @@
       "hull": "/assets/ships/renders/ship-industry.png",
       "stats": [["Ships", "3 warships"], ["Fittings", "2 + turret"], ["Cannon slots", "Bow + turret"], ["Move Count", "3"]],
       "ability": "Rotating Turret",
-      "abilityBody": "The turret fires any way but astern. If it gets shot off, only the bow gun is left until it's repaired.",
+      "abilityBody": "The turret fires in any direction. If it gets shot off, only the bow gun is left until it's repaired.",
       "card": "/rulebook/pdf/faction-card-the-industry.pdf",
       "cardImage": "/rulebook/png/faction-card-the-industry.png"
     },

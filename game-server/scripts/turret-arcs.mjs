@@ -6,6 +6,12 @@
 //
 //   node scripts/turret-arcs.mjs              arcs at 50% self-hits
 //   node scripts/turret-arcs.mjs --table      the self-hit rate every 5 degrees
+//   node scripts/turret-arcs.mjs --down 5     the barrel tipped 5 degrees down
+//                                             (default DOWN below)
+//
+// In practice the turret's barrel sits tipped slightly down, so both
+// elevations start that much lower: straight out is DOWN below level and
+// tipped up is 30 degrees less DOWN.
 //
 // Model frame (ship-assemblies.json): millimetres, keel at z = 0, bow
 // toward -X, starboard +Y. Angles here are off the bow, + to starboard.
@@ -20,6 +26,9 @@ const num = name => +src.match(new RegExp(`const ${name} = ([\\d.]+)`))[1];
 const BALL_R = num('BALL_R') * 10, MUZZLE_V = num('MUZZLE_V') * 10, MUZZLE_V_SD = num('MUZZLE_V_SD');
 const MUZZLE_REACH = num('MUZZLE_REACH') * 10, MUZZLE_RISE = num('MUZZLE_RISE') * 10, G = 9810;
 const SPREAD = 5 * Math.PI / 180, LOB = 30 * Math.PI / 180;
+const DOWN_DEFAULT = 10;   // as the printed turret fires in practice
+const di = process.argv.indexOf('--down');
+const DOWN = (di > 0 ? +process.argv[di + 1] : DOWN_DEFAULT) * Math.PI / 180;
 
 function readStl(path) {
   const b = readFileSync(path);
@@ -83,12 +92,18 @@ const sock = ship.sockets.cannon.find(s => (s.where || '').startsWith('turret'))
 /** Does a shot aimed `a` off the bow (radians, + starboard) hit the ship? */
 function selfHit(a, elev, v) {
   const d = [-Math.cos(a), Math.sin(a)];
-  const mx = sock[0] + d[0] * MUZZLE_REACH, my = sock[1] + d[1] * MUZZLE_REACH, mz = sock[2] + MUZZLE_RISE;
+  // The barrel pivots on its peg, so tipping it swings the muzzle (the centre
+  // of the cannon's front, MUZZLE_REACH out and MUZZLE_RISE up when level)
+  // with it. The ball leaves centred on the muzzle; what touches the ship is
+  // its underside, BALL_R below that centre (see touches()).
+  const reach = MUZZLE_REACH * Math.cos(elev) - MUZZLE_RISE * Math.sin(elev);
+  const rise = MUZZLE_REACH * Math.sin(elev) + MUZZLE_RISE * Math.cos(elev);
+  const mx = sock[0] + d[0] * reach, my = sock[1] + d[1] * reach, mz = sock[2] + rise;
   const vh = v * Math.cos(elev), vz = v * Math.sin(elev);
   for (let s = 0; s <= 160; s += 0.5) {
-    const t = s / vh, z = mz + vz * t - G * t * t / 2;
-    if (z < BALL_R) break; // on the table: past the ship
-    if (touches(mx + d[0] * s, my + d[1] * s, z)) return true;
+    const t = s / vh, centre = mz + vz * t - G * t * t / 2, bottom = centre - BALL_R;
+    if (bottom <= 0) break; // on the table: past the ship
+    if (touches(mx + d[0] * s, my + d[1] * s, centre)) return true;
   }
   return false;
 }
@@ -104,7 +119,7 @@ function hitRate(deg, elev) {
 }
 
 const rows = [];
-for (let deg = 0; deg <= 180; deg += 1) rows.push({ deg, flat: (hitRate(deg, 0) + hitRate(-deg, 0)) / 2, lob: (hitRate(deg, LOB) + hitRate(-deg, LOB)) / 2 });
+for (let deg = 0; deg <= 180; deg += 1) rows.push({ deg, flat: (hitRate(deg, -DOWN) + hitRate(-deg, -DOWN)) / 2, lob: (hitRate(deg, LOB - DOWN) + hitRate(-deg, LOB - DOWN)) / 2 });
 if (process.argv.includes('--table')) {
   console.log('deg off bow   flat   lob   (share of shots that hit the ship, both sides averaged)');
   for (const r of rows.filter(r => r.deg % 5 === 0)) console.log(`${String(r.deg).padStart(5)}      ${(r.flat * 100).toFixed(0).padStart(4)}%  ${(r.lob * 100).toFixed(0).padStart(4)}%`);
@@ -114,5 +129,5 @@ const edge = (key, fromBow) => {
   const r = list.find(r => r[key] < 0.5);
   return r ? (fromBow ? r.deg : 180 - r.deg) : null;
 };
-console.log(`Turret muzzle ${(sock[2] + MUZZLE_RISE).toFixed(1)} mm up, ${(-sock[0]).toFixed(1)} mm toward the bow from the hull origin.`);
+console.log(`Turret muzzle centre ${(sock[2] + MUZZLE_RISE).toFixed(1)} mm up when level (ball bottom ${(sock[2] + MUZZLE_RISE - BALL_R).toFixed(1)}), ${(-sock[0]).toFixed(1)} mm toward the bow from the hull origin; barrel ${(DOWN * 180 / Math.PI).toFixed(1)} deg down.`);
 for (const key of ['flat', 'lob']) console.log(`${key === 'flat' ? 'Straight out' : 'Tipped up'}: blind ${edge(key, true)} deg either side of the bow, ${edge(key, false)} deg either side of the stern (half or more of shots hit the ship).`);

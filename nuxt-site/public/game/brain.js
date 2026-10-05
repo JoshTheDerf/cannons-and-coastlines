@@ -462,7 +462,7 @@ function aiLanes(ship, opts) {
   shipSlots(ship).forEach((sl, idx) => {
     const w = slotWorld(ship, sl);
     if (sl.free) {
-      // The turret swings to each enemy it can bear on (not through its blind cones).
+      // The turret swings to each enemy it can bear on at either elevation (not through its blind cones).
       for (const e of enemies) { const h = headingTo(e.x - w.x, e.y - w.y); if (turretBears(ship, h)) { const m = muzzleOf(ship, sl, h); lanes.push({ source: 'ship', slot: sl, slotIdx: idx, x: m.x, y: m.y, z: m.z, h }); } }
     } else lanes.push({ source: 'ship', slot: sl, slotIdx: idx, x: w.x, y: w.y, z: sl.z, h: w.h });
   });
@@ -500,6 +500,7 @@ function aiBestShot(ship, opts) {
     // Straight out hits the first thing in the lane; tipped up sails over
     // what is close and comes down about 38 cm out. Try both.
     for (const elev of ['flat', 'lob']) {
+      if (lane.slot && lane.slot.free && !turretBears(ship, lane.h, elev)) continue; // blind at this elevation
       const aim = traceShot(src, lane.x, lane.y, aimedShot(lane.h, elev, lane.z));
       if (aim.kind === 'ship' && aim.obj.owner === p && elev === 'flat') continue; // our own hull is in the way
       // Monte Carlo with the cannon's spread, the spring and the table.

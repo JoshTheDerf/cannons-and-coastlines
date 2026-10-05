@@ -1215,6 +1215,8 @@ function setElev(elev) {
   const F = UI.fire;
   if (!F) return;
   F.elev = UI.lastElev = elev;
+  // The turret's blind cones differ by elevation: keep it out of the new ones.
+  if (F.free) { F.h = turretAim(F.ship, F.h, elev); if (F.hc != null) F.hc = turretAim(F.ship, F.hc, elev); }
   sfxSelect(); refresh();
 }
 
@@ -1229,7 +1231,7 @@ function firePointer(w, isDown) {
   }
   if (F.stage === 'dir') {
     const o = F.source === 'island' ? F.island : slotWorld(F.ship, F.slot);
-    if (dist(w.x, w.y, o.x, o.y) > 0.8) F.h = F.free ? turretAim(F.ship, headingTo(w.x - o.x, w.y - o.y)) : headingTo(w.x - o.x, w.y - o.y);
+    if (dist(w.x, w.y, o.x, o.y) > 0.8) F.h = F.free ? turretAim(F.ship, headingTo(w.x - o.x, w.y - o.y), F.elev) : headingTo(w.x - o.x, w.y - o.y);
     if (isDown) UI.dragging = true;
     return;
   }

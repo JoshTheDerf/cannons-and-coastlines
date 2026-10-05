@@ -440,9 +440,9 @@ A large-scale variant for advanced games. Each player fields a mixed armada of u
   *Return from the Deep:* sunken ships come back on a coin spend, so trading hulls isn't as final as it looks.
 ]
 #faction-entry("The Industry")[
-  Two cannon slots per ship: a *forward-facing* bow gun and a rotating turret.
+  Two cannon slots per ship: a *forward-facing* bow gun and a rotating turret that can fire any direction.
 
-  *Rotating Turret:* the second slot is a *turret fitting* that swivels to fire any way but *astern*, over its own smokestack. Shot off, it leaves only the bow slot until repaired.
+  *Rotating Turret:* the second slot sits in a *turret fitting* that swivels. Like any fitting, the turret can be shot off; if that happens, only the bow slot remains until it's repaired.
 ]
 #faction-entry("The Islanders")[
   Fast and numerous, with *two fittings* each. Played well, the numbers make up for the light hulls.

@@ -234,16 +234,22 @@ function fittingWorld(ship, idx, pose) {
 // firing direction relative to the bow (0 forward, +PI/2 starboard).
 // `free: true` means the slot can point any way (the Industry turret).
 // Island slots are in islandSlots().
-/** A turret heading, moved out of its blind cones ahead and astern to the nearest edge. */
-function turretAim(ship, h) {
+const turretArc = elev => TURRET_ARCS[elev === 'lob' ? 'lob' : 'flat'];
+/** A turret heading at elevation `elev`, moved out of its blind cones ahead and astern to the nearest edge. */
+function turretAim(ship, h, elev) {
+  const arc = turretArc(elev);
   let rel = angleDiff(h, ship.h);
   const sgn = rel < 0 ? -1 : 1, a = Math.abs(rel);
-  if (a < TURRET_BLIND) rel = sgn * TURRET_BLIND;
-  else if (a > Math.PI - TURRET_BLIND_STERN) rel = sgn * (Math.PI - TURRET_BLIND_STERN);
+  if (a < arc.bow) rel = sgn * arc.bow;
+  else if (a > Math.PI - arc.stern) rel = sgn * (Math.PI - arc.stern);
   return normAngle(ship.h + rel);
 }
-/** Can the turret bear on heading h? */
-function turretBears(ship, h) { const a = Math.abs(angleDiff(h, ship.h)); return a >= TURRET_BLIND && a <= Math.PI - TURRET_BLIND_STERN; }
+/** Can the turret bear on heading h at elevation `elev` (either one if not given)? */
+function turretBears(ship, h, elev) {
+  if (!elev) return turretBears(ship, h, 'flat') || turretBears(ship, h, 'lob');
+  const arc = turretArc(elev), a = Math.abs(angleDiff(h, ship.h));
+  return a >= arc.bow && a <= Math.PI - arc.stern;
+}
 
 function shipSlots(ship) {
   const out = [];

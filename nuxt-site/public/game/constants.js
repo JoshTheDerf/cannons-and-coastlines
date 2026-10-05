@@ -108,12 +108,14 @@ const SKID_CURL_V = 30;              // ...so the curl tightens as it slows
 const RANGE_MIN = 2;
 const RANGE_MAX = 55;
 const SLOT_SPLAY = 15 * Math.PI / 180;   // end slots angle toward their nearest end or side
-// The Industry turret turns any way but astern, where the cabin, the
-// smokestack and the raised stern stop the ball. Blind cones this far either
-// side of the bow and of the stern, from the printed model: in these, half
-// or more of the shots hit the ship itself (game-server/scripts/turret-arcs.mjs).
-const TURRET_BLIND = 0;
-const TURRET_BLIND_STERN = 34 * Math.PI / 180;
+// The Industry turret's barrel fires tipped about 10 degrees down. Straight
+// out, the ball drops onto the bow deck ahead; astern, the cabin, the
+// smokestack and the raised stern stop it. Tipped up, it clears the bow and
+// more of the stern. Blind cones this far either side of the bow and of the
+// stern, per elevation, from the printed model: in these, half or more of
+// the shots hit the ship itself (game-server/scripts/turret-arcs.mjs).
+const DEG = Math.PI / 180;
+const TURRET_ARCS = { flat: { bow: 42 * DEG, stern: 35 * DEG }, lob: { bow: 0, stern: 24 * DEG } };
 
 // Scoring (rulebook v0.6). Points come from islands held and prizes, the
 // fittings and hulls you knock off enemy ships; surviving ships do not
@@ -222,7 +224,7 @@ const FACTION_DEFS = {
       b: ['Duke', 'Hammer', 'Anvil', 'Engine', 'Piston', 'Baron', 'Magnate', 'Works'],
     },
     passive: 'turret', passiveName: 'Rotating Turret',
-    passiveText: 'Bow gun fires forward. The turret is a fitting that turns to fire any way but astern, over its own smokestack. Shot off, it stays silent until repaired.',
+    passiveText: 'Bow gun fires forward. The turret is a fitting that turns to fire any way. Shot off, it stays silent until repaired.',
     blurb: 'Iron steamers with a bow gun and a turret.',
     hullColor: [84, 84, 92],
   },

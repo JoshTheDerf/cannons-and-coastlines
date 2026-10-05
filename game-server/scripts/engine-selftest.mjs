@@ -182,8 +182,9 @@ for (const n of [2, 3, 5, 7]) {
   ok(!engine.act(1, { t: 'collect', ship: s1.id, island: 0 }).ok, 'a dead ship cannot collect, even touching the island');
   ok(!engine.act(1, { t: 'fire', ship: s1.id, source: 'island', island: 0, slot: 0, elev: 'flat' }).ok, 'a dead ship cannot fire an island gun');
   ok(engine.act(1, { t: 'collect', ship: s2.id, island: 0 }).ok, 'a dead ship nearer the island does not stop a live one collecting');
-  // Industry turret: fires dead ahead, but not within 34 degrees of straight
-  // back (the arcs come from the printed model: scripts/turret-arcs.mjs).
+  // Industry turret, from the printed model (scripts/turret-arcs.mjs):
+  // straight out it is blind 42 degrees either side of the bow and 35 of the
+  // stern; tipped up it clears the bow and is blind 24 either side of the stern.
   engine.newGame({ seats: [{ faction: 'industry', color: 0 }, { faction: 'corsairs', color: 1 }], setup: 'quick', table: 'round' });
   const I = engine.G, ind = I.players[1].ships[0];
   I.terrain = []; Object.assign(ind, { x: 40, y: 60, h: 0, acted: false, stage: 'action', turnsLeft: 1 });
@@ -191,11 +192,15 @@ for (const n of [2, 3, 5, 7]) {
   I.active = 1; I.coinPhase = true;
   const rt = engine.act(1, { t: 'fire', ship: ind.id, source: 'ship', slot: tSlot, h: 0.02, elev: 'flat' });
   const rel = Math.abs(Math.atan2(Math.sin(ind.turretRel), Math.cos(ind.turretRel))) * 180 / Math.PI;
-  ok(rt.ok && Math.abs(rel - 0.02 * 180 / Math.PI) < 0.01, `turret fires almost dead ahead, over the bow (${rel.toFixed(1)} deg)`);
+  ok(rt.ok && Math.abs(rel - 42) < 0.01, `straight out, a turret shot asked for dead ahead swings to the edge of its bow cone (${rel.toFixed(1)} deg)`);
   Object.assign(ind, { acted: false, stage: 'action', turnsLeft: 1, pending: null, shotsDone: 0 }); I.active = 1; I.coinPhase = true;
   const rs = engine.act(1, { t: 'fire', ship: ind.id, source: 'ship', slot: tSlot, h: Math.PI - 0.3, elev: 'flat' });
   const relS = Math.abs(Math.atan2(Math.sin(ind.turretRel), Math.cos(ind.turretRel))) * 180 / Math.PI;
-  ok(rs.ok && Math.abs(relS - 146) < 0.01, `turret asked to fire astern swings to the edge of its blind cone, 146 deg off the bow (${relS.toFixed(1)} deg)`);
+  ok(rs.ok && Math.abs(relS - 145) < 0.01, `straight out, a turret shot asked for astern swings to the edge of its stern cone, 145 deg off the bow (${relS.toFixed(1)} deg)`);
+  Object.assign(ind, { acted: false, stage: 'action', turnsLeft: 1, pending: null, shotsDone: 0 }); I.active = 1; I.coinPhase = true;
+  const rl = engine.act(1, { t: 'fire', ship: ind.id, source: 'ship', slot: tSlot, h: 0.02, elev: 'lob' });
+  const relL = Math.abs(Math.atan2(Math.sin(ind.turretRel), Math.cos(ind.turretRel))) * 180 / Math.PI;
+  ok(rl.ok && Math.abs(relL - 0.02 * 180 / Math.PI) < 0.01, `tipped up, the turret fires over the bow (${relL.toFixed(1)} deg)`);
   // Full Sail: steer and sail twice, no firing; coins go between ship actions.
   engine.newGame({ seats: [{ faction: 'queens_fleet', color: 0 }, { faction: 'corsairs', color: 1 }], setup: 'quick', table: 'round' });
   const J = engine.G, [f1, f2] = J.players[1].ships;
