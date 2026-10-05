@@ -86,9 +86,9 @@
     ),
     ability: (
       heading: "Passive: Stone Hulls",
-      body: [Each ship ignores the *first hit* it takes each turn, unless it is *touching an island*.],
+      body: [An *undamaged* ship ignores the *first hit* it takes each turn, unless it is *touching an island*.],
     ),
-    playstyle: [Tank salvos. Force opponents to focus-fire or watch their shots bounce off. Advance slowly, fire deliberately.],
+    playstyle: [Tank salvos. Two hits in one turn crack a barge, and it takes every hit until repaired. Keep your Repair Crews.],
   ),
   "the-industry": (
     title: "The Industry",
@@ -116,7 +116,7 @@
     tagline: [The native peoples of the islands. They fished and fought these channels long before anyone else heard of them.],
     stats: (
       ("Ships",        [5 catamarans]),
-      ("Fittings",     [1 each]),
+      ("Fittings",     [2 each]),
       ("Cannon Slots", [3, *rear-facing only*]),
       ("Move Count",   [4]),
     ),

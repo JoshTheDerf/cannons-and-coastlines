@@ -14,7 +14,7 @@
 const RECT_TABLE = 122;
 const INCH = 2.54;
 const ROUND_FOR = { 2: 'round6', 3: 'round6', 4: 'round6', 5: 'round6', 6: 'round6', 7: 'round6' };
-const ISLANDS_FOR = { 2: 4, 3: 6, 4: 6, 5: 8, 6: 8, 7: 10 };  // rulebook setup table (7 = group-size table)
+const ISLANDS_FOR = { 2: 2, 3: 3, 4: 4, 5: 5, 6: 6, 7: 7 };  // rulebook v0.7: one island per player
 const MAX_SEATS = 7;
 // Real tables, the sizes people have to hand (a church hall's folding
 // tables are 30 in wide). Used by the balance tests; a local game could
@@ -174,7 +174,7 @@ const FACTION_DEFS = {
       b: ['Altar', 'Tide', 'Temple', 'Idol', 'Pyramid', 'Colossus', 'Throne', 'Monolith', 'Cairn', 'Menhir'],
     },
     passive: 'stone', passiveName: 'Stone Hulls',
-    passiveText: 'Each ship ignores the first hit it takes each turn, unless it is touching an island.',
+    passiveText: 'Each undamaged ship ignores the first hit it takes each turn, unless it is touching an island. Once it has lost a fitting, the stone is cracked until it is repaired.',
     blurb: 'Slow, and very hard to chip at.',
     hullColor: [128, 120, 100],
   },
@@ -209,7 +209,7 @@ const FACTION_DEFS = {
     hullColor: [84, 84, 92],
   },
   islanders: {
-    name: 'The Islanders', shipCount: 5, fittings: 1, moveCount: 4, pivot: 90,
+    name: 'The Islanders', shipCount: 5, fittings: 2, moveCount: 4, pivot: 90,
     guns: 'stern', len: 9.47, wid: 4.06, height: 2.66, hull: 'cat',
     holes: { z: 2.15, stern: [0, -3.52] },
     names: {
@@ -219,7 +219,7 @@ const FACTION_DEFS = {
     },
     passive: 'home', passiveName: 'Home Waters',
     passiveText: 'Start with the nearest island flagged and one catamaran touching it.',
-    blurb: 'Five fast catamarans. One hit each. Guns face the stern.',
+    blurb: 'Five fast catamarans. Two fittings each. Guns face the stern.',
     hullColor: [70, 110, 70],
   },
 };
@@ -245,7 +245,7 @@ const COIN_IMG = {
 };
 for (const id of COIN_ORDER) COIN_DEFS[id].img = `../assets/images/coins/${COIN_IMG[id]}.webp`;
 const COIN_SET = { brace: 5, fullsail: 2, evasive: 2, gunner: 5, repair: 4, boarding: 2 };
-const RULES_VERSION = 'v0.6';
+const RULES_VERSION = 'v0.7';
 
 // Fleet colours. Seats pick one each in an online lobby; local games use
 // red for player 1 and blue for player 2.

@@ -447,7 +447,7 @@ function aiHitValue(t, p) {
   const intel = aiIntel(p), memo = aiMemo(p), f = G.factions[t.owner], hitAlready = memo.hit[t.id] || 0;
   v *= intel.focus[t.owner] || 1;
   if (f === 'stone_fleet') { if (t.stoneUsed) v *= 1.6; if (hitAlready) v *= 1.3; }   // stack hits on one Stone ship
-  else if (f === 'islanders') { if (!hitAlready) v *= 1.25; if (isDead(t)) v += 3; } // spread: one hit disables each
+  else if (f === 'islanders') { if (!hitAlready) v *= 1.25; if (isDead(t)) v += 3; } // spread: the first hit on each counts most
   else if (f === 'industry') { if (hasTurret(t) && !off('ind')) v *= 1.8; }         // the first hit silences the turret: very worth it
   else if (f === 'treasure_fleet') v *= 1.3;                                         // few hulls: punish them
   else if (f === 'shadow_fleet') { if (isDead(t) && coinTotal(t.owner) >= 2 && islandsHeld(t.owner) > 0) v -= 7; } // it will just come back

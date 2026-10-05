@@ -40,7 +40,6 @@ const KNOWN = {
   'ffa4:treasure_fleet': ['low', 'Slow junks get swarmed at bigger tables.'],
   'ffa6:treasure_fleet': ['low', 'Slow junks get swarmed at bigger tables.'],
   'mixed4:treasure_fleet': ['low', 'Slow junks get swarmed at bigger tables.'],
-  'ffa6:islanders': ['low', 'Five one-hit catamarans get picked off at a full table (0.3-0.5x).'],
 };
 
 // ─── Scenarios ────────────────────────────────────────

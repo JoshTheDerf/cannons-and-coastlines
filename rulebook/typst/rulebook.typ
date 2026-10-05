@@ -22,8 +22,8 @@
   boarding: "coin-boarding-party-top",
 )
 
-#let version       = "v0.6"
-#let version-long  = "v0.6, In Development · Subject to Change"
+#let version       = "v0.7"
+#let version-long  = "v0.7, In Development · Subject to Change"
 
 // Coin icon: inline image referenced by short name, e.g. #coin("brace").
 // Aligned to baseline via a fixed height so it sits nicely in running text
@@ -134,7 +134,7 @@ Islands sit between the fleets. Capture one by planting your flag on it and it w
 
 + *Choose a table.* A *6 ft round* or a *6 or 8 ft folding table* works well.
 
-+ *Place the islands.* Going clockwise, each player sets one island on the table. Keep islands at least *6" apart* and *12" from any table edge*. On a narrow folding table, run them down the middle, as far from the long edges as it allows. If they don't all fit, place as many as do.
++ *Place the islands.* Going clockwise, each player sets *one island* on the table (in Group mode, up to 12 in all). Keep islands at least *6" apart* and *12" from any table edge*. On a narrow folding table, run them down the middle, as far from the long edges as it allows. If they don't all fit, place as many as do.
 
 + *Add terrain (optional).* Together, place 2–6 rocks or reefs anywhere on the table. Terrain blocks ships and breaks up firing lanes. You can use household objects for this.
 
@@ -143,15 +143,6 @@ Islands sit between the fleets. Capture one by planting your flag on it and it w
 + *Fill the bag.* Put all coins into the draw bag and shake it to mix.
 
 + *Begin play.* The youngest player goes first. Play passes clockwise. Choose Default mode (2–6 players) or Group mode (6–20 players).
-
-#tight(table(
-  columns: (1fr, 1fr),
-  table.header[Players][Islands],
-  [2],                 [4],
-  [3–4],               [6],
-  [5–6],               [8],
-  [Group mode (6–20)], [10–12],
-))
 
 
 // ----- Your Turn -----
@@ -441,7 +432,7 @@ A large-scale variant for advanced games. Each player fields a mixed armada of u
 #faction-entry("Stone Fleet")[
   Slow to cross the table, but punishing to chip at.
 
-  *Stone Hulls:* *ignores the first hit* each turn, unless touching an island. One big salvo works much better than pecking at them.
+  *Stone Hulls:* an undamaged ship *ignores the first hit* each turn, unless touching an island. Two hits in one turn *crack* it until repaired.
 ]
 #faction-entry("Shadow Fleet")[
   Average across every stat, with one trick that changes the math.
@@ -454,7 +445,7 @@ A large-scale variant for advanced games. Each player fields a mixed armada of u
   *Rotating Turret:* the second slot sits in a *turret fitting* that swivels. Like any fitting, the turret can be shot off; if that happens, only the bow slot remains until it's repaired.
 ]
 #faction-entry("The Islanders")[
-  Fast, numerous, and each one folds to a *single hit*. Played well, the numbers make up for the paper hulls.
+  Fast and numerous, with *two fittings* each. Played well, the numbers make up for the light hulls.
 
   *Home Waters:* a free starting island.
 ]

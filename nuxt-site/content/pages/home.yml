@@ -77,10 +77,8 @@ howToPlay:
       table:
         head: [Players, Islands]
         rows:
-          - [2, 4]
-          - [3–4, 6]
-          - [5–6, 8]
-          - [Group mode (6–20), 10–12]
+          - [2–6, One each]
+          - [Group mode (6–20), One each, up to 12]
       photo:
         src: /assets/photos/playtest-2/table-setup.webp
         alt: Four fleets lined up along the table edges, with islands and rocks between them.

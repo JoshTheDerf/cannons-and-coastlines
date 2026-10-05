@@ -12,6 +12,12 @@ changelog:
   title: What changed
   description: What each rulebook update changed, newest first.
   releases:
+    - version: v0.7
+      released: '2026-10-05'
+      items:
+        - '**One island per player.** Each player places one island at setup: 2 islands with two players, 4 with four (in Group mode, up to 12). With fewer islands to go round, fleets have to go further to get them and meet sooner, and with four or more players the fleets across the table end up fighting too. In the web game, every new game uses the new count.'
+        - '**Cracked stone.** Stone Hulls only work on an undamaged ship. Once a Stone Fleet ship has lost a fitting, it takes every hit until it is repaired. Land two hits on the same barge in one turn to crack it. With more fighting, the old Stone Hulls let the Stone Fleet win almost every two-player game.'
+        - '**Islanders get a second fitting.** Each catamaran now has two fittings, so it takes two hits to leave one dead in the water. One-hit catamarans won far too rarely once fleets started meeting sooner. The catamaran model is being updated to carry the second one.'
     - version: v0.6
       released: '2026-09-24'
       items:

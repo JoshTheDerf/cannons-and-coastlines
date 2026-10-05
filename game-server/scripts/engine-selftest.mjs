@@ -215,6 +215,17 @@ for (const n of [2, 3, 5, 7]) {
   ok(engine.applyHit(st, 2) === 'stone', 'Stone Hulls shrug off the first hit at sea');
   Object.assign(st, { x: 66 + 6 + st.wid / 2 + 0.1, y: 66, h: 0 }); st.stoneUsed = false;
   ok(engine.applyHit(st, 2) === 'fitting', 'a Stone ship touching an island takes the hit');
+  // Cracked stone (v0.7): a ship missing a fitting takes every hit until repaired.
+  Object.assign(st, { x: 30, y: 30, h: 0 }); st.stoneUsed = false;
+  ok(engine.applyHit(st, 2) === 'fitting', 'a damaged Stone ship at sea is cracked and takes the hit');
+  st.stoneUsed = false;
+  st.fitMask = Array(st.maxFit).fill(true); st.fit = st.maxFit;
+  ok(engine.applyHit(st, 2) === 'stone', 'repaired to every fitting, Stone Hulls work again');
+  // Islanders: five catamarans with two fittings each (v0.7).
+  engine.newGame({ seats: [{ faction: 'islanders', color: 0 }, { faction: 'corsairs', color: 1 }], setup: 'quick', table: 'round' });
+  ok(engine.G.players[1].ships.length === 5 && engine.G.players[1].ships.every(s => s.maxFit === 2 && s.fit === 2), 'the Islanders field five catamarans with two fittings each');
+  // One island per player (v0.7).
+  ok(engine.G.islandCount === 2 && engine.islands().length === 2, 'two players place two islands');
   // Victory counts the points held when the turn began, so points won
   // mid-turn can only be claimed a round later.
   engine.newGame({ seats: [{ faction: 'corsairs', color: 0 }, { faction: 'queens_fleet', color: 1 }], setup: 'quick', table: 'rect' });

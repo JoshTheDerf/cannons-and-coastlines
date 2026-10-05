@@ -59,7 +59,7 @@ function newGame(opts) {
     turn: 1,
     table: preset ? (round ? { shape: 'circle', r: preset.r } : { shape: 'rect', w: preset.w, h: preset.h })
       : { shape: 'rect', w: RECT_TABLE, h: RECT_TABLE },
-    islandCount: ISLANDS_FOR[n] || 10,
+    islandCount: ISLANDS_FOR[n] || n,
     factions: {},
     terrain: [],
     players: {},
@@ -394,8 +394,12 @@ function applyHomeWaters() {
 
 const isDead = s => s.fit <= 0;
 const passiveOf = p => FACTION_DEFS[G.factions[p]].passive;
-/** Stone Hulls (rulebook v0.6): the first hit each turn is ignored, but only at sea, not touching an island. */
-const stoneShields = ship => passiveOf(ship.owner) === 'stone' && !ship.stoneUsed && !touchingIslands(ship).length;
+/**
+ * Stone Hulls (rulebook v0.7): the first hit each turn is ignored, but only
+ * at sea, not touching an island, and only while the ship has every fitting
+ * aboard. A ship that has lost one is cracked until it is repaired.
+ */
+const stoneShields = ship => passiveOf(ship.owner) === 'stone' && !ship.stoneUsed && ship.fit === ship.maxFit && !touchingIslands(ship).length;
 // Faction passives belong to the fleet that owns the ship (rulebook, Fleets:
 // "Coins and the faction passive belong to the fleet"). Hull stats such as
 // move count, fittings and gun layout stay with the ship itself.

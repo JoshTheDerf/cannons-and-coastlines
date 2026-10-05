@@ -80,7 +80,7 @@
       "hull": "/assets/ships/renders/ship-stone-fleet.png",
       "stats": [["Ships", "3 barges"], ["Fittings", "4 each"], ["Move Count", "2"]],
       "ability": "Stone Hulls",
-      "abilityBody": "At sea, each ship ignores the first hit it takes every turn.",
+      "abilityBody": "At sea, each undamaged ship ignores the first hit it takes every turn.",
       "card": "/rulebook/pdf/faction-card-stone-fleet.pdf",
       "cardImage": "/rulebook/png/faction-card-stone-fleet.png"
     },
@@ -123,7 +123,7 @@
       "image": "/assets/ships/ship-preview-islanders-sm.webp",
       "large": "/assets/ships/ship-preview-islanders-large.png",
       "hull": "/assets/ships/renders/ship-islander.png",
-      "stats": [["Ships", "5 catamarans"], ["Fittings", "1 each"], ["Cannon slots", "3, rear only"], ["Move Count", "4"]],
+      "stats": [["Ships", "5 catamarans"], ["Fittings", "2 each"], ["Cannon slots", "3, rear only"], ["Move Count", "4"]],
       "ability": "Home Waters",
       "abilityBody": "Claim the nearest island at setup and start a catamaran there.",
       "card": "/rulebook/pdf/faction-card-the-islanders.pdf",
