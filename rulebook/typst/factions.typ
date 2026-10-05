@@ -104,7 +104,7 @@
     ),
     ability: (
       heading: "Passive: Rotating Turret",
-      body: [The turret slot sits in a *turret fitting* and fires *in any direction*. If the turret is shot off, only the bow slot remains until repaired.],
+      body: [The turret slot sits in a *turret fitting* and fires *any way but astern*. If the turret is shot off, only the bow slot remains until repaired.],
     ),
     playstyle: [The bow gun wants a head-on charge; the turret covers everything else. Keep the turret alive.],
   ),

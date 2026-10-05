@@ -239,11 +239,11 @@ function turretAim(ship, h) {
   let rel = angleDiff(h, ship.h);
   const sgn = rel < 0 ? -1 : 1, a = Math.abs(rel);
   if (a < TURRET_BLIND) rel = sgn * TURRET_BLIND;
-  else if (a > Math.PI - TURRET_BLIND) rel = sgn * (Math.PI - TURRET_BLIND);
+  else if (a > Math.PI - TURRET_BLIND_STERN) rel = sgn * (Math.PI - TURRET_BLIND_STERN);
   return normAngle(ship.h + rel);
 }
 /** Can the turret bear on heading h? */
-function turretBears(ship, h) { const a = Math.abs(angleDiff(h, ship.h)); return a >= TURRET_BLIND && a <= Math.PI - TURRET_BLIND; }
+function turretBears(ship, h) { const a = Math.abs(angleDiff(h, ship.h)); return a >= TURRET_BLIND && a <= Math.PI - TURRET_BLIND_STERN; }
 
 function shipSlots(ship) {
   const out = [];
