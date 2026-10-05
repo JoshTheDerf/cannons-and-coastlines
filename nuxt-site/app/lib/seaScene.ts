@@ -14,6 +14,7 @@
 //   sea.update(seconds, focus) every frame, before rendering
 //   sea.renderOverlay(camera)  after the composer, for rain
 import * as THREE from 'three'
+import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js'
 
 export type Atmosphere = {
   sky: { zenith: string, horizon: string, glow: string }
@@ -237,10 +238,14 @@ export function createSea(renderer: THREE.WebGLRenderer, scene: THREE.Scene, wat
           diffuseColor.rgb = mix(uDeep, uShallow, clamp(seaCrest * 0.55 * (vSeaAtten * 0.7 + 0.3) + seaPatch * 0.35, 0.0, 1.0));
           // Whitecaps: streaks on the highest crests where the swell runs,
           // torn up by fine noise so they read as spray, not blotches.
-          vec2 seaFoamP = seaP / ${WS} * vec2(0.16, 0.07) + vec2(uTime * 0.09, -uTime * 0.05);
-          float seaFoamN = seaFbm(seaFoamP) * 0.6 + seaFbm(seaP / ${WS} * 0.45 + uTime * 0.2) * 0.4;
-          float seaFoam = uFoam * vSeaAtten * seaNear
-            * smoothstep(0.66, 0.86, seaCrest) * smoothstep(0.48, 0.72, seaFoamN);
+          // The noise is the costly part, so only where a crest can show
+          // foam at all (most of the sea, and all of the flat far sheet, can't).
+          float seaFoam = uFoam * vSeaAtten * seaNear * smoothstep(0.66, 0.86, seaCrest);
+          if (seaFoam > 0.0) {
+            vec2 seaFoamP = seaP / ${WS} * vec2(0.16, 0.07) + vec2(uTime * 0.09, -uTime * 0.05);
+            float seaFoamN = seaFbm(seaFoamP) * 0.6 + seaFbm(seaP / ${WS} * 0.45 + uTime * 0.2) * 0.4;
+            seaFoam *= smoothstep(0.48, 0.72, seaFoamN);
+          }
           diffuseColor.rgb = mix(diffuseColor.rgb, vec3(0.92, 0.95, 0.96), seaFoam);`)
         .replace('#include <roughnessmap_fragment>', `#include <roughnessmap_fragment>
           // Gusts: patches of calmer and rougher water, drifting slowly, so
@@ -253,9 +258,10 @@ export function createSea(renderer: THREE.WebGLRenderer, scene: THREE.Scene, wat
         .replace('#include <normal_fragment_maps>', `#include <normal_fragment_maps>
           {
             vec2 wp = seaWarp(seaP / ${WS});
-            float amp = seaPatchAmp(seaP / ${WS});
-            vec3 s = swell(wp, uTime) * uSwell * vSeaAtten * amp;
-            vec2 g = s.yz / ${WS};
+            // The swell's slope, where it heaves (not on the flat far sheet).
+            vec2 g = vec2(0.0);
+            float swAmt = uSwell * vSeaAtten;
+            if (swAmt > 0.0) g = swell(wp, uTime).yz * (swAmt * seaPatchAmp(seaP / ${WS})) / ${WS};
             // Wind chop on top of the swell (on warped coordinates too, with
             // its own patchiness), then fine ripples from noise.
             float chopAmp = uChop * (0.4 + 1.2 * seaFbm3(seaP * 0.004 + 11.0));
@@ -266,11 +272,13 @@ export function createSea(renderer: THREE.WebGLRenderer, scene: THREE.Scene, wat
             // Fine ripples only while they are bigger than a pixel; any
             // smaller and they alias into exactly the grid we are avoiding.
             float px = seaPx;
-            float rippleVis = 1.0 - smoothstep(2.0, 6.0, px);
-            float e = 0.9;
-            vec2 q = seaP * 0.09 + vec2(uTime * 0.12, uTime * 0.05);
-            float r0 = seaFbm(q);
-            g += rippleVis * uChop * 0.9 * vec2(seaFbm(q + vec2(e * 0.09, 0.0)) - r0, seaFbm(q + vec2(0.0, e * 0.09)) - r0) / e;
+            float rippleVis = (1.0 - smoothstep(2.0, 6.0, px)) * uChop;
+            if (rippleVis > 0.0) {
+              float e = 0.9;
+              vec2 q = seaP * 0.09 + vec2(uTime * 0.12, uTime * 0.05);
+              float r0 = seaFbm(q);
+              g += rippleVis * 0.9 * vec2(seaFbm(q + vec2(e * 0.09, 0.0)) - r0, seaFbm(q + vec2(0.0, e * 0.09)) - r0) / e;
+            }
             // Short chop fades the same way as it shrinks toward the horizon.
             g *= mix(0.3, 1.0, 1.0 - smoothstep(8.0, 30.0, px)) * mix(0.25, 1.0, seaNear);
             vec3 nW = normalize(vec3(-g.x, 1.0, -g.y));
@@ -344,6 +352,16 @@ export function createSea(renderer: THREE.WebGLRenderer, scene: THREE.Scene, wat
         islands.add(sand)
       }
       if (atm.islands.palms) {
+        // An island's palms are a few hundred small pieces; each one a mesh
+        // of its own costs the renderer a little every frame even when it
+        // is off screen. They are baked into one mesh per material per
+        // island (looks the same, still culled island by island).
+        const trunks: THREE.BufferGeometry[] = []
+        const leaves: THREE.BufferGeometry[] = []
+        const bake = (m: THREE.Mesh, into: THREE.BufferGeometry[]) => {
+          m.updateMatrix()
+          into.push(m.geometry.applyMatrix4(m.matrix))
+        }
         const palms = 4 + Math.floor(rand() * 6)
         for (let k = 0; k < palms; k++) {
           const a = rand() * Math.PI * 2
@@ -353,15 +371,17 @@ export function createSea(renderer: THREE.WebGLRenderer, scene: THREE.Scene, wat
           const t = new THREE.Mesh(new THREE.CylinderGeometry(2.5 * scale, 4 * scale, tall, 5), trunk)
           t.position.set(px, waterLevel + tall / 2 + 4, pz)
           t.rotation.z = (rand() - 0.5) * 0.4
-          islands.add(t)
+          bake(t, trunks)
           for (let f = 0; f < 6; f++) {
             const leaf = new THREE.Mesh(new THREE.ConeGeometry(6 * scale, 40 * scale, 4), frond)
             leaf.position.set(px, waterLevel + tall + 4 * scale, pz)
             leaf.rotation.set(Math.PI / 2 - 0.5, (f / 6) * Math.PI * 2, 0, 'YXZ')
             leaf.translateY(18 * scale)
-            islands.add(leaf)
+            bake(leaf, leaves)
           }
         }
+        islands.add(new THREE.Mesh(mergeGeometries(trunks), trunk), new THREE.Mesh(mergeGeometries(leaves), frond))
+        for (const g of [...trunks, ...leaves]) g.dispose()
       }
     }
     scene.add(islands)
@@ -371,17 +391,40 @@ export function createSea(renderer: THREE.WebGLRenderer, scene: THREE.Scene, wat
   const overlay = new THREE.Scene()
   const DROPS = 2200
   const RAIN_BOX = new THREE.Vector3(900, 600, 900).multiplyScalar(Math.sqrt(scale))
+  // Each drop is a streak (two vertices) at a fixed offset in the box; the
+  // vertex shader lets it fall, wraps it back to the top and carries the
+  // box along with the focus. The CPU only advances one number a frame
+  // (it used to rewrite and re-upload every drop, every frame).
   const rainPos = new Float32Array(DROPS * 6)
-  const drops = new Float32Array(DROPS * 3)
+  const rainTop = new Float32Array(DROPS * 2)
   const rng = mulberry32(11)
   for (let i = 0; i < DROPS; i++) {
-    drops[i * 3] = (rng() - 0.5) * RAIN_BOX.x
-    drops[i * 3 + 1] = rng() * RAIN_BOX.y
-    drops[i * 3 + 2] = (rng() - 0.5) * RAIN_BOX.z
+    const x = (rng() - 0.5) * RAIN_BOX.x, y = rng() * RAIN_BOX.y, z = (rng() - 0.5) * RAIN_BOX.z
+    rainPos.set([x, y, z, x, y, z], i * 6)
+    rainTop[i * 2 + 1] = 1
   }
   const rainGeom = new THREE.BufferGeometry()
   rainGeom.setAttribute('position', new THREE.BufferAttribute(rainPos, 3))
+  rainGeom.setAttribute('rainTop', new THREE.BufferAttribute(rainTop, 1))
+  const rainUniforms = {
+    uRainFocus: { value: new THREE.Vector3() },
+    uRainFall: { value: 0 }
+  }
   const rainMat = new THREE.LineBasicMaterial({ color: '#d4dbe0', transparent: true, opacity: 0, depthTest: false, fog: false })
+  rainMat.onBeforeCompile = (shader) => {
+    Object.assign(shader.uniforms, rainUniforms)
+    shader.vertexShader = shader.vertexShader
+      .replace('#include <common>', `#include <common>
+        uniform vec3 uRainFocus;
+        uniform float uRainFall;
+        attribute float rainTop;`)
+      .replace('#include <begin_vertex>', `
+        // Fallen from where it started, back to the top once below the water.
+        float rainY = mod(position.y - uRainFall, ${RAIN_BOX.y.toFixed(4)});
+        vec3 transformed = vec3(uRainFocus.x + position.x, ${waterLevel.toFixed(4)} + rainY, uRainFocus.z + position.z)
+          + rainTop * vec3(1.5, 14.0, 0.5) * ${Math.sqrt(scale).toFixed(4)};`)
+  }
+  rainMat.customProgramCacheKey = () => `cnc-rain-${RAIN_BOX.y}-${waterLevel}-${scale}`
   const rain = new THREE.LineSegments(rainGeom, rainMat)
   rain.frustumCulled = false
   overlay.add(rain)
@@ -448,16 +491,8 @@ export function createSea(renderer: THREE.WebGLRenderer, scene: THREE.Scene, wat
     // Rain falls through a box that follows the camera's focus.
     if (current && current.rain > 0) {
       const fall = 900 * Math.sqrt(scale) * dt
-      for (let i = 0; i < DROPS; i++) {
-        let y = drops[i * 3 + 1]! - fall
-        if (y < 0) y += RAIN_BOX.y
-        drops[i * 3 + 1] = y
-        const x = focus.x + drops[i * 3]!, z = focus.z + drops[i * 3 + 2]!
-        const yy = waterLevel + y
-        const k = Math.sqrt(scale)
-        rainPos.set([x, yy, z, x + 1.5 * k, yy + 14 * k, z + 0.5 * k], i * 6)
-      }
-      rainGeom.attributes.position!.needsUpdate = true
+      rainUniforms.uRainFall.value = (rainUniforms.uRainFall.value + fall) % RAIN_BOX.y
+      rainUniforms.uRainFocus.value.copy(focus)
     }
 
     // Lightning: a bright double flicker every few seconds, lighting the

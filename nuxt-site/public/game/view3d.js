@@ -363,8 +363,9 @@
     if (dash) ctx.setLineDash([]);
   }
 
+  /** Draws the table if a frame is due (see frameDue in game3d.ts), and says whether it did. */
   drawFrame = function () {
-    if (!V || !V.frameDue()) return;
+    if (!V || !V.frameDue(sceneActive())) return false;
     V.setTable(G.table);
     V.setAtmosphere(weather());
     frameT = V.beginFrame();
@@ -386,6 +387,7 @@
       ctx.font = 'italic 15px "Crimson Text",serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'bottom';
       ctx.fillStyle = 'rgba(250,243,224,.9)'; ctx.fillText('Bringing the fleets up…', canvasW / 2, canvasH - 14);
     }
+    return true;
   };
 
   drawTable = function () {

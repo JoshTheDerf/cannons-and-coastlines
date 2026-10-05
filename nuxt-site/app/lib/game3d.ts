@@ -19,6 +19,7 @@ import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js'
 import { GTAOPass } from 'three/examples/jsm/postprocessing/GTAOPass.js'
 import { OutputPass } from 'three/examples/jsm/postprocessing/OutputPass.js'
 import { createSea } from './seaScene'
+import { detectLevel } from './deviceTier'
 import { data, createAssemblyKit, filamentTime, setupGlow, animateGlow, placeMatrix, loadGeometry, withPrintUp, type ShipRig, type GlowState, type Socket } from './shipAssembly'
 
 const MM = 10
@@ -129,25 +130,7 @@ const LEVELS: Level[] = [
 export const LEVEL_NAMES = ['lowest', 'low', 'medium', 'high', 'highest']
 const TOP = LEVELS.length - 1
 
-/** A first guess at what the device can do, before any frame is timed. */
-function detectLevel(renderer: THREE.WebGLRenderer): number {
-  const nav = navigator as Navigator & { deviceMemory?: number }
-  const mem = nav.deviceMemory ?? 8
-  const cores = nav.hardwareConcurrency ?? 4
-  const coarse = !!window.matchMedia?.('(pointer: coarse)').matches
-  const gl = renderer.getContext()
-  const ext = gl.getExtension('WEBGL_debug_renderer_info')
-  const gpu = ext ? String(gl.getParameter(ext.UNMASKED_RENDERER_WEBGL)) : ''
-  if (/swiftshader|llvmpipe|softpipe|software|basic render/i.test(gpu)) return 0
-  if (coarse) {
-    if (mem <= 3 || cores <= 4) return 1
-    if (mem >= 8 || /apple gpu|adreno \(tm\) [78]\d\d|mali-g(7[1-9]|[89]\d|7\d\d)|immortalis|xclipse/i.test(gpu)) return 3
-    return 2
-  }
-  if (cores <= 4 || mem <= 4) return 2
-  if (/intel|uhd|iris|mali|adreno|powervr/i.test(gpu)) return 3
-  return 4
-}
+// The first guess at a level, before any frame is timed: lib/deviceTier.ts.
 
 /** quality: 'auto' picks a level and keeps adjusting it to the frame rate; 'high' and 'low' pin it. */
 export function create(wrap: HTMLElement, opts: { quality?: 'auto' | 'high' | 'low' } = {}) {
@@ -266,10 +249,14 @@ export function create(wrap: HTMLElement, opts: { quality?: 'auto' | 'high' | 'l
     // Shapes are drawn in XY; lay them on the water with shape y = scene z.
     const flat = (g: THREE.BufferGeometry, y: number) => g.rotateX(Math.PI / 2).translate(0, y, 0)
     // Just above the tallest wave, so the swell never cuts through them.
+    // forceSinglePass: these are flat, so drawing the back and front faces
+    // in two passes (three.js's default for see-through two-sided
+    // materials) changes nothing on screen, and it costs a program lookup
+    // per pass every frame.
     const shade = new THREE.Mesh(flat(new THREE.ShapeGeometry(outer, 96), 2.4),
-      new THREE.MeshBasicMaterial({ color: '#06121a', transparent: true, opacity: 0.45, depthWrite: false, side: THREE.DoubleSide }))
+      new THREE.MeshBasicMaterial({ color: '#06121a', transparent: true, opacity: 0.45, depthWrite: false, side: THREE.DoubleSide, forceSinglePass: true }))
     const rim = new THREE.Mesh(flat(new THREE.ShapeGeometry(line, 128), 2.5),
-      new THREE.MeshBasicMaterial({ color: '#f4ecd6', transparent: true, opacity: 0.55, depthWrite: false, side: THREE.DoubleSide }))
+      new THREE.MeshBasicMaterial({ color: '#f4ecd6', transparent: true, opacity: 0.55, depthWrite: false, side: THREE.DoubleSide, forceSinglePass: true }))
     shade.renderOrder = rim.renderOrder = 1
     edgeGroup.add(shade, rim)
   }
@@ -464,7 +451,8 @@ export function create(wrap: HTMLElement, opts: { quality?: 'auto' | 'high' | 'l
       for (const m of turretMeshes) inner.add(m)
       body.add(turretPivot)
     }
-    const ringMat = new THREE.MeshBasicMaterial({ color: '#ffffff', transparent: true, opacity: 0.6, depthWrite: false, side: THREE.DoubleSide })
+    // Flat, so one pass shows both sides (see the table edge).
+    const ringMat = new THREE.MeshBasicMaterial({ color: '#ffffff', transparent: true, opacity: 0.6, depthWrite: false, side: THREE.DoubleSide, forceSinglePass: true })
     const ring = new THREE.Mesh(ringGeom(t), ringMat)
     ring.position.y = 2.2
     ring.renderOrder = 2
@@ -970,10 +958,34 @@ export function create(wrap: HTMLElement, opts: { quality?: 'auto' | 'high' | 'l
   let lastT = 0
   let lastDraw = 0
 
-  /** At a capped level, whether it is time for the next frame. */
-  function frameDue() {
-    const fps = LEVELS[level]!.fps
-    return !fps || performance.now() - lastDraw >= 1000 / fps - 4
+  // ── Frame pacing ───────────────────────────────────────────────────
+  // Full rate while anything moves (the camera, an animation, the player's
+  // hand on the board), but never more than 60 fps: a 120 Hz phone would
+  // otherwise draw the whole scene twice as often for nothing. When only
+  // the sea and the bobbing ships move, 30 fps shows them just as well for
+  // half the work. A level's own cap (the slow levels' 30) always applies.
+  const ACTIVE_FPS = 60
+  const IDLE_FPS = 30
+  let capFps = ACTIVE_FPS
+
+  function cameraMoving() {
+    if (follow) return true
+    const dYaw = Math.atan2(Math.sin(goal.yaw - cam.yaw), Math.cos(goal.yaw - cam.yaw))
+    return Math.abs(goal.tx - cam.tx) > 0.02 || Math.abs(goal.ty - cam.ty) > 0.02 || Math.abs(goal.dist / cam.dist - 1) > 1e-3
+      || Math.abs(dYaw) > 1e-3 || Math.abs(goal.pitch - cam.pitch) > 1e-3
+  }
+
+  /** Whether it is time for the next frame. `active`: something besides the sea is moving. */
+  function frameDue(active = true) {
+    const own = LEVELS[level]!.fps || ACTIVE_FPS
+    const fps = active || cameraMoving() || pending > 0 ? own : Math.min(own, IDLE_FPS)
+    if (fps !== capFps) {
+      // Frame times at one cap say nothing about another.
+      capFps = fps
+      perf.samples.length = 0
+    }
+    // A few ms early is fine: rAF ticks land on the display's own beat.
+    return performance.now() - lastDraw >= 1000 / fps - 4
   }
 
   // Automatic level: time the frames and step down when they are slow.
@@ -1002,12 +1014,15 @@ export function create(wrap: HTMLElement, opts: { quality?: 'auto' | 'high' | 'l
     // Ignore the odd hitch: the middle of the window is what it feels like.
     const typical = sorted[Math.floor(sorted.length * 0.6)]!
     const fps = LEVELS[level]!.fps
-    const budget = fps ? 1000 / fps : 1000 / 60
+    const budget = 1000 / capFps
     if (typical > budget * 1.35) {
       perf.banned.add(level)
       setLevel(level - 1)
       return
     }
+    // Held to the idle rate, a fast device and a barely-coping one look the
+    // same, so idle frames can only step down, never up.
+    if (capFps < (fps || ACTIVE_FPS)) return
     const easy = fps ? typical < budget * 1.1 : typical < 18
     perf.good = easy ? perf.good + 1 : 0
     const next = level + 1

@@ -104,6 +104,7 @@ function enterGameScreen() {
     bindCanvas();
     new ResizeObserver(() => resizeCanvas()).observe($('boardWrap'));
     window.addEventListener('resize', applyLayout);
+    for (const ev of ['pointerdown', 'pointermove', 'wheel', 'keydown']) window.addEventListener(ev, noteInput, { passive: true, capture: true });
     requestAnimationFrame(frame);
   }
   resizeCanvas();
@@ -128,7 +129,7 @@ function quitToTitle() {
  * is projected through the current camera (the 3D view orbits) from the
  * middle of the table.
  */
-let windShown = null, windSpinUntil = 0;
+let windShown = null, windSpinUntil = 0, windTf = '';
 function drawWindDial() {
   const el = $('windDial');
   const on = !!(G.opts && G.opts.winds && G.wind != null);
@@ -139,14 +140,38 @@ function drawWindDial() {
   const deg = Math.atan2(b.x - a.x, -(b.y - a.y)) * 180 / Math.PI;
   // Unwrap so a spin animates the short way round, not through 360°.
   if (windShown != null) { const d = ((deg - windShown) % 360 + 540) % 360 - 180; windShown += d; } else windShown = deg;
-  $('windArrow').style.transform = `rotate(${windShown.toFixed(1)}deg)`;
+  // Only when it turns: a style write every frame restyles the page every frame.
+  const tf = `rotate(${windShown.toFixed(1)}deg)`;
+  if (tf !== windTf) { windTf = tf; $('windArrow').style.transform = tf; }
   // The spin eases in; otherwise the arrow tracks the camera without lag.
   if (windSpinUntil && performance.now() > windSpinUntil) { windSpinUntil = 0; el.classList.remove('shift'); }
 }
 
+// ─── Frame pacing ─────────────────────────────────────
+// The table is drawn at full rate while something on it moves (an
+// animation, or the player's hand: pointer, wheel or keys in the last
+// moment), and at half rate otherwise, when only the sea and the swell
+// move. The 3D view (view3d.js) asks sceneActive() and paces itself; the
+// flat view is paced here. Browsers stop the loop in a hidden tab anyway.
+let lastInputAt = -1e9, last2D = 0;
+function noteInput() { lastInputAt = performance.now(); }
+function sceneActive() {
+  return animations.length > 0 || UI.dragging || performance.now() - lastInputAt < 1500;
+}
+function frameDue2D(ts) {
+  const fps = sceneActive() ? 60 : 30;
+  if (ts - last2D < 1000 / fps - 4) return false;
+  last2D = ts;
+  return true;
+}
+
 function frame(ts) {
   updateAnimations(ts);
-  if (G && $('game').style.display !== 'none') { drawFrame(); drawWindDial(); }
+  if (G && $('game').style.display !== 'none') {
+    // The 3D view's drawFrame says whether it drew; the flat one always does.
+    const drew = window.VIEW3D && VIEW3D.view ? drawFrame() : frameDue2D(ts) && (drawFrame(), true);
+    if (drew) drawWindDial();
+  }
   if (isOnline()) NET.tickTimer();
   requestAnimationFrame(frame);
 }

@@ -18,7 +18,9 @@ function resizeCanvas() {
   if (!canvas) return;
   const wrap = canvas.parentElement;
   const w = Math.max(50, wrap.clientWidth), h = Math.max(50, wrap.clientHeight);
-  const dpr = window.devicePixelRatio || 1;
+  // At most 2x: on a 3x phone the third is barely visible and costs
+  // more than twice the pixels to clear and redraw every frame.
+  const dpr = Math.min(2, window.devicePixelRatio || 1);
   if (canvas.width !== Math.round(w * dpr) || canvas.height !== Math.round(h * dpr)) {
     canvas.width = Math.round(w * dpr);
     canvas.height = Math.round(h * dpr);
