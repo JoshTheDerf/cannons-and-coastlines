@@ -442,7 +442,7 @@ A large-scale variant for advanced games. Each player fields a mixed armada of u
 #faction-entry("The Industry")[
   Two cannon slots per ship: a *forward-facing* bow gun and a rotating turret.
 
-  *Rotating Turret:* the second slot is a *turret fitting* that swivels to fire any way but into the *quarter astern*. Shot off, it leaves only the bow slot until repaired.
+  *Rotating Turret:* the second slot is a *turret fitting* that swivels to fire any way but *astern*, over its own smokestack. Shot off, it leaves only the bow slot until repaired.
 ]
 #faction-entry("The Islanders")[
   Fast and numerous, with *two fittings* each. Played well, the numbers make up for the light hulls.
