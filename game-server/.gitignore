@@ -1,3 +1,4 @@
 node_modules/
 src/engine.gen.js
 .wrangler/
+sim/.build/

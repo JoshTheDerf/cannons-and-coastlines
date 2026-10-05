@@ -13,6 +13,8 @@
     "balance:quick": "node scripts/build-engine.mjs && node scripts/balance.mjs --quick",
     "balance:tables": "node scripts/build-engine.mjs && node scripts/balance.mjs --tables",
     "variant": "node scripts/variant.mjs",
+    "sim": "node scripts/build-engine.mjs && node sim/run.mjs",
+    "sim:quick": "node scripts/build-engine.mjs && node sim/run.mjs --quick",
     "start-lanes": "node scripts/build-engine.mjs && node scripts/start-lanes.mjs",
     "table-fit": "node scripts/build-engine.mjs && node scripts/table-fit.mjs",
     "bump-stats": "node scripts/build-engine.mjs && node scripts/bump-stats.mjs",
