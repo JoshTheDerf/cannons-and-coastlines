@@ -461,7 +461,7 @@
     if (ship.braced) strokeRing(ship.x, ship.y, R + 1.2, `rgba(241,196,15,${0.45 + Math.sin(wavePhase * 4) * 0.2})`, 2);
     if (passiveOf(ship.owner) === 'stone' && !ship.stoneUsed) strokeRing(ship.x, ship.y, R + 0.4, 'rgba(220,210,180,.45)', 3);
     // Badges over the masthead: Skilled Gunner, extra turns, gave its action away.
-    const badge = (ship.gunner ? COIN_DEFS.gunner.icon : '') + (ship.turnsLeft > 1 && !ship.acted ? ` x${ship.turnsLeft}` : '') + (ship.fullSail && !ship.acted ? ' ' + COIN_DEFS.fullsail.icon : '');
+    const badge = (ship.gunner ? COIN_DEFS.gunner.icon + (ship.gunner > 1 ? `x${ship.gunner}` : '') : '') + (ship.turnsLeft > 1 && !ship.acted ? ` x${ship.turnsLeft}` : '') + (ship.fullSail && !ship.acted ? ' ' + COIN_DEFS.fullsail.icon + (ship.fullSail > 2 ? `x${ship.fullSail - 1}` : '') : '');
     const top = w2s3(ship.x, ship.y, isDead(ship) ? 3 : 11);
     if (badge) {
       ctx.font = 'bold 15px "Crimson Text",serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'bottom';

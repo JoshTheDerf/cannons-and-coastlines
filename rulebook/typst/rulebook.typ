@@ -140,7 +140,7 @@ Islands sit between the fleets. Capture one by planting your flag on it and it w
 
 + *Deploy your fleet.* Claim a stretch of table edge and line your ships up *touching it*, facing inward, fleets spread evenly around the table. With *two players*, sit a *quarter of the way round* a round table from each other, or *diagonally* across a folding table (opposite long sides, opposite halves). With three or more, set a rock just past each end of every fleet's line, a few inches in from the edge. (Islanders: use _Home Waters_ now to place your starting ship at an island.)
 
-+ *Fill the bag.* Put all coins into the draw bag and shake it to mix.
++ *Fill the bag.* Each player keeps back their fleet's *favoured coins* (on its faction card), then puts the rest of their coins into the draw bag. Shake it to mix.
 
 + *Begin play.* The youngest player goes first. Play passes clockwise. Choose Default mode (2–6 players) or Group mode (6–20 players).
 
@@ -153,7 +153,7 @@ Your ships take their turns one at a time, and you may *spend coins* before any 
 
 == Spending Coins
 
-Coins are not actions. Spend them *before a ship starts its turn*, either at the start of your turn or between one ship's turn and the next. You can't spend them partway through a ship's turn. You may spend any number of coins on a single turn. After a coin's effect resolves, return it to the bag.
+Coins are not actions. Spend them *before a ship starts its turn*, either at the start of your turn or between one ship's turn and the next. You can't spend them partway through a ship's turn. You may spend any number of coins on a single turn, and *stack* several of the same coin on one ship: three Full Sails steer and sail four times, two Gunners fire three times. Brace is the exception, one per ship. After a coin's effect resolves, return it to the bag.
 
 There is *no hand limit.* You may hold as many coins as you collect.
 

@@ -14,6 +14,7 @@
       ("Fittings",     [4 each]),
       ("Cannon Slots", [3 broadside per side]),
       ("Move Count",   [3]),
+      ("Starts With",  [1 Gunner coin]),
     ),
     ability: (
       heading: "Passive: Disciplined Crew",
@@ -32,6 +33,7 @@
       ("Fittings",     [3 each]),
       ("Cannon Slots", [3 broadside per side]),
       ("Move Count",   [4]),
+      ("Starts With",  [1 Full Sail coin]),
     ),
     ability: (
       heading: "Passive: Plunder",
@@ -49,6 +51,7 @@
       ("Ships",        [3 junks]),
       ("Fittings",     [3 each]),
       ("Move Count",   [2]),
+      ("Starts With",  [3 Repair coins]),
     ),
     ability: (
       heading: "Passive: Bountiful Harvest",
@@ -66,6 +69,7 @@
       ("Ships",        [3 galleons]),
       ("Fittings",     [3 each]),
       ("Move Count",   [3]),
+      ("Starts With",  [2 Boarding coins]),
     ),
     ability: (
       heading: "Passive: Return from the Deep",
@@ -119,6 +123,7 @@
       ("Fittings",     [2 each]),
       ("Cannon Slots", [3, *rear-facing only*]),
       ("Move Count",   [4]),
+      ("Starts With",  [1 Evasive coin]),
     ),
     ability: (
       heading: "Passive: Home Waters",

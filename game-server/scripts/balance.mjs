@@ -37,9 +37,7 @@ const ROUNDS = [4, 20];          // average game length, in rounds
 // ('low' or 'high'). They are reported, not failed, but a lean the other
 // way still fails. Remove an entry once that fleet is back inside limits.
 const KNOWN = {
-  'ffa4:treasure_fleet': ['low', 'Slow junks get swarmed at bigger tables.'],
   'ffa6:treasure_fleet': ['low', 'Slow junks get swarmed at bigger tables.'],
-  'mixed4:treasure_fleet': ['low', 'Slow junks get swarmed at bigger tables.'],
 };
 
 // ─── Scenarios ────────────────────────────────────────

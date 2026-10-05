@@ -108,6 +108,33 @@ const noErrors = (pg, what) => ok(!pg.errors.length, `${what}: no console errors
   noErrors(pg, 'Full Sail');
 }
 
+// ─── Stacking coins on one ship (all but Brace) ───
+{
+  const pg = await localGame();
+  const r = await pg.evaluate(async () => {
+    const [s, t] = G.players[1].ships;
+    Object.assign(G.players[1].coins, { fullsail: 3, gunner: 2, brace: 2 }); refresh();
+    await playCoin('fullsail', s);
+    const ringAgain = ringItems(s).map(i => i.label).includes('Full Sail');
+    await playCoin('fullsail', s); await playCoin('fullsail', s);
+    const label = shipActions(s).map(a => a.label)[0];
+    let sails = 0;
+    while (!s.acted && sails < 6) { startMove(s, 'steer'); await sailClicks(1); sails++; }
+    await playCoin('gunner', t);
+    const gunAgain = ringItems(t).map(i => i.label).includes('Gunner');
+    await playCoin('gunner', t);
+    const fire = shipActions(t).map(a => a.label).find(l => /^Fire/.test(l));
+    await playCoin('brace', t);
+    const braceAgain = coinTargets(1, 'brace').includes(t);
+    return { ringAgain, label, sails, gunAgain, fire, braceAgain };
+  });
+  ok(r.ringAgain, 'with one Full Sail on, the ring still offers another');
+  ok(/Full Sail, 1 of 4/.test(r.label) && r.sails === 4, `three Full Sails stacked: steer and sail 1 of 4, four sails in all (${r.label}; ${r.sails})`);
+  ok(r.gunAgain && /Fire 3 times/.test(r.fire), `two Gunners stacked: the ship offers "${r.fire}"`);
+  ok(!r.braceAgain, 'a braced ship cannot take a second Brace');
+  noErrors(pg, 'stacking coins');
+}
+
 // ─── Trade Winds ───
 {
   const pg = await localGame('#btnSolo', { winds: true });

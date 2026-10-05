@@ -47,7 +47,7 @@ function factionCard(fid, selected, attrs) {
   const f = FACTION_DEFS[fid];
   return `<button class="fCard${selected ? ' selected' : ''}" ${attrs} style="--acc:${rgba(f.hullColor, 1)}">
       <span class="fName">${esc(f.name)}${f.base ? ' <em>base</em>' : ''}</span>
-      <span class="fStats">${f.shipCount} ships · ${f.fittings} fitting${f.fittings === 1 ? "" : "s"} · move ${moveCountFor(f.moveCount, setupChoice.speed)}</span>
+      <span class="fStats">${f.shipCount} ships · ${f.fittings} fitting${f.fittings === 1 ? "" : "s"} · move ${moveCountFor(f.moveCount, setupChoice.speed)}${f.favoured ? ` · starts with ${f.favoured.count} ${COIN_DEFS[f.favoured.coin].short}` : ""}</span>
       <span class="fPass"><b>${esc(f.passiveName)}.</b> ${esc(f.passiveText)}</span>
     </button>`;
 }
@@ -790,7 +790,7 @@ function ringItems(ship) {
   if (!isMyTurn() || G.phase !== 'play') return items;
   if (ship.owner === p) {
     for (const a of shipActions(ship)) {
-      const label = a.id === 'fire' ? (ship.gunner ? 'Fire x2' : 'Fire') : a.id === 'collect' ? a.label : RING_LABEL[a.id] || a.label;
+      const label = a.id === 'fire' ? (ship.gunner ? `Fire x${1 + +ship.gunner}` : 'Fire') : a.id === 'collect' ? a.label : RING_LABEL[a.id] || a.label;
       items.push({ id: a.id, t: a.t, label, icon: a.id, disabled: a.disabled, why: a.why, act: a });
     }
     if (coinWindowOpen(p)) {
@@ -1283,12 +1283,12 @@ function shipActions(ship) {
   const dead = isDead(ship);
   if (!ship.acted && !ship.pending) {
     if (ship.stage === 'click') acts.push({ id: 'sail', label: 'Sail on' });
-    else if (ship.fullSail) acts.push({ id: 'steer', label: `Steer and sail (Full Sail, ${ship.fullSail === 2 ? 1 : 2} of 2)` });
+    else if (ship.fullSail) { const all = ship.fullSailTotal || 2; acts.push({ id: 'steer', label: `Steer and sail (Full Sail, ${all - ship.fullSail + 1} of ${all})` }); }
     else if (ship.noAction) acts.push({ id: 'sail', label: 'Sail on (no action)' });
     else {
       const x2 = ship.turnsLeft > 1 ? ` (turn 1 of ${ship.turnsLeft})` : '';
       if (!dead) acts.push({ id: 'steer', label: 'Steer and sail' + x2 });
-      acts.push({ id: 'fire', label: (ship.gunner ? 'Fire twice' : 'Fire') + (dead ? '' : ', then sail') });
+      acts.push({ id: 'fire', label: (ship.gunner ? `Fire ${timesWord(1 + +ship.gunner)}` : 'Fire') + (dead ? '' : ', then sail') });
       const coll = passiveOf(ship.owner) === 'harvest' ? 'Collect 2' : 'Collect';
       const touching = touchingIslands(ship).map(i => G.terrain[i]);
       for (const t of touching) {

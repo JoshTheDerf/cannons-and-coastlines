@@ -455,7 +455,7 @@ function drawShip(ship) {
     ctx.beginPath(); ctx.arc(c.x, c.y, R + 1, 0, TAU); ctx.stroke();
   }
   // Badges: Skilled Gunner, extra turns, under Full Sail.
-  const badge = (ship.gunner ? COIN_DEFS.gunner.icon : '') + (ship.turnsLeft > 1 && !ship.acted ? ` x${ship.turnsLeft}` : '') + (ship.fullSail && !ship.acted ? ' ' + COIN_DEFS.fullsail.icon : '');
+  const badge = (ship.gunner ? COIN_DEFS.gunner.icon + (ship.gunner > 1 ? `x${ship.gunner}` : '') : '') + (ship.turnsLeft > 1 && !ship.acted ? ` x${ship.turnsLeft}` : '') + (ship.fullSail && !ship.acted ? ' ' + COIN_DEFS.fullsail.icon + (ship.fullSail > 2 ? `x${ship.fullSail - 1}` : '') : '');
   if (badge) {
     ctx.font = `bold ${Math.round(clamp(worldScale * 3, 11, 16))}px "Crimson Text",serif`;
     ctx.textAlign = 'center'; ctx.textBaseline = 'middle';

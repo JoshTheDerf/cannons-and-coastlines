@@ -85,6 +85,12 @@ function newGame(opts) {
     const f = FACTION_DEFS[s.faction];
     for (let k = 0; k < f.shipCount; k++) G.players[p].ships.push(makeShip(p, s.faction, k, usedNames));
   });
+  // Favoured coins (rulebook v0.7): each fleet starts holding its own,
+  // taken out of the bag (FACTION_DEFS favoured).
+  for (const p of G.order) {
+    const fav = FACTION_DEFS[G.factions[p]].favoured;
+    if (fav) for (let k = 0; k < fav.count; k++) { const i = G.bag.indexOf(fav.coin); if (i >= 0) { G.bag.splice(i, 1); G.players[p].coins[fav.coin]++; } }
+  }
   if (opts.setup === 'quick') {
     randomIslands();
     randomTerrain(round ? Math.min(6, 2 + Math.ceil(n / 2)) : 4);
@@ -538,7 +544,7 @@ function beginTurn() {
   G.coinPhase = true;
   for (const s of G.players[p].ships) {
     s.acted = false; s.turnsLeft = 1; s.stage = 'action'; s.noAction = false;
-    s.pending = null; s.gunner = false; s.shotsDone = 0; s.fullSail = 0;
+    s.pending = null; s.gunner = 0; s.shotsDone = 0; s.fullSail = 0; s.sailing = false;
   }
   // Stone Hulls: "the first hit it takes each turn", so it resets every turn.
   for (const s of allShips()) s.stoneUsed = false;

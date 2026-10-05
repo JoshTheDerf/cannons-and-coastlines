@@ -208,11 +208,12 @@
   ]
 }
 
-// Stat grid: 2x2 label/value layout, very compact.
+// Stat grid: 2x2 label/value layout, very compact (three across when a
+// fleet has more than four stats, so it still takes two rows).
 // Each label gets a thin faction-accent underline for a touch of color.
 #let stat-grid(pairs, accent: rgb("#6b4c30")) = {
   grid(
-    columns: (1fr, 1fr),
+    columns: if pairs.len() > 4 { (1fr, 1fr, 1fr) } else { (1fr, 1fr) },
     column-gutter: 0.15in,
     row-gutter: 0.16in,
     ..pairs.map(p => {
@@ -224,7 +225,8 @@
           font: heading-font, weight: 800, size: 7.5pt,
           tracking: 0.4pt, fill: accent,
         )[#upper(label)],
-        text(size: 8.5pt, fill: colors.heading)[#value],
+        // Ragged right: a value that wraps in a narrow column must not stretch.
+        block({ set par(justify: false); text(size: 8.5pt, fill: colors.heading)[#value] }),
       )
     })
   )

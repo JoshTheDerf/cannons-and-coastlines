@@ -213,6 +213,24 @@ for (const n of [2, 3, 5, 7]) {
   ok(!engine.act(1, { t: 'coin', coin: 'brace', target: f2.id }).ok, 'no coins between the two Full Sail moves');
   ok(engine.act(1, { t: 'move', ship: f1.id, h: 0, clicks: 3 }).ok && f1.acted && f1.y < y0 - 1, 'second steer-and-sail (it turned back north) ends its turn');
   ok(engine.act(1, { t: 'coin', coin: 'brace', target: f2.id }).ok, 'a coin can be spent before the next ship acts');
+  // Coins stack on one ship, all but Brace: three Full Sails steer and sail
+  // four times, two Gunners fire three shots.
+  engine.newGame({ seats: [{ faction: 'queens_fleet', color: 0 }, { faction: 'corsairs', color: 1 }], setup: 'quick', table: 'round' });
+  const K = engine.G, [k1, k2] = K.players[1].ships;
+  K.terrain = []; Object.assign(K.players[1].coins, { fullsail: 3, gunner: 2, brace: 2 });
+  Object.assign(k1, { x: 40, y: 50, h: Math.PI / 2 }); Object.assign(k2, { x: 60, y: 110, h: Math.PI / 2 });
+  const fs = [1, 2, 3].map(() => engine.act(1, { t: 'coin', coin: 'fullsail', target: k1.id }).ok);
+  ok(fs.every(Boolean) && k1.fullSail === 4, `three Full Sails stack on one ship (${k1.fullSail - 1} on it)`);
+  let sails = 0;
+  while (!k1.acted && sails < 8) { if (!engine.act(1, { t: 'move', ship: k1.id, h: k1.h, clicks: 1 }).ok) break; sails++; }
+  ok(sails === 4 && k1.acted, `three Full Sails: it steers and sails four times (${sails})`);
+  ok(engine.act(1, { t: 'coin', coin: 'gunner', target: k2.id }).ok && engine.act(1, { t: 'coin', coin: 'gunner', target: k2.id }).ok && k2.gunner === 2, 'two Gunners stack on one ship');
+  const shots = [];
+  for (let i = 0; i < 4 && !(k2.stage === 'click'); i++) { shots.push(engine.act(1, { t: 'fire', ship: k2.id, source: 'ship', slot: 0, elev: 'flat' }).ok); }
+  ok(shots.length === 3 && shots.every(Boolean) && k2.stage === 'click', `two Gunners: it fires three times, then sails on (${shots.length})`);
+  engine.act(1, { t: 'move', ship: k2.id, h: k2.h, clicks: 1 });
+  const k3 = K.players[1].ships[2];
+  ok(engine.act(1, { t: 'coin', coin: 'brace', target: k3.id }).ok && !engine.act(1, { t: 'coin', coin: 'brace', target: k3.id }).ok, 'Brace does not stack: one per ship');
   // Treasure Fleet: three junks.
   engine.newGame({ seats: [{ faction: 'treasure_fleet', color: 0 }, { faction: 'corsairs', color: 1 }], setup: 'quick', table: 'round' });
   ok(engine.G.players[1].ships.length === 3, 'the Treasure Fleet fields three junks');

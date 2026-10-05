@@ -99,7 +99,7 @@ function aiNextAction(p) {
       return again && again.ev > 0.5 ? aiFireAction(s, again) : { t: 'skipShot', ship: s.id };
     }
     if (s.stage === 'click' && !s.acted) return aiSailOn(s, roles);
-    if (s.fullSail === 1 && !s.acted) return aiShipTurn(s, roles); // Full Sail's second steer-and-sail
+    if (s.sailing && !s.acted) return aiShipTurn(s, roles); // Full Sail's next steer-and-sail
   }
 
   if (coinWindowOpen(p)) {
@@ -171,9 +171,9 @@ function aiPlanIslands(p) {
   // unclaimed island is a short hop away and the island keeps another.
   // Rulebook v0.6: collecting no longer needs a ship there (the nearest one
   // collects from anywhere) and coins are not points, so a tactical captain
-  // only keeps a ship on an island with enemies close. The turtle test
-  // style and the Treasure Fleet, whose coins still score, keep every one.
-  const parkAll = styleOf(p) === 'turtle' || styleOf(p) === 'banker' || passiveOf(p) === 'harvest' || off('park');
+  // only keeps a ship on an island with enemies close. The turtle and banker
+  // test styles keep every one.
+  const parkAll = styleOf(p) === 'turtle' || styleOf(p) === 'banker' || off('park');
   const kept = new Set();
   for (const s of ships) {
     const own = touchingIslands(s).map(i => G.terrain[i]).find(t => t.owner === p);
@@ -284,10 +284,9 @@ function aiCoinChoice(p, roles, memo) {
   const me = G.players[p];
   const has = id => me.coins[id] > 0;
   const coin = (id, s, extra) => Object.assign({ t: 'coin', coin: id, target: s.id }, extra || {});
-  // Rulebook v0.6: coins are not points, only things to spend, so the
-  // tactical captain spends them. The Treasure Fleet's coins still score,
-  // so it keeps the old, careful habits.
-  const spend = tactical(p) && !off('spend') && passiveOf(p) !== 'harvest' && styleOf(p) !== 'banker';
+  // Rulebook v0.6: coins are worth little as points, so the tactical
+  // captain spends them, the Treasure Fleet's too.
+  const spend = tactical(p) && !off('spend') && styleOf(p) !== 'banker';
   const banker = styleOf(p) === 'banker';
   const reserve = spend ? 1 : 3;
   if (reviveAllowed(p) && coinTotal(p) >= 3) {
@@ -301,11 +300,11 @@ function aiCoinChoice(p, roles, memo) {
     if (!banker && !isDead(t) && has('boarding') && coinTargets(p, 'boarding').includes(t)) return coin('boarding', t);
   }
   if (has('repair')) {
+    // Repairs stack: a badly hurt ship takes as many as it needs, one fitting each.
     for (const s of me.ships.slice().sort((a, b) => a.fit - b.fit)) {
-      if (memo.used['repair' + s.id]) continue;
       // A repair also takes a prize back from whoever holds it: a point off them.
       const hurt = spend ? s.fit < s.maxFit : s.fit === 0 || s.fit <= s.maxFit - 2 || (s.fit < s.maxFit && s.fit <= 1);
-      if (hurt && coinTargets(p, 'repair').includes(s)) { memo.used['repair' + s.id] = 1; return coin('repair', s); }
+      if (hurt && coinTargets(p, 'repair').includes(s)) return coin('repair', s);
     }
   }
   if (has('brace')) {
@@ -320,48 +319,68 @@ function aiCoinChoice(p, roles, memo) {
   }
   if (has('evasive') && !banker) {
     for (const s of me.ships) {
-      if (isDead(s) || memo.used['ev' + s.id]) continue;
-      memo.used['ev' + s.id] = 1;
+      // Evasives stack: a ship one slide does not clear may take a second.
+      const key = 'ev' + s.id, n = memo.used[key] || 0;
+      if (isDead(s) || n < 0 || n >= 2) continue;
+      memo.used[key] = -1; // nothing more for this ship this turn, unless it slides below
       const plans = evasivePlans(s);
       // Slide a fragile ship out of a lane, or away from an edge it faces.
       const fragile = s.fit <= 1 && aiThreat(s, s) > 0;
       const cornered = aiEdgeRisk(s, s) >= 14;
       if (!fragile && !cornered) continue;
-      const side = ['port', 'stbd'].find(k => plans[k].moved > s.wid * 0.8 &&
-        (fragile ? aiThreat(s, plans[k].end) === 0 : aiEdgeRisk(s, Object.assign({}, plans[k].end, { h: s.h })) < 14));
-      if (side) return coin('evasive', s, { side });
+      const clear = k => (fragile ? aiThreat(s, plans[k].end) === 0 : aiEdgeRisk(s, Object.assign({}, plans[k].end, { h: s.h })) < 14);
+      // Clear in one slide; failing that, a slide that a second could finish.
+      const side = ['port', 'stbd'].find(k => plans[k].moved > s.wid * 0.8 && clear(k)) ||
+        (n === 0 && me.coins.evasive >= 2 ? ['port', 'stbd'].find(k => plans[k].moved > s.wid * 0.8) : null);
+      if (side) { memo.used[key] = n + 1; return coin('evasive', s, { side }); }
     }
   }
   // Skilled Gunner and Full Sail both want to know the best shots now.
   const shots = {};
   const shotOf = s => (s.id in shots ? shots[s.id] : (shots[s.id] = aiBestShot(s)));
   // Full Sail: a ship still a long way from where it is going, with no shot
-  // to take, covers twice the water.
+  // to take, covers twice the water. Full Sails stack (each adds a
+  // steer-and-sail), so a long run takes as many as it needs: coins saved up
+  // over several turns pay off as one long dash.
   if (has('fullsail') && spend) {
     const R = aiRoleObjects(roles);
     for (const s of coinTargets(p, 'fullsail')) {
-      if (memo.used['fs' + s.id]) continue;
-      memo.used['fs' + s.id] = 1;
-      const goal = R[s.id];
-      if (goal === 'collect' || touchingIslands(s).some(i => G.terrain[i].owner === p)) continue;
-      const sh = shotOf(s);
-      if (sh && sh.ev >= 2) continue;
-      const far = goal && typeof goal === 'object' ? dist(s.x, s.y, goal.x, goal.y) - goal.r :
-        enemyShips(p).reduce((m, e) => Math.min(m, dist(s.x, s.y, e.x, e.y)), Infinity) - 30;
-      if (far > s.moveCount * CLICK_LEN * 1.5) return coin('fullsail', s);
+      const key = 'fs' + s.id;
+      if (memo.used[key] === undefined) {
+        memo.used[key] = 0; // how many Full Sails this ship wants this turn
+        const goal = R[s.id];
+        if (goal === 'collect' || touchingIslands(s).some(i => G.terrain[i].owner === p)) continue;
+        const sh = shotOf(s);
+        if (sh && sh.ev >= 2) continue;
+        const far = goal && typeof goal === 'object' ? dist(s.x, s.y, goal.x, goal.y) - goal.r :
+          enemyShips(p).reduce((m, e) => Math.min(m, dist(s.x, s.y, e.x, e.y)), Infinity) - 30;
+        const run = s.moveCount * CLICK_LEN;
+        if (far > run * 1.5) memo.used[key] = Math.min(4, Math.ceil(far / run) - 1);
+      }
+      if ((s.fullSail ? s.fullSail - 1 : 0) < memo.used[key]) return coin('fullsail', s);
     }
   }
-  if (has('gunner') && !banker && coinTotal(p) >= reserve && !memo.used.gunner) {
-    memo.used.gunner = 1;
-    let best = null;
-    for (const s of me.ships) {
-      if (s.acted || s.gunner || s.noAction || roles[s.id] === 'collect') continue;
-      const sh = shotOf(s);
-      // Against Stone Hulls one ship firing twice is the way through.
-      const need = (tactical(p) && !off('gunner') && sh && sh.target && G.factions[sh.target.owner] === 'stone_fleet' ? 3 : 4) - (spend ? 1 : 0);
-      if (sh && sh.ev >= need && (!best || sh.ev > best.ev)) best = { s, ev: sh.ev };
+  if (has('gunner') && !banker && coinTotal(p) >= reserve) {
+    if (!memo.used.gunner) {
+      memo.used.gunner = { ship: null, want: 0 };
+      let best = null;
+      for (const s of me.ships) {
+        if (s.acted || s.noAction || roles[s.id] === 'collect') continue;
+        const sh = shotOf(s);
+        // Against Stone Hulls one ship firing more than once is the way through.
+        const need = (tactical(p) && !off('gunner') && sh && sh.target && G.factions[sh.target.owner] === 'stone_fleet' ? 3 : 4) - (spend ? 1 : 0);
+        if (sh && sh.ev >= need && (!best || sh.ev > best.ev)) best = { s, ev: sh.ev, t: sh.target };
+      }
+      if (best) {
+        // Gunners stack, one more shot each. Two (three shots) when that
+        // finishes the job: an undamaged Stone barge (one shot is ignored,
+        // the next cracks it) or a ship two fittings from sinking.
+        const t = best.t, stone = t && passiveOf(t.owner) === 'stone' && t.fit === t.maxFit && !touchingIslands(t).length;
+        memo.used.gunner = { ship: best.s.id, want: tactical(p) && t && (stone || t.fit === 2) ? 2 : 1 };
+      }
     }
-    if (best) return coin('gunner', best.s);
+    const g = memo.used.gunner, s = g.ship && shipById(g.ship);
+    if (s && (+s.gunner || 0) < g.want && coinTargets(p, 'gunner').includes(s)) return coin('gunner', s);
   }
   return null;
 }
@@ -403,7 +422,7 @@ function aiShipTurn(ship, roles) {
     // last island and enemies are coming. Otherwise the ship goes to work.
     const nearIsle = enemyShips(ship.owner).some(e => !isDead(e) && dist(e.x, e.y, own.x, own.y) - own.r < 25);
     const tacKeep = goal === 'collect' || (islandsHeld(ship.owner) <= 1 && nearIsle);
-    const keep = style === 'turtle' || style === 'banker' ? true : style === 'raider' ? (aiThreat(ship, ship) > 0 && ship.fit <= 1) : tactical(ship.owner) && !off('park') && passiveOf(ship.owner) !== 'harvest' ? tacKeep : goal === 'collect' || aiThreat(ship, ship) > 0 || islandsHeld(ship.owner) <= 1 || (tactical(ship.owner) && !off('keep') && typeof goal !== 'object');
+    const keep = style === 'turtle' || style === 'banker' ? true : style === 'raider' ? (aiThreat(ship, ship) > 0 && ship.fit <= 1) : tactical(ship.owner) && !off('park') ? tacKeep : goal === 'collect' || aiThreat(ship, ship) > 0 || islandsHeld(ship.owner) <= 1 || (tactical(ship.owner) && !off('keep') && typeof goal !== 'object');
     if (isleShot && isleShot.ev >= 3) return aiFireAction(ship, isleShot);
     // Firing the ship's own guns would mean sailing off the island after.
     const leave = style === 'turtle' || style === 'banker' ? 99 : style === 'raider' ? 2 : tactical(ship.owner) && !off('keep') ? 9 : 5;

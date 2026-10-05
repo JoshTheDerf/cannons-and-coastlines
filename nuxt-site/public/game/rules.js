@@ -69,7 +69,7 @@ function canSteer(s) { return canAct(s) && !isDead(s); }
 
 /** End the ship's current turn; a ship with more than one turn this round may have another. */
 function finishTurn(s) {
-  s.pending = null; s.shotsDone = 0; s.fullSail = 0;
+  s.pending = null; s.shotsDone = 0; s.fullSail = 0; s.sailing = false;
   s.turnsLeft = Math.max(0, (s.turnsLeft || 1) - 1);
   s.noAction = false; // a giver only gives up one action
   if (s.turnsLeft > 0) s.stage = 'action';
@@ -108,7 +108,8 @@ ACTIONS.move = (p, a) => {
   const clicks = clamp(Math.round(+a.clicks || 1), 1, moveCountAt(s, planRotate(s, h, pivotFor(s)).h));
   if (!doMove(s, h, clicks)) return;
   // Full Sail: the first steer-and-sail leaves the turn open for a second.
-  if (s.fullSail === 2) { s.fullSail = 1; return; }
+  // Full Sail: another steer-and-sail still to come (one per coin stacked on it).
+  if (s.fullSail > 1) { s.fullSail--; s.sailing = true; return; }
   finishTurn(s);
 };
 const underFullSail = s => !!s.fullSail;
@@ -123,7 +124,7 @@ function fireOriginFor(ship, F) {
 /** Firing is done: island guns and dead ships end the turn, a ship at sea still clicks. */
 function finishFiring(ship, source) {
   ship.pending = null;
-  ship.gunner = false; // Skilled Gunner covers a single turn
+  ship.gunner = 0; // Skilled Gunner covers a single turn
   if (source === 'island' || isDead(ship)) finishTurn(ship);
   else ship.stage = 'click';
 }
@@ -182,7 +183,8 @@ ACTIONS.fire = (p, a) => {
   checkLastFleet();
   s.shotsDone = (s.shotsDone || 0) + 1;
   s.lastSource = F.source; s.lastIsland = F.island ? F.island.id : null;
-  if (s.gunner && s.shotsDone < 2 && G.phase === 'play' && G.players[p].ships.includes(s)) { s.pending = 'shot2'; s.stage = 'action'; }
+  // Skilled Gunner: one more shot for each coin stacked on the ship.
+  if (s.shotsDone < 1 + (+s.gunner || 0) && G.phase === 'play' && G.players[p].ships.includes(s)) { s.pending = 'shot2'; s.stage = 'action'; }
   else if (G.players[p].ships.includes(s)) finishFiring(s, F.source);
 };
 
@@ -254,7 +256,7 @@ ACTIONS.scuttle = (p, a) => {
  */
 function coinWindowOpen(p) {
   return !!(G && G.phase === 'play' && G.active === p &&
-    G.players[p].ships.every(s => s.acted || (s.stage === 'action' && !s.pending && s.fullSail !== 1)));
+    G.players[p].ships.every(s => s.acted || (s.stage === 'action' && !s.pending && !s.sailing)));
 }
 
 function touchingOwnShip(p, target) {
@@ -269,10 +271,12 @@ function coinTargets(p, coinId) {
   const mine = G.players[p].ships, theirs = enemyShips(p);
   const coins = G.players[p].coins;
   switch (coinId) {
+    // Every coin but Brace stacks on one ship: each Gunner adds a shot, each
+    // Full Sail a steer-and-sail (Evasive, Repair and Boarding each act at once).
     case 'brace': return mine.filter(s => !s.braced);
     case 'evasive': return mine.filter(s => !isDead(s) && !s.acted);
-    case 'gunner': return mine.filter(s => !s.acted && !s.gunner && !s.noAction && !s.fullSail);
-    case 'fullsail': return mine.filter(s => !isDead(s) && canAct(s) && !s.fullSail && !s.gunner && (s.turnsLeft || 1) === 1);
+    case 'gunner': return mine.filter(s => !s.acted && !s.noAction && !s.fullSail);
+    case 'fullsail': return mine.filter(s => !isDead(s) && canAct(s) && !s.sailing && !s.gunner && (s.turnsLeft || 1) === 1);
     case 'repair': {
       const own = mine.filter(s => s.fit < s.maxFit && (s.fit > 0 || touchingOwnShip(p, s)));
       const caps = coins.boarding > 0 ? theirs.filter(s => isDead(s) && touchingOwnShip(p, s)) : [];
@@ -312,13 +316,15 @@ function capture(p, target) {
   returnPrize(target, 'fitting');
   // It joins the fleet and may act on the following turn.
   target.acted = true; target.turnsLeft = 0; target.stage = null;
-  target.pending = null; target.noAction = false; target.gunner = false;
+  target.pending = null; target.noAction = false; target.gunner = 0;
   target.touchPrev = [];
   G.players[p].ships.push(target);
   ev({ e: 'capture', p, was, ship: target.id, from: from.id, msg: `${target.name} captured! It joins the fleet next turn.` });
   plunder(p, target);
   checkLastFleet();
 }
+
+const timesWord = n => (n === 2 ? 'twice' : `${n} times`);
 
 ACTIONS.coin = (p, a) => {
   need(coinWindowOpen(p), 'Coins are spent between ships, before a ship starts its action.');
@@ -335,12 +341,13 @@ ACTIONS.coin = (p, a) => {
       ev(Object.assign(at, { msg: `${target.name} braces for impact.` }));
       break;
     case 'gunner':
-      payCoin(p, id); target.gunner = true;
-      ev(Object.assign(at, { msg: `${target.name} will fire twice.` }));
+      payCoin(p, id); target.gunner = (+target.gunner || 0) + 1;
+      ev(Object.assign(at, { msg: `${target.name} will fire ${timesWord(1 + target.gunner)}.` }));
       break;
     case 'fullsail':
-      payCoin(p, id); target.fullSail = 2;
-      ev(Object.assign(at, { msg: `${target.name} crowds on sail: it will steer and sail twice.` }));
+      payCoin(p, id); target.fullSail = target.fullSail ? target.fullSail + 1 : 2;
+      target.fullSailTotal = target.fullSail;
+      ev(Object.assign(at, { msg: `${target.name} crowds on sail: it will steer and sail ${timesWord(target.fullSail)}.` }));
       break;
     case 'repair':
       if (target.owner !== p) { capture(p, target); break; }
@@ -436,11 +443,11 @@ ACTIONS.declare = p => {
 function autoSail(p) {
   for (const s of G.players[p].ships.slice()) {
     let guard = 0;
-    while (G.phase === 'play' && !s.acted && G.players[p].ships.includes(s) && guard++ < 8) {
+    while (G.phase === 'play' && !s.acted && G.players[p].ships.includes(s) && guard++ < 16) {
       if (s.pending === 'shot2') { finishFiring(s, s.lastSource || 'ship'); continue; }
       if (isDead(s)) { finishTurn(s); continue; }
       if (!doMove(s, s.h, 1, `${s.name} sails on.`)) break;
-      if (s.fullSail === 2) { s.fullSail = 1; continue; }
+      if (s.fullSail > 1) { s.fullSail--; s.sailing = true; continue; }
       finishTurn(s);
     }
   }

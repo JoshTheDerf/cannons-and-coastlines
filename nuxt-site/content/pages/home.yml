@@ -72,7 +72,8 @@ howToPlay:
           touching it, facing in. Two players sit diagonally across a folding
           table, or a quarter of the way round a round one.
         - >-
-          Each player puts their 20 coins into a bag and gives it a shake.
+          Each player keeps back their fleet's favoured coins (on its faction
+          card), puts the rest of their 20 coins into a bag and gives it a shake.
           The youngest player goes first.
       table:
         head: [Players, Islands]
