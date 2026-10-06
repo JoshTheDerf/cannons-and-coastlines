@@ -161,11 +161,12 @@ fleets:
       set: islander-set
       ships: 5
       shipType: catamarans
-      fittings: 1 fitting each (a short mast)
+      fittings: 2 fittings each (a short mast, 1 cargo)
       parts:
         - { part: Hull, file: ship-islander.stl, each: 1, color: hull }
         - { part: Sail, file: sail-islanders.stl, each: 1, color: sails }
         - { part: Short mast, file: mast-short.stl, each: 1, color: masts, base: true }
+        - { part: Cargo, file: cargo.stl, each: 1, color: cargo, base: true }
         - { part: Movement wheel, file: movement-wheel.stl, each: 1, color: wheels, base: true }
         - { part: Cannon, file: cannon.stl, qty: 4, color: cannons, base: true }
         - { part: Cannonball, file: cannonball.stl, qty: 10, color: cannonballs, base: true }

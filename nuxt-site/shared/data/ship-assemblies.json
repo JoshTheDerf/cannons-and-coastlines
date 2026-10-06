@@ -749,10 +749,11 @@
         "color": "pine"
       },
       "placements": [
-        { "part": "mast-short", "at": [21.99, 0.26, 1.5], "rotZ": -90, "color": "wood" },
+        { "part": "mast-short", "at": [22.99, 0.26, 1.5], "rotZ": -90, "color": "wood" },
         { "part": "sail-islanders", "onMast": 0, "sailBottom": 15.5, "chordRatio": 0.88, "color": "white" },
         { "part": "cannon", "at": [59.5, 0.26, 21.45], "rotZ": 0, "color": "gunmetal" },
-        { "part": "coin-brace-for-impact", "at": [-1.45, 0.26, 16.5], "rotX": 90, "rotZ": 90, "color": "gold" },
+        { "part": "cargo", "at": [-1.0, 0.26, 12.2], "color": "wood" },
+        { "part": "coin-brace-for-impact", "at": [13.4, 0.26, 10.5], "rotX": 90, "rotZ": 90, "color": "gold" },
         { "part": "movement-wheel", "at": [44.94, 0.16, -0.5], "color": "grey" }
       ],
       "sockets": {
@@ -760,7 +761,7 @@
           { "at": [59.5, 0.26, 21.45], "rotZ": 0, "where": "stern gun arc, convex side toward the bow" }
         ],
         "coin": [
-          { "at": [-1.45, 0.26, 9.0], "along": "y" }
+          { "at": [13.4, 0.26, 3.0], "along": "y" }
         ]
       }
     }
