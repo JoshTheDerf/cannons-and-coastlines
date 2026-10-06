@@ -724,7 +724,7 @@
    ],
    "plates": 1,
    "objects": 5,
-   "hash": "7295da5abe6c7454"
+   "hash": "c6f36cd29ba39ef4"
   },
   {
    "fleet": "islanders",
@@ -744,11 +744,11 @@
    ],
    "plates": 1,
    "objects": 5,
-   "hash": "a71a1e6aa13193db"
+   "hash": "b70c780d739bd426"
   },
   {
    "fleet": "islanders",
-   "file": "short-mast-5.3mf",
+   "file": "short-mast-5-cargo-5.3mf",
    "set": "base-set",
    "paid": false,
    "own": false,
@@ -760,11 +760,16 @@
      "part": "Short mast",
      "qty": 5,
      "supports": false
+    },
+    {
+     "part": "Cargo",
+     "qty": 5,
+     "supports": false
     }
    ],
    "plates": 1,
-   "objects": 5,
-   "hash": "ba12cfbc19b74fcb"
+   "objects": 10,
+   "hash": "65c4745e944e8a96"
   },
   {
    "fleet": "islanders",
@@ -843,7 +848,7 @@
     },
     {
      "part": "Cargo",
-     "qty": 18,
+     "qty": 23,
      "supports": false
     },
     {
@@ -858,8 +863,8 @@
     }
    ],
    "plates": 1,
-   "objects": 47,
-   "hash": "58dbcaed5ae4cb63"
+   "objects": 52,
+   "hash": "624ab217113c1d7f"
   },
   {
    "fleet": "all-fleets",
